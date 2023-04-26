@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
+using Microsoft.Xna.Framework;
+using Monocle;
+using TowerFall;
 
 namespace FortRise;
 
@@ -9,36 +13,123 @@ public static class RiseCore
 {
     private static List<Assembly> ModAssemblies = new List<Assembly>();
 
+    private static Type[] Types;
+
     public readonly static Type[] EmptyTypeArray = new Type[0];
     public readonly static object[] EmptyObjectArray = new object[0];
 
+    internal static void Register(this RiseModule module) 
+    {
+        foreach (var type in module.GetType().Assembly.GetTypes()) 
+        {
+            if (type is null)
+                continue;
+
+            foreach (EnemyAttribute attrib in type.GetCustomAttributes<EnemyAttribute>()) 
+            {
+                if (attrib is null)
+                    continue;
+                var name = attrib.Name;
+                var arg = attrib.FuncArg;
+                EnemyDataArg dataArg = (EnemyDataArg)
+                    type.GetMethod(arg).Invoke(null, Array.Empty<object>());
+
+                ConstructorInfo ctor;
+                EnemyLoader loader = null;
+
+                ctor = type.GetConstructor(
+                    new Type[] { typeof(Vector2), typeof(Facing), typeof(int), typeof(int), typeof(int), typeof(ArrowTypes) }
+                );
+                if (ctor != null) 
+                {
+                    loader = (position, facing) => {
+                        var invoked = (patch_Enemy)ctor.Invoke(new object[] {
+                            position,
+                            facing,
+                            dataArg.states,
+                            dataArg.health,
+                            dataArg.bounty,
+                            dataArg.arrows
+                        });
+                        invoked.Load(dataArg);
+                        return invoked;
+                    };
+                    goto Loaded;
+                }
+                ctor = type.GetConstructor(
+                    new Type[] { typeof(Vector2), typeof(Facing), typeof(Slime.SlimeColors) }
+                );
+                if (ctor != null) 
+                {
+                    loader = (position, facing) => {
+                        var invoked = (patch_Enemy)ctor.Invoke(new object[] {
+                            position,
+                            facing,
+                            Slime.SlimeColors.Red
+                        });
+                        invoked.Load(dataArg);
+                        return invoked;
+                    };
+                    goto Loaded;
+                }
+                Loaded:
+                patch_QuestSpawnPortal.Loader.Add(name, loader);
+            }
+        }
+    }
+
     internal static void ModuleStart() 
     {
-        try 
+        if (!File.Exists("Mods/ModsList.txt")) 
         {
-            var allLines = File.ReadAllLines("Mods/ModList.txt");
+            using var x = File.CreateText("Mods/ModsList.txt");
+            x.Write("");
+        }
+        var allLines = File.ReadAllLines("Mods/ModsList.txt");
+        if (allLines.Length == 0) 
+        {
+            Types = EmptyTypeArray;
+        }
+        else 
+        {
+            Types = new Type[allLines.Length];
             for (int i = 0; i < allLines.Length; i++) 
             {
                 if (allLines[i] == string.Empty) { continue; }
-                Assembly asm = Assembly.LoadFile("Mods/" + allLines[i]);
+                if (!File.Exists(Path.GetFullPath("Mods/" + allLines[i])))
+                    continue;
+                Assembly asm = Assembly.LoadFile(Path.GetFullPath("Mods/" + allLines[i]));
                 ModAssemblies.Add(asm);
                 Type t = asm.GetType("Entry");
-                var obj = Activator.CreateInstance(t);
+                Types[i] = t;
+                RiseModule obj = (RiseModule)Activator.CreateInstance(t);
+                obj.Register();
                 var method = t.GetMethod("Load");
                 method.Invoke(obj, null);
             }
         }
-        catch (Exception) 
-        {
+    }
 
+    internal static void LogAllTypes() 
+    {
+        Commands commands = Engine.Instance.Commands;
+        int i = 0;
+        foreach (var t in Types) 
+        {
+            if (t is null)
+                continue;
+            commands.Log(t.Assembly.FullName);
+            i++;
         }
+        commands.Log($"{i} total of mods loaded");
     }
 
     internal static void LoadContent() 
     {
-        foreach (var modAssembly in ModAssemblies) 
+        foreach (var t in Types) 
         {
-            Type t = modAssembly.GetType("Entry");
+            if (t is null)
+                continue;
             var obj = Activator.CreateInstance(t);
             var method = t.GetMethod("LoadContent");
             method.Invoke(obj, null);
@@ -47,9 +138,10 @@ public static class RiseCore
 
     internal static void Initialize() 
     {
-        foreach (var modAssembly in ModAssemblies) 
+        foreach (var t in Types) 
         {
-            Type t = modAssembly.GetType("Entry");
+            if (t is null)
+                continue;
             var obj = Activator.CreateInstance(t);
             var method = t.GetMethod("Initialize");
             method.Invoke(obj, null);
@@ -58,23 +150,12 @@ public static class RiseCore
 
     internal static void ModuleEnd() 
     {
-        foreach (var modAssembly in ModAssemblies) 
+        foreach (var t in Types) 
         {
-            Type t = modAssembly.GetType("Entry");
+            if (t is null)
+                continue;
             var obj = Activator.CreateInstance(t);
             var method = t.GetMethod("Unload");
-            method.Invoke(obj, null);
-        }
-    }
-
-    private static void CallModuleMethod(string methodName) 
-    {
-        if (ModAssemblies.Count < 1) { return; }
-        foreach (var assembly in ModAssemblies) 
-        {
-            Type t = assembly.GetType("Entry");
-            object obj = Activator.CreateInstance(t);
-            var method = t.GetMethod(methodName);
             method.Invoke(obj, null);
         }
     }

@@ -1,10 +1,25 @@
 using System;
 using System.Xml;
+using System.Reflection;
 
 namespace Monocle;
 
 public static class patch_Calc 
 {
+    public static Delegate GetMethod<T>(object obj, string method) where T : class 
+    {
+        if (obj.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null)
+        {
+            return Delegate.CreateDelegate(typeof(T), obj, method);
+        }
+        if (obj.GetType().BaseType
+            .GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null)
+        {
+            return Delegate.CreateDelegate(typeof(T), obj, method);
+        }
+        return null;
+    }
+
     public static T[] ChildEnumArray<T>(this XmlElement xml, string childName)
     where T : struct
     {

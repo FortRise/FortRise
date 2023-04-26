@@ -9,9 +9,12 @@ using MonoMod;
 
 namespace TowerFall;
 
+public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
+
 public class patch_QuestSpawnPortal : QuestSpawnPortal
 {
     private Queue<string> toSpawn;
+    public static Dictionary<string, EnemyLoader> Loader = new();
 
     private bool autoDisappear;
     private Facing lastFacing;
@@ -72,8 +75,11 @@ public class patch_QuestSpawnPortal : QuestSpawnPortal
         }
 
         var name = toSpawn.Dequeue();
-
-        if (name.Contains("Skeleton") || name.Contains("Jester")) 
+        if (Loader.TryGetValue(name, out EnemyLoader loader)) 
+        {
+            Level.Add(loader?.Invoke(Position + new Vector2(0f, 2f), facing));
+        }
+        else if (name.Contains("Skeleton") || name.Contains("Jester")) 
         {
             ArrowTypes arrows = ArrowTypes.Normal;
             bool hasShields = false;

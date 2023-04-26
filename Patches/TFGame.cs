@@ -8,27 +8,29 @@ public class patch_TFGame : TFGame
     {
     }
 
+    public extern static void orig_Main(string[] args) ;
+
+    public static void Main(string[] args) 
+    {
+        orig_Main(args);
+        FortRise.RiseCore.ModuleEnd();
+    }
+
     protected extern void orig_Initialize();
 
     protected override void Initialize() 
     {
+        FortRise.RiseCore.ModuleStart();
         FortRise.RiseCore.Initialize();
         orig_Initialize();
-    }
-
-    public static extern void orig_Load();
-
-    public static void Load() 
-    {
-        FortRise.RiseCore.ModuleStart();
-        orig_Load();
+        FortRise.RiseCore.LogAllTypes();
     }
 
     protected extern void orig_LoadContent();
 
     protected override void LoadContent()
     {
-        FortRise.RiseCore.ModuleEnd();
+        FortRise.RiseCore.LoadContent();
         orig_LoadContent();
     }
 
@@ -36,7 +38,6 @@ public class patch_TFGame : TFGame
 
     protected override void UnloadContent()
     {
-        FortRise.RiseCore.ModuleEnd();
         orig_UnloadContent();
     }
 }
