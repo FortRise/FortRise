@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <NoWarn>$(NoWarn);CS0414</NoWarn>
+    <NoWarn>$(NoWarn);CS0649</NoWarn>
+    <NoWarn>$(NoWarn);CS0169</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TeuJson" Version="3.1.2" />
+    <PackageReference Include="TeuJson.Generator" Version="3.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms"/>
+    <Reference Include="TowerFall">
+      <HintPath>..\..\orig\TowerFall.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework">
+      <HintPath>..\lib\Microsoft.Xna.Framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics">
+      <HintPath>..\lib\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <HintPath>..\lib\Microsoft.Xna.Framework.Game.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb">
+      <HintPath>..\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb">
+      <HintPath>..\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod">
+      <HintPath>..\MonoMod.exe</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>..\MonoMod.RuntimeDetour.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\MonoMod.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="MMHOOK_TowerFall">
+      <HintPath>..\..\MMHOOK_TowerFall.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>..\..\Steamworks.NET.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
