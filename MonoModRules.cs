@@ -11,8 +11,8 @@ namespace MonoMod;
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMapSceneBegin))]
 internal class PatchMapSceneBegin : Attribute {}
 
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchOnPlayerDeath))]
-internal class PatchOnPlayerDeath : Attribute {}
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldRoundLogicOnPlayerDeath))]
+internal class PatchDarkWorldRoundLogicOnPlayerDeath : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldLevelSelectOverlayCtor))]
 internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
@@ -22,6 +22,9 @@ internal class PatchDarkWorldCompleteSequence : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
 internal class PatchDarkWorldControlLevelSequence : Attribute {}
+
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
+internal class PatchSessionStartGame : Attribute {}
 
 
 internal static partial class MonoModRules 
@@ -36,29 +39,50 @@ internal static partial class MonoModRules
     }
 
 
-    public static void PatchOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 
+    public static void PatchDarkWorldRoundLogicOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 
+    {
+        var SaveData = ctx.Module.Assembly.MainModule.GetType("TowerFall", "SaveData");
+        var AdventureActive = SaveData.FindField("AdventureActive");
+        var cursor = new ILCursor(ctx);
+        var label = ctx.DefineLabel();
+
+        cursor.GotoNext(
+            MoveType.After,
+            instr => instr.MatchAdd(),
+            instr => instr.MatchStfld("TowerFall.DarkWorldTowerStats", "Deaths")
+        );
+        cursor.MarkLabel(label);
+
+        cursor.GotoPrev(instr => instr.MatchCallOrCallvirt("TowerFall.RoundLogic", "OnPlayerDeath"));
+        cursor.GotoNext();
+        cursor.Emit(OpCodes.Ldsfld, AdventureActive);
+        cursor.Emit(OpCodes.Brtrue_S, label);
+    }
+
+    public static void PatchSessionStartGame(ILContext ctx, CustomAttribute attrib) 
     {
         var SaveData = ctx.Module.Assembly.MainModule.GetType("TowerFall", "SaveData");
         var AdventureActive = SaveData.FindField("AdventureActive");
         var cursor = new ILCursor(ctx);
 
-        var label = ctx.DefineLabel();
+        cursor.GotoNext(
+            MoveType.After,
+            instr => instr.MatchAdd(),
+            instr => instr.MatchStfld("TowerFall.DarkWorldTowerStats", "Attempts")
+        );
+        var label = ctx.DefineLabel(cursor.Next);
 
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdarg(3));
-        cursor.GotoNext();
-        cursor.GotoNext();
-        cursor.GotoNext();
-        
+        // cursor.GotoPrev(
+        //     MoveType.After,
+        //     instr => instr.MatchLdfld("TowerFall.MatchSettings", "Mode"),
+        //     instr => instr.MatchLdcI4(1)
+        // );
+        // cursor.Remove();
+        // cursor.Emit(OpCodes.Bne_Un_S, label);
+
+        cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
-
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdarg(0));
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdarg(0));
-        cursor.MarkLabel(label);
-        cursor.GotoPrev(MoveType.Before, instr => instr.MatchLdarg(3));
-        cursor.GotoNext();
-        cursor.GotoNext();
-        cursor.GotoNext();
-        cursor.Emit(OpCodes.Brfalse_S, label);
+        cursor.Emit(OpCodes.Brtrue_S, label);
     }
 
     public static void PatchDarkWorldControlLevelSequence(MethodDefinition method, CustomAttribute attrib) 

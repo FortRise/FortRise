@@ -41,35 +41,35 @@ public sealed class AdventureListLoader : Entity
     public override void Update()
     {
         base.Update();
-        if (!finished) 
+        if (finished)
+            return;
+        
+        finished = true;
+        if (buttons.Count > 0)
         {
-            finished = true;
-            if (buttons.Count > 0) 
+            foreach (var button in buttons)
             {
-                foreach (var button in buttons) 
-                {
-                    map.Buttons.Add(button);
-                    map.Add(button);
-                }
-                map.LinkButtonsList();
-                map.InitButtons(map.Buttons[0]);
-                map.ScrollToButton(map.Selection);
-                introTween.Stop();
-                var start = Position;
-                var end = new Vector2(15f, 280f);
-                var tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 10, true);
-                tween.OnUpdate = t =>
-                {
-                    Position= Vector2.Lerp(start, end, t.Eased);
-                };
-                tween.OnComplete = t => 
-                {
-                    RemoveSelf();
-                };
-                Add(tween);
+                map.Buttons.Add(button);
+                map.Add(button);
             }
-            spin += 0.19634955f * Engine.TimeMult;
+            map.LinkButtonsList();
+            map.InitButtons(map.Buttons[0]);
+            map.ScrollToButton(map.Selection);
+            introTween.Stop();
+            var start = Position;
+            var end = new Vector2(15f, 280f);
+            var tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 10, true);
+            tween.OnUpdate = t =>
+            {
+                Position = Vector2.Lerp(start, end, t.Eased);
+            };
+            tween.OnComplete = t =>
+            {
+                RemoveSelf();
+            };
+            Add(tween);
         }
+        spin += 0.19634955f * Engine.TimeMult;
     }
 
     private void Turn() 
