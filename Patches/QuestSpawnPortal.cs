@@ -108,7 +108,7 @@ public class patch_QuestSpawnPortal : QuestSpawnPortal
             Level.Add(new Ghost(Position, facing, Nodes, Ghost.GhostTypes.Fire));
             break;
         case "GreenElemental":
-            Level.Add(new Ghost(Position, facing, Nodes, Ghost.GhostTypes.Green));
+            Level.Add(new Ghost(Position, facing, Nodes, Ghost.GhostTypes.GreenFire));
             break;
         case "Ghost":
             Level.Add(new Ghost(Position, facing, Nodes, Ghost.GhostTypes.Blue));
