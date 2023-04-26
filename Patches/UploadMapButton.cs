@@ -23,11 +23,11 @@ public sealed class UploadMapButton : patch_MapButton
         if (fileDialog.ShowDialog() != DialogResult.Cancel && !string.IsNullOrEmpty(fileDialog.SelectedPath)) 
         {
             var selectedPath = fileDialog.SelectedPath.Replace("\\", "/");
-            if (!patch_GameData.AdventureLevelsLoaded.Contains(selectedPath) && 
+            if (!patch_GameData.AdventureWorldTowersLoaded.Contains(selectedPath) && 
                 patch_GameData.LoadAdventureLevels(selectedPath, true))
             {
-                patch_GameData.AdventureLevelsLoaded.Add(selectedPath);
-                var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureLevelsLoaded)
+                patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
+                var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureWorldTowersLoaded)
                     .ToString(JsonTextWriterOptions.Default);
                 using var fs = File.Create("adventureCache.json");
                 using TextWriter tw = new StreamWriter(fs);

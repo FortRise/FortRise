@@ -14,7 +14,7 @@ public static class patch_GameData
 {
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldData> AdventureWorldTowers;
-    public static List<string> AdventureLevelsLoaded = new();
+    public static List<string> AdventureWorldTowersLoaded = new();
 
 
     public static extern void orig_Load();
