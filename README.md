@@ -1,5 +1,5 @@
 # TowerFall Adventure
-It's a mod for [TowerFall Dark World](http://www.towerfall-game.com/) created by Matt Thorson. 
+It's a mod for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Matt Thorson). 
 
 TowerFall Adventure is a mod for Dark World that loads level with ~~both *.oel file~~ (Not yet), and *.json file with a workshop-like button.
 
