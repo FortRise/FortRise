@@ -10,11 +10,15 @@ executable. After that, you can now play the mod and also create levels.
 
 
 ## TODO
-[x] Custom skeleton variant.
-[] Dynamically activated variants.
-[] Level progress for adventure levels.
-[] Load *.oel files.
-[] TowerFall Editor improvement includes loading *.tower files.
+
+- [x] Custom skeleton variant.
+- [ ] Dynamically activated variants.
+  - [x] Always Dark.
+  - [ ] Slippery Floors.
+  - [ ] Slow Movement.
+- [ ] Level progress for adventure levels.
+- [ ] Load *.oel files.
+- [ ] TowerFall Editor improvement includes loading *.tower files.
 
 ## NOT TODO
 + Custom enemy variant.
