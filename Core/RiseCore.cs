@@ -34,6 +34,39 @@ public static class RiseCore
         }
     }
 
+    internal static void LoadContent() 
+    {
+        foreach (var modAssembly in ModAssemblies) 
+        {
+            Type t = modAssembly.GetType("Entry");
+            var obj = Activator.CreateInstance(t);
+            var method = t.GetMethod("LoadContent");
+            method.Invoke(obj, null);
+        }
+    }
+
+    internal static void Initialize() 
+    {
+        foreach (var modAssembly in ModAssemblies) 
+        {
+            Type t = modAssembly.GetType("Entry");
+            var obj = Activator.CreateInstance(t);
+            var method = t.GetMethod("Initialize");
+            method.Invoke(obj, null);
+        }
+    }
+
+    internal static void ModuleEnd() 
+    {
+        foreach (var modAssembly in ModAssemblies) 
+        {
+            Type t = modAssembly.GetType("Entry");
+            var obj = Activator.CreateInstance(t);
+            var method = t.GetMethod("Unload");
+            method.Invoke(obj, null);
+        }
+    }
+
     private static void CallModuleMethod(string methodName) 
     {
         if (ModAssemblies.Count < 1) { return; }
