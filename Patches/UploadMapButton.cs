@@ -5,9 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Monocle;
-using MonoMod;
 using TeuJson;
-using TowerFall.Editor;
 
 namespace TowerFall;
 
@@ -25,17 +23,15 @@ public sealed class UploadMapButton : patch_MapButton
         if (fileDialog.ShowDialog() != DialogResult.Cancel && !string.IsNullOrEmpty(fileDialog.SelectedPath)) 
         {
             var selectedPath = fileDialog.SelectedPath.Replace("\\", "/");
-            if (!patch_GameData.AdventureLevelsLoaded.Contains(selectedPath)) 
+            if (!patch_GameData.AdventureLevelsLoaded.Contains(selectedPath) && 
+                patch_GameData.LoadAdventureLevels(selectedPath, true))
             {
-                if (patch_GameData.LoadAdventureLevels(selectedPath, true)) 
-                {
-                    patch_GameData.AdventureLevelsLoaded.Add(selectedPath);
-                    var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureLevelsLoaded)
-                        .ToString(JsonTextWriterOptions.Default);
-                    using var fs = File.Create("adventureCache.json");
-                    using TextWriter tw = new StreamWriter(fs);
-                    tw.Write(jArray);
-                }
+                patch_GameData.AdventureLevelsLoaded.Add(selectedPath);
+                var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureLevelsLoaded)
+                    .ToString(JsonTextWriterOptions.Default);
+                using var fs = File.Create("adventureCache.json");
+                using TextWriter tw = new StreamWriter(fs);
+                tw.Write(jArray);
             }
         }
         Map.Selection = null;

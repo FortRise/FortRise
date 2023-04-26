@@ -12,28 +12,11 @@ public class patch_DarkWorldRoundLogic : RoundLogic
     }
 
     private float autoReviveCounter;
-    // public patch_DarkWorldRoundLogic(Session session) : base(session, false)
-    // {
-    // }
-
-    // public patch_Session Session { get; private set; }
-    // public int Points 
-    // {
-    //     get => Session.Points;
-    //     set => Session.Points = value;
-    // }
 
     public DarkWorldControl Control { get; private set; }
 
 
-    // public extern void orig_RegisterEnemyKill(Vector2 at, int killerIndex, int points);
-
-    // public void RegisterEnemyKill(Vector2 at, int killerIndex, int points) 
-    // {
-    //     orig_RegisterEnemyKill(at, killerIndex, points);
-    //     Points += points;
-    // }
-
+    // TODO ILFied
     public override void OnPlayerDeath(Player player, PlayerCorpse corpse, int playerIndex, DeathCause cause, Vector2 position, int killerIndex)
     {
         base.OnPlayerDeath(player, corpse, playerIndex, cause, position, killerIndex);

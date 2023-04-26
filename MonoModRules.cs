@@ -8,15 +8,6 @@ using MonoMod.Utils;
 
 namespace MonoMod;
 
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchCreateRollcall))]
-internal class PatchCreateRollcall : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGetReadyState))]
-internal class PatchGetReadyState : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchScreenTitleConstructor))]
-internal class PatchScreenTitleConstructor : Attribute {}
-
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMapSceneBegin))]
 internal class PatchMapSceneBegin : Attribute {}
 
@@ -28,9 +19,6 @@ internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldCompleteSequence))]
 internal class PatchDarkWorldCompleteSequence : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlNormalLevelSequence))]
-internal class PatchDarkWorldControlNormalLevelSequence : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
 internal class PatchDarkWorldControlLevelSequence : Attribute {}
@@ -47,27 +35,6 @@ internal static partial class MonoModRules
         MonoModRule.Modder.PostProcessors += PostProcessor;
     }
 
-
-
-    public static void PatchCreateRollcall(ILContext ctx, CustomAttribute attrib) 
-    {
-        FieldDefinition TowerFall_MainMenu_RollcallMode = ctx.Method.DeclaringType.FindField("RollcallMode");
-        var cursor = new ILCursor(ctx);
-        /*
-        ldsfld      Skipped
-        ldc.i4.3    Skipped
-        beq.s       Skipped
-        ldsfld      Skipped
-        ldc.i4.1    GotoNext
-        */
-        ILLabel label = ctx.DefineLabel();
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
-        cursor.MarkLabel(label);
-        cursor.GotoPrev(MoveType.After, instr => instr.MatchLdcI4(1));
-        cursor.Emit(OpCodes.Beq_S, label);
-        cursor.Emit(OpCodes.Ldsfld, TowerFall_MainMenu_RollcallMode);
-        cursor.Emit(OpCodes.Ldc_I4, 4);
-    }
 
     public static void PatchOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 
     {
@@ -92,46 +59,6 @@ internal static partial class MonoModRules
         cursor.GotoNext();
         cursor.GotoNext();
         cursor.Emit(OpCodes.Brfalse_S, label);
-    }
-
-    public static void PatchGetReadyState(ILContext ctx, CustomAttribute attrib) 
-    {
-        var TowerFall_MainMenu = ctx.Module.Assembly.MainModule.GetType("TowerFall", "MainMenu");
-        var MainMenu_RollcallMode = TowerFall_MainMenu.FindField("RollcallMode");
-        var TowerFall_TFGame = ctx.Module.Assembly.MainModule.GetType("TowerFall", "TFGame");
-        var cursor = new ILCursor(ctx);
-        /*
-        ldsfld      Skipped
-        ldc.i4.3    Skipped
-        beq.s       Skipped
-        ldsfld      Skipped
-        ldc.i4.1    GotoNext 
-        */
-        ILLabel label = ctx.DefineLabel();
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchCall("TowerFall.TFGame", "get_PlayerAmount"));
-        cursor.MarkLabel(label);
-        cursor.GotoPrev(MoveType.After, instr => instr.MatchLdcI4(1));
-        cursor.Emit(OpCodes.Beq_S, label);
-        cursor.Emit(OpCodes.Ldsfld, MainMenu_RollcallMode);
-        cursor.Emit(OpCodes.Ldc_I4, 4);
-    }
-
-    public static void PatchDarkWorldControlNormalLevelSequence(MethodDefinition method, CustomAttribute attrib) 
-    {
-        MethodDefinition complete = method.GetEnumeratorMoveNext();
-
-        new ILContext(complete).Invoke(ctx => {
-            var TowerFall_QuestSpawnPortal = ctx.Module.Assembly.MainModule.GetType("TowerFall", "QuestSpawnPortal");
-            var AppearAndSpawn = TowerFall_QuestSpawnPortal.FindMethod("System.Void AppearAndSpawn(TowerFall.DarkWorldTowerData/EnemyData)");
-
-            var cursor = new ILCursor(ctx);
-            cursor.GotoNext(
-                instr => instr.MatchLdfld("TowerFall.DarkWorldTowerData/EnemyData", "Enemy"));
-            
-            cursor.Remove();
-            cursor.Remove();
-            cursor.Emit(OpCodes.Callvirt, AppearAndSpawn);
-        });
     }
 
     public static void PatchDarkWorldControlLevelSequence(MethodDefinition method, CustomAttribute attrib) 
@@ -230,34 +157,6 @@ internal static partial class MonoModRules
         cursor.MarkLabel(label);
         cursor.GotoPrev(MoveType.After, instr => instr.MatchCallvirt(get_Data));
         cursor.Emit(OpCodes.Brfalse_S, label);
-    }
-
-    public static void PatchScreenTitleConstructor(ILContext ctx, CustomAttribute attrib)
-    {
-        var TowerFall_MainMenu = ctx.Module.Assembly.MainModule.GetType("TowerFall", "MainMenu");
-        var MainMenu_RollcallMode = TowerFall_MainMenu.FindField("RollcallMode");
-        /*
-        ret GotoNext
-        ...
-        ret GotoNext
-        ...
-        ldarg.1 Skipped
-        ldc.i4.5 Skipped
-        bne.un.s Skipped
-        ldsfld Skipped
-        ldc.i4.2 GotoNext 
-        bne.un.s Marked
-        */
-        ILCursor cursor = new ILCursor(ctx);
-        ILLabel label = ctx.DefineLabel();
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(2));
-        cursor.GotoNext();
-        cursor.GotoNext();
-        cursor.MarkLabel(label);
-        cursor.GotoPrev();
-        cursor.Emit(OpCodes.Beq_S, label);
-        cursor.Emit(OpCodes.Ldsfld, MainMenu_RollcallMode);
-        cursor.Emit(OpCodes.Ldc_I4_4);
     }
 
     public static void PatchMapSceneBegin(ILContext ctx, CustomAttribute attrib) 

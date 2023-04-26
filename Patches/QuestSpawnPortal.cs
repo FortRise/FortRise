@@ -13,10 +13,8 @@ public class patch_QuestSpawnPortal : QuestSpawnPortal
 {
     private Queue<string> toSpawn;
 
-    private Sprite<int> sprite;
     private bool autoDisappear;
     private Facing lastFacing;
-    private bool appeared;
     private Wiggler spawnWiggler;
     private Counter addCounter;
 
