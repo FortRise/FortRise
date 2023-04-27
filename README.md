@@ -17,7 +17,7 @@ executable. After that, you can now play the mod and also create levels.
   - [ ] Slippery Floors.
   - [ ] Slow Movement.
 - [ ] Level progress for adventure levels.
-- [ ] Load *.oel files.
+- [x] Load *.oel files.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 
 ## NOT TODO
