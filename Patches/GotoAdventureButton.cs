@@ -9,10 +9,6 @@ namespace TowerFall;
 
 public sealed class GotoAdventureButton : patch_MapButton
 {
-    [MonoModIgnore]
-    public TowerMapData Data { get; private set; }
-
-
     public GotoAdventureButton() : base("ADVENTURE LEVELS")
     {
     }

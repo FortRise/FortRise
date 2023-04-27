@@ -18,9 +18,6 @@ public class patch_MapButton : MapButton
     {
     }
 
-    public patch_MapButton(TowerMapData data) : base(data)
-    {
-    }
 
     [MonoModIgnore]
     public extern override void OnConfirm();

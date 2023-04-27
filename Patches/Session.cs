@@ -6,7 +6,6 @@ namespace TowerFall;
 
 public class patch_Session : Session
 {
-    public TreasureSpawner TreasureSpawner { get; set; }
     public patch_Session(MatchSettings settings) : base(settings)
     {
     }
