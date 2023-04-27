@@ -24,7 +24,7 @@ public sealed class UploadMapButton : patch_MapButton
         {
             var selectedPath = fileDialog.SelectedPath.Replace("\\", "/");
             if (!patch_GameData.AdventureWorldTowersLoaded.Contains(selectedPath) && 
-                patch_GameData.LoadAdventureLevels(selectedPath, true))
+                patch_GameData.LoadAdventureLevelsParallel(selectedPath))
             {
                 patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
                 var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureWorldTowersLoaded)
