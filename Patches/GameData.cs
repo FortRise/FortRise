@@ -27,12 +27,7 @@ public static class patch_GameData
         foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
             AW_PATH, "Levels")))
         {
-            LoadAdventureLevels(directory2);
-        }
-        foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
-            AW_PATH, "Levels")))
-        {
-            LoadAdventureLevels(directory2, true);
+            LoadAdventureLevelsParallel(directory2);
         }
 
         if (File.Exists("adventureCache.json")) 
@@ -45,6 +40,17 @@ public static class patch_GameData
         }
 
         TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
+    }
+
+    public static bool LoadAdventureLevelsParallel(string directory) 
+    {
+        var adventureTowerData = new AdventureWorldData();
+        if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
+        {
+            AdventureWorldTowers.Add(adventureTowerData);
+            return true;
+        }
+        return false;
     }
 
     public static bool LoadAdventureLevels(string directory, bool json = false) 
@@ -61,27 +67,49 @@ public static class patch_GameData
 
 public class AdventureWorldData : DarkWorldTowerData 
 {
-    public bool JsonMode;
-    public bool AdventureLoad(int id, string levelDirectory, bool json = false) 
+    private void SequentialLookup(string directory, bool json) 
     {
-        JsonMode = json;
-
-        Levels = new List<string>();
-        if (JsonMode) 
+        if (json) 
         {
-            foreach (string level in Directory.EnumerateFiles(levelDirectory, "*.json", SearchOption.TopDirectoryOnly))
+            foreach (string level in Directory.EnumerateFiles(directory, "*.json", SearchOption.TopDirectoryOnly))
             {
                 this.Levels.Add(level);
             }
         }
         else 
         {
-            foreach (string level in Directory.EnumerateFiles(levelDirectory, "*.oel", SearchOption.TopDirectoryOnly))
+            foreach (string level in Directory.EnumerateFiles(directory, "*.oel", SearchOption.TopDirectoryOnly))
             {
                 this.Levels.Add(level);
             }
         }
+    }
 
+    private void ParallelLookup(string directory) 
+    {
+        foreach (string level in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
+        {
+            if (level.EndsWith("*.json") || level.EndsWith("*.oel"))
+                this.Levels.Add(level);
+        }
+    }
+
+    public bool AdventureLoadParallel(int id, string levelDirectory, bool json = false) 
+    {
+        Levels = new List<string>();
+        ParallelLookup(levelDirectory);
+        return InternalAdventureLoad(id, levelDirectory);
+    }
+
+    public bool AdventureLoad(int id, string levelDirectory, bool json = false) 
+    {
+        Levels = new List<string>();
+        SequentialLookup(levelDirectory, json);
+        return InternalAdventureLoad(id, levelDirectory);
+    } 
+
+    public bool InternalAdventureLoad(int id, string levelDirectory) 
+    {
         if (this.Levels.Count <= 0) 
         {
             return false;

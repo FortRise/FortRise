@@ -15,7 +15,8 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
     {
         int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
         randomSeed = file;
-        if (DarkWorldTowerData is AdventureWorldData worldData && worldData.JsonMode) 
+        var levelFile = DarkWorldTowerData.Levels[file];
+        if (DarkWorldTowerData is AdventureWorldData worldData && levelFile.EndsWith("json")) 
         {
             return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(worldData.Levels[file]))["level"];
         }
