@@ -89,7 +89,7 @@ public class AdventureWorldData : DarkWorldTowerData
     {
         foreach (string level in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
         {
-            if (level.EndsWith("*.json") || level.EndsWith("*.oel"))
+            if (level.EndsWith(".json") || level.EndsWith(".oel"))
                 this.Levels.Add(level);
         }
     }
