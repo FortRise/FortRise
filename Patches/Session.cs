@@ -10,7 +10,13 @@ public class patch_Session : Session
     {
     }
 
-    [MonoModIgnore]
     [PatchSessionStartGame]
-    public extern void StartGame();
+    public extern void orig_StartGame();
+
+    public void StartGame() 
+    {
+        orig_StartGame();
+        var worldTower = patch_GameData.AdventureWorldTowers[MatchSettings.LevelSystem.ID.X];
+        worldTower.Stats.Attempts += 1;
+    }
 }

@@ -21,6 +21,14 @@ public class patch_PauseMenu : PauseMenu
         orig_DarkWorldMap();       
     }
 
+    private extern void orig_DarkWorldMapAndSave();
+
+    private void DarkWorldMapAndSave() 
+    {
+        patch_SaveData.AdventureActive = false;
+        orig_DarkWorldMapAndSave();       
+    }
+
     private extern void orig_Quit();
 
     private void Quit() 
@@ -30,5 +38,16 @@ public class patch_PauseMenu : PauseMenu
         menuType == MenuType.DarkWorldGameOver)
             patch_SaveData.AdventureActive = false;
         orig_Quit();
+    }
+
+    private extern void orig_QuitAndSave();
+
+    public void QuitAndSave() 
+    {
+        if (menuType == MenuType.DarkWorldPause || 
+        menuType == MenuType.DarkWorldComplete || 
+        menuType == MenuType.DarkWorldGameOver)
+            patch_SaveData.AdventureActive = false;
+        orig_QuitAndSave();
     }
 }

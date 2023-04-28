@@ -22,12 +22,14 @@ public static class patch_GameData
     public static void Load() 
     {
         orig_Load();
+        WorldSaveData.Load(WorldSaveData.SavePath);
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
         AdventureWorldTowers = new List<AdventureWorldData>();
         foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
             AW_PATH, "Levels")))
         {
-            LoadAdventureLevelsParallel(directory2);
+            if (LoadAdventureLevelsParallel(directory2))
+                AdventureWorldTowersLoaded.Add(directory2);
         }
 
         if (File.Exists("adventureCache.json")) 
@@ -35,7 +37,8 @@ public static class patch_GameData
             var loadAdventurePath = JsonTextReader.FromFile("adventureCache.json").ConvertToListString();
             foreach (var adventurePath in loadAdventurePath) 
             {
-                LoadAdventureLevels(adventurePath, true);
+                if (LoadAdventureLevels(adventurePath, true))
+                    AdventureWorldTowersLoaded.Add(adventurePath);
             }
         }
 
@@ -67,6 +70,7 @@ public static class patch_GameData
 
 public class AdventureWorldData : DarkWorldTowerData 
 {
+    public AdventureWorldTowerStats Stats;
     private void SequentialLookup(string directory, bool json) 
     {
         if (json) 
@@ -118,6 +122,7 @@ public class AdventureWorldData : DarkWorldTowerData
         ID.X = id;
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
+        Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
 
         this.TimeBase = xmlElement["time"].ChildInt("base");
         this.TimeAdd = xmlElement["time"].ChildInt("add");
