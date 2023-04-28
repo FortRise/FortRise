@@ -72,6 +72,7 @@ public static class patch_GameData
 
 public class AdventureWorldData : DarkWorldTowerData 
 {
+    public string StoredDirectory;
     public AdventureWorldTowerStats Stats;
     private void SequentialLookup(string directory, bool json) 
     {
@@ -120,6 +121,8 @@ public class AdventureWorldData : DarkWorldTowerData
         {
             return false;
         }
+
+        StoredDirectory = levelDirectory;
 
         ID.X = id;
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
