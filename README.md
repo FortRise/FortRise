@@ -19,6 +19,7 @@ executable. After that, you can now play the mod and also create levels.
 - [ ] Level progress for adventure levels.
 - [x] Load *.oel files.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
+- [ ] Hot Reloading
 
 ## NOT TODO
 + Custom enemy variant.
