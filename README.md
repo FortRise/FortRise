@@ -16,7 +16,7 @@ executable. After that, you can now play the mod and also create levels.
   - [x] Always Dark.
   - [ ] Slippery Floors.
   - [ ] Slow Movement.
-- [ ] Level progress for adventure levels.
+- [x] Level progress for adventure levels.
 - [x] Load *.oel files.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading
