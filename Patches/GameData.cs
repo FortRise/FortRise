@@ -28,8 +28,7 @@ public static class patch_GameData
         foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
             AW_PATH, "Levels")))
         {
-            if (LoadAdventureLevelsParallel(directory2))
-                AdventureWorldTowersLoaded.Add(directory2);
+            LoadAdventureLevelsParallel(directory2);
         }
 
         if (File.Exists("adventureCache.json")) 
@@ -37,7 +36,8 @@ public static class patch_GameData
             var loadAdventurePath = JsonTextReader.FromFile("adventureCache.json").ConvertToListString();
             foreach (var adventurePath in loadAdventurePath) 
             {
-                if (LoadAdventureLevels(adventurePath, true))
+                Engine.Instance.Commands.Log("Loading " + adventurePath);
+                if (LoadAdventureLevelsParallel(adventurePath))
                     AdventureWorldTowersLoaded.Add(adventurePath);
             }
         }
@@ -51,6 +51,7 @@ public static class patch_GameData
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldTowers.Add(adventureTowerData);
+            Engine.Instance.Commands.Log("Loaded " + directory);
             return true;
         }
         return false;
@@ -62,6 +63,7 @@ public static class patch_GameData
         if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory, json)) 
         {
             AdventureWorldTowers.Add(adventureTowerData);
+            Engine.Instance.Commands.Log("Loaded " + directory);
             return true;
         }
         return false;
