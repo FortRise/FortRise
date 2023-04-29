@@ -21,7 +21,7 @@ public class patch_SaveData : SaveData
 }
 
 
-public partial class WorldSaveData
+public class WorldSaveData
 {
     public const string SavePath = "AdventureWorldContent/tfa_saveData.json";
     public AdventureWorldStats AdventureWorld = new AdventureWorldStats();
