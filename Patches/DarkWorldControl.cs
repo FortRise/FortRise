@@ -1,12 +1,17 @@
+#pragma warning disable CS0626
+#pragma warning disable CS0108
 using System.Collections;
-using System.Collections.Generic;
 using MonoMod;
 
 namespace TowerFall;
 
 public class patch_DarkWorldControl : DarkWorldControl 
 {
-    [MonoModIgnore]
-    [PatchDarkWorldControlLevelSequence]
-    private extern IEnumerator LevelSequence();
+
+    [PostPatchEnableTempVariant]
+    public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) {}
+
+
+    [PostPatchDisableTempVariant]
+    public static void DisableTempVariants(Level level) {}
 }

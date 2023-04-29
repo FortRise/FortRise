@@ -8,6 +8,10 @@ using MonoMod.Utils;
 
 namespace MonoMod;
 
+internal class PostPatchDisableTempVariant : Attribute {}
+internal class PostPatchEnableTempVariant : Attribute {}
+internal class PostPatchXmlToVariant : Attribute {}
+
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMapSceneBegin))]
 internal class PatchMapSceneBegin : Attribute {}
 
@@ -199,9 +203,165 @@ internal static partial class MonoModRules
 
     public static void PostProcessor(MonoModder modder) 
     {
+        var matchVariant = modder.Module.Types.Where(x => x.FullName == "TowerFall.MatchVariants").First();
         foreach (TypeDefinition type in modder.Module.Types) 
         {
+            if (type.FullName == "TowerFall.TemporaryVariants") 
+            {
+                foreach (var field in matchVariant.Fields) 
+                {
+                    if (!field.FieldType.Is("TowerFall.Variant"))
+                        continue;
+                    FieldDefinition def = new FieldDefinition(
+                        "Temp" + field.Name, FieldAttributes.Public | FieldAttributes.Static, 
+                        modder.Module.TypeSystem.Boolean 
+                    );
+                    type.Fields.Add(def);
+                }
+            }
+            else if (type.FullName == "TowerFall.DarkWorldTowerData") 
+            {
+                var levelData = type.NestedTypes.Where(x => x.FullName == "TowerFall.DarkWorldTowerData/LevelData").First();
+                var variantField = levelData.FindField("ActiveVariant");
+                var variant = variantField.FieldType.Resolve();
+                var MatchVariants = modder.Module.GetType("TowerFall.MatchVariants");
+                foreach (var field in MatchVariants.Fields) 
+                {
+                    if (!field.FieldType.Is("TowerFall.Variant"))
+                        continue;
+                    var newField = new FieldDefinition(field.Name, FieldAttributes.Public, modder.Module.TypeSystem.Boolean);
+                    variant.Fields.Add(newField);
+                }
+                foreach (var methd in levelData.Methods) 
+                {
+                    if (!methd.HasCustomAttribute("MonoMod.PostPatchXmlToVariant"))
+                        continue;
+
+                    var Calc = modder.Module.GetType("Monocle.Calc");
+                    var HasChild = Calc.FindMethod("System.Boolean HasChild(System.Xml.XmlElement,System.String)");
+                    var ChildBool = Calc.FindMethod("System.Boolean ChildBool(System.Xml.XmlElement,System.String)");
+
+                    var il = methd.Body.GetILProcessor();
+                    il.RemoveAt(0);
+
+                    for (int i = 0; i < variant.Fields.Count; i++) 
+                    {
+                        var field = variant.Fields[i];
+                        var fieldName = variant.FindField(field.Name);
+                        var entry = i == variant.Fields.Count - 1 ? 
+                            il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldarg_1);
+                        
+                        if (i == 0) 
+                            il.Emit(OpCodes.Ldarg_1);
+                        
+                        il.Emit(OpCodes.Ldstr, field.Name);
+                        il.Emit(OpCodes.Call, HasChild);
+                        il.Emit(OpCodes.Brfalse_S, entry);
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Ldflda, variantField);
+                        il.Emit(OpCodes.Ldarg_1);
+                        il.Emit(OpCodes.Ldstr, field.Name);
+                        il.Emit(OpCodes.Call, ChildBool);
+                        il.Emit(OpCodes.Stfld, fieldName);
+                        il.Append(entry);
+                    }
+                }
+            }
             PostProcessType(modder, type);
+        }
+
+        var controlType = modder.Module.GetType("TowerFall.DarkWorldControl");
+
+        foreach (var methd in controlType.Methods) 
+        {
+            var tempVariant = modder.Module.GetType("TowerFall.TemporaryVariants");
+            // PostPatch
+            if (methd.HasCustomAttribute("MonoMod.PostPatchDisableTempVariant")) 
+            {
+                var TempDark = tempVariant.FindField("TempAlwaysDark");
+                var Level = modder.Module.GetType("TowerFall.Level");
+                var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
+
+                var Session = modder.Module.GetType("TowerFall.Session");
+                var MatchSettings = Session.FindField("MatchSettings");
+                var Variants = MatchSettings.FieldType.Resolve().FindField("Variants");
+
+                
+                var il = methd.Body.GetILProcessor();
+                il.RemoveAt(0);
+                for (int i = 0; i < tempVariant.Fields.Count; i++) 
+                {
+                    var field = tempVariant.Fields[i];
+                    var variant = Variants.FieldType.Resolve().FindField(field.Name.Remove(0, 4));
+                    var set_Value = variant.FieldType.Resolve().FindMethod("System.Void set_Value(System.Boolean)");
+                    // if (TempVariant)
+                    if (i == 0)
+                        il.Emit(OpCodes.Ldsfld, field);
+                    var entry = i == tempVariant.Fields.Count - 1 ? 
+                        il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldsfld, tempVariant.Fields[i + 1]);
+                    il.Emit(OpCodes.Brfalse_S, entry);
+                    // Body
+                    il.Emit(OpCodes.Ldc_I4_0);
+                    il.Emit(OpCodes.Stsfld, field);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Callvirt, get_Session);
+                    il.Emit(OpCodes.Ldfld, MatchSettings);
+                    il.Emit(OpCodes.Ldfld, Variants);
+                    il.Emit(OpCodes.Ldfld, variant);
+                    il.Emit(OpCodes.Ldc_I4_0);
+                    il.Emit(OpCodes.Callvirt, set_Value);
+                    il.Append(entry);
+                }
+            }
+            else if (methd.HasCustomAttribute("MonoMod.PostPatchEnableTempVariant"))  
+            {
+                var Level = modder.Module.GetType("TowerFall.Level");
+                var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
+
+                var Session = modder.Module.GetType("TowerFall.Session");
+                var TowerData = modder.Module.GetType("TowerFall.DarkWorldTowerData/LevelData");
+                var variantField = TowerData.FindField("ActiveVariant");
+                var MatchSettings = Session.FindField("MatchSettings");
+                var Variants = MatchSettings.FieldType.Resolve().FindField("Variants");
+
+                var il = methd.Body.GetILProcessor();
+                il.RemoveAt(0);
+
+                for (int i = 0; i < tempVariant.Fields.Count; i++)  
+                {
+                    var field = tempVariant.Fields[i];
+                    var fieldVariant = field.Name.Remove(0, 4);
+                    var towerVariant = variantField.FieldType.Resolve().FindField(fieldVariant);
+                    var variant = Variants.FieldType.Resolve().FindField(fieldVariant);
+                    var get_Value = variant.FieldType.Resolve().FindMethod("System.Boolean get_Value()");
+                    var set_Value = variant.FieldType.Resolve().FindMethod("System.Void set_Value(System.Boolean)");
+
+                    var entry = i == tempVariant.Fields.Count - 1 ? 
+                        il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldarg_0);
+                    if (i == 0)
+                        il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Callvirt, get_Session);
+                    il.Emit(OpCodes.Ldfld, MatchSettings);
+                    il.Emit(OpCodes.Ldfld, Variants);
+                    il.Emit(OpCodes.Ldfld, variant);
+                    il.Emit(OpCodes.Callvirt, get_Value);
+                    il.Emit(OpCodes.Brtrue_S, entry);
+                    il.Emit(OpCodes.Ldarg_1);
+                    il.Emit(OpCodes.Ldflda, variantField);
+                    il.Emit(OpCodes.Ldfld, towerVariant);
+                    il.Emit(OpCodes.Brfalse_S, entry);
+                    il.Emit(OpCodes.Ldc_I4_1);
+                    il.Emit(OpCodes.Stsfld, field);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Callvirt, get_Session);
+                    il.Emit(OpCodes.Ldfld, MatchSettings);
+                    il.Emit(OpCodes.Ldfld, Variants);
+                    il.Emit(OpCodes.Ldfld, variant);
+                    il.Emit(OpCodes.Ldc_I4_1);
+                    il.Emit(OpCodes.Callvirt, set_Value);
+                    il.Append(entry);
+                }
+            }
         }
     }
 

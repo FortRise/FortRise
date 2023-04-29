@@ -11,3 +11,8 @@ public class patch_Enemy : Enemy
 
     public virtual void Load(EnemyDataArg args) {}
 }
+
+public static class TemporaryVariants
+{
+
+}

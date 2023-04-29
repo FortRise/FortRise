@@ -9,9 +9,17 @@ namespace TowerFall;
 
 public class patch_DarkWorldTowerData : DarkWorldTowerData 
 {
+    public struct Variant 
+    {
+
+    }
+
     public class patch_LevelData : LevelData 
     {
+        public Variant ActiveVariant;
         public bool Dark;
+        public bool Slippery;
+        public bool GunnStyle;
 
         public patch_LevelData(XmlElement xml, Dictionary<string, List<EnemyData>> enemySets) : base(xml, enemySets)
         {
@@ -22,12 +30,15 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
         [MonoModConstructor]
         public void ctor(XmlElement xml, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets) 
         {
-            if (xml.HasChild("dark")) 
+            if (xml.HasChild("variants")) 
             {
-                Dark = xml.ChildBool("dark");
+                XmlToVariant(xml["variants"]);
             }
             orig_ctor(xml, enemySets);
         }
+
+        [PostPatchXmlToVariant]
+        public void XmlToVariant(XmlElement xml) {}
     }
 
     public class patch_EnemyData : EnemyData

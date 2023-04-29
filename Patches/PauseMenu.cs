@@ -7,6 +7,7 @@ namespace TowerFall;
 public class patch_PauseMenu : PauseMenu
 {
     private PauseMenu.MenuType menuType;
+    private Level level;
 
 
     public patch_PauseMenu(Level level, Vector2 position, MenuType menuType, int controllerDisconnected = -1) : base(level, position, menuType, controllerDisconnected)
@@ -17,6 +18,7 @@ public class patch_PauseMenu : PauseMenu
 
     private void DarkWorldMap() 
     {
+        patch_DarkWorldControl.DisableTempVariants(level);
         patch_SaveData.AdventureActive = false;
         orig_DarkWorldMap();       
     }
@@ -25,6 +27,7 @@ public class patch_PauseMenu : PauseMenu
 
     private void DarkWorldMapAndSave() 
     {
+        patch_DarkWorldControl.DisableTempVariants(level);
         patch_SaveData.AdventureActive = false;
         orig_DarkWorldMapAndSave();       
     }
@@ -33,6 +36,7 @@ public class patch_PauseMenu : PauseMenu
 
     private void Quit() 
     {
+        patch_DarkWorldControl.DisableTempVariants(level);
         if (menuType == MenuType.DarkWorldPause || 
         menuType == MenuType.DarkWorldComplete || 
         menuType == MenuType.DarkWorldGameOver)
@@ -44,6 +48,7 @@ public class patch_PauseMenu : PauseMenu
 
     public void QuitAndSave() 
     {
+        patch_DarkWorldControl.DisableTempVariants(level);
         if (menuType == MenuType.DarkWorldPause || 
         menuType == MenuType.DarkWorldComplete || 
         menuType == MenuType.DarkWorldGameOver)
