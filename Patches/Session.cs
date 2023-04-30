@@ -18,8 +18,11 @@ public class patch_Session : Session
     public void StartGame() 
     {
         orig_StartGame();
-        var worldTower = patch_GameData.AdventureWorldTowers[MatchSettings.LevelSystem.ID.X];
-        worldTower.Stats.Attempts += 1;
+        if (patch_SaveData.AdventureActive) 
+        {
+            var worldTower = patch_GameData.AdventureWorldTowers[MatchSettings.LevelSystem.ID.X];
+            worldTower.Stats.Attempts += 1;
+        }
     }
 
         /* Having some problems with this */
