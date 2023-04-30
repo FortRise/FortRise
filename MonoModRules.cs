@@ -190,9 +190,9 @@ internal static partial class MonoModRules
             cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
             cursor.Emit(OpCodes.Ldfld, DarkWorldDifficulty);
             cursor.Emit(OpCodes.Call, TFGame_PlayerAmount);
-            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldloc_S, loc_darkworldstate);
             cursor.Emit(OpCodes.Ldfld, time);
-            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldloc_S, loc_darkworldstate);
             cursor.Emit(OpCodes.Ldfld, continues);
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldfld, deaths);
