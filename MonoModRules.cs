@@ -139,29 +139,67 @@ internal static partial class MonoModRules
         MethodDefinition complete = method.GetEnumeratorMoveNext();
 
         new ILContext(complete).Invoke(ctx => {
-            var SaveData = ctx.Module.Assembly.MainModule.GetType("TowerFall", "SaveData");
+            var riseCore = ctx.Module.GetType("FortRise.RiseCore");
+            var invoked = riseCore.FindMethod("System.Void InvokeDarkWorldComplete_Result(System.Int32,TowerFall.DarkWorldDifficulties,System.Int32,System.Int64,System.Int32,System.Int32,System.Int32)");
+            var SaveData = ctx.Module.GetType("TowerFall", "SaveData");
             var AdventureActive = SaveData.FindField("AdventureActive");
+            var deaths = complete.DeclaringType.FindField("<deaths>5__2");
+
+            var session = method.DeclaringType.FindField("session");
+            var matchSettings = session.FieldType.Resolve().FindField("MatchSettings");
+
+            var darkWorldState = session.FieldType.Resolve().FindField("DarkWorldState");
+            var time = darkWorldState.FieldType.Resolve().FindField("Time");
+            var continues = darkWorldState.FieldType.Resolve().FindField("Continues");
+
+            var Variants = matchSettings.FieldType.Resolve().FindField("Variants");
+            var GetCoopCurses = Variants.FieldType.Resolve().FindMethod("System.Int32 GetCoOpCurses()");
+            var DarkWorldDifficulty = matchSettings.FieldType.Resolve().FindField("DarkWorldDifficulty");
+            var TFGame_PlayerAmount = ctx.Module.GetType("TowerFall.TFGame").FindMethod("System.Int32 get_PlayerAmount()");
+
+            var levelSystem = matchSettings.FieldType.Resolve().FindField("LevelSystem");
+            var get_ID = levelSystem.FieldType.Resolve().FindMethod("Microsoft.Xna.Framework.Point get_ID()");
+            var X = ctx.Module.ImportReference(get_ID.ReturnType.Resolve().FindField("X"));
+
+            var loc_matchSettings = new VariableDefinition(matchSettings.FieldType);
+            var loc_darkworldstate = new VariableDefinition(ctx.Module.GetType("TowerFall.DarkWorldSessionState"));
+            ctx.Body.Variables.Add(loc_matchSettings);
+            ctx.Body.Variables.Add(loc_darkworldstate);
+
             var cursor = new ILCursor(ctx);
-            var label = ctx.DefineLabel();
 
-            cursor.GotoNext(instr => instr.MatchLdcI4(20));
-            cursor.GotoNext(instr => instr.MatchLdcI4(20));
-            cursor.GotoNext(instr => instr.MatchLdarg(0));
-            cursor.GotoNext(instr => instr.MatchLdarg(0));
-            cursor.GotoNext();
-            cursor.GotoNext();
-            cursor.GotoNext();
+            cursor.GotoNext(instr => instr.MatchLdsfld("TowerFall.SaveData", "Instance"));
+            cursor.RemoveRange(31);
 
-            cursor.Emit(OpCodes.Ldsfld, AdventureActive);
+            /* matchSettings */
+            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.Emit(OpCodes.Ldfld, session);
+            cursor.Emit(OpCodes.Ldfld, matchSettings);
+            cursor.Emit(OpCodes.Stloc_S, loc_matchSettings);
 
-            cursor.GotoNext(MoveType.Before, 
-                instr => instr.MatchLdarg(0));
-            cursor.GotoNext(MoveType.Before, 
-                instr => instr.MatchLdarg(0));
-            cursor.MarkLabel(label);
+            /* darkWorldState */
+            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.Emit(OpCodes.Ldfld, session);
+            cursor.Emit(OpCodes.Ldfld, darkWorldState);
+            cursor.Emit(OpCodes.Stloc_S, loc_darkworldstate);
 
-            cursor.GotoPrev(MoveType.After, instr => instr.MatchLdsfld(AdventureActive));
-            cursor.Emit(OpCodes.Brtrue_S, label);
+            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldfld, levelSystem);
+            cursor.Emit(OpCodes.Callvirt, get_ID);
+            cursor.Emit(OpCodes.Ldfld, X);
+            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldfld, DarkWorldDifficulty);
+            cursor.Emit(OpCodes.Call, TFGame_PlayerAmount);
+            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldfld, time);
+            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldfld, continues);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldfld, deaths);
+            cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
+            cursor.Emit(OpCodes.Ldfld, Variants);
+            cursor.Emit(OpCodes.Callvirt, GetCoopCurses);
+            cursor.Emit(OpCodes.Call, invoked);
         });
     }
 

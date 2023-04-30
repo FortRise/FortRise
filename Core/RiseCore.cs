@@ -9,7 +9,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public static class RiseCore 
+public static partial class RiseCore 
 {
     private static List<Assembly> ModAssemblies = new List<Assembly>();
 
