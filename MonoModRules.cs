@@ -145,6 +145,7 @@ internal static partial class MonoModRules
             var SaveData = ctx.Module.GetType("TowerFall", "SaveData");
             var AdventureActive = SaveData.FindField("AdventureActive");
             var deaths = complete.DeclaringType.FindField("<deaths>5__2");
+            var this_4 = complete.DeclaringType.FindField("<>4__this");
 
             var session = method.DeclaringType.FindField("session");
             var matchSettings = session.FieldType.Resolve().FindField("MatchSettings");
@@ -177,13 +178,15 @@ internal static partial class MonoModRules
 #endif
 
             /* matchSettings */
-            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldfld, this_4);
             cursor.Emit(OpCodes.Ldfld, session);
             cursor.Emit(OpCodes.Ldfld, matchSettings);
             cursor.Emit(OpCodes.Stloc_S, loc_matchSettings);
 
             /* darkWorldState */
-            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldfld, this_4);
             cursor.Emit(OpCodes.Ldfld, session);
             cursor.Emit(OpCodes.Ldfld, darkWorldState);
             cursor.Emit(OpCodes.Stloc_S, loc_darkworldstate);
