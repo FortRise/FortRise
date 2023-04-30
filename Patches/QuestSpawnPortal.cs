@@ -150,23 +150,23 @@ public class patch_QuestSpawnPortal : QuestSpawnPortal
             break;
 
         case "Slime":
-            Level.Add(new Slime(Position, facing, Slime.SlimeColors.Green));
+            Level.Add(new Slime(Position + new Vector2(0, 5f), facing, Slime.SlimeColors.Green));
             break;
         case "RedSlime":
-            Level.Add(new Slime(Position, facing, Slime.SlimeColors.Red));
+            Level.Add(new Slime(Position + new Vector2(0, 5f), facing, Slime.SlimeColors.Red));
             break;
         case "BlueSlime":
-            Level.Add(new Slime(Position, facing, Slime.SlimeColors.Blue));
+            Level.Add(new Slime(Position + new Vector2(0, 5f), facing, Slime.SlimeColors.Blue));
             break;
 
         case "Cultist":
-            Level.Add(new Cultist(Position, facing, Cultist.CultistTypes.Normal));
+            Level.Add(new Cultist(Position + new Vector2(0, 8), facing, Cultist.CultistTypes.Normal));
             break;
         case "ScytheCultist":
-            Level.Add(new Cultist(Position, facing, Cultist.CultistTypes.Scythe));
+            Level.Add(new Cultist(Position + new Vector2(0, 8), facing, Cultist.CultistTypes.Scythe));
             break;
         case "BossCultist":
-            Level.Add(new Cultist(Position, facing, Cultist.CultistTypes.Boss));
+            Level.Add(new Cultist(Position + new Vector2(0, 8), facing, Cultist.CultistTypes.Boss));
             break;
         
         case "Birdman":
