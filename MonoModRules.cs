@@ -1,4 +1,5 @@
-﻿using System;
+﻿// #define VER_1_3_3_1
+using System;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -169,7 +170,11 @@ internal static partial class MonoModRules
             var cursor = new ILCursor(ctx);
 
             cursor.GotoNext(instr => instr.MatchLdsfld("TowerFall.SaveData", "Instance"));
+#if !VER_1_3_3_1
             cursor.RemoveRange(31);
+#else
+            cursor.RemoveRange(36);
+#endif
 
             /* matchSettings */
             cursor.Emit(OpCodes.Ldloc_1);
