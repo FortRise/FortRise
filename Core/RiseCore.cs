@@ -11,6 +11,7 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
+    public static Dictionary<string, EnemyLoader> Loader = new();
     private static List<Assembly> ModAssemblies = new List<Assembly>();
 
     private static Type[] Types;
@@ -73,7 +74,7 @@ public static partial class RiseCore
                     goto Loaded;
                 }
                 Loaded:
-                patch_QuestSpawnPortal.Loader.Add(name, loader);
+                Loader.Add(name, loader);
             }
         }
     }

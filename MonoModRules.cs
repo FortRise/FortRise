@@ -1,5 +1,4 @@
-﻿// #define VER_1_3_3_1
-using System;
+﻿using System;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -28,6 +27,9 @@ internal class PatchDarkWorldCompleteSequence : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
 internal class PatchDarkWorldControlLevelSequence : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchQuestSpawnPortalFinishSpawn))]
+internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
+
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
 internal class PatchSessionStartGame : Attribute {}
 
@@ -35,14 +37,88 @@ internal class PatchSessionStartGame : Attribute {}
 internal static partial class MonoModRules 
 {
     private static bool IsTowerFall;
-    private static TypeDefinition TowerFall;
+    private static Version Version;
 
     static MonoModRules() 
     {
         MonoModRule.Modder.MissingDependencyThrow = false;
-        MonoModRule.Modder.PostProcessors += PostProcessor;
-    }
+        bool hasSteamworks = false;
+        foreach (var name in MonoModRule.Modder.Module.AssemblyReferences) 
+        {
+            if (name.Name.Contains("Steamworks"))
+                hasSteamworks = true;
+        }
+        MonoModRule.Flag.Set("Steamworks", hasSteamworks);
+        MonoModRule.Flag.Set("NoLauncher", !hasSteamworks);
+        if (hasSteamworks) 
+            Console.WriteLine("[FortRise] Running on a Steam Launcher");
+        else 
+            Console.WriteLine("[FortRise] Running TowerFall without a Launcher");
+        
 
+        TypeDefinition t_TFGame = MonoModRule.Modder.FindType("TowerFall.TFGame")?.Resolve();
+        if (t_TFGame == null)
+            return;
+        IsTowerFall = t_TFGame.Scope == MonoModRule.Modder.Module;
+        MonoModRule.Modder.PostProcessors += PostProcessor;
+
+        // Get the version of TowerFall
+
+        int[] numVersions = null;
+        var ctor_TFGame = t_TFGame.FindMethod(".cctor", true);
+        if (ctor_TFGame != null && ctor_TFGame.HasBody) 
+        {
+            var instrs = ctor_TFGame.Body.Instructions;
+            for (int i = 0; i < instrs.Count; i++) 
+            {
+                var instr = instrs[i];
+                var ctor_Version = instr.Operand as MethodReference;
+                if (instr.OpCode != OpCodes.Newobj || ctor_Version.DeclaringType?.FullName != "System.Version")
+                    continue;
+                
+                numVersions = new int[ctor_Version.Parameters.Count];
+                for (int j = -numVersions.Length; j < 0; j++) 
+                    numVersions[j + numVersions.Length] = instrs[j + i].GetInt();
+                
+                break;
+            }
+        }
+
+        if (numVersions == null) {
+            throw new InvalidOperationException("Unknown version of TowerFall is being patched. Operation cancelled");
+        }
+
+        var version = numVersions.Length switch {
+            2 => new Version(numVersions[0], numVersions[1]),
+            3 => new Version(numVersions[0], numVersions[1], numVersions[2]),
+            4 => new Version(numVersions[0], numVersions[1], numVersions[2], numVersions[3]),
+            _ => throw new InvalidOperationException("Unknown version of TowerFall is being patched. Operation cancelled")
+        };
+        var minimumVersion = new Version(1, 3, 3, 1);
+        if (version.Major == 0)
+            version = minimumVersion;
+        if (version < minimumVersion)
+            throw new Exception($"Unsupported version of TowerFall: {version}, currently supported: {minimumVersion}");
+        Version = version;
+        Console.WriteLine("[FortRise] TowerFall Version is: " + Version);
+        
+        if (IsTowerFall) 
+        {
+            // Ensure that TowerFall assembly is not already modded
+            // (https://github.com/MonoMod/MonoMod#how-can-i-check-if-my-assembly-has-been-modded)
+            if (MonoModRule.Modder.FindType("MonoMod.WasHere") != null)
+                throw new Exception("This version of Celeste is already modded. You need a clean install of Celeste to mod it.");
+
+            // Ensure that Microsoft.Xna.Framework.dll is present.
+            if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null)
+                throw new Exception("MonoModRules failed resolving Microsoft.Xna.Framework.Game");
+        }
+
+        var isWindows = PlatformHelper.Is(Platform.Windows);
+        MonoModRule.Flag.Set("OS:Windows", isWindows);
+        MonoModRule.Flag.Set("OS:NotWindows", !isWindows);
+        Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
+    }
 
     public static void PatchDarkWorldRoundLogicOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 
     {
@@ -76,14 +152,6 @@ internal static partial class MonoModRules
             instr => instr.MatchStfld("TowerFall.DarkWorldTowerStats", "Attempts")
         );
         var label = ctx.DefineLabel(cursor.Next);
-
-        // cursor.GotoPrev(
-        //     MoveType.After,
-        //     instr => instr.MatchLdfld("TowerFall.MatchSettings", "Mode"),
-        //     instr => instr.MatchLdcI4(1)
-        // );
-        // cursor.Remove();
-        // cursor.Emit(OpCodes.Bne_Un_S, label);
 
         cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
@@ -171,11 +239,16 @@ internal static partial class MonoModRules
             var cursor = new ILCursor(ctx);
 
             cursor.GotoNext(instr => instr.MatchLdsfld("TowerFall.SaveData", "Instance"));
-#if !VER_1_3_3_1
-            cursor.RemoveRange(31);
-#else
-            cursor.RemoveRange(36);
-#endif
+            // This part of instructions will replace one method call from the DarkWorldTowerStats into a hook
+            
+            // Check for TF Version since it does have a different instructions
+            // Please confirm if you have an issue with 1.3.3.2, I will fix this later on
+
+            var instrNumToRemove = Version switch {
+                { Major: 1, Minor: 3, Build: 3, Revision: 3} => 31,
+                _ => 36
+            };
+            cursor.RemoveRange(instrNumToRemove);
 
             /* matchSettings */
             cursor.Emit(OpCodes.Ldarg_0);
@@ -191,6 +264,7 @@ internal static partial class MonoModRules
             cursor.Emit(OpCodes.Ldfld, darkWorldState);
             cursor.Emit(OpCodes.Stloc_S, loc_darkworldstate);
 
+            /* Emit necessary code to call the InvokeDarkWorldComplete_Result hook */
             cursor.Emit(OpCodes.Ldloc_S, loc_matchSettings);
             cursor.Emit(OpCodes.Ldfld, levelSystem);
             cursor.Emit(OpCodes.Callvirt, get_ID);
@@ -209,6 +283,29 @@ internal static partial class MonoModRules
             cursor.Emit(OpCodes.Callvirt, GetCoopCurses);
             cursor.Emit(OpCodes.Call, invoked);
         });
+    }
+
+    public static void PatchQuestSpawnPortalFinishSpawn(ILContext ctx, CustomAttribute attrib) 
+    {
+        var LevelEntity = ctx.Module.GetType("TowerFall.LevelEntity");
+        var get_level = LevelEntity.FindMethod("TowerFall.Level get_Level()");
+        var Entity = ctx.Module.GetType("Monocle.Entity");
+        var Position = Entity.FindField("Position");
+        var RiseCore = ctx.Module.GetType("FortRise.RiseCore");
+        var InvokeEvent = RiseCore.FindMethod(
+            "System.Void InvokeQuestSpawnPortal_FinishSpawn(System.String,Microsoft.Xna.Framework.Vector2,TowerFall.Facing,TowerFall.Level)");
+        var cursor = new ILCursor(ctx);
+        cursor.GotoNext(instr => instr.MatchLdstr("Unknown enemy type: "));
+        // cursor.GotoNext();
+
+        cursor.RemoveRange(5);
+        cursor.Emit(OpCodes.Ldloc_1);
+        cursor.Emit(OpCodes.Ldarg_0);
+        cursor.Emit(OpCodes.Ldfld, Position);
+        cursor.Emit(OpCodes.Ldloc_0);
+        cursor.Emit(OpCodes.Ldarg_0);
+        cursor.Emit(OpCodes.Call, get_level);
+        cursor.Emit(OpCodes.Call, InvokeEvent);
     }
 
     public static void PatchDarkWorldLevelSelectOverlayCtor(ILContext ctx, CustomAttribute attrib) 
@@ -249,6 +346,8 @@ internal static partial class MonoModRules
 
     public static void PostProcessor(MonoModder modder) 
     {
+        // Console.WriteLine("Bartizan Compatible");
+        // BartizanPatch(modder, "BartizanMods/DevMod.dll");
         var matchVariant = modder.Module.Types.Where(x => x.FullName == "TowerFall.MatchVariants").First();
         foreach (TypeDefinition type in modder.Module.Types) 
         {

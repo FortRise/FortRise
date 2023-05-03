@@ -7,7 +7,7 @@ copy "TowerFall.exe" "../TowerFall.exe"
 cd ../MonoMod
 MonoMod.exe ../TowerFall.exe
 cd ../
-copy MONOMODDED_TowerFall.exe TowerFall.exe
+copy MONOMODDED_TowerFall.exe STowerFall.exe
 cd MonoMod/TowerFallMM
 
 pause
