@@ -346,8 +346,6 @@ internal static partial class MonoModRules
 
     public static void PostProcessor(MonoModder modder) 
     {
-        // Console.WriteLine("Bartizan Compatible");
-        // BartizanPatch(modder, "BartizanMods/DevMod.dll");
         var matchVariant = modder.Module.Types.Where(x => x.FullName == "TowerFall.MatchVariants").First();
         foreach (TypeDefinition type in modder.Module.Types) 
         {
