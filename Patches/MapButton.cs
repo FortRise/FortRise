@@ -11,6 +11,7 @@ public class patch_MapButton : MapButton
 {
     [MonoModIgnore]
     public patch_MapScene Map { get; set; } 
+    public string Author { get; set; }
 
 
 

@@ -51,19 +51,7 @@ public static class patch_GameData
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldTowers.Add(adventureTowerData);
-            Engine.Instance.Commands.Log("Loaded " + directory);
-            return true;
-        }
-        return false;
-    }
-
-    public static bool LoadAdventureLevels(string directory, bool json = false) 
-    {
-        var adventureTowerData = new AdventureWorldData();
-        if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory, json)) 
-        {
-            AdventureWorldTowers.Add(adventureTowerData);
-            Engine.Instance.Commands.Log("Loaded " + directory);
+            Engine.Instance.Commands.Log("[AdventureMod] Loaded " + directory);
             return true;
         }
         return false;
@@ -73,24 +61,8 @@ public static class patch_GameData
 public class AdventureWorldData : DarkWorldTowerData 
 {
     public string StoredDirectory;
+    public string Author;
     public AdventureWorldTowerStats Stats;
-    private void SequentialLookup(string directory, bool json) 
-    {
-        if (json) 
-        {
-            foreach (string level in Directory.EnumerateFiles(directory, "*.json", SearchOption.TopDirectoryOnly))
-            {
-                this.Levels.Add(level);
-            }
-        }
-        else 
-        {
-            foreach (string level in Directory.EnumerateFiles(directory, "*.oel", SearchOption.TopDirectoryOnly))
-            {
-                this.Levels.Add(level);
-            }
-        }
-    }
 
     private void ParallelLookup(string directory) 
     {
@@ -101,19 +73,12 @@ public class AdventureWorldData : DarkWorldTowerData
         }
     }
 
-    public bool AdventureLoadParallel(int id, string levelDirectory, bool json = false) 
+    public bool AdventureLoadParallel(int id, string levelDirectory) 
     {
         Levels = new List<string>();
         ParallelLookup(levelDirectory);
         return InternalAdventureLoad(id, levelDirectory);
     }
-
-    public bool AdventureLoad(int id, string levelDirectory, bool json = false) 
-    {
-        Levels = new List<string>();
-        SequentialLookup(levelDirectory, json);
-        return InternalAdventureLoad(id, levelDirectory);
-    } 
 
     public bool InternalAdventureLoad(int id, string levelDirectory) 
     {
@@ -127,6 +92,7 @@ public class AdventureWorldData : DarkWorldTowerData
         ID.X = id;
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
+        Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
         Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
 
         this.TimeBase = xmlElement["time"].ChildInt("base");

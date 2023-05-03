@@ -1,12 +1,25 @@
 using System.Collections.Generic;
 using Monocle;
+using MonoMod;
 
 namespace TowerFall;
 
 public sealed class AdventureMapButton : MapButton
 {
+    // Quite needed to do this to access the private set
+    [MonoModIgnore]
+    public new string Author { get; set; }
+    private string author;
+
+
     public AdventureMapButton(AdventureWorldData data) : base(new TowerMapData(data))
     {
+        author = data.Author.ToUpperInvariant();
+    }
+    public override void Added()
+    {
+        Author = author;
+        base.Added();
     }
 
     protected override bool GetLocked()

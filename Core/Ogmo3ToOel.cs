@@ -1,8 +1,8 @@
+using System.Text;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using TeuJson;
 using TeuJson.Attributes;
-using TowerFall;
 
 namespace FortRise;
 
@@ -86,32 +86,32 @@ public static class Ogmo3ToOel
 
     public static string Array2DToCSV(int[,] levels) 
     {
-        var csv = string.Empty;
+        var sb = new StringBuilder();
         for (int x = 0; x < levels.GetLength(0); x++) 
         {
             for (int y = 0; y < levels.GetLength(1); y++) 
             {
-                csv += levels[x, y];
+                sb.Append(levels[x, y]);
                 if (x != (levels.GetLength(1) - 1))
-                    csv += ",";
+                    sb.Append(',');
             }
-            csv += '\n';
+            sb.AppendLine();
         }
-        return csv;
+        return sb.ToString();
     }
 
     public static string Array2DToBitString(string[,] levels) 
     {
-        var bitString = string.Empty;
+        var sb = new StringBuilder();
         for (int x = 0; x < levels.GetLength(0); x++) 
         {
             for (int y = 0; y < levels.GetLength(1); y++) 
             {
-                bitString += levels[x, y];
+                sb.Append(levels[x, y]);
             }
-            bitString += '\n';
+            sb.AppendLine();
         }
-        return bitString;
+        return sb.ToString();
     }
 }
 
