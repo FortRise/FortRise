@@ -12,6 +12,7 @@ namespace FortRise;
 public static partial class RiseCore 
 {
     public static Dictionary<string, EnemyLoader> Loader = new();
+    public static List<RiseModule> Modules = new();
     private static List<Assembly> ModAssemblies = new List<Assembly>();
 
     private static Type[] Types;
@@ -21,6 +22,7 @@ public static partial class RiseCore
 
     internal static void Register(this RiseModule module) 
     {
+        Modules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
@@ -32,44 +34,24 @@ public static partial class RiseCore
                     continue;
                 var name = attrib.Name;
                 var arg = attrib.FuncArg;
-                EnemyDataArg dataArg = (EnemyDataArg)
-                    type.GetMethod(arg).Invoke(null, Array.Empty<object>());
 
                 ConstructorInfo ctor;
                 EnemyLoader loader = null;
 
                 ctor = type.GetConstructor(
-                    new Type[] { typeof(Vector2), typeof(Facing), typeof(int), typeof(int), typeof(int), typeof(ArrowTypes) }
+                    new Type[] { typeof(Vector2), typeof(Facing) }
                 );
                 if (ctor != null) 
                 {
                     loader = (position, facing) => {
                         var invoked = (patch_Enemy)ctor.Invoke(new object[] {
                             position,
-                            facing,
-                            dataArg.states,
-                            dataArg.health,
-                            dataArg.bounty,
-                            dataArg.arrows
+                            facing
                         });
-                        invoked.Load(dataArg);
+                        invoked.Load();
+
                         return invoked;
-                    };
-                    goto Loaded;
-                }
-                ctor = type.GetConstructor(
-                    new Type[] { typeof(Vector2), typeof(Facing), typeof(Slime.SlimeColors) }
-                );
-                if (ctor != null) 
-                {
-                    loader = (position, facing) => {
-                        var invoked = (patch_Enemy)ctor.Invoke(new object[] {
-                            position,
-                            facing,
-                            Slime.SlimeColors.Red
-                        });
-                        invoked.Load(dataArg);
-                        return invoked;
+
                     };
                     goto Loaded;
                 }
@@ -99,17 +81,31 @@ public static partial class RiseCore
                 if (allLines[i] == string.Empty) { continue; }
                 if (!File.Exists(Path.GetFullPath("Mods/" + allLines[i])))
                     continue;
-                Assembly asm = Assembly.LoadFile(Path.GetFullPath("Mods/" + allLines[i]));
+                Assembly asm = Assembly.LoadFrom(Path.GetFullPath("Mods/" + allLines[i]));
                 ModAssemblies.Add(asm);
-                Type t = asm.GetType("Entry");
-                Types[i] = t;
-                RiseModule obj = (RiseModule)Activator.CreateInstance(t);
+                GetModuleTypes(asm, i);
+            }
+        }
+    }
+
+    private static void GetModuleTypes(Assembly asm, int index) 
+    {
+        foreach (var t in asm.GetTypes()) 
+        {
+            var customAttribute = t.GetCustomAttribute<RiseAttribute>();
+            if (customAttribute != null) 
+            {
+                Types[index] = t;
+                RiseModule obj = Activator.CreateInstance(t) as RiseModule;
+                obj.Name = customAttribute.Name;
+                obj.ID = customAttribute.GUID;
                 obj.Register();
-                var method = t.GetMethod("Load");
+                var method = t.GetMethod("InternalLoad");
                 method.Invoke(obj, null);
             }
         }
     }
+
 
     internal static void LogAllTypes() 
     {

@@ -110,9 +110,9 @@ public class AdventureWorldData : DarkWorldTowerData
             }
             this.EnemySets.Add(key, list);
         }
-        this.Normal = this.LoadLevelSet(xmlElement["normal"]);
-        this.Hardcore = this.LoadLevelSet(xmlElement["hardcore"]);
-        this.Legendary = this.LoadLevelSet(xmlElement["legendary"]);
+        this.Normal = LoadLevelSet(xmlElement["normal"]);
+        this.Hardcore = LoadLevelSet(xmlElement["hardcore"]);
+        this.Legendary = LoadLevelSet(xmlElement["legendary"]);
         return true;
     }
 

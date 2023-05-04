@@ -9,7 +9,7 @@ public class patch_Enemy : Enemy
     {
     }
 
-    public virtual void Load(EnemyDataArg args) {}
+    public virtual void Load() {}
 }
 
 public static class TemporaryVariants

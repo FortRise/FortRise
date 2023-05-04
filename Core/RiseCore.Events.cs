@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -6,6 +9,20 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
+    public static float ScrollAmount = 12;
+    public delegate void MainMenu_CreateOptions(List<OptionsButton> optionsList);
+    public static event MainMenu_CreateOptions OnMainMenu_CreateOptions;
+    internal static void InvokeMainMenu_CreateOptions(List<OptionsButton> optionsList) 
+    {
+        foreach (var mod in RiseCore.Modules) 
+        {
+            mod.CreateSettings(optionsList);
+        }
+
+        OnMainMenu_CreateOptions?.Invoke(optionsList);
+    }
+
+
     public delegate bool QuestSpawnPortal_FinishSpawnHandler(string entityName, Vector2 position, Facing facing, Level level);
 
     public static event QuestSpawnPortal_FinishSpawnHandler OnQuestSpawnPortal_FinishSpawn;
@@ -15,6 +32,7 @@ public static partial class RiseCore
         if (Loader.TryGetValue(name, out EnemyLoader loader)) 
         {
             level.Add(loader?.Invoke(position + new Vector2(0f, 2f), facing));
+            return;
         }
         if (name.Contains("Skeleton") || name.Contains("Jester")) 
         {

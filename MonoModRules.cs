@@ -33,6 +33,9 @@ internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
 internal class PatchSessionStartGame : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCreateOptions))]
+internal class PatchMainMenuCreateOptions : Attribute {}
+
 
 internal static partial class MonoModRules 
 {
@@ -156,6 +159,19 @@ internal static partial class MonoModRules
         cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
         cursor.Emit(OpCodes.Brtrue_S, label);
+    }
+
+    public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib) 
+    {
+        var riseCore = ctx.Module.GetType("FortRise.RiseCore");
+        var invoked = riseCore.FindMethod("System.Void InvokeMainMenu_CreateOptions(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
+        var cursor = new ILCursor(ctx);
+        cursor.GotoNext(MoveType.Before, 
+            instr => instr.MatchLdloc(0), 
+            instr => instr.MatchLdstr("CLEAR ALL GAME DATA")
+        );
+        cursor.Emit(OpCodes.Ldloc_1);
+        cursor.Emit(OpCodes.Call, invoked);
     }
 
     public static void PatchDarkWorldControlLevelSequence(MethodDefinition method, CustomAttribute attrib) 
