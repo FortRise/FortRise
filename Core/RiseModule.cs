@@ -21,7 +21,7 @@ public abstract partial class RiseModule
 {
     public string Name { get; internal set; }
     public string ID { get; internal set; }
-    public abstract Type SettingsType { get; }
+    public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
     public abstract void Load();
     public abstract void Unload();
@@ -34,7 +34,7 @@ public abstract partial class RiseModule
 
     public void LoadSettings() 
     {
-        InternalSettings = (ModuleSettings)SettingsType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
+        InternalSettings = (ModuleSettings)SettingsType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
     }
 
     public void CreateSettings(List<OptionsButton> optionsList) 

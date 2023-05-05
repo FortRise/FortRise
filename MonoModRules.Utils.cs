@@ -11,10 +11,7 @@ namespace MonoMod {
          * The code is referenced from part of https://github.com/icsharpcode/ILSpy/blob/84101f8/ICSharpCode.Decompiler/IL/ControlFlow/YieldReturnDecompiler.cs
          * and reimplemented to be compatible with cecil.
          *
-         * Note that the implementation here is intended to just works for Celeste so lots of code are omitted, for example
-         * mono compiler support.
-         *
-         * Feel free to submit a PR if you want to implement all those things. (and good luck implementing the expression tree parser)
+         * This implementation comes from https://github.com/EverestAPI/Everest/blob/dev/Celeste.Mod.mm/MonoModRules.Utils.cs
          */
 
         /// <summary>
