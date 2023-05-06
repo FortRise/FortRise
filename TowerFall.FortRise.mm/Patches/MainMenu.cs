@@ -8,6 +8,9 @@ public class patch_MainMenu : MainMenu
     private float scrolling;
     private int totalScroll;
     private int count;
+
+    public static patch_MatchSettings VersusMatchSettings;
+
     public patch_MainMenu(MenuState state) : base(state)
     {
     }

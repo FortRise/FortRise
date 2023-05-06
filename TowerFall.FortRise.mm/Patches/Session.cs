@@ -9,6 +9,8 @@ public class patch_Session : Session
     {
     }
 
+    public patch_MatchSettings MatchSettings;
+
     [PatchSessionStartGame]
     public extern void orig_StartGame();
 

@@ -15,12 +15,15 @@ namespace FortRise;
 
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
 public delegate LevelEntity LevelEntityLoader(XmlElement x);
+public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
 
 
 public static partial class RiseCore 
 {
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
+    public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
+    public static Dictionary<string, RoundLogicIdentifier> RoundLogicIdentifiers = new();
     public static List<FortModule> Modules = new();
     private static List<ModuleHandler> ModAssemblies = new List<ModuleHandler>();
 
@@ -31,11 +34,57 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module) 
     {
-        Modules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
                 continue;
+            
+            foreach (var attrib in type.GetCustomAttributes<CustomRoundLogicAttribute>()) 
+            {
+                if (attrib is null)
+                    continue;
+
+                string name = attrib.Name;
+                RoundLogicLoader loader = null;
+                ConstructorInfo ctor;
+                MethodInfo info;
+                string overriden = attrib.OverrideFunction ?? "Create";
+                info = type.GetMethod(overriden);
+                if (info == null || !info.IsStatic)
+                {
+                    Logger.Log($"No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
+                    continue;
+                }
+                var identifier = (RoundLogicIdentifier)info.Invoke(null, Array.Empty<object>());
+                RoundLogicIdentifiers.Add(name, identifier);
+                ctor = type.GetConstructor(new Type[] { typeof(Session), typeof(bool) });
+                if (ctor != null) 
+                {
+                    loader = (x, y) => {
+                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x, y });
+                        return roundLogic;
+                    };
+                    goto Loaded;
+                }
+                ctor = type.GetConstructor(new Type[] { typeof(Session) });
+                if (ctor != null) 
+                {
+                    loader = (x, y) => {
+                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x });
+                        return roundLogic;
+                    };
+                    goto Loaded;
+                }
+                Loaded:
+                if (identifier.RoundType == RoundLogicType.FFA)
+                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.LastManStanding);
+                else
+                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.HeadHunters);
+
+                CustomVersusRoundLogic.VersusModes.Add(name);
+                RoundLogicLoader.Add(name, loader);
+                
+            }
 
             foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
             {
@@ -174,9 +223,8 @@ public static partial class RiseCore
                 FortModule obj = Activator.CreateInstance(t) as FortModule;
                 obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
-                obj.Register();
-                var method = t.GetMethod("InternalLoad");
-                method.Invoke(obj, null);
+                Modules.Add(obj);
+                obj.InternalLoad();
             }
         }
     }
@@ -198,37 +246,26 @@ public static partial class RiseCore
 
     internal static void LoadContent() 
     {
-        foreach (var t in Types) 
+        foreach (var t in Modules) 
         {
-            if (t is null)
-                continue;
-            var obj = Activator.CreateInstance(t);
-            var method = t.GetMethod("LoadContent");
-            method.Invoke(obj, null);
+            t.LoadContent();
+            t.Register();
         }
     }
 
     internal static void Initialize() 
     {
-        foreach (var t in Types) 
+        foreach (var t in Modules) 
         {
-            if (t is null)
-                continue;
-            var obj = Activator.CreateInstance(t);
-            var method = t.GetMethod("Initialize");
-            method.Invoke(obj, null);
+            t.Initialize();
         }
     }
 
     internal static void ModuleEnd() 
     {
-        foreach (var t in Types) 
+        foreach (var t in Modules) 
         {
-            if (t is null)
-                continue;
-            var obj = Activator.CreateInstance(t);
-            var method = t.GetMethod("Unload");
-            method.Invoke(obj, null);
+            t.Unload();
         }
     }
 }
