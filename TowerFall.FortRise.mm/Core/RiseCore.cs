@@ -25,7 +25,6 @@ public static partial class RiseCore
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicIdentifier> RoundLogicIdentifiers = new();
     public static List<FortModule> Modules = new();
-    private static List<ModuleHandler> ModAssemblies = new List<ModuleHandler>();
 
     private static Type[] Types;
 
@@ -203,16 +202,12 @@ public static partial class RiseCore
             };
             AppDomain.CurrentDomain.AssemblyResolve += resolver;
             var assembly = Assembly.LoadFrom(pathToAssembly);
-            var module = new ModuleHandler(
-                json["name"], new Version(json["version"]), 
-                json["description"], json["author"], assembly);
-            ModAssemblies.Add(module);
-            GetModuleTypes(assembly, i++);
+            GetModuleTypes(json, assembly, i++);
             AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
     }
 
-    private static void GetModuleTypes(Assembly asm, int index) 
+    private static void GetModuleTypes(JsonValue json, Assembly asm, int index) 
     {
         foreach (var t in asm.GetTypes()) 
         {
@@ -222,6 +217,10 @@ public static partial class RiseCore
                 Types[index] = t;
                 FortModule obj = Activator.CreateInstance(t) as FortModule;
                 obj.Name = customAttribute.Name;
+                obj.MetaName = json["name"];
+                obj.MetaVersion = new Version(json["version"]);
+                obj.MetaDescription = json["description"];
+                obj.MetaAuthor = json["author"];
                 obj.ID = customAttribute.GUID;
                 Modules.Add(obj);
                 obj.InternalLoad();
@@ -267,24 +266,5 @@ public static partial class RiseCore
         {
             t.Unload();
         }
-    }
-}
-
-
-public class ModuleHandler
-{
-    public string Name;
-    public System.Version Version;
-    public string Description;
-    public string Author;
-    public Assembly Module;
-
-    public ModuleHandler(string name, System.Version version, string description, string author, Assembly assembly) 
-    {
-        Name = name;
-        Version = version;
-        Description = description;
-        Author = author;
-        Module = assembly;
     }
 }

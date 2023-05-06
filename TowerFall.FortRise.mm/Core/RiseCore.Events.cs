@@ -13,10 +13,10 @@ public static partial class RiseCore
     public static event MainMenu_CreateOptions OnMainMenu_CreateOptions;
     internal static void InvokeMainMenu_CreateOptions(List<OptionsButton> optionsList) 
     {
-        foreach (var mod in RiseCore.Modules) 
-        {
-            mod.CreateSettings(optionsList);
-        }
+        // foreach (var mod in RiseCore.Modules) 
+        // {
+        //     mod.CreateSettings(optionsList);
+        // }
 
         OnMainMenu_CreateOptions?.Invoke(optionsList);
     }

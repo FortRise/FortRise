@@ -33,7 +33,6 @@ public static class patch_GameData
             var loadAdventurePath = JsonTextReader.FromFile("adventureCache.json").ConvertToListString();
             foreach (var adventurePath in loadAdventurePath) 
             {
-                Engine.Instance.Commands.Log("Loading " + adventurePath);
                 if (LoadAdventureLevelsParallel(adventurePath))
                     AdventureWorldTowersLoaded.Add(adventurePath);
             }
@@ -48,7 +47,6 @@ public static class patch_GameData
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldTowers.Add(adventureTowerData);
-            Engine.Instance.Commands.Log("[AdventureMod] Loaded " + directory);
             return true;
         }
         return false;

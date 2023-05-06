@@ -21,6 +21,10 @@ public abstract partial class FortModule
 {
     public string Name { get; internal set; }
     public string ID { get; internal set; }
+    public string MetaName { get; internal set; }
+    public Version MetaVersion { get; internal set; }
+    public string MetaDescription { get; internal set; }
+    public string MetaAuthor { get; internal set; }
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
     public abstract void Load();
