@@ -1,8 +1,4 @@
-#pragma warning disable CS0626
-#pragma warning disable CS0108
-
 using System.IO;
-using MonoMod;
 using TeuJson;
 
 namespace TowerFall;

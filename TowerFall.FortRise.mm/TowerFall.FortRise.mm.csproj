@@ -6,6 +6,8 @@
     <NoWarn>$(NoWarn);CS0414</NoWarn>
     <NoWarn>$(NoWarn);CS0649</NoWarn>
     <NoWarn>$(NoWarn);CS0169</NoWarn>
+    <NoWarn>$(NoWarn);CS0626</NoWarn>
+    <NoWarn>$(NoWarn);CS0108</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

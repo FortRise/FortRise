@@ -1,5 +1,3 @@
-#pragma warning disable CS0626
-#pragma warning disable CS0108
 using Microsoft.Xna.Framework;
 using MonoMod;
 

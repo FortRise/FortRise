@@ -1,7 +1,3 @@
-#pragma warning disable CS0626
-#pragma warning disable CS0108
-
-using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
