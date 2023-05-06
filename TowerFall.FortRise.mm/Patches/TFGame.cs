@@ -1,5 +1,8 @@
 #define FORTMODULE
 
+using FortRise;
+using MonoMod;
+
 namespace TowerFall;
 
 public class patch_TFGame : TFGame
@@ -9,6 +12,13 @@ public class patch_TFGame : TFGame
     }
 
 #if FORTMODULE
+    public extern static void orig_Main(string[] args);
+    public static void Main(string[] args) 
+    {
+        orig_Main(args);
+        Logger.WriteToFile("fortRiseLog.txt");
+    }
+
     protected extern void orig_Initialize();
 
     protected override void Initialize() 
