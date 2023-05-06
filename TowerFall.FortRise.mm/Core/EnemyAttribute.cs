@@ -3,15 +3,12 @@ using System;
 namespace FortRise;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public class EnemyAttribute : Attribute 
+public class CustomEnemyAttribute : Attribute 
 {
-    public string Name;
-    public string FuncArg;
+    public string[] Names;
 
-
-    public EnemyAttribute(string name, string arg = null) 
+    public CustomEnemyAttribute(params string[] names) 
     {
-        Name = name;
-        FuncArg = arg;
+        Names = names;
     }
 }

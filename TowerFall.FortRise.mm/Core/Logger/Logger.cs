@@ -9,7 +9,7 @@ namespace FortRise;
 public static class Logger 
 {
     public enum LogLevel { Debug, Warning, Error, Assert, Info }
-    private static StringBuilder builder;
+    private static StringBuilder builder = new();
 
     public static LogLevel Verbosity = LogLevel.Info;
 
@@ -115,7 +115,10 @@ public static class Logger
 
     public static void WriteToFile(Stream stream) 
     {
+        var texts = builder.ToString();
+        if (!string.IsNullOrEmpty(texts))
+            return;
         using var textWriter = new StreamWriter(stream);
-        textWriter.WriteLine(builder.ToString());
+        textWriter.WriteLine(texts);
     }
 }

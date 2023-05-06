@@ -4,16 +4,23 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
 
 namespace FortRise;
 
+public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
+public delegate LevelEntity LevelEntityLoader(XmlElement x);
+
+
 public static partial class RiseCore 
 {
-    public static Dictionary<string, EnemyLoader> Loader = new();
+    public static Dictionary<string, EnemyLoader> EnemyLoader = new();
+    public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static List<FortModule> Modules = new();
     private static List<ModuleHandler> ModAssemblies = new List<ModuleHandler>();
 
@@ -30,35 +37,90 @@ public static partial class RiseCore
             if (type is null)
                 continue;
 
-            foreach (EnemyAttribute attrib in type.GetCustomAttributes<EnemyAttribute>()) 
+            foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
             {
                 if (attrib is null)
                     continue;
-                var name = attrib.Name;
-                var arg = attrib.FuncArg;
+                foreach (var name in attrib.Names) 
+                {
+                    string id;
+                    string methodName = null;
+                    string[] split = name.Split('=');
+                    if (split.Length == 1) 
+                    {
+                        id = split[0];
+                    }
+                    else if (split.Length == 2) 
+                    {
+                        id = split[0];
+                        methodName = split[1];
+                    }
+                    else 
+                    {
+                        Logger.Log($"Invalid syntax of custom entity ID: {name}, {type.FullName}", Logger.LogLevel.Warning);
+                        continue;
+                    }
+                    id = id.Trim();
+                    methodName = methodName?.Trim();
+                    ConstructorInfo ctor;
+                    MethodInfo info;
+                    EnemyLoader loader = null;
+
+                    info = type.GetMethod(methodName, new Type[] { typeof(Vector2), typeof(Facing) });
+                    if (methodName != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
+                    {
+                        loader = (position, facing) => {
+                            var invoked = (patch_Enemy)info.Invoke(null, new object[] {
+                                position, facing
+                            });
+                            invoked.Load();
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+
+                    ctor = type.GetConstructor(
+                        new Type[] { typeof(Vector2), typeof(Facing) }
+                    );
+                    if (ctor != null) 
+                    {
+                        loader = (position, facing) => {
+                            var invoked = (patch_Enemy)ctor.Invoke(new object[] {
+                                position,
+                                facing
+                            });
+                            invoked.Load();
+
+                            return invoked;
+
+                        };
+                        goto Loaded;
+                    }
+                    Loaded:
+                    EnemyLoader.Add(id, loader);
+                }
+            }
+
+            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
+            {
+                if (clea is null)
+                    return;
+                var name = clea.Name;
 
                 ConstructorInfo ctor;
-                EnemyLoader loader = null;
-
-                ctor = type.GetConstructor(
-                    new Type[] { typeof(Vector2), typeof(Facing) }
-                );
+                LevelEntityLoader loader = null;
+                ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
                 if (ctor != null) 
                 {
-                    loader = (position, facing) => {
-                        var invoked = (patch_Enemy)ctor.Invoke(new object[] {
-                            position,
-                            facing
-                        });
-                        invoked.Load();
-
+                    loader = x => 
+                    {
+                        var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
                         return invoked;
-
                     };
                     goto Loaded;
                 }
                 Loaded:
-                Loader.Add(name, loader);
+                LevelEntityLoader.Add(name, loader);
             }
         }
     }
@@ -171,7 +233,7 @@ public static partial class RiseCore
     }
 }
 
-// Work In Progress
+
 public class ModuleHandler
 {
     public string Name;

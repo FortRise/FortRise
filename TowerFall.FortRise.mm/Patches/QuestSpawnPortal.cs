@@ -5,7 +5,6 @@ using MonoMod;
 
 namespace TowerFall;
 
-public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
 
 public class patch_QuestSpawnPortal : QuestSpawnPortal
 {

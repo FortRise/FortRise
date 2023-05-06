@@ -524,8 +524,27 @@ internal static partial class MonoModRules
         }
     }
 
+    // https://github.com/EverestAPI/Everest/blob/f4545220fe22ed3f752e358741befe9cc7546234/Celeste.Mod.mm/MonoModRules.cs
+    // This is to fix the Enumerators can't be decompiled
+    public static void FixEnumeratorDecompile(TypeDefinition type) {
+    foreach (MethodDefinition method in type.Methods) {
+        new ILContext(method).Invoke(il => {
+            ILCursor cursor = new ILCursor(il);
+            while (cursor.TryGotoNext(instr => instr.MatchCallvirt(out MethodReference m) &&
+                (m.Name is "System.Collections.IEnumerable.GetEnumerator" or "System.IDisposable.Dispose" ||
+                    m.Name.StartsWith("<>m__Finally")))
+            ) {
+                cursor.Next.OpCode = OpCodes.Call;
+            }
+        });
+    }
+}
+
     private static void PostProcessType(MonoModder modder, TypeDefinition type) 
     {
+        if (type.IsCompilerGeneratedEnumerator()) {
+            FixEnumeratorDecompile(type);
+        }
         foreach (MethodDefinition method in type.Methods) 
         {
             method.FixShortLongOps();

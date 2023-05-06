@@ -9,7 +9,6 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    public static float ScrollAmount = 12;
     public delegate void MainMenu_CreateOptions(List<OptionsButton> optionsList);
     public static event MainMenu_CreateOptions OnMainMenu_CreateOptions;
     internal static void InvokeMainMenu_CreateOptions(List<OptionsButton> optionsList) 
@@ -29,7 +28,7 @@ public static partial class RiseCore
 
     internal static void InvokeQuestSpawnPortal_FinishSpawn(string name, Vector2 position, Facing facing, Level level) 
     {
-        if (Loader.TryGetValue(name, out EnemyLoader loader)) 
+        if (EnemyLoader.TryGetValue(name, out EnemyLoader loader)) 
         {
             level.Add(loader?.Invoke(position + new Vector2(0f, 2f), facing));
             return;

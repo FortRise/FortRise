@@ -32,12 +32,12 @@ public class patch_MainMenu : MainMenu
         {
             if (MenuInput.Up && totalScroll > 0) 
             {
-                scrolling += FortRise.RiseCore.ScrollAmount;
+                scrolling += 12;
                 totalScroll--;
             }
             if (MenuInput.Down && totalScroll < count) 
             {
-                scrolling -= FortRise.RiseCore.ScrollAmount; 
+                scrolling -= 12; 
                 totalScroll++;
             }
             if (totalScroll > 9 && totalScroll < count - 5) 
