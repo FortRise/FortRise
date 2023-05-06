@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Monocle;
+using TeuJson;
 using TowerFall;
 
 namespace FortRise;
@@ -13,7 +15,7 @@ public static partial class RiseCore
 {
     public static Dictionary<string, EnemyLoader> Loader = new();
     public static List<RiseModule> Modules = new();
-    private static List<Assembly> ModAssemblies = new List<Assembly>();
+    private static List<ModuleHandler> ModAssemblies = new List<ModuleHandler>();
 
     private static Type[] Types;
 
@@ -63,28 +65,31 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
-        if (!File.Exists("Mods/ModsList.txt")) 
+        var directory = Directory.EnumerateDirectories("Mods").ToList();
+        if (directory.Count <= 0) 
         {
-            using var x = File.CreateText("Mods/ModsList.txt");
-            x.Write("");
+            Types = Array.Empty<Type>();
+            return;
         }
-        var allLines = File.ReadAllLines("Mods/ModsList.txt");
-        if (allLines.Length == 0) 
+
+        int i = 0;
+        Types = new Type[directory.Count];
+        foreach (var dir in directory) 
         {
-            Types = EmptyTypeArray;
-        }
-        else 
-        {
-            Types = new Type[allLines.Length];
-            for (int i = 0; i < allLines.Length; i++) 
-            {
-                if (allLines[i] == string.Empty) { continue; }
-                if (!File.Exists(Path.GetFullPath("Mods/" + allLines[i])))
-                    continue;
-                Assembly asm = Assembly.LoadFrom(Path.GetFullPath("Mods/" + allLines[i]));
-                ModAssemblies.Add(asm);
-                GetModuleTypes(asm, i);
-            }
+            var metaPath = Path.Combine(dir, "meta.json");
+            if (!File.Exists(metaPath))
+                continue;
+            
+            var json = JsonTextReader.FromFile(metaPath);
+            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, json["dll"]));
+            if (!File.Exists(pathToAssembly))
+                continue;
+            var assembly = Assembly.LoadFrom(pathToAssembly);
+            var module = new ModuleHandler(
+                json["name"], new Version(json["version"]), 
+                json["description"], json["author"], assembly);
+            ModAssemblies.Add(module);
+            GetModuleTypes(assembly, i++);
         }
     }
 
@@ -161,20 +166,18 @@ public static partial class RiseCore
 // Work In Progress
 public class ModuleHandler
 {
-    public Assembly ModuleAssembly;
-    public object Instance;
-    private Type type;
+    public string Name;
+    public System.Version Version;
+    public string Description;
+    public string Author;
+    public Assembly Module;
 
-    public ModuleHandler(Assembly assembly, object instance)  
+    public ModuleHandler(string name, System.Version version, string description, string author, Assembly assembly) 
     {
-        ModuleAssembly = assembly;
-        Instance = instance;
-        type = ModuleAssembly.GetType("Entry");
-    }
-
-    public void InvokeMethod(string methodName) 
-    {
-        var method = type.GetMethod(methodName);
-        method.Invoke(Instance, null);
+        Name = name;
+        Version = version;
+        Description = description;
+        Author = author;
+        Module = assembly;
     }
 }
