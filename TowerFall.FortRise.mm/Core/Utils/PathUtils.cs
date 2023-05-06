@@ -4,7 +4,7 @@ using Monocle;
 
 namespace FortRise;
 
-public partial class RiseModule
+public partial class FortModule
 {
     public static string ToContentPath(string path) 
     {

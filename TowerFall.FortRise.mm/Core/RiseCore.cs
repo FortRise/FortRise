@@ -14,7 +14,7 @@ namespace FortRise;
 public static partial class RiseCore 
 {
     public static Dictionary<string, EnemyLoader> Loader = new();
-    public static List<RiseModule> Modules = new();
+    public static List<FortModule> Modules = new();
     private static List<ModuleHandler> ModAssemblies = new List<ModuleHandler>();
 
     private static Type[] Types;
@@ -22,7 +22,7 @@ public static partial class RiseCore
     public readonly static Type[] EmptyTypeArray = new Type[0];
     public readonly static object[] EmptyObjectArray = new object[0];
 
-    internal static void Register(this RiseModule module) 
+    internal static void Register(this FortModule module) 
     {
         Modules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
@@ -84,12 +84,20 @@ public static partial class RiseCore
             var pathToAssembly = Path.GetFullPath(Path.Combine(dir, json["dll"]));
             if (!File.Exists(pathToAssembly))
                 continue;
+            ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
+                string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
+                if (!File.Exists(asmPath))
+                    return null;
+                return Assembly.LoadFrom(asmPath);
+            };
+            AppDomain.CurrentDomain.AssemblyResolve += resolver;
             var assembly = Assembly.LoadFrom(pathToAssembly);
             var module = new ModuleHandler(
                 json["name"], new Version(json["version"]), 
                 json["description"], json["author"], assembly);
             ModAssemblies.Add(module);
             GetModuleTypes(assembly, i++);
+            AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
     }
 
@@ -97,11 +105,11 @@ public static partial class RiseCore
     {
         foreach (var t in asm.GetTypes()) 
         {
-            var customAttribute = t.GetCustomAttribute<RiseAttribute>();
+            var customAttribute = t.GetCustomAttribute<FortAttribute>();
             if (customAttribute != null) 
             {
                 Types[index] = t;
-                RiseModule obj = Activator.CreateInstance(t) as RiseModule;
+                FortModule obj = Activator.CreateInstance(t) as FortModule;
                 obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
                 obj.Register();

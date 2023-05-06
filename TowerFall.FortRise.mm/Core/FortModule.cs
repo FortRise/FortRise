@@ -6,18 +6,18 @@ using TowerFall;
 
 namespace FortRise;
 
-public class RiseAttribute : Attribute 
+public class FortAttribute : Attribute 
 {
     public string GUID;
     public string Name;
-    public RiseAttribute(string guid, string name) 
+    public FortAttribute(string guid, string name) 
     {
         GUID = guid;
         Name = name;
     }
 }
 
-public abstract partial class RiseModule 
+public abstract partial class FortModule 
 {
     public string Name { get; internal set; }
     public string ID { get; internal set; }
