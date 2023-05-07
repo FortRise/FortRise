@@ -1,0 +1,3 @@
+[submodule "NativeFileDialogSharp"]
+	path = NativeFileDialogSharp
+	url = https://github.com/milleniumbug/NativeFileDialogSharp.git
