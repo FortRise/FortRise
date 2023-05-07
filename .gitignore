@@ -1,4 +1,6 @@
 obj/
 bin/
 lib/**/*.dll
-Installer/lib
+Installer/lib/**/*.dll
+Installer/lib/**/*.exe
+Installer/lib/**/*.xml
