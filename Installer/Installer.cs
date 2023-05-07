@@ -7,7 +7,7 @@ namespace FortRise.Installer;
 public static class Installer
 {
     public const string TowerFallVersion = "1.3.3.3";
-    public const string InstallerVersion = "1.0.0";
+    public const string InstallerVersion = "2.0.0";
 
     private static readonly string[] fileDependencies = {
         "MonoMod.exe", "MonoMod.xml",
@@ -41,8 +41,14 @@ public static class Installer
             return;
         }
 
-        AnsiConsole.MarkupLine("[underline]Moving original TowerFall into fortOrig Folder[/]");
         var fortOrigPath = Path.Combine(path, "fortOrig");
+
+        if (File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe"))) 
+        {
+            File.Copy(Path.Combine(fortOrigPath, "TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
+        }
+
+        AnsiConsole.MarkupLine("[underline]Moving original TowerFall into fortOrig Folder[/]");
         if (!Directory.Exists(fortOrigPath))
             Directory.CreateDirectory(fortOrigPath);
         
