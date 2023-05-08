@@ -31,6 +31,8 @@ public static partial class RiseCore
     public readonly static Type[] EmptyTypeArray = new Type[0];
     public readonly static object[] EmptyObjectArray = new object[0];
 
+    public static bool DebugMode;
+
     internal static void Register(this FortModule module) 
     {
         foreach (var type in module.GetType().Assembly.GetTypes()) 
@@ -177,6 +179,27 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
+        var patchFile = "PatchVersion.txt";
+        if (File.Exists(patchFile)) 
+        {
+            try 
+            {
+                using var fs = File.OpenRead(patchFile);
+                using TextReader reader = new StreamReader(fs);
+                // skip these two lines since we don't need those
+                reader.ReadLine();
+                reader.ReadLine();
+                var debugMode = reader.ReadLine().Split(':')[1].Trim();
+                DebugMode = bool.Parse(debugMode);
+            }
+            catch 
+            {
+                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
+                Logger.Log("Please report this bug", Logger.LogLevel.Warning);
+                DebugMode = true;
+            }
+
+        }
         var directory = Directory.EnumerateDirectories("Mods").ToList();
         if (directory.Count <= 0) 
         {

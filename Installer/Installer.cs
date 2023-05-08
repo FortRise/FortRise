@@ -7,7 +7,7 @@ namespace FortRise.Installer;
 public static class Installer
 {
     public const string TowerFallVersion = "1.3.3.3";
-    public const string InstallerVersion = "2.1.0";
+    public const string InstallerVersion = "2.0.0-alpha2";
 
     private static readonly string[] fileDependencies = {
         "MonoMod.exe", "MonoMod.xml",
@@ -37,8 +37,8 @@ public static class Installer
         }
         if (!shouldProceed) 
         {
-            ThrowError("TowerFall has already been patched with FortRise.");
-            return;
+            if (!AnsiConsole.Confirm("[green]TowerFall has already been patched[/], [underline]do you want to patch again?[/]", false))
+                return;
         }
 
         var fortOrigPath = Path.Combine(path, "fortOrig");
@@ -127,9 +127,13 @@ public static class Installer
         File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
 
         AnsiConsole.MarkupLine("[underline]Writing the version file[/]");
+
+        var debugMode = AnsiConsole.Confirm("Do you want to run in debug mode?", false);
+
         var sb = new StringBuilder();
         sb.AppendLine("TF Version: " + TowerFallVersion);
         sb.AppendLine("Installer Version: " + InstallerVersion);
+        sb.AppendLine("Debug Mode: " + debugMode);
         var text = sb.ToString();
         await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
 
