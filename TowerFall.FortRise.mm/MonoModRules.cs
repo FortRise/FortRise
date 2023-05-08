@@ -110,7 +110,7 @@ internal static partial class MonoModRules
             // Ensure that TowerFall assembly is not already modded
             // (https://github.com/MonoMod/MonoMod#how-can-i-check-if-my-assembly-has-been-modded)
             if (MonoModRule.Modder.FindType("MonoMod.WasHere") != null)
-                throw new Exception("This version of Celeste is already modded. You need a clean install of Celeste to mod it.");
+                throw new Exception("This version of TowerFall is already modded. You need a clean install of TowerFall to mod it.");
 
             // Ensure that Microsoft.Xna.Framework.dll is present.
             if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null)

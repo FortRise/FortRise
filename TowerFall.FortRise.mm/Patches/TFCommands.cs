@@ -13,6 +13,10 @@ public static class patch_TFCommands
         orig_Init();
         Commands commands = Engine.Instance.Commands;
 
+        commands.RegisterCommand("test", args => {
+            Logger.Log("HeY!");
+        });
+
         foreach (var module in FortRise.RiseCore.Modules) 
         {
             var types = module.GetType().Assembly.GetTypes();

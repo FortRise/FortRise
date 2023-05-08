@@ -10,8 +10,20 @@ public static class Logger
 {
     public enum LogLevel { Debug, Warning, Error, Assert, Info }
     private static StringBuilder builder = new();
+    private static IConsole consoleWindow;
 
     public static LogLevel Verbosity = LogLevel.Info;
+
+    public static void AttachConsole(IConsole window) 
+    {
+        consoleWindow = window;
+        consoleWindow.Attach();
+    }
+
+    public static void DetachConsole() 
+    {
+        consoleWindow?.Detach();
+    }
 
     private static void LogInternal(LogLevel level, string message, int lineNumber) 
     {
@@ -26,8 +38,10 @@ public static class Logger
             LogLevel.Error => "[ERROR]",
             _ => "[INFO]"
         };
+        var text = $"{logName} Ln: {lineNumber} {message}";
 
-        builder.AppendLine($"{logName} Ln: {lineNumber} {message}");
+        builder.AppendLine(text);
+        consoleWindow.StdOut.WriteLine(text);
         if (level == LogLevel.Error || level == LogLevel.Assert)
             Debugger.Break();
     }

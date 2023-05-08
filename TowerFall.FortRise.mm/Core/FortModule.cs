@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Monocle;
 using TowerFall;
 
@@ -32,6 +33,7 @@ public abstract partial class FortModule
 
     public void InternalLoad() 
     {
+        Logger.AttachConsole(ConsoleAttachment());
         LoadSettings();
         Load();
     }
@@ -143,4 +145,14 @@ public abstract partial class FortModule
 
     public virtual void LoadContent() {}
     public virtual void Initialize() {}
+
+
+    public virtual IConsole ConsoleAttachment() 
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+        {
+            return new WindowConsole();
+        }
+        return null;
+    }
 }

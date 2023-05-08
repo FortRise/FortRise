@@ -1,6 +1,7 @@
 #define FORTMODULE
 
 using FortRise;
+using Microsoft.Xna.Framework;
 using MonoMod;
 
 namespace TowerFall;
@@ -16,6 +17,7 @@ public class patch_TFGame : TFGame
     public static void Main(string[] args) 
     {
         orig_Main(args);
+        Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
     }
 
@@ -45,4 +47,23 @@ public class patch_TFGame : TFGame
         orig_UnloadContent();
     }
 #endif
+
+    protected extern void orig_Update(GameTime gameTime);
+
+    protected override void Update(GameTime gameTime)
+    {
+        RiseCore.Invoke_BeforeUpdate(gameTime);
+        RiseCore.Invoke_Update(gameTime);
+        orig_Update(gameTime);
+        RiseCore.Invoke_AfterUpdate(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        RiseCore.Invoke_BeforeRender(Monocle.Draw.SpriteBatch);
+        RiseCore.Invoke_Render(Monocle.Draw.SpriteBatch);
+        base.Draw(gameTime);
+        RiseCore.Invoke_AfterRender(Monocle.Draw.SpriteBatch);
+    }
+
 }
