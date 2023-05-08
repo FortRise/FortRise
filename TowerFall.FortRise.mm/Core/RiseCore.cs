@@ -77,6 +77,8 @@ public static partial class RiseCore
                 Loaded:
                 if (identifier.RoundType == RoundLogicType.FFA)
                     CustomVersusRoundLogic.LookUpModes.Add(name, Modes.LastManStanding);
+                else if (identifier.RoundType == RoundLogicType.TeamDeatchmatch)
+                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.TeamDeathmatch);
                 else
                     CustomVersusRoundLogic.LookUpModes.Add(name, Modes.HeadHunters);
 

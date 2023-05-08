@@ -12,8 +12,7 @@ public abstract class CustomVersusRoundLogic : RoundLogic
         {"HeadHunters", Modes.HeadHunters},
         {"TeamDeathmatch", Modes.TeamDeathmatch}
     };
-    internal static List<Modes> BuiltInVersusModes = new () { 
-        Modes.LastManStanding, Modes.HeadHunters, Modes.TeamDeathmatch };
+
     protected CustomVersusRoundLogic(Session session, bool canHaveMiasma) : base(session, canHaveMiasma)
     {
     }
@@ -31,5 +30,5 @@ public enum RoundLogicType
 {
     FFA,
     HeadHunters,
-    // Team Deatchmatch?
+    TeamDeatchmatch
 }
