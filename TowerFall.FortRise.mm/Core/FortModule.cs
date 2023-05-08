@@ -33,7 +33,8 @@ public abstract partial class FortModule
 
     public void InternalLoad() 
     {
-        Logger.AttachConsole(ConsoleAttachment());
+        if (RiseCore.DebugMode)
+            Logger.AttachConsole(ConsoleAttachment());
         LoadSettings();
         Load();
     }
