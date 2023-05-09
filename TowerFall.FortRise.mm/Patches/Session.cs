@@ -24,7 +24,40 @@ public class patch_Session : Session
         }
     }
 
-        /* Having some problems with this */
+    // TODO Use these
+    public void AddDeaths(int id) 
+    {
+        switch (MatchSettings.Mode) 
+        {
+        case patch_Modes.Custom:
+            patch_GameData.AdventureWorldTowers[id].Stats.Deaths += 1;
+            break;
+        case patch_Modes.DarkWorld:
+            SaveData.Instance.DarkWorld.Towers[id].Deaths += 1;
+            break;
+        case patch_Modes.Quest:
+            SaveData.Instance.Quest.Towers[id].TotalDeaths += 1;
+            break;
+        }
+    }
+
+    public void AddAttempts(int id) 
+    {
+        switch (MatchSettings.Mode) 
+        {
+        case patch_Modes.Custom:
+            patch_GameData.AdventureWorldTowers[id].Stats.Attempts += 1;
+            break;
+        case patch_Modes.DarkWorld:
+            SaveData.Instance.DarkWorld.Towers[id].Attempts += 1;
+            break;
+        case patch_Modes.Quest:
+            SaveData.Instance.Quest.Towers[id].TotalAttempts += 1;
+            break;
+        }
+    }
+
+        /* Having some problems with this, might use this soon */
         // if (DarkWorldState != null) 
         // {
         //     var originalCount = DarkWorldState.defaultInventory.Arrows.Arrows.Count;

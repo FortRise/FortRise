@@ -38,7 +38,7 @@ public class patch_VersusModeButton : VersusModeButton
         {
             patch_MainMenu.VersusMatchSettings.IsCustom = !((idx + 1) < BuiltInModeCount);
             var modeName = patch_MainMenu.VersusMatchSettings.CurrentModeName = CustomVersusRoundLogic.VersusModes[idx + 1];
-            MainMenu.VersusMatchSettings.Mode = CustomVersusRoundLogic.LookUpModes[modeName];
+            patch_MainMenu.VersusMatchSettings.Mode = CustomVersusRoundLogic.LookUpModes[modeName];
             Sounds.ui_move2.Play(160f, 1f);
             iconWiggler.Start();
             base_OnConfirm();
@@ -48,7 +48,7 @@ public class patch_VersusModeButton : VersusModeButton
         {
             patch_MainMenu.VersusMatchSettings.IsCustom = !((idx - 1) < BuiltInModeCount);
             var modeName = patch_MainMenu.VersusMatchSettings.CurrentModeName = CustomVersusRoundLogic.VersusModes[idx - 1];
-            MainMenu.VersusMatchSettings.Mode = CustomVersusRoundLogic.LookUpModes[modeName];
+            patch_MainMenu.VersusMatchSettings.Mode = CustomVersusRoundLogic.LookUpModes[modeName];
             Sounds.ui_move2.Play(160f, 1f);
             iconWiggler.Start();
             base_OnConfirm();

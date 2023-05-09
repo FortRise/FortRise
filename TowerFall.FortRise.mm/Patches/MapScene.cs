@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Monocle;
 using MonoMod;
 
@@ -76,7 +77,7 @@ public class patch_MapScene : MapScene
         {
             if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(j))
             {
-                this.Buttons.Add(new DarkWorldMapButton(GameData.DarkWorldTowers[j]));
+                Buttons.Add(new DarkWorldMapButton(GameData.DarkWorldTowers[j]));
             }
         }
         this.LinkButtonsList();
@@ -84,5 +85,33 @@ public class patch_MapScene : MapScene
         foreach (var button in Buttons)
             Add(button);
         ScrollToButton(Selection);
+    }
+
+    private extern void orig_Update();
+
+    public override void Update()
+    {
+        if (!MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
+        {
+            if (MenuInput.Up && !patch_SaveData.AdventureActive) 
+            {
+                GotoAdventure();
+            }
+            else if (MenuInput.Down && patch_SaveData.AdventureActive) 
+            {
+                ExitAdventure();
+            }
+        }
+        orig_Update();
+    }
+
+    // Fixing the memory leak that TowerFall has
+    [MonoModReplace]
+    public void TweenOutAllButtons() 
+    {
+        foreach (var mapButton in Buttons) 
+        {
+            (mapButton as patch_MapButton).TweenOutAndRemoved();
+        }
     }
 }

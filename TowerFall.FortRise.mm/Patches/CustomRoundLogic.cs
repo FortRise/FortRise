@@ -6,11 +6,11 @@ namespace TowerFall;
 public abstract class CustomVersusRoundLogic : RoundLogic
 {
     internal static List<string> VersusModes = new () { "LastManStanding", "HeadHunters", "TeamDeathmatch" };
-    internal static Dictionary<string, Modes> LookUpModes = new Dictionary<string, Modes>() 
+    internal static Dictionary<string, patch_Modes> LookUpModes = new Dictionary<string, patch_Modes>() 
     {
-        {"LastManStanding", Modes.LastManStanding},
-        {"HeadHunters", Modes.HeadHunters},
-        {"TeamDeathmatch", Modes.TeamDeathmatch}
+        {"LastManStanding", patch_Modes.LastManStanding},
+        {"HeadHunters", patch_Modes.HeadHunters},
+        {"TeamDeathmatch", patch_Modes.TeamDeathmatch}
     };
 
     protected CustomVersusRoundLogic(Session session, bool canHaveMiasma) : base(session, canHaveMiasma)

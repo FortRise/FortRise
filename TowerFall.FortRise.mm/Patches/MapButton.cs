@@ -10,7 +10,8 @@ public class patch_MapButton : MapButton
     [MonoModIgnore]
     public patch_MapScene Map { get; set; } 
     public string Author { get; set; }
-
+    public float TweenAt { get; private set; }
+    
 
 
     public patch_MapButton(string title) : base(title)
@@ -96,5 +97,26 @@ public class patch_MapButton : MapButton
 
         return list;
     }
+
+    // This function would fix the memory leak
+    // It's basically destroying the entity when the animation is complete
+    // It is good for marking the GC as this button is no longer use anymore and should be disposed
+    public void TweenOutAndRemoved()
+    {
+        float startY = base.Y;
+        float startTween = TweenAt;
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 20, true);
+        tween.OnUpdate = t =>
+        {
+            Y = MathHelper.Lerp(startY, 300f + this.AddY, t.Eased);
+            TweenAt = MathHelper.Lerp(startTween, 0f, t.Eased);
+        };
+        tween.OnComplete = t => 
+        {
+            RemoveSelf();
+        };
+        Add(tween);
+    }
+
 
 }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -42,10 +40,11 @@ public static partial class RiseCore
         OnAfterRender?.Invoke(spriteBatch);
     }
 
+    public delegate bool GetArrowTypesHandler(string name, out ArrowTypes types);
+    public static event GetArrowTypesHandler OnGetSkeletonArrowTypes;
 
-
-    public delegate void MainMenu_CreateOptions(List<OptionsButton> optionsList);
-    public static event MainMenu_CreateOptions OnMainMenu_CreateOptions;
+    public delegate void MainMenu_CreateOptionsHandler(List<OptionsButton> optionsList);
+    public static event MainMenu_CreateOptionsHandler OnMainMenu_CreateOptions;
     internal static void InvokeMainMenu_CreateOptions(List<OptionsButton> optionsList) 
     {
         OnMainMenu_CreateOptions?.Invoke(optionsList);
@@ -87,38 +86,40 @@ public static partial class RiseCore
             if (name.Contains("Jester"))
                 jester = true;
             
-            arrows = GetArrowTypes(name);
+            arrows = GetSkeletonArrowTypes(name);
             level.Add(new Skeleton(position + new Vector2(0f, 2f), facing, arrows, hasShields, hasWings, canMimic, jester, boss));
             return;
         }
         var invoked = OnQuestSpawnPortal_FinishSpawn?.Invoke(name, position, facing, level);
         if (invoked == null || !invoked.Value)
         {
-            Engine.Instance.Commands.Log($"Entity name: {name} failed to spawn as it does not exists!");
+            Logger.Error($"Entity name: {name} failed to spawn as it does not exists!");
         }
 
-        ArrowTypes GetArrowTypes(string name) 
+        ArrowTypes GetSkeletonArrowTypes(string name) 
         {
-            ArrowTypes types = ArrowTypes.Normal;
+            if (OnGetSkeletonArrowTypes != null && OnGetSkeletonArrowTypes(name, out ArrowTypes types)) 
+                return types;
+            
             if (name.Contains("Bomb"))
-                types = ArrowTypes.Bomb;
-            else if (name.Contains("SuperBomb"))
-                types = ArrowTypes.SuperBomb;
-            else if (name.Contains("Bramble"))
-                types = ArrowTypes.Bramble;
-            else if (name.Contains("Drill"))
-                types = ArrowTypes.Drill;
-            else if (name.Contains("Trigger"))
-                types = ArrowTypes.Trigger;
-            else if (name.Contains("Toy"))
-                types = ArrowTypes.Toy;
-            else if (name.Contains("Feather"))
-                types = ArrowTypes.Feather;
-            else if (name.Contains("Laser"))
-                types = ArrowTypes.Laser;
-            else if (name.Contains("Prism"))
-                types = ArrowTypes.Prism;
-            return types;
+                return ArrowTypes.Bomb;
+            if (name.Contains("SuperBomb"))
+                return ArrowTypes.SuperBomb;
+            if (name.Contains("Bramble"))
+                return ArrowTypes.Bramble;
+            if (name.Contains("Drill"))
+                return ArrowTypes.Drill;
+            if (name.Contains("Trigger"))
+                return ArrowTypes.Trigger;
+            if (name.Contains("Toy"))
+                return ArrowTypes.Toy;
+            if (name.Contains("Feather"))
+                return ArrowTypes.Feather;
+            if (name.Contains("Laser"))
+                return ArrowTypes.Laser;
+            if (name.Contains("Prism"))
+                return ArrowTypes.Prism;
+            return ArrowTypes.Normal;
         }
     }
 

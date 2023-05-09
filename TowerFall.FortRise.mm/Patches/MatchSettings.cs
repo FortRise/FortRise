@@ -7,6 +7,7 @@ public class patch_MatchSettings : MatchSettings
 {
     public bool IsCustom;
     public string CurrentModeName;
+    public patch_Modes Mode;
     private static readonly float[] GoalMultiplier;
 
 

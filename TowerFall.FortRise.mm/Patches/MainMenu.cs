@@ -14,7 +14,8 @@ public class patch_MainMenu : MainMenu
     private patch_MenuState state;
     private patch_MenuState switchTo;
     public patch_MenuState BackState;
-    
+
+
 
     [MonoModIgnore]
     public patch_MenuState State
@@ -44,7 +45,6 @@ public class patch_MainMenu : MainMenu
 
     public void CreateModOptions() 
     {
-        scrollAmount = 24;
         var list = new List<OptionsButton>();
         currentModule.CreateSettings(list);
         if (list.Count > 0) 
@@ -58,7 +58,7 @@ public class patch_MainMenu : MainMenu
 
     public void DestroyModOptions() 
     {
-        scrollAmount = 12;
+        scrollAmount = 24;
         currentModule = null;
     }
 
@@ -132,16 +132,16 @@ public class patch_MainMenu : MainMenu
 
     public override void Update()
     {
-        if (State == patch_MenuState.Options) 
+        if (state is patch_MenuState.Mods or patch_MenuState.ModOptions) 
         {
             if (MenuInput.Up && totalScroll > 0) 
             {
-                scrolling += 12;
+                scrolling += scrollAmount;
                 totalScroll--;
             }
             if (MenuInput.Down && totalScroll < count) 
             {
-                scrolling -= 12; 
+                scrolling -= scrollAmount; 
                 totalScroll++;
             }
             if (totalScroll > 9 && totalScroll < count - 5) 

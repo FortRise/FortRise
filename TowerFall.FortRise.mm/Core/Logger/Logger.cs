@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Monocle;
 
 namespace FortRise;
 
@@ -41,9 +42,11 @@ public static class Logger
         var text = $"{logName} Ln: {lineNumber} {message}";
 
         builder.AppendLine(text);
+        Engine.Instance?.Commands?.Log(text);
         consoleWindow.StdOut.WriteLine(text);
         if (level == LogLevel.Error || level == LogLevel.Assert)
             Debugger.Break();
+        
     }
 
     public static void Log(
@@ -78,6 +81,29 @@ public static class Logger
     {
         if (!condition)
             LogInternal(LogLevel.Assert, message, callerLineNumber);
+    }
+
+    public static void Info(
+        string log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        LogInternal(LogLevel.Info, log, callerLineNumber);
+    }
+
+
+    public static void Info(
+        object log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        string message = log switch 
+        {
+            null => "null",
+            _ => log.ToString() ?? "null"
+        };
+        
+        LogInternal(LogLevel.Info, message, callerLineNumber);
     }
 
     public static void Error(

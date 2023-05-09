@@ -78,11 +78,11 @@ public static partial class RiseCore
                 }
                 Loaded:
                 if (identifier.RoundType == RoundLogicType.FFA)
-                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.LastManStanding);
+                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.LastManStanding);
                 else if (identifier.RoundType == RoundLogicType.TeamDeatchmatch)
-                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.TeamDeathmatch);
+                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.TeamDeathmatch);
                 else
-                    CustomVersusRoundLogic.LookUpModes.Add(name, Modes.HeadHunters);
+                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.HeadHunters);
 
                 CustomVersusRoundLogic.VersusModes.Add(name);
                 RoundLogicLoader.Add(name, loader);
@@ -256,16 +256,15 @@ public static partial class RiseCore
 
     internal static void LogAllTypes() 
     {
-        Commands commands = Engine.Instance.Commands;
         int i = 0;
         foreach (var t in Types) 
         {
             if (t is null)
                 continue;
-            commands.Log(t.Assembly.FullName);
+            Logger.Info(t.Assembly.FullName);
             i++;
         }
-        commands.Log($"{i} total of mods loaded");
+        Logger.Info(i + " total of mods loaded");
     }
 
     internal static void LoadContent() 
