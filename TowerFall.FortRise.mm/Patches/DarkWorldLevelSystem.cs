@@ -27,7 +27,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         ShowTriggerControls = (!patch_SaveData.AdventureActive && ID.X == 2);
     }
 
-
+    [MonoModReplace]
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)
     {
         int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;

@@ -1,10 +1,16 @@
 using System.Collections;
+using System.IO;
+using FortRise;
+using Microsoft.Xna.Framework.Audio;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
 
 public class patch_DarkWorldControl : DarkWorldControl 
 {
+    private bool bossMode;
+    private SoundEffectInstance customMusic;
     [PostPatchEnableTempVariant]
     public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) {}
 
@@ -12,7 +18,52 @@ public class patch_DarkWorldControl : DarkWorldControl
     [PostPatchDisableTempVariant]
     public static void DisableTempVariants(Level level) {}
 
+    [PatchDarkWorldControlLevelSequence]
     private extern IEnumerator orig_LevelSequence();
+
+    [MonoModReplace]
+    private void StartMusic()
+    {
+        if (bossMode)
+            return;
+        
+        if (SoundHelper.StoredInstance.TryGetValue("CustomDarkWorldMusic", out customMusic)) 
+        {
+            if (customMusic.State == SoundState.Playing)
+                return;
+            customMusic.Play();
+            return;
+        }
+        
+        var levelSession = Level.Session;
+        var themeMusic = Level.Session.MatchSettings.LevelSystem.Theme.Music;
+        levelSession.SongTimer = 0;
+        if (themeMusic.Contains("custom:"))
+        {
+            if (customMusic == null)
+            {
+                var localPath = themeMusic.Split(':')[1];
+                var path =
+                    Path.Combine(
+                        patch_GameData.AdventureWorldTowers[Level.Session.MatchSettings.LevelSystem.ID.X].StoredDirectory,
+                        localPath
+                    );
+                Logger.Log(path);
+                SoundHelper.PathToSound(path, out customMusic);
+                if (!SoundHelper.StoredInstance.ContainsKey("CustomDarkWorldMusic"))
+                    SoundHelper.StoredInstance.Add("CustomDarkWorldMusic", customMusic);
+            }
+            customMusic.Play();
+            return;
+        }
+        Music.Play(themeMusic);
+    }
+
+    private void StopMusic() 
+    {
+        Music.Stop();
+        customMusic?.Stop();
+    }
 
     private IEnumerator LevelSequence() 
     {

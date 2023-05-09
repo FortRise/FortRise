@@ -51,61 +51,43 @@ public class patch_MapButton : MapButton
         AdventureWorldTowerStats stats = worldData.Stats;
         TowerTheme theme = worldData.Theme;
         List<Image> list = new List<Image>();
-        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType));
         image.CenterOrigin();
         list.Add(image);
-        Image image2 = new Image(theme.Icon, null);
+        Image image2 = new Image(theme.Icon);
         image2.CenterOrigin();
         list.Add(image2);
         image2.Color = MapButton.GetTint(theme.TowerType);
 
-        if (stats.EarnedGoldEye)
+        var path = stats switch 
         {
-            Image image3 = new Image(TFGame.MenuAtlas["questResults/goldEye"], null);
-            image3.CenterOrigin();
-            image3.Origin += new Vector2(10f, 10f);
-            list.Add(image3);
-        }
-        else if (stats.EarnedEye)
+            { EarnedGoldEye: true } => "questResults/goldEye",
+            { EarnedEye: true } => "questResults/eye",
+            { CompletedLegendary: true } => "questResults/goldSkull",
+            { CompletedHardcore: true } => "questResults/redSkull",
+            { CompletedNormal: true } => "questResults/whiteSkull",
+            _ => string.Empty
+        };
+
+        if (path != string.Empty) 
         {
-            Image image4 = new Image(TFGame.MenuAtlas["questResults/eye"], null);
-            image4.CenterOrigin();
-            image4.Origin += new Vector2(10f, 10f);
-            list.Add(image4);
-        }
-        else if (stats.CompletedLegendary)
-        {
-            Image image5 = new Image(TFGame.MenuAtlas["questResults/goldSkull"], null);
-            image5.CenterOrigin();
-            image5.Origin += new Vector2(10f, 10f);
-            list.Add(image5);
-        }
-        else if (stats.CompletedHardcore)
-        {
-            Image image6 = new Image(TFGame.MenuAtlas["questResults/redSkull"], null);
-            image6.CenterOrigin();
-            image6.Origin += new Vector2(10f, 10f);
-            list.Add(image6);
-        }
-        else if (stats.CompletedNormal)
-        {
-            Image image7 = new Image(TFGame.MenuAtlas["questResults/whiteSkull"], null);
-            image7.CenterOrigin();
-            image7.Origin += new Vector2(10f, 10f);
-            list.Add(image7);
+            var skull = new Image(TFGame.MenuAtlas[path]) ;
+            skull.CenterOrigin();
+            skull.Origin += new Vector2(10f, 10f);
+            list.Add(skull);
         }
 
         return list;
     }
 
-    // This function would fix the memory leak
+    // This function fixed the memory leak
     // It's basically destroying the entity when the animation is complete
-    // It is good for marking the GC as this button is no longer use anymore and should be disposed
+    // It is good to do this as it will marked by GC as this button is no longer use anymore and should be disposed
     public void TweenOutAndRemoved()
     {
-        float startY = base.Y;
+        float startY = Y;
         float startTween = TweenAt;
-        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 20, true);
+        var tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 20, true);
         tween.OnUpdate = t =>
         {
             Y = MathHelper.Lerp(startY, 300f + this.AddY, t.Eased);
@@ -117,6 +99,4 @@ public class patch_MapButton : MapButton
         };
         Add(tween);
     }
-
-
 }

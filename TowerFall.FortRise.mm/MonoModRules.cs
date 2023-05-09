@@ -178,44 +178,20 @@ internal static partial class MonoModRules
     {
         MethodDefinition complete = method.GetEnumeratorMoveNext();
 
-        FieldDefinition f_levelData = complete.DeclaringType.Fields.FirstOrDefault(
-            f => f.Name.StartsWith("<levelData>5__1")
+        FieldDefinition f_this = complete.DeclaringType.Fields.FirstOrDefault(
+            f => f.Name.StartsWith("<>4__this")
         );
 
         new ILContext(complete).Invoke(ctx => {
-            var TowerFall_DarkWorldTowerData = ctx.Module.Assembly.MainModule.GetType("TowerFall.DarkWorldTowerData");
-            var LevelData = TowerFall_DarkWorldTowerData.NestedTypes.FirstOrDefault(t => t.Name.StartsWith("LevelData"));
-            var Dark = LevelData.FindField("Dark");
+            var StopMusic = method.DeclaringType.FindMethod("System.Void StopMusic()");
             var cursor = new ILCursor(ctx);
-            var labelstart = ctx.DefineLabel();
 
             cursor.GotoNext(MoveType.After,
-                instr => instr.MatchLdfld("TowerFall.MatchVariants", "AlwaysDark"),
-                instr => instr.MatchCallvirt("TowerFall.Variant", "get_Value"));
+                instr => instr.MatchCallOrCallvirt("Monocle.Music", "Stop"));
             
-            cursor.GotoNext(instr => instr.MatchLdloc(1));
-            cursor.MarkLabel(labelstart);
-            cursor.GotoPrev(MoveType.After, instr => instr.MatchCallvirt("TowerFall.Variant", "get_Value"));
-            
-            cursor.Emit(OpCodes.Brtrue_S, labelstart);
             cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldfld, f_levelData);
-            cursor.Emit(OpCodes.Ldfld, Dark);
-
-            var labelend = ctx.DefineLabel();
-
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchLdfld("TowerFall.MatchVariants", "AlwaysDark"),
-                instr => instr.MatchCallvirt("TowerFall.Variant", "get_Value"));
-            
-            cursor.GotoNext(instr => instr.MatchLdarg(0));
-            cursor.MarkLabel(labelend);
-            cursor.GotoPrev(MoveType.After, instr => instr.MatchCallvirt("TowerFall.Variant", "get_Value"));
-            
-            cursor.Emit(OpCodes.Brtrue_S, labelend);
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldfld, f_levelData);
-            cursor.Emit(OpCodes.Ldfld, Dark);
+            cursor.Emit(OpCodes.Ldfld, f_this);
+            cursor.Emit(OpCodes.Call, StopMusic);
         });
     }
 
