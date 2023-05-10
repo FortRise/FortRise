@@ -23,7 +23,7 @@ public static partial class RiseCore
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
-    public static Dictionary<string, RoundLogicIdentifier> RoundLogicIdentifiers = new();
+    public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
 
     public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
     internal static List<FortModule> InternalModules = new();
@@ -172,7 +172,7 @@ public static partial class RiseCore
                     Logger.Log($"No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
                     continue;
                 }
-                var identifier = (RoundLogicIdentifier)info.Invoke(null, Array.Empty<object>());
+                var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
                 RoundLogicIdentifiers.Add(name, identifier);
                 ctor = type.GetConstructor(new Type[] { typeof(Session), typeof(bool) });
                 if (ctor != null) 

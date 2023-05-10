@@ -6,7 +6,7 @@ using MonoMod;
 namespace TowerFall;
 
 
-public class patch_QuestSpawnPortal : QuestSpawnPortal
+public partial class patch_QuestSpawnPortal : QuestSpawnPortal
 {
     private Queue<string> toSpawn;
 
@@ -135,7 +135,7 @@ public class patch_QuestSpawnPortal : QuestSpawnPortal
             break;
         
         default:
-            FortRise.RiseCore.InvokeQuestSpawnPortal_FinishSpawn(name, Position, facing, Level);
+            Events.InvokeQuestSpawnPortal_FinishSpawn(name, Position, facing, Level);
             break;
         }
 

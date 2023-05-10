@@ -4,7 +4,7 @@ using MonoMod;
 
 namespace TowerFall;
 
-public class patch_MainMenu : MainMenu
+public partial class patch_MainMenu : MainMenu
 {
     private FortRise.FortModule currentModule;
     private float scrolling;
@@ -93,10 +93,6 @@ public class patch_MainMenu : MainMenu
             SaveOnTransition = true;
         }
     }
-
-    [MonoModIgnore]
-    [PatchMainMenuCreateOptions]
-    public extern void CreateOptions();
 
     private extern void orig_InitOptions(List<OptionsButton> buttons);
 

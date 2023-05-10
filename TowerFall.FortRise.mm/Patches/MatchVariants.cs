@@ -26,13 +26,13 @@ public class patch_MatchVariants : MatchVariants
     }
 
 
-    public Variant AddVariant(string variantName, VariantDescriptor descriptor, VariantFlags flags, bool noPerPlayer) 
+    public Variant AddVariant(string variantName, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
     {
         var list = Variants.ToList();
-        Pickups[] itemExclusions = descriptor.Exclusions;
+        Pickups[] itemExclusions = info.Exclusions;
         bool perPlayer = flags.HasFlag(VariantFlags.PerPlayer) && !noPerPlayer;
-        string description = descriptor.Description;
-        string header = descriptor.Header;
+        string description = info.Description;
+        string header = info.Header;
         bool scrollEffect = flags.HasFlag(VariantFlags.ScrollEffect);
         bool hidden = flags.HasFlag(VariantFlags.Hidden);
         bool flag = flags.HasFlag(VariantFlags.CanRandom);
@@ -51,7 +51,7 @@ public class patch_MatchVariants : MatchVariants
         }
         var title = GetCustomVariantTitle(variantName);
         var variant = new Variant(
-            GetVariantIconFromName(variantName, descriptor.VariantAtlas), title, description, 
+            GetVariantIconFromName(variantName, info.VariantAtlas), title, description, 
             itemExclusions, perPlayer, header, null, scrollEffect, hidden, flag, tournamentRule1v, 
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
         customVariants.Add(variantName, variant);
@@ -95,7 +95,7 @@ public class patch_MatchVariants : MatchVariants
     }
 }
 
-public struct VariantDescriptor 
+public struct VariantInfo 
 {
     public Atlas VariantAtlas;
     public string Header = "";
@@ -103,9 +103,9 @@ public struct VariantDescriptor
     public Version NewInVersion;
     public Pickups[] Exclusions;
 
-    public static readonly VariantDescriptor Empty = new VariantDescriptor();
+    public static readonly VariantInfo Empty = new VariantInfo();
 
-    public VariantDescriptor(Atlas variantAtlas)
+    public VariantInfo(Atlas variantAtlas)
     {
         VariantAtlas = variantAtlas;
         Header = "";

@@ -19,7 +19,7 @@ public abstract class CustomVersusRoundLogic : RoundLogic
 
 }
 
-public struct RoundLogicIdentifier 
+public struct RoundLogicInfo 
 {
     public string Name;
     public Subtexture Icon;

@@ -26,7 +26,7 @@ public class patch_ArcherData : ArcherData
             if (!File.Exists(path)) 
             {
                 Music.PlayImmediate("VictoryBlue");
-                Logger.Log($"Path: {path} for Archer Victory music does not exists. Falling back to Blue Victory Music");
+                Logger.Error($"Path: {path} for Archer Victory music does not exists. Falling back to Blue Victory Music");
                 return;
             }
             if (!SoundHelper.StoredInstance.ContainsKey(localPath)) 
