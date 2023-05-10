@@ -7,7 +7,7 @@ namespace FortRise.Installer;
 public static class Installer
 {
     public const string TowerFallVersion = "1.3.3.3";
-    public const string InstallerVersion = "2.0.0-alpha2";
+    public const string InstallerVersion = "2.0.0-alpha3";
 
     private static readonly string[] fileDependencies = {
         "MonoMod.exe", "MonoMod.xml",
@@ -15,7 +15,7 @@ public static class Installer
         "MonoMod.RuntimeDetour.HookGen.exe", "MonoMod.RuntimeDetour.HookGen.xml",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll"
+        "TeuJson.dll", "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll"
     };
 
     private static readonly string modFile = "TowerFall.FortRise.mm.dll";
