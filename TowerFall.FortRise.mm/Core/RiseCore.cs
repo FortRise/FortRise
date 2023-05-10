@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Xml;
 using Microsoft.Xna.Framework;
-using Monocle;
 using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
@@ -24,17 +24,133 @@ public static partial class RiseCore
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicIdentifier> RoundLogicIdentifiers = new();
-    public static List<FortModule> Modules = new();
+
+    public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
+    internal static List<FortModule> InternalModules = new();
 
     private static Type[] Types;
 
-    public readonly static Type[] EmptyTypeArray = new Type[0];
-    public readonly static object[] EmptyObjectArray = new object[0];
-
     public static bool DebugMode;
+
+
+    internal static void ModuleStart() 
+    {
+        var patchFile = "PatchVersion.txt";
+        if (File.Exists(patchFile)) 
+        {
+            try 
+            {
+                using var fs = File.OpenRead(patchFile);
+                using TextReader reader = new StreamReader(fs);
+                string readed;
+                while ((readed = reader.ReadLine()) != null) 
+                {
+                    if (readed.Contains("Debug")) 
+                    {
+                        var debugMode = readed.Split(':')[1].Trim();
+                        DebugMode = bool.Parse(debugMode);
+                        break;
+                    }
+                }
+            }
+            catch 
+            {
+                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
+                Logger.Log("Please report this bug", Logger.LogLevel.Warning);
+                DebugMode = true;
+            }
+
+        }
+        if (DebugMode)
+            Logger.AttachConsole(ConsoleAttachment());
+        var directory = Directory.EnumerateDirectories("Mods").ToList();
+        if (directory.Count <= 0) 
+        {
+            Types = Array.Empty<Type>();
+            return;
+        }
+
+        int i = 0;
+        Types = new Type[directory.Count];
+        foreach (var dir in directory) 
+        {
+            var metaPath = Path.Combine(dir, "meta.json");
+            if (!File.Exists(metaPath))
+                continue;
+            
+            var json = JsonTextReader.FromFile(metaPath);
+            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, json["dll"]));
+            if (!File.Exists(pathToAssembly))
+                continue;
+            ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
+                string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
+                if (!File.Exists(asmPath))
+                    return null;
+                return Assembly.LoadFrom(asmPath);
+            };
+            AppDomain.CurrentDomain.AssemblyResolve += resolver;
+            var assembly = Assembly.LoadFrom(pathToAssembly);
+            GetModuleTypes(json, assembly, i++);
+            AppDomain.CurrentDomain.AssemblyResolve -= resolver;
+        }
+    }
+
+    private static void GetModuleTypes(JsonValue json, Assembly asm, int index) 
+    {
+        foreach (var t in asm.GetTypes()) 
+        {
+            var customAttribute = t.GetCustomAttribute<FortAttribute>();
+            if (customAttribute != null) 
+            {
+                Types[index] = t;
+                FortModule obj = Activator.CreateInstance(t) as FortModule;
+                obj.Name = customAttribute.Name;
+                obj.MetaName = json["name"];
+                obj.MetaVersion = new Version(json["version"]);
+                obj.MetaDescription = json["description"];
+                obj.MetaAuthor = json["author"];
+                obj.ID = customAttribute.GUID;
+                obj.InternalLoad();
+                obj.Register();
+            }
+        }
+    }
+
+
+    internal static void LogAllTypes() 
+    {
+        int i = 0;
+        foreach (var t in Types) 
+        {
+            if (t is null)
+                continue;
+            Logger.Info(t.Assembly.FullName);
+            i++;
+        }
+        Logger.Info(i + " total of mods loaded");
+    }
+
+    internal static void Initialize() 
+    {
+        foreach (var t in InternalModules) 
+        {
+            t.Initialize();
+        }
+    }
+
+    internal static void ModuleEnd() 
+    {
+        foreach (var t in InternalModules) 
+        {
+            t.Unload();
+        }
+    }
 
     internal static void Register(this FortModule module) 
     {
+        module.LoadContent();
+        module.Enabled = true;
+        InternalModules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
@@ -177,118 +293,19 @@ public static partial class RiseCore
         }
     }
 
-    internal static void ModuleStart() 
+    internal static void Unregister(this FortModule module) 
     {
-        var patchFile = "PatchVersion.txt";
-        if (File.Exists(patchFile)) 
-        {
-            try 
-            {
-                using var fs = File.OpenRead(patchFile);
-                using TextReader reader = new StreamReader(fs);
-                // skip these two lines since we don't need those
-                reader.ReadLine();
-                reader.ReadLine();
-                var debugMode = reader.ReadLine().Split(':')[1].Trim();
-                DebugMode = bool.Parse(debugMode);
-            }
-            catch 
-            {
-                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
-                Logger.Log("Please report this bug", Logger.LogLevel.Warning);
-                DebugMode = true;
-            }
-
-        }
-        var directory = Directory.EnumerateDirectories("Mods").ToList();
-        if (directory.Count <= 0) 
-        {
-            Types = Array.Empty<Type>();
-            return;
-        }
-
-        int i = 0;
-        Types = new Type[directory.Count];
-        foreach (var dir in directory) 
-        {
-            var metaPath = Path.Combine(dir, "meta.json");
-            if (!File.Exists(metaPath))
-                continue;
-            
-            var json = JsonTextReader.FromFile(metaPath);
-            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, json["dll"]));
-            if (!File.Exists(pathToAssembly))
-                continue;
-            ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
-                string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
-                if (!File.Exists(asmPath))
-                    return null;
-                return Assembly.LoadFrom(asmPath);
-            };
-            AppDomain.CurrentDomain.AssemblyResolve += resolver;
-            var assembly = Assembly.LoadFrom(pathToAssembly);
-            GetModuleTypes(json, assembly, i++);
-            AppDomain.CurrentDomain.AssemblyResolve -= resolver;
-        }
-    }
-
-    private static void GetModuleTypes(JsonValue json, Assembly asm, int index) 
-    {
-        foreach (var t in asm.GetTypes()) 
-        {
-            var customAttribute = t.GetCustomAttribute<FortAttribute>();
-            if (customAttribute != null) 
-            {
-                Types[index] = t;
-                FortModule obj = Activator.CreateInstance(t) as FortModule;
-                obj.Name = customAttribute.Name;
-                obj.MetaName = json["name"];
-                obj.MetaVersion = new Version(json["version"]);
-                obj.MetaDescription = json["description"];
-                obj.MetaAuthor = json["author"];
-                obj.ID = customAttribute.GUID;
-                Modules.Add(obj);
-                obj.InternalLoad();
-            }
-        }
+        module.Unload();
+        InternalModules.Remove(module);
     }
 
 
-    internal static void LogAllTypes() 
+    internal static IConsole ConsoleAttachment() 
     {
-        int i = 0;
-        foreach (var t in Types) 
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
         {
-            if (t is null)
-                continue;
-            Logger.Info(t.Assembly.FullName);
-            i++;
+            return new WindowConsole();
         }
-        Logger.Info(i + " total of mods loaded");
-    }
-
-    internal static void LoadContent() 
-    {
-        foreach (var t in Modules) 
-        {
-            t.LoadContent();
-            t.Register();
-        }
-    }
-
-    internal static void Initialize() 
-    {
-        foreach (var t in Modules) 
-        {
-            t.Initialize();
-        }
-    }
-
-    internal static void ModuleEnd() 
-    {
-        foreach (var t in Modules) 
-        {
-            t.Unload();
-        }
+        return null;
     }
 }

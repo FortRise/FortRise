@@ -2,7 +2,6 @@
 
 using FortRise;
 using Microsoft.Xna.Framework;
-using MonoMod;
 
 namespace TowerFall;
 
@@ -29,14 +28,6 @@ public class patch_TFGame : TFGame
         FortRise.RiseCore.Initialize();
         orig_Initialize();
         FortRise.RiseCore.LogAllTypes();
-    }
-
-    protected extern void orig_LoadContent();
-
-    protected override void LoadContent()
-    {
-        FortRise.RiseCore.LoadContent();
-        orig_LoadContent();
     }
 
     protected extern void orig_UnloadContent();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using FortRise;
@@ -38,25 +39,34 @@ public class patch_DarkWorldControl : DarkWorldControl
         var levelSession = Level.Session;
         var themeMusic = Level.Session.MatchSettings.LevelSystem.Theme.Music;
         levelSession.SongTimer = 0;
-        if (themeMusic.Contains("custom:"))
+        if (themeMusic.Contains("custom:", StringComparison.OrdinalIgnoreCase) 
+            && TryPlayCustomMusic(themeMusic.AsSpan()))
         {
-            if (customMusic == null)
-            {
-                var localPath = themeMusic.Split(':')[1];
-                var path =
-                    Path.Combine(
-                        patch_GameData.AdventureWorldTowers[Level.Session.MatchSettings.LevelSystem.ID.X].StoredDirectory,
-                        localPath
-                    );
-                Logger.Log(path);
-                SoundHelper.PathToSound(path, out customMusic);
-                if (!SoundHelper.StoredInstance.ContainsKey("CustomDarkWorldMusic"))
-                    SoundHelper.StoredInstance.Add("CustomDarkWorldMusic", customMusic);
-            }
             customMusic.Play();
             return;
         }
         Music.Play(themeMusic);
+    }
+
+    private bool TryPlayCustomMusic(ReadOnlySpan<char> themeMusic) 
+    {
+        if (customMusic == null)
+        {
+            var themeSpan = themeMusic.Slice(7);
+            var localPath = themeSpan.ToString();
+            var path =
+                Path.Combine(
+                    patch_GameData.AdventureWorldTowers[Level.Session.MatchSettings.LevelSystem.ID.X].StoredDirectory,
+                    localPath
+                );
+            if (!File.Exists(path))
+                return false;
+            
+            SoundHelper.PathToSound(path, out customMusic);
+            if (!SoundHelper.StoredInstance.ContainsKey("CustomDarkWorldMusic"))
+                SoundHelper.StoredInstance.Add("CustomDarkWorldMusic", customMusic);
+        }
+        return true;
     }
 
     private void StopMusic() 

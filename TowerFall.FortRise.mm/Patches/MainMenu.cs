@@ -65,7 +65,7 @@ public class patch_MainMenu : MainMenu
     public void CreateMods() 
     {
         var list = new List<OptionsButton>();
-        foreach (var mod in FortRise.RiseCore.Modules) 
+        foreach (var mod in FortRise.RiseCore.InternalModules) 
         {
             var version = mod.MetaVersion.ToString();
             var setupName = mod.MetaName + " v" + version;

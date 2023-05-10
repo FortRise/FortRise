@@ -43,10 +43,10 @@ public static class Logger
 
         builder.AppendLine(text);
         Engine.Instance?.Commands?.Log(text);
-        consoleWindow.StdOut.WriteLine(text);
+        if (consoleWindow != null)
+            consoleWindow.StdOut.WriteLine(text);
         if (level == LogLevel.Error || level == LogLevel.Assert)
             Debugger.Break();
-        
     }
 
     public static void Log(
