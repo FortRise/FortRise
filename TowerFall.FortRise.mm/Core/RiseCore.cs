@@ -14,16 +14,25 @@ using TowerFall;
 namespace FortRise;
 
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
+public delegate patch_Arrow ArrowLoader();
+public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
 public delegate LevelEntity LevelEntityLoader(XmlElement x);
 public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
 
 
 public static partial class RiseCore 
 {
+    internal static long PickupLoaderCount = 21;
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
+    public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
+
+    // This is the way we could use to manipulate arrows from enums
+    public static Dictionary<string, ArrowTypes> ArrowsID = new();
+    public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
+    public static Dictionary<ArrowTypes, ArrowInfo> PickupGraphicArrows = new();
 
     public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
     internal static List<FortModule> InternalModules = new();
@@ -267,6 +276,43 @@ public static partial class RiseCore
                     Loaded:
                     EnemyLoader.Add(id, loader);
                 }
+            }
+
+            foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
+            {
+                const int offset = 11;
+                if (arrow is null)
+                    return;
+                var name = arrow.Name;
+                var fn = arrow.PickupInitializer ?? "CreatePickup";
+                var stride = (ArrowTypes)offset + ArrowsID.Count;
+                MethodInfo info = type.GetMethod(fn);
+
+                ConstructorInfo ctor = type.GetConstructor(Array.Empty<Type>());
+                ArrowLoader loader = null;
+                if (ctor != null) 
+                {
+                    loader = () => 
+                    {
+                        var invoked = (patch_Arrow)ctor.Invoke(Array.Empty<object>());
+                        invoked.ArrowType = stride;
+                        return invoked;
+                    };
+                }
+                if (info == null || !info.IsStatic)
+                {
+                    Logger.Log($"No `static ArrowInfo CreatePickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                }
+                else 
+                {
+                    var identifier = (ArrowInfo)info.Invoke(null, Array.Empty<object>());
+                    PickupGraphicArrows.Add(stride, identifier);
+                }
+                ArrowsID.Add(name, stride);
+                Arrows.Add(stride, loader);
+                PickupLoader.Add((Pickups)PickupLoaderCount, (pos, targetPos, _) => new ArrowTypePickup(
+                    pos, targetPos, stride));
+                PickupLoaderCount++;
             }
 
             foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
