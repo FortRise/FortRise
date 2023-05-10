@@ -186,8 +186,8 @@ internal static partial class MonoModRules
             var StopMusic = method.DeclaringType.FindMethod("System.Void StopMusic()");
             var cursor = new ILCursor(ctx);
 
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchCallOrCallvirt("Monocle.Music", "Stop"));
+            cursor.GotoNext(instr => instr.MatchCallOrCallvirt("Monocle.Music", "Stop"));
+            cursor.Remove();
             
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldfld, f_this);

@@ -10,7 +10,7 @@ public static class Installer
     public const string InstallerVersion = "2.0.0-alpha3";
 
     private static readonly string[] fileDependencies = {
-        "MonoMod.exe", "MonoMod.xml",
+        "MonoMod.exe", "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.exe", "MonoMod.RuntimeDetour.HookGen.xml",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
