@@ -16,6 +16,7 @@ These are the following roadmap that are planned or completed:
 - [x] Custom variants for adventure maps.
 - [x] Custom music for adventure maps.
 - [x] Custom enemies.
+- [ ] Support .zip files for loading mods.
 - [ ] Mod Relinker.
 - [x] Supports Harmony.
 - [x] Supports MonoMod RuntimeDetour.
