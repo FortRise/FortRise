@@ -1,25 +1,29 @@
-# TowerFall Adventure
-It's a mod for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson).
+# FortRise - TowerFall Mod Loader
+It's a mod for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson). It's using [MonoMod](https://github.com/MonoMod/MonoMod) an open-source C# modding utility.
 
-TowerFall Adventure is a mod for Dark World that loads level with both *.oel file, and *.json file with a workshop-like button.
 
-![menu](./img/menu.png)
 
 ### Installation
-Go to the Releases page, and download the AdventurePatch.zip files. After downloading it, extract all of the contents
-inside of the TowerFall directory. Then click `install.bat` to install the necessary files and preserve the original
-executable. After that, you can now play the mod and also create levels.
++ Go to the Releases page, and download the FortRise-Installer in zip file.
++ Extract all of the contents and launch the Installer.exe. You will be opening a interactive command line application.
++ Press enter on `Patch` selection, and find and select your TowerFall directory, usually in `C:/Program Files (x86)/Steam/steamapps/common/TowerFall`.
++ Then it would prompt you that you want to patch this directory, then say yes. It will copy and create necessary files to get the mod running.
++ It will prompt you if you want to use Debug Mode, say no if you don't want to use Debug Mode, otherwise if you are a mod developer, say yes.
++ And, it's done! Launch TowerFall and it should have a mods section in main menu.
+
+### Mod Installation
++ For installing a mod, you must create a directory called `Mods`.
++ Then create a folder inside of it and name what it represent the mod is.
++ Paste all of the mod content and done.
++ Launch TowerFall to see the changes.
 
 
-## TODO
+### Creating mods
+For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
 
-- [x] Custom skeleton variant.
-- [x] Dynamically activated variants.
-- [x] Level progress for adventure levels.
-- [x] Load *.oel files.
-- [ ] TowerFall Editor improvement includes loading *.tower files.
-- [ ] Hot Reloading
+## Troubleshooting
+### The game crashes before it even loads! (Windows only)
+If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
 
-## NOT TODO
-+ Custom enemy variant.
-+ Custom arrows.
+## Roadmap
+Check the [roadmap](./ROADMAP.md) for planned features.
