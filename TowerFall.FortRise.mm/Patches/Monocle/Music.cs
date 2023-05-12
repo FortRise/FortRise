@@ -116,6 +116,7 @@ public static class patch_Music
         if (currentSong != null && SoundHelper.StoredInstance.TryGetValue(currentSong, out var instance) 
             && instance.State == SoundState.Playing)
         {
+            currentCustomSong = null;
             instance.Stop();
         }
     }
