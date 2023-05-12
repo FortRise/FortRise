@@ -46,6 +46,8 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
+        if (!Directory.Exists("Mods"))
+            Directory.CreateDirectory("Mods");
         var directory = Directory.EnumerateDirectories("Mods").ToList();
         if (directory.Count <= 0) 
         {
