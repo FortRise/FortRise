@@ -52,7 +52,7 @@ public static class patch_Music
         currentSong = filepath;
     }
 
-    public static void PlayCustom(string filepath) 
+    public static void PlayCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         SoundHelper.StopMusic();
         if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
@@ -65,10 +65,13 @@ public static class patch_Music
             SoundHelper.StoredInstance.Add(filepath, instance);
             SoundHelper.PlayMusic(instance);
         }
-        currentCustomSong = filepath;
+        if (musicType == CustomMusicType.AsVanilla)
+            currentSong = filepath;
+        else
+            currentCustomSong = filepath;
     }
 
-    public static void PlayImmediateCustom(string filepath) 
+    public static void PlayImmediateCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         SoundHelper.StopMusicImmediate();
         if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
@@ -81,7 +84,10 @@ public static class patch_Music
             SoundHelper.StoredInstance.Add(filepath, instance);
             SoundHelper.PlayMusic(instance);
         }
-        currentCustomSong = filepath;
+        if (musicType == CustomMusicType.AsVanilla)
+            currentSong = filepath;
+        else
+            currentCustomSong = filepath;
     }
 
     [MonoModReplace]
@@ -111,12 +117,15 @@ public static class patch_Music
         soundBank.PlayCue(filepath);
     }
 
-    public static void StopCustom() 
+    public static void StopCustom(CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         if (currentSong != null && SoundHelper.StoredInstance.TryGetValue(currentSong, out var instance) 
             && instance.State == SoundState.Playing)
         {
-            currentCustomSong = null;
+            if (musicType == CustomMusicType.AsVanilla)
+                currentSong = null;
+            else
+                currentCustomSong = null;
             instance.Stop();
         }
     }
@@ -137,4 +146,10 @@ public static class patch_Music
             audioCategory.Stop(AudioStopOptions.AsAuthored);
         }
     }
+}
+
+public enum CustomMusicType
+{
+    AsVanilla,
+    FullCustom
 }
