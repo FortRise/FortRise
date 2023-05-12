@@ -44,49 +44,8 @@ public static partial class RiseCore
 
     public static bool DebugMode;
 
-
     internal static void ModuleStart() 
     {
-        var patchFile = "PatchVersion.txt";
-        if (File.Exists(patchFile)) 
-        {
-            try 
-            {
-                using var fs = File.OpenRead(patchFile);
-                using TextReader reader = new StreamReader(fs);
-                string readed;
-                while ((readed = reader.ReadLine()) != null) 
-                {
-                    if (readed.Contains("Debug")) 
-                    {
-                        var debugMode = readed.Split(':')[1].Trim();
-                        DebugMode = bool.Parse(debugMode);
-                        break;
-                    }
-                }
-            }
-            catch 
-            {
-                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
-                Logger.Log("Please report this bug", Logger.LogLevel.Warning);
-                DebugMode = true;
-            }
-
-        }
-        if (DebugMode) 
-        {
-            var detourModManager = new DetourModManager();
-            detourModManager.OnILHook += (assembly, source, dest) => 
-            {
-                object obj = dest.Target;
-                DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
-            };
-            detourModManager.OnHook += (assembly, source, dest, obj) => 
-            {
-                DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
-            };
-            Logger.AttachConsole(ConsoleAttachment());
-        }
         var directory = Directory.EnumerateDirectories("Mods").ToList();
         if (directory.Count <= 0) 
         {
@@ -129,12 +88,19 @@ public static partial class RiseCore
                 Types[index] = t;
                 FortModule obj = Activator.CreateInstance(t) as FortModule;
                 obj.Name = customAttribute.Name;
-                obj.MetaName = json["name"];
-                obj.MetaVersion = new Version(json["version"]);
-                obj.MetaDescription = json["description"];
-                obj.MetaAuthor = json["author"];
+                var name = json.Contains("name") ? json["name"].AsString : obj.Name;
+                var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
+                var description = json.GetJsonValueOrNull("description") ?? "";
+                var author = json.GetJsonValueOrNull("author") ?? "";
+                
+                obj.Meta = new ModuleMetadata 
+                {
+                    Name = name,
+                    Version = new Version(version),
+                    Description = description,
+                    Author = author
+                };
                 obj.ID = customAttribute.GUID;
-                obj.InternalLoad();
                 obj.Register();
             }
         }
@@ -172,6 +138,7 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module) 
     {
+        module.InternalLoad();
         module.LoadContent();
         module.Enabled = true;
         patch_MatchVariants.DeclareVariants += module.OnVariantsRegister;
@@ -194,7 +161,7 @@ public static partial class RiseCore
                 info = type.GetMethod(overriden);
                 if (info == null || !info.IsStatic)
                 {
-                    Logger.Log($"No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
+                    Logger.Error($"No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
                     continue;
                 }
                 var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
@@ -250,7 +217,7 @@ public static partial class RiseCore
                     }
                     else 
                     {
-                        Logger.Log($"Invalid syntax of custom entity ID: {name}, {type.FullName}", Logger.LogLevel.Warning);
+                        Logger.Error($"Invalid syntax of custom entity ID: {name}, {type.FullName}");
                         continue;
                     }
                     id = id.Trim();
