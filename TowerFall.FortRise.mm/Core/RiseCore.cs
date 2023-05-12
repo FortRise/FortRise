@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml;
 using Microsoft.Xna.Framework;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
@@ -36,6 +37,8 @@ public static partial class RiseCore
 
     public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
     internal static List<FortModule> InternalModules = new();
+
+    public static List<string> DetourLogs = new List<string>();
 
     private static Type[] Types;
 
@@ -70,8 +73,20 @@ public static partial class RiseCore
             }
 
         }
-        if (DebugMode)
+        if (DebugMode) 
+        {
+            var detourModManager = new DetourModManager();
+            detourModManager.OnILHook += (assembly, source, dest) => 
+            {
+                object obj = dest.Target;
+                DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
+            };
+            detourModManager.OnHook += (assembly, source, dest, obj) => 
+            {
+                DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
+            };
             Logger.AttachConsole(ConsoleAttachment());
+        }
         var directory = Directory.EnumerateDirectories("Mods").ToList();
         if (directory.Count <= 0) 
         {
@@ -355,5 +370,19 @@ public static partial class RiseCore
             return new WindowConsole();
         }
         return null;
+    }
+
+    public static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug) 
+    {
+        List<string> detours = DetourLogs;
+        if (detours.Count == 0)
+            return;
+
+        DetourLogs = new List<string>();
+
+        foreach (string line in detours) 
+        {
+            Logger.Log(line, level);
+        }
     }
 }

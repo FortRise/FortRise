@@ -71,7 +71,6 @@ public class AdventureWorldData : DarkWorldTowerData
             {
                 customIcon = true;
                 pathToIcon = path;
-                Logger.Log(pathToIcon);
                 continue;
             }
             if (path.EndsWith(".json") || path.EndsWith(".oel"))
@@ -82,7 +81,6 @@ public class AdventureWorldData : DarkWorldTowerData
 
     private void BuildIcon(string path) 
     {
-        Logger.Log(path);
         var json = JsonConvert.DeserializeFromFile(path);
         var layers = json["layers"].AsJsonArray;
         var solids = layers[0];
@@ -92,7 +90,7 @@ public class AdventureWorldData : DarkWorldTowerData
         var y = grid2D.GetLength(0);
         if (x != 16 || y != 16) 
         {
-            Logger.Error("Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
+            Logger.Error($"{path}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
             return;
         }
         Theme.Icon = new Subtexture(new Monocle.Texture(TowerMapData.BuildIcon(bitString, Theme.TowerType)));
@@ -119,9 +117,6 @@ public class AdventureWorldData : DarkWorldTowerData
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
         Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
-
-        Logger.Log(!string.IsNullOrEmpty(pathToIcon));
-        Logger.Log(customIcons);
 
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);

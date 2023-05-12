@@ -12,6 +12,10 @@ public static class patch_TFCommands
     {
         orig_Init();
         Commands commands = Engine.Instance.Commands;
+        commands.RegisterCommand("detours", args => 
+        {
+            RiseCore.LogDetours(Logger.LogLevel.Info);
+        });
 
         foreach (var module in FortRise.RiseCore.InternalModules) 
         {
