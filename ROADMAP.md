@@ -14,8 +14,8 @@ These are the following roadmap that are planned or completed:
 - [ ] Disable/Enable mods.
 - [ ] Custom level entity.
 - [ ] Custom arrows.
-- [ ] Custom variants for adventure maps.
-- [x] Custom music.
+- [x] Custom variants for adventure maps.
+- [x] Custom music for adventure maps.
 - [x] Custom enemies.
 - [ ] Mod Relinker.
 - [x] Supports Harmony.
