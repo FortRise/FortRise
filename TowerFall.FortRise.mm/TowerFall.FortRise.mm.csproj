@@ -39,6 +39,10 @@
       <HintPath>..\lib\Microsoft.Xna.Framework.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Xact">
+      <HintPath>..\..\..\Microsoft.Xna.Framework.Xact.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Steamworks.NET">
       <HintPath>..\lib-stripped\Steamworks.NET.dll</HintPath>
       <Private>False</Private>
