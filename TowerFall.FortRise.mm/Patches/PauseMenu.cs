@@ -1,5 +1,6 @@
 using FortRise;
 using Microsoft.Xna.Framework;
+using Monocle;
 
 namespace TowerFall;
 
@@ -19,17 +20,7 @@ public class patch_PauseMenu : PauseMenu
     {
         patch_DarkWorldControl.DisableTempVariants(level);
         patch_SaveData.AdventureActive = false;
-        StopCustomDarkWorldMusic();
         orig_DarkWorldMap();       
-    }
-
-    private static void StopCustomDarkWorldMusic() 
-    {
-        if (SoundHelper.StoredInstance.TryGetValue("CustomDarkWorldMusic", out var val)) 
-        {
-            val.Stop();
-            SoundHelper.StoredInstance.Remove("CustomDarkWorldMusic");
-        }
     }
 
     private extern void orig_DarkWorldMapAndSave();
@@ -38,7 +29,6 @@ public class patch_PauseMenu : PauseMenu
     {
         patch_DarkWorldControl.DisableTempVariants(level);
         patch_SaveData.AdventureActive = false;
-        StopCustomDarkWorldMusic();
         orig_DarkWorldMapAndSave();       
     }
 
@@ -51,7 +41,6 @@ public class patch_PauseMenu : PauseMenu
         menuType == MenuType.DarkWorldComplete || 
         menuType == MenuType.DarkWorldGameOver)
         {
-            StopCustomDarkWorldMusic();
             patch_SaveData.AdventureActive = false;
         }
         orig_Quit();
@@ -66,7 +55,6 @@ public class patch_PauseMenu : PauseMenu
         menuType == MenuType.DarkWorldComplete || 
         menuType == MenuType.DarkWorldGameOver) 
         {
-            StopCustomDarkWorldMusic();
             patch_SaveData.AdventureActive = false;
         }
         orig_QuitAndSave();

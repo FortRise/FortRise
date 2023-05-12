@@ -12,7 +12,6 @@ namespace TowerFall;
 public class patch_DarkWorldControl : DarkWorldControl 
 {
     private bool bossMode;
-    private SoundEffectInstance customMusic;
     [PostPatchEnableTempVariant]
     public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) 
     {
@@ -24,7 +23,6 @@ public class patch_DarkWorldControl : DarkWorldControl
                 var key = variant.Key;
                 if (!levelData.ActiveVariant.CustomVariants.TryGetValue(key, out var val)) 
                 {
-                    Logger.Log(key);
                     continue;
                 }
                 if (!variant.Value && val) 
@@ -64,7 +62,6 @@ public class patch_DarkWorldControl : DarkWorldControl
     // Doing this will prevent the instruction jumping on a void
     private static void JumpLanding() {}
 
-    [PatchDarkWorldControlLevelSequence]
     private extern IEnumerator orig_LevelSequence();
 
     [MonoModReplace]
@@ -73,51 +70,21 @@ public class patch_DarkWorldControl : DarkWorldControl
         if (bossMode)
             return;
         
-        if (SoundHelper.StoredInstance.TryGetValue("CustomDarkWorldMusic", out customMusic)) 
-        {
-            if (customMusic.State == SoundState.Playing)
-                return;
-            SoundHelper.PlayMusic(customMusic);
-            return;
-        }
-        
         var levelSession = Level.Session;
         var themeMusic = Level.Session.MatchSettings.LevelSystem.Theme.Music;
         levelSession.SongTimer = 0;
-        if (themeMusic.Contains("custom:", StringComparison.OrdinalIgnoreCase) 
-            && TryPlayCustomMusic(themeMusic.AsSpan()))
+        if (themeMusic.Contains("custom:", StringComparison.OrdinalIgnoreCase))
         {
-            SoundHelper.PlayMusic(customMusic);
+            var storedDirectory = patch_GameData.AdventureWorldTowers[levelSession.MatchSettings.LevelSystem.ID.X].StoredDirectory;
+
+            var path = PathUtils.CombinePrefixPath(
+                themeMusic, 
+                storedDirectory,
+                "custom:");
+            Music.Play(path);
             return;
         }
         Music.Play(themeMusic);
-    }
-
-    private bool TryPlayCustomMusic(ReadOnlySpan<char> themeMusic) 
-    {
-        if (customMusic == null)
-        {
-            var themeSpan = themeMusic.Slice(7);
-            var localPath = themeSpan.ToString();
-            var path =
-                Path.Combine(
-                    patch_GameData.AdventureWorldTowers[Level.Session.MatchSettings.LevelSystem.ID.X].StoredDirectory,
-                    localPath
-                );
-            if (!File.Exists(path))
-                return false;
-            
-            SoundHelper.PathToSound(path, out customMusic);
-            if (!SoundHelper.StoredInstance.ContainsKey("CustomDarkWorldMusic"))
-                SoundHelper.StoredInstance.Add("CustomDarkWorldMusic", customMusic);
-        }
-        return true;
-    }
-
-    private void StopMusic() 
-    {
-        Music.Stop();
-        customMusic?.Stop();
     }
 
     private IEnumerator LevelSequence() 

@@ -24,4 +24,16 @@ public static class PathUtils
         var result = Path.Combine(modDirectory, "Content", path).Replace("\\", "/");
         return result;
     }
+
+    public static string CombinePrefixPath(string path, string path2, string prefix) 
+    {
+        if (!path.Contains(prefix)) 
+        {
+            return Path.Combine(path2, path);
+        }
+        var length = prefix.Length;
+        var slicedPath = path.AsSpan().Slice(length).ToString();
+        var combined = Path.Combine(path2, slicedPath);
+        return prefix + combined;
+    }
 }

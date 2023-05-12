@@ -17,28 +17,8 @@ public class patch_ArcherData : ArcherData
     public void PlayCustomVictoryMusic(string archerPath) 
     {
         Music.Stop();
-        if (instance == null) 
-        {
-            var victorySpan = VictoryMusic.AsSpan().Slice(7);
-            var localPath = victorySpan.ToString();
-            var path = Path.Combine(archerPath, localPath);
+        var path = PathUtils.CombinePrefixPath(VictoryMusic, archerPath, "custom:");
 
-            if (!File.Exists(path)) 
-            {
-                Music.PlayImmediate("VictoryBlue");
-                Logger.Error($"Path: {path} for Archer Victory music does not exists. Falling back to Blue Victory Music");
-                return;
-            }
-            if (!SoundHelper.StoredInstance.ContainsKey(localPath)) 
-            {
-                SoundHelper.PathToSound(path, out instance);
-                SoundHelper.StoredInstance.Add(path, instance);
-            } 
-            else 
-            {
-                instance = SoundHelper.StoredInstance[localPath];
-            }
-        }
-        SoundHelper.PlayMusic(instance);
+        Music.Play(path);
     }
 }
