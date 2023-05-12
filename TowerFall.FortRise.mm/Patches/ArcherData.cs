@@ -39,6 +39,6 @@ public class patch_ArcherData : ArcherData
                 instance = SoundHelper.StoredInstance[localPath];
             }
         }
-        instance.Play();
+        SoundHelper.PlayMusic(instance);
     }
 }

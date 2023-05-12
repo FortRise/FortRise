@@ -32,7 +32,7 @@ public class patch_DarkWorldControl : DarkWorldControl
         {
             if (customMusic.State == SoundState.Playing)
                 return;
-            customMusic.Play();
+            SoundHelper.PlayMusic(customMusic);
             return;
         }
         
@@ -42,7 +42,7 @@ public class patch_DarkWorldControl : DarkWorldControl
         if (themeMusic.Contains("custom:", StringComparison.OrdinalIgnoreCase) 
             && TryPlayCustomMusic(themeMusic.AsSpan()))
         {
-            customMusic.Play();
+            SoundHelper.PlayMusic(customMusic);
             return;
         }
         Music.Play(themeMusic);

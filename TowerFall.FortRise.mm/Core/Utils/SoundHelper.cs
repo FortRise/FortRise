@@ -20,4 +20,17 @@ public static class SoundHelper
         instance.Volume = Music.MasterVolume;
         return effect;
     }
+
+    public static void PlayMusic(SoundEffectInstance instance) 
+    {
+        Music.Stop();
+        instance.Volume = Music.MasterVolume;
+        instance.Play();
+    }
+
+    public static void PlaySound(SoundEffectInstance instance) 
+    {
+        instance.Volume = Audio.MasterVolume;
+        instance.Play();
+    }
 }
