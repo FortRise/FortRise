@@ -67,9 +67,9 @@ public partial class patch_MainMenu : MainMenu
         var list = new List<OptionsButton>();
         foreach (var mod in FortRise.RiseCore.InternalModules) 
         {
-            var version = mod.MetaVersion.ToString();
-            var setupName = mod.MetaName + " v" + version;
-            var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + mod.MetaAuthor.ToUpperInvariant());
+            var version = mod.Meta.Version.ToString();
+            var setupName = mod.Meta.Name + " v" + version;
+            var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + mod.Meta.Author.ToUpperInvariant());
             modButton.SetCallbacks(() => {
                 State = patch_MenuState.ModOptions;
                 currentModule = mod;

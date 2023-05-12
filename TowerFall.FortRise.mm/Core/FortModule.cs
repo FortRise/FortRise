@@ -21,10 +21,7 @@ public abstract partial class FortModule
     public bool Enabled { get; internal set; }
     public string Name { get; internal set; }
     public string ID { get; internal set; }
-    public string MetaName { get; internal set; }
-    public Version MetaVersion { get; internal set; }
-    public string MetaDescription { get; internal set; }
-    public string MetaAuthor { get; internal set; }
+    public ModuleMetadata Meta { get; internal set; }
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
     public abstract void Load();
@@ -74,6 +71,15 @@ public abstract partial class FortModule
                     var val = !(bool)field.GetValue(settings);
                     field.SetValue(settings, val);
                     return val;
+                });
+                optionsList.Add(optionButton);
+            }
+            else if (fieldType == typeof(Action)) 
+            {
+                var optionButton = new OptionsButton(fullName);
+                optionButton.SetCallbacks(() => {
+                    var action = (Action)field.GetValue(settings);
+                    action();
                 });
                 optionsList.Add(optionButton);
             }
@@ -144,4 +150,14 @@ public abstract partial class FortModule
     public virtual void LoadContent() {}
     public virtual void Initialize() {}
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
+}
+
+public class ModuleMetadata 
+{
+    public string Name;
+    public Version Version;
+    public string Description;
+    public string Author;
+
+    internal ModuleMetadata() {}
 }
