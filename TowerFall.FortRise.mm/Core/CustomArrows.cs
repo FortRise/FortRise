@@ -7,18 +7,13 @@ namespace TowerFall;
 public sealed class CustomArrowsAttribute : Attribute 
 {
     public string Name;
-    public string PickupInitializer;
+    public string GraphicPickupInitializer;
 
-    public CustomArrowsAttribute(string name, string pickupFn = null) 
+    public CustomArrowsAttribute(string name, string graphicPickupFn = null) 
     {
         Name = name;
-        PickupInitializer = pickupFn;
+        GraphicPickupInitializer = graphicPickupFn;
     }
-}
-
-public struct PickupInfo 
-{
-    public Pickup Hold;
 }
 
 public struct ArrowInfo 
