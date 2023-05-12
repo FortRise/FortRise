@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using TowerFall;
 
@@ -36,6 +37,20 @@ public abstract partial class FortModule
     public void LoadSettings() 
     {
         InternalSettings = (ModuleSettings)SettingsType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
+
+        if (InternalSettings == null)
+            return;
+
+        var path = Path.Combine("Saves", ID, Name + ".settings" + ".json");
+        InternalSettings.Load(path);
+    }
+
+    public void SaveSettings() 
+    {
+        if (InternalSettings == null)
+            return;
+        var path = Path.Combine("Saves", ID, Name + ".settings" + ".json");
+        InternalSettings.Save(path);
     }
 
     public void CreateSettings(List<OptionsButton> optionsList) 

@@ -91,6 +91,10 @@ public partial class patch_MainMenu : MainMenu
         if (switchTo != patch_MenuState.ModOptions)
         {
             SaveOnTransition = true;
+            foreach (var mod in FortRise.RiseCore.InternalModules) 
+            {
+                mod.SaveSettings();
+            }
         }
     }
 
