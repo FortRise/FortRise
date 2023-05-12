@@ -1,4 +1,3 @@
-using FortRise;
 using Microsoft.Xna.Framework;
 
 namespace TowerFall;
@@ -10,9 +9,4 @@ public class patch_Enemy : Enemy
     }
 
     public virtual void Load() {}
-}
-
-public static class TemporaryVariants
-{
-
 }

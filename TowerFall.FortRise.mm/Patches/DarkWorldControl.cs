@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using FortRise;
 using Microsoft.Xna.Framework.Audio;
@@ -13,11 +14,55 @@ public class patch_DarkWorldControl : DarkWorldControl
     private bool bossMode;
     private SoundEffectInstance customMusic;
     [PostPatchEnableTempVariant]
-    public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) {}
+    public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) 
+    {
+        patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
+        if (levelData.ActiveVariant.CustomVariants != null) 
+        {
+            foreach (var variant in matchVariant.CustomVariants) 
+            {
+                var key = variant.Key;
+                if (!levelData.ActiveVariant.CustomVariants.TryGetValue(key, out var val)) 
+                {
+                    Logger.Log(key);
+                    continue;
+                }
+                if (!variant.Value && val) 
+                {
+                    TempVariantHolder.TempCustom[key] = true;
+                    matchVariant.CustomVariants[key].Value = true;
+                }
+            }
+        }
+
+        JumpLanding();
+    }
 
 
     [PostPatchDisableTempVariant]
-    public static void DisableTempVariants(Level level) {}
+    public static void DisableTempVariants(Level level) 
+    {
+        patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
+        var modified = new List<string>();
+        foreach (var variant in TempVariantHolder.TempCustom) 
+        {
+            var variantKey = variant.Key;
+            var variantVal = variant.Value;
+            if (variantVal) 
+            {
+                modified.Add(variantKey);
+                matchVariant.GetCustomVariant(variantKey).Value = false;
+            }
+        }
+        foreach (var modifiedVariant in modified) 
+        {
+            TempVariantHolder.TempCustom[modifiedVariant] = false;
+        }
+        JumpLanding();
+    }
+
+    // Doing this will prevent the instruction jumping on a void
+    private static void JumpLanding() {}
 
     [PatchDarkWorldControlLevelSequence]
     private extern IEnumerator orig_LevelSequence();

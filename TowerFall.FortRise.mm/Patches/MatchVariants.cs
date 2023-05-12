@@ -10,6 +10,8 @@ namespace TowerFall;
 public class patch_MatchVariants : MatchVariants 
 {
     private Dictionary<string, Variant> customVariants;
+    public IReadOnlyDictionary<string, Variant> CustomVariants => customVariants;
+
     internal static event Action<MatchVariants, bool> DeclareVariants;
 
     /* Private fields from MatchVariants */
@@ -30,6 +32,7 @@ public class patch_MatchVariants : MatchVariants
 
     public Variant AddVariant(string variantName, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
     {
+        TempVariantHolder.TempCustom ??= new Dictionary<string, bool>();
         var list = Variants.ToList();
         Pickups[] itemExclusions = info.Exclusions;
         bool perPlayer = flags.HasFlag(VariantFlags.PerPlayer) && !noPerPlayer;
@@ -62,6 +65,8 @@ public class patch_MatchVariants : MatchVariants
             canRandoms.Add(variant);
         Variants = list.ToArray();
         Count = list.Count;
+        if (!TempVariantHolder.TempCustom.ContainsKey(variantName))
+            TempVariantHolder.TempCustom.Add(variantName, false);
         return variant;
     }
     public static Subtexture GetVariantIconFromName(string variantName, Atlas atlas)

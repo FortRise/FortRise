@@ -361,7 +361,8 @@ internal static partial class MonoModRules
                     var ChildBool = Calc.FindMethod("System.Boolean ChildBool(System.Xml.XmlElement,System.String)");
 
                     var il = methd.Body.GetILProcessor();
-                    il.RemoveAt(0);
+                    var firstLast = il.Body.Instructions[0];
+                    il.RemoveAt(il.Body.Instructions.Count - 1);
 
                     for (int i = 0; i < variant.Fields.Count; i++) 
                     {
@@ -407,7 +408,8 @@ internal static partial class MonoModRules
 
                 
                 var il = methd.Body.GetILProcessor();
-                il.RemoveAt(0);
+                var firstLast = il.Body.Instructions[0];
+                il.RemoveAt(il.Body.Instructions.Count - 1);
                 for (int i = 0; i < tempVariant.Fields.Count; i++) 
                 {
                     var field = tempVariant.Fields[i];
@@ -431,6 +433,7 @@ internal static partial class MonoModRules
                     il.Emit(OpCodes.Callvirt, set_Value);
                     il.Append(entry);
                 }
+
             }
             else if (methd.HasCustomAttribute("MonoMod.PostPatchEnableTempVariant"))  
             {
@@ -444,7 +447,8 @@ internal static partial class MonoModRules
                 var Variants = MatchSettings.FieldType.Resolve().FindField("Variants");
 
                 var il = methd.Body.GetILProcessor();
-                il.RemoveAt(0);
+                var firstLast = il.Body.Instructions[0];
+                il.RemoveAt(il.Body.Instructions.Count - 1);
 
                 for (int i = 0; i < tempVariant.Fields.Count; i++)  
                 {

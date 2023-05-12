@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml;
 using Monocle;
 using MonoMod;
@@ -9,11 +10,13 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
 {
     public struct Variant 
     {
-
+        // Could prevent from marking it as field?
+        public Dictionary<string, bool> CustomVariants { get; set; }
     }
 
     public class patch_LevelData : LevelData 
     {
+        public static string[] OriginalVariantNames;
         public Variant ActiveVariant;
         public bool Dark;
         public bool Slippery;
@@ -22,6 +25,7 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
         public patch_LevelData(XmlElement xml, Dictionary<string, List<EnemyData>> enemySets) : base(xml, enemySets)
         {
         }
+
 
         public extern void orig_ctor(XmlElement xml, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets);
 
@@ -36,7 +40,37 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
         }
 
         [PostPatchXmlToVariant]
-        public void XmlToVariant(XmlElement xml) {}
+        public void XmlToVariant(XmlElement xml) 
+        {
+            ActiveVariant.CustomVariants ??= new Dictionary<string, bool>();
+            if (OriginalVariantNames == null) 
+            {
+                var fields = typeof(Variant).GetFields(BindingFlags.Public | BindingFlags.Instance);
+                OriginalVariantNames = new string[fields.Length];
+                for (int i = 0; i < OriginalVariantNames.Length; i++) 
+                {
+                    var field = fields[i];
+                    OriginalVariantNames[i] = field.Name;
+                }
+            }
+            for (int i = 0; i < xml.ChildNodes.Count; i++) 
+            {
+                var child = xml.ChildNodes[i];
+                if (OriginalContains(child.Name))
+                    continue;
+                ActiveVariant.CustomVariants.Add(child.Name, bool.Parse(child.InnerText));
+            }
+        }
+
+        public static bool OriginalContains(string name) 
+        {
+            for (int i = 0; i < OriginalVariantNames.Length; i++) 
+            {
+                if (OriginalVariantNames[i] == name)
+                    return true;
+            }
+            return false;
+        }
     }
 
     public class patch_EnemyData : EnemyData
