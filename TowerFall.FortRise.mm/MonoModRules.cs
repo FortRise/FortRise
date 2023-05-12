@@ -24,9 +24,6 @@ internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldCompleteSequence))]
 internal class PatchDarkWorldCompleteSequence : Attribute {}
 
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
-internal class PatchDarkWorldControlLevelSequence : Attribute {}
-
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchQuestSpawnPortalFinishSpawn))]
 internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
 
@@ -156,27 +153,6 @@ internal static partial class MonoModRules
         cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
         cursor.Emit(OpCodes.Brtrue_S, label);
-    }
-
-    public static void PatchDarkWorldControlLevelSequence(MethodDefinition method, CustomAttribute attrib) 
-    {
-        MethodDefinition complete = method.GetEnumeratorMoveNext();
-
-        FieldDefinition f_this = complete.DeclaringType.Fields.FirstOrDefault(
-            f => f.Name.StartsWith("<>4__this")
-        );
-
-        new ILContext(complete).Invoke(ctx => {
-            var StopMusic = method.DeclaringType.FindMethod("System.Void StopMusic()");
-            var cursor = new ILCursor(ctx);
-
-            cursor.GotoNext(instr => instr.MatchCallOrCallvirt("Monocle.Music", "Stop"));
-            cursor.Remove();
-            
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldfld, f_this);
-            cursor.Emit(OpCodes.Call, StopMusic);
-        });
     }
 
     public static void PatchDarkWorldCompleteSequence(MethodDefinition method, CustomAttribute attribute) 
