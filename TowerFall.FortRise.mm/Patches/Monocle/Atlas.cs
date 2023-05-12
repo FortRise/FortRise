@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Xml;
+using FortRise;
 using MonoMod;
 
 namespace Monocle;
@@ -17,8 +20,20 @@ public class patch_Atlas : Texture
     [MonoModConstructor]
     internal void ctor() {}
 
-    public static patch_Atlas Create(string xmlPath, string imagePath, bool load)
+    public static patch_Atlas Create(string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
     {
+        switch (access) 
+        {
+        case ContentAccess.Content:
+            xmlPath = Calc.LOADPATH + xmlPath;
+            imagePath = Calc.LOADPATH + imagePath;
+            break;
+        case ContentAccess.ModContent:
+            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            xmlPath = Path.Combine(modDirectory, "Content", xmlPath).Replace("\\", "/");
+            imagePath = Path.Combine(modDirectory, "Content", imagePath).Replace("\\", "/");
+            break;
+        }
         XmlNodeList elementsByTagName = Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
         var atlas = new patch_Atlas() 
         {
@@ -38,4 +53,11 @@ public class patch_Atlas : Texture
         }
         return atlas;
     }
+}
+
+public enum ContentAccess
+{
+    Root,
+    Content,
+    ModContent
 }
