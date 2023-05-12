@@ -54,6 +54,13 @@ public static class patch_Music
 
     public static void PlayCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
+        if (musicType == CustomMusicType.AsVanilla) 
+        {
+            currentSong = filepath;
+            Music.Stop();
+        }
+        else
+            currentCustomSong = filepath;
         SoundHelper.StopMusic();
         if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
         {
@@ -65,14 +72,19 @@ public static class patch_Music
             SoundHelper.StoredInstance.Add(filepath, instance);
             SoundHelper.PlayMusic(instance);
         }
-        if (musicType == CustomMusicType.AsVanilla)
-            currentSong = filepath;
-        else
-            currentCustomSong = filepath;
+
     }
 
     public static void PlayImmediateCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
+        if (musicType == CustomMusicType.AsVanilla) 
+        {
+            Music.Stop();
+            audioCategory.Stop(AudioStopOptions.Immediate);
+            currentSong = filepath;
+        }
+        else
+            currentCustomSong = filepath;
         SoundHelper.StopMusicImmediate();
         if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
         {
