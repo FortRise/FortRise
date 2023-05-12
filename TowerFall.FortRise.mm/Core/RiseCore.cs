@@ -159,6 +159,7 @@ public static partial class RiseCore
     {
         module.LoadContent();
         module.Enabled = true;
+        patch_MatchVariants.DeclareVariants += module.OnVariantsRegister;
         InternalModules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
@@ -284,9 +285,9 @@ public static partial class RiseCore
                 if (arrow is null)
                     return;
                 var name = arrow.Name;
-                var fn = arrow.PickupInitializer ?? "CreatePickup";
+                var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
                 var stride = (ArrowTypes)offset + ArrowsID.Count;
-                MethodInfo info = type.GetMethod(fn);
+                MethodInfo graphic = type.GetMethod(graphicFn);
 
                 ConstructorInfo ctor = type.GetConstructor(Array.Empty<Type>());
                 ArrowLoader loader = null;
@@ -299,15 +300,16 @@ public static partial class RiseCore
                         return invoked;
                     };
                 }
-                if (info == null || !info.IsStatic)
+                if (graphic == null || !graphic.IsStatic)
                 {
-                    Logger.Log($"No `static ArrowInfo CreatePickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                    Logger.Log($"No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
                 }
                 else 
                 {
-                    var identifier = (ArrowInfo)info.Invoke(null, Array.Empty<object>());
+                    var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
                     PickupGraphicArrows.Add(stride, identifier);
                 }
+
                 ArrowsID.Add(name, stride);
                 Arrows.Add(stride, loader);
                 PickupLoader.Add((Pickups)PickupLoaderCount, (pos, targetPos, _) => new ArrowTypePickup(

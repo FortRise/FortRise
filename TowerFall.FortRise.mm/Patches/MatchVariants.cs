@@ -10,6 +10,7 @@ namespace TowerFall;
 public class patch_MatchVariants : MatchVariants 
 {
     private Dictionary<string, Variant> customVariants;
+    internal static event Action<MatchVariants, bool> DeclareVariants;
 
     /* Private fields from MatchVariants */
     private List<Variant> canRandoms;
@@ -23,6 +24,7 @@ public class patch_MatchVariants : MatchVariants
     {
         orig_ctor(noPerPlayer);
         customVariants = new();
+        DeclareVariants?.Invoke(this, noPerPlayer);
     }
 
 

@@ -143,5 +143,5 @@ public abstract partial class FortModule
 
     public virtual void LoadContent() {}
     public virtual void Initialize() {}
-
+    public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
 }
