@@ -113,6 +113,19 @@ public static class Ogmo3ToOel
         }
         return sb.ToString();
     }
+
+    public static string Array2DToStraightBitString(string[,] levels) 
+    {
+        var sb = new StringBuilder();
+        for (int x = 0; x < levels.GetLength(0); x++) 
+        {
+            for (int y = 0; y < levels.GetLength(1); y++) 
+            {
+                sb.Append(levels[x, y]);
+            }
+        }
+        return sb.ToString();
+    }
 }
 
 public sealed partial class OgmoLevelData : IDeserialize

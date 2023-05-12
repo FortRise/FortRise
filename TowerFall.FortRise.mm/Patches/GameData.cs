@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using FortRise;
 using Monocle;
 using MonoMod;
 using TeuJson;
+using static FortRise.Logger;
 
 namespace TowerFall;
 
@@ -59,23 +61,51 @@ public class AdventureWorldData : DarkWorldTowerData
     public string Author;
     public AdventureWorldTowerStats Stats;
 
-    private void ParallelLookup(string directory) 
+    private (bool, string) ParallelLookup(string directory) 
     {
-        foreach (string level in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
+        bool customIcon = false;
+        string pathToIcon = string.Empty;
+        foreach (string path in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
         {
-            if (level.EndsWith(".json") || level.EndsWith(".oel"))
-                this.Levels.Add(level);
+            if (path.Contains("icon")) 
+            {
+                customIcon = true;
+                pathToIcon = path;
+                Logger.Log(pathToIcon);
+                continue;
+            }
+            if (path.EndsWith(".json") || path.EndsWith(".oel"))
+                Levels.Add(path);
         }
+        return (customIcon, pathToIcon);
+    }
+
+    private void BuildIcon(string path) 
+    {
+        Logger.Log(path);
+        var json = JsonConvert.DeserializeFromFile(path);
+        var layers = json["layers"].AsJsonArray;
+        var solids = layers[0];
+        var grid2D = solids["grid2D"].ConvertToArrayString2D();
+        var bitString = Ogmo3ToOel.Array2DToStraightBitString(grid2D);
+        var x = grid2D.GetLength(1);
+        var y = grid2D.GetLength(0);
+        if (x != 16 || y != 16) 
+        {
+            Logger.Error("Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
+            return;
+        }
+        Theme.Icon = new Subtexture(new Monocle.Texture(TowerMapData.BuildIcon(bitString, Theme.TowerType)));
     }
 
     public bool AdventureLoadParallel(int id, string levelDirectory) 
     {
         Levels = new List<string>();
-        ParallelLookup(levelDirectory);
-        return InternalAdventureLoad(id, levelDirectory);
+        var (customIcon, pathToIcon) = ParallelLookup(levelDirectory);
+        return InternalAdventureLoad(id, levelDirectory, pathToIcon, customIcon);
     }
 
-    public bool InternalAdventureLoad(int id, string levelDirectory) 
+    public bool InternalAdventureLoad(int id, string levelDirectory, string pathToIcon, bool customIcons = false) 
     {
         if (this.Levels.Count <= 0) 
         {
@@ -89,6 +119,12 @@ public class AdventureWorldData : DarkWorldTowerData
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
         Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
+
+        Logger.Log(!string.IsNullOrEmpty(pathToIcon));
+        Logger.Log(customIcons);
+
+        if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
+            BuildIcon(pathToIcon);
 
         this.TimeBase = xmlElement["time"].ChildInt("base");
         this.TimeAdd = xmlElement["time"].ChildInt("add");
