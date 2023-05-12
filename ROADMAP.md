@@ -12,7 +12,6 @@ These are the following roadmap that are planned or completed:
 - [x] Mod options.
 - [ ] Debug Tower maps.
 - [ ] Disable/Enable mods.
-- [ ] Custom level entity.
 - [ ] Custom arrows.
 - [x] Custom variants for adventure maps.
 - [x] Custom music for adventure maps.
@@ -24,3 +23,6 @@ These are the following roadmap that are planned or completed:
 - [x] Simple installer that also patch the game.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
+
+### Need Testing:
+- [ ] Custom level entity.
