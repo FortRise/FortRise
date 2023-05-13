@@ -19,18 +19,23 @@ public class patch_ArrowTypePickup : ArrowTypePickup
         orig_ctor(position, targetPosition, type);
         if (type <= ArrowTypes.Prism)
             return;
-        if (!FortRise.RiseCore.PickupGraphicArrows.TryGetValue(type, out var info))
+        if (!FortRise.RiseCore.PickupGraphicArrows.TryGetValue(type, out var infoLoader))
             return;
+        var info = infoLoader?.Invoke();
+        if (info == null)
+            return;
+        var value = info.Value;
         
-        if (info.Animated != null)
+        
+        if (value.Animated != null)
         {
-            graphic = info.Animated;
+            graphic = value.Animated;
             Add(graphic);
             return;
         }
-        if (info.Simple != null)
+        if (value.Simple != null)
         {
-            graphic = info.Simple;
+            graphic = value.Simple;
             Add(graphic);
         }
     }

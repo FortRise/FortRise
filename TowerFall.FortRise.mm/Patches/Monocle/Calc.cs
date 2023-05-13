@@ -1,11 +1,29 @@
 using System;
 using System.Xml;
 using System.Reflection;
+using MonoMod;
+using FortRise;
 
 namespace Monocle;
 
 public static class patch_Calc 
 {
+    [MonoModReplace]
+    public static T StringToEnum<T>(string str) where T : struct 
+    {
+        if (Enum.IsDefined(typeof(T), str)) 
+        {
+            return (T)((object)Enum.Parse(typeof(T), str));
+        }
+        // Try to get the pickup value
+        else if (RiseCore.PickupID.TryGetValue(str, out var s) && s is T custmPickup) 
+        {
+            return custmPickup;
+        }
+        throw new Exception("The string cannot be converted to the enum type");
+    }
+
+    [MonoModReplace]
     public static Delegate GetMethod<T>(object obj, string method) where T : class 
     {
         if (obj.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null)

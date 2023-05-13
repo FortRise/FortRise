@@ -74,9 +74,10 @@ public sealed class AdventureListLoader : Entity
 
     private void Turn() 
     {
-        spin = (spin + 6.2831855f) % 6.2831855f;
+        const float spinValue = 360 * Calc.DEG_TO_RAD;
+        spin = (spin + spinValue) % spinValue;
         tweenStart = spin;
-        tweenEnd = spin + 0.7853928f;
+        tweenEnd = spin + (45 * Calc.DEG_TO_RAD);
         spinTween.Start();
     }
 

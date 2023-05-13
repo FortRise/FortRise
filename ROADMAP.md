@@ -12,7 +12,7 @@ These are the following roadmap that are planned or completed:
 - [x] Mod options.
 - [ ] Debug Tower maps.
 - [ ] Disable/Enable mods.
-- [ ] Custom arrows.
+- [x] Custom arrows.
 - [x] Custom variants for adventure maps.
 - [x] Custom music for adventure maps.
 - [x] Custom enemies.

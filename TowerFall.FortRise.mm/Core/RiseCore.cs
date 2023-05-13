@@ -16,6 +16,7 @@ namespace FortRise;
 
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
 public delegate patch_Arrow ArrowLoader();
+public delegate ArrowInfo ArrowInfoLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
 public delegate LevelEntity LevelEntityLoader(XmlElement x);
 public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
@@ -32,8 +33,9 @@ public static partial class RiseCore
 
     // This is the way we could use to manipulate arrows from enums
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
+    public static Dictionary<string, Pickups> PickupID = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
-    public static Dictionary<ArrowTypes, ArrowInfo> PickupGraphicArrows = new();
+    public static Dictionary<ArrowTypes, ArrowInfoLoader> PickupGraphicArrows = new();
 
     public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
     internal static List<FortModule> InternalModules = new();
@@ -290,12 +292,17 @@ public static partial class RiseCore
                 }
                 else 
                 {
-                    var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
-                    PickupGraphicArrows.Add(stride, identifier);
+                    PickupGraphicArrows.Add(stride, () => {
+                        var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
+                        if (string.IsNullOrEmpty(identifier.Name))
+                            identifier.Name = name;
+                        return identifier;
+                    });
                 }
 
                 ArrowsID.Add(name, stride);
                 Arrows.Add(stride, loader);
+                PickupID.Add(name, (Pickups)PickupLoaderCount);
                 PickupLoader.Add((Pickups)PickupLoaderCount, (pos, targetPos, _) => new ArrowTypePickup(
                     pos, targetPos, stride));
                 PickupLoaderCount++;

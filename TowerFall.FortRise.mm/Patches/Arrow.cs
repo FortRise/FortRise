@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -10,7 +12,83 @@ public abstract class patch_Arrow
     public int? OverrideCharacterIndex;
     public int? OverridePlayerIndex;
     private static Stack<patch_Arrow>[] cached;
-    public abstract ArrowTypes ArrowType { [MonoModReplace] get; internal set; }
+    public abstract ArrowTypes ArrowType { [MonoModReplace] get; set; }
+
+    public static int ARROW_TYPES;
+
+    public static string[] Names;
+    public static Color[] Colors;
+    public static Color[] ColorsB;
+    public static Color[] NoneColors;
+
+
+    [MonoModConstructor]
+    [MonoModReplace]
+    public static void cctor() 
+    {
+        ARROW_TYPES = Calc.EnumLength(typeof(ArrowTypes));
+        Names = new string[]
+        {
+            "+2",
+            "BOMB",
+            "SUPER BOMB",
+            "LASER",
+            "BRAMBLE",
+            "DRILL",
+            "BOLT",
+            "TOY",
+            "FEATHER",
+            "TRIGGER",
+            "PRISM"
+        };
+        Colors = new Color[]
+        {
+            Calc.HexToColor("F7EAC3"),
+            Calc.HexToColor("F8B800"),
+            Calc.HexToColor("F8B800"),
+            Calc.HexToColor("B8F818"),
+            Calc.HexToColor("F87858"),
+            Calc.HexToColor("8EE8FF"),
+            Calc.HexToColor("00FF4C"),
+            Calc.HexToColor("FF6DFA"),
+            Calc.HexToColor("BC70FF"),
+            Calc.HexToColor("1BB7EE"),
+            Calc.HexToColor("DB4ADB")
+        };
+        ColorsB = new Color[]
+        {
+            Calc.HexToColor("FFFFFF"),
+            Calc.HexToColor("F7D883"),
+            Calc.HexToColor("F7D883"),
+            Calc.HexToColor("D0F76C"),
+            Calc.HexToColor("F7B09E"),
+            Calc.HexToColor("D8F7FF"),
+            Calc.HexToColor("00D33B"),
+            Calc.HexToColor("FFB5FC"),
+            Calc.HexToColor("D5A5FF"),
+            Calc.HexToColor("56D4FF"),
+            Calc.HexToColor("FF52FF")
+        };
+        NoneColors = new Color[]
+        {
+            Calc.HexToColor("F83800"),
+            Calc.HexToColor("F87858")
+        }; 
+        Array.Resize(ref Names, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
+        Array.Resize(ref Colors, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
+        Array.Resize(ref ColorsB, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
+        foreach (var arrow in RiseCore.ArrowsID.Values) 
+        {
+            var loader = RiseCore.PickupGraphicArrows[arrow];
+            var info = loader?.Invoke();
+            if (info == null)
+                return;
+            var value = info.Value;
+            Names[(int)arrow] = value.Name.ToUpperInvariant();
+            Colors[(int)arrow] = Calc.HexToColor(value.Color);
+            ColorsB[(int)arrow] = Calc.HexToColor(value.ColorB);
+        }
+    }
 
     [MonoModReplace]
     public static void Initialize() 
@@ -72,7 +150,7 @@ public abstract class patch_Arrow
 public class patch_DefaultArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Normal;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -87,7 +165,7 @@ public class patch_DefaultArrow : patch_Arrow
 public class patch_BombArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Bomb;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -102,7 +180,7 @@ public class patch_BombArrow : patch_Arrow
 public class patch_SuperBombArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -117,7 +195,7 @@ public class patch_SuperBombArrow : patch_Arrow
 public class patch_LaserArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Laser;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -132,7 +210,7 @@ public class patch_LaserArrow : patch_Arrow
 public class patch_BrambleArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Bramble;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -147,7 +225,7 @@ public class patch_BrambleArrow : patch_Arrow
 public class patch_DrillArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Drill;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -162,7 +240,7 @@ public class patch_DrillArrow : patch_Arrow
 public class patch_BoltArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Bolt;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -177,7 +255,7 @@ public class patch_BoltArrow : patch_Arrow
 public class patch_ToyArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Toy;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -192,7 +270,7 @@ public class patch_ToyArrow : patch_Arrow
 public class patch_FeatherArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Feather;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -207,7 +285,7 @@ public class patch_FeatherArrow : patch_Arrow
 public class patch_TriggerArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Trigger;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
@@ -222,7 +300,7 @@ public class patch_TriggerArrow : patch_Arrow
 public class patch_PrismArrow : patch_Arrow
 {
     private ArrowTypes arrowTypes = ArrowTypes.Prism;
-    public override ArrowTypes ArrowType { get => arrowTypes; internal set => arrowTypes = value; }
+    public override ArrowTypes ArrowType { get => arrowTypes; set => arrowTypes = value; }
 
     public extern void orig_ctor();
 
