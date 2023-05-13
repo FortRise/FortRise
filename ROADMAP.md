@@ -21,6 +21,7 @@ These are the following roadmap that are planned or completed:
 ### Current:
 - [ ] Support .zip files for loading mods.
 - [ ] Mod Relinker.
+- [ ] Adventure map categories.
 - [x] Custom arrows.
 - [ ] Debug Tower maps.
 - [ ] Disable/Enable mods.
