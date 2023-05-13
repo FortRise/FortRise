@@ -1,0 +1,79 @@
+<#@ output extension=".cs" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#
+
+#>
+
+using System;
+using System.Reflection;
+using System.Reflection.Emit;
+
+namespace FortRise;
+
+public static partial class CallHelper 
+{
+<#
+    for (int i = 1; i <= 10; i++) 
+    {
+#>
+    public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName) 
+    {
+        var targetType = typeof(TTarget);
+        var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,<# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
+        var gen = dm.GetILGenerator();
+        gen.Emit(OpCodes.Ldarg_0);
+<#
+            for (int k = 1; k <= i; k++) 
+            {
+            
+                if (k <= 3) {
+#>
+        gen.Emit(OpCodes.Ldarg_<#=k#>);
+<#
+                }
+                else 
+                {
+#>
+        gen.Emit(OpCodes.Ldarg_S, <#=k#>);       
+<#
+                }
+            }
+#>
+        gen.Emit(OpCodes.Call, baseUpdateMethod);
+        gen.Emit(OpCodes.Ret);
+        return (Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>)dm.CreateDelegate(typeof(Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>));
+    }
+
+    public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName, BindingFlags flags) 
+    {
+        var targetType = typeof(TTarget);
+        var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,<# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
+        var gen = dm.GetILGenerator();
+        gen.Emit(OpCodes.Ldarg_0);
+<#
+            for (int k = 1; k <= i; k++) 
+            {
+            
+                if (k <= 3) {
+#>
+        gen.Emit(OpCodes.Ldarg_<#=k#>);
+<#
+                }
+                else 
+                {
+#>
+        gen.Emit(OpCodes.Ldarg_S, <#=k#>);       
+<#
+                }
+            }
+#>
+        gen.Emit(OpCodes.Call, baseUpdateMethod);
+        gen.Emit(OpCodes.Ret);
+        return (Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>)dm.CreateDelegate(typeof(Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>));
+    }
+<#
+    }
+#>
+}
