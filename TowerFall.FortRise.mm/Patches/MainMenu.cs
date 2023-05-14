@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MonoMod;
+using MonoMod.Utils;
 
 namespace TowerFall;
 
@@ -69,7 +70,8 @@ public partial class patch_MainMenu : MainMenu
         {
             var version = mod.Meta.Version.ToString();
             var setupName = mod.Meta.Name + " v" + version;
-            var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + mod.Meta.Author.ToUpperInvariant());
+            string author = mod.Meta.Author ?? "";
+            var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + author.ToUpperInvariant());
             modButton.SetCallbacks(() => {
                 State = patch_MenuState.ModOptions;
                 currentModule = mod;
@@ -194,11 +196,13 @@ public partial class patch_MainMenu : MainMenu
         list.Add(trialsButton);
 
         BladeButton optionsButton;
-        BladeButton modsButtons;
+        patch_BladeButton modsButtons;
         BladeButton creditsButton;
         if (MainMenu.NoQuit)
         {
-            modsButtons = new BladeButton(206 - 18f, "MODS", () => State = patch_MenuState.Mods);
+            modsButtons = new patch_BladeButton(206 - 18f, "MODS", () => State = patch_MenuState.Mods);
+            modsButtons.SetX(-50f);
+
             list.Add(modsButtons);
             optionsButton = new BladeButton(206f, "OPTIONS", this.MainOptions);
             list.Add(optionsButton);
@@ -207,7 +211,8 @@ public partial class patch_MainMenu : MainMenu
         }
         else
         {
-            modsButtons = new BladeButton(192f - 18f, "MODS", () => State = patch_MenuState.Mods);
+            modsButtons = new patch_BladeButton(192f - 18f, "MODS", () => State = patch_MenuState.Mods);
+            modsButtons.SetX(-50f);
             list.Add(modsButtons);
             optionsButton = new BladeButton(192f, "OPTIONS", this.MainOptions);
             list.Add(optionsButton);
