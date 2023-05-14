@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
     <PackageReference Include="TeuJson" Version="3.1.2" />
     <PackageReference Include="TeuJson.Generator" Version="3.1.2" />
     <PackageReference Include="MonoMod" Version="22.7.31.1" />
@@ -47,9 +48,5 @@
       <HintPath>..\lib-stripped\Steamworks.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
