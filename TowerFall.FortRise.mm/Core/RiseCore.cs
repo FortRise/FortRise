@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml;
 using Microsoft.Xna.Framework;
-using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
@@ -50,12 +49,24 @@ public static partial class RiseCore
     {
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
+
         var directory = Directory.EnumerateDirectories("Mods").ToList();
         if (directory.Count <= 0) 
         {
             Types = Array.Empty<Type>();
             return;
         }
+
+        new NoModule(new ModuleMetadata() {
+            Name = "TowerFall",
+            Version = new Version(1, 3, 3, 3)
+        }).Register();
+
+        new NoModule(new ModuleMetadata() {
+            Name = "Adventure",
+            Author = "Terria",
+            Version = new Version(2, 0, 0)
+        }).Register();
 
         int i = 0;
         Types = new Type[directory.Count];
@@ -66,7 +77,12 @@ public static partial class RiseCore
                 continue;
             
             var json = JsonTextReader.FromFile(metaPath);
-            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, json["dll"]));
+            var dll = json.GetJsonValueOrNull("dll");
+
+            if (dll == null) 
+                continue;
+            
+            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, dll));
             if (!File.Exists(pathToAssembly))
                 continue;
             ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
@@ -142,11 +158,14 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module) 
     {
+        InternalModules.Add(module);
+
+        if (module is NoModule)
+            return;
         module.InternalLoad();
         module.LoadContent();
         module.Enabled = true;
         patch_MatchVariants.DeclareVariants += module.OnVariantsRegister;
-        InternalModules.Add(module);
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
