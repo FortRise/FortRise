@@ -24,8 +24,8 @@ These are the following roadmap that are planned or completed:
 ### Current:
 - [ ] Support .zip files for loading mods.
 - [ ] Mod Relinker.
-- [ ] Lua interpreter.
 - [ ] Debug Tower maps.
+- [ ] Lua Interpreter.
 - [ ] Disable/Enable mods.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
