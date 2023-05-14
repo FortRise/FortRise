@@ -24,6 +24,8 @@ public static class patch_GameData
         WorldSaveData.Load(WorldSaveData.SavePath);
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
         AdventureWorldTowers = new List<AdventureWorldData>();
+        if (!Directory.Exists("AdventureWorldContent"))
+            Directory.CreateDirectory("AdventureWorldContent");
         foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
             AW_PATH, "Levels")))
         {
