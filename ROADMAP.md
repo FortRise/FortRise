@@ -18,10 +18,13 @@ These are the following roadmap that are planned or completed:
 - [x] Supports Modern .NET feature with `MonoMod.Backports`.
 - [x] Simple installer that also patch the game.
 
+### v2.1.0
+- [x] Custom arrows.
+
 ### Current:
 - [ ] Support .zip files for loading mods.
 - [ ] Mod Relinker.
-- [x] Custom arrows.
+- [ ] Lua interpreter.
 - [ ] Debug Tower maps.
 - [ ] Disable/Enable mods.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
