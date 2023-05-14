@@ -1,9 +1,5 @@
 <#@ output extension=".cs" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#
-
-#>
-
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -20,7 +16,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,<# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
 <#
@@ -49,7 +45,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,<# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
 <#

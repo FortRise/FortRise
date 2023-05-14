@@ -1,4 +1,3 @@
-
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -11,7 +10,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -24,7 +23,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -36,7 +35,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -50,7 +49,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -63,7 +62,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -78,7 +77,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -92,7 +91,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -108,7 +107,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -123,7 +122,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -140,7 +139,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -156,7 +155,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -174,7 +173,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -191,7 +190,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -210,7 +209,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -228,7 +227,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -248,7 +247,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -267,7 +266,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -288,7 +287,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -308,7 +307,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
@@ -330,7 +329,7 @@ public static partial class CallHelper
     {
         var targetType = typeof(TTarget);
         var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
-        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType,typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, targetType);
+        var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10) }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
         gen.Emit(OpCodes.Ldarg_1);
