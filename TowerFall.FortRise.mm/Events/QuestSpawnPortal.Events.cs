@@ -70,6 +70,8 @@ public partial class patch_QuestSpawnPortal
                     return ArrowTypes.Drill;
                 if (name.Contains("Trigger"))
                     return ArrowTypes.Trigger;
+                if (name.Contains("Bolt"))
+                    return ArrowTypes.Bolt;
                 if (name.Contains("Toy"))
                     return ArrowTypes.Toy;
                 if (name.Contains("Feather"))
