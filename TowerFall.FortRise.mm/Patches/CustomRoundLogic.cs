@@ -16,7 +16,6 @@ public abstract class CustomVersusRoundLogic : RoundLogic
     protected CustomVersusRoundLogic(Session session, bool canHaveMiasma) : base(session, canHaveMiasma)
     {
     }
-
 }
 
 public struct RoundLogicInfo 
