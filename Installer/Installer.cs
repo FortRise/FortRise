@@ -7,7 +7,7 @@ namespace FortRise.Installer;
 public static class Installer
 {
     public const string TowerFallVersion = "1.3.3.3";
-    public const string InstallerVersion = "2.1.2";
+    public const string InstallerVersion = "2.1.3";
 
     private static readonly string[] fileDependencies = {
         "MonoMod.exe", "MonoMod.xml", "0Harmony.dll",
