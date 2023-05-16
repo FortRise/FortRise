@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using TeuJson;
 
 namespace TowerFall;
@@ -16,6 +17,11 @@ public static class JsonUtils
         if (value.Contains(key))
             return value[key];
         return null;
+    }
+
+    public static Vector2 Position(this JsonValue value) 
+    {
+        return new Vector2(value["x"], value["y"]);
     }
 }
 
