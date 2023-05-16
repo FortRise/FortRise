@@ -74,9 +74,10 @@ public abstract class patch_Arrow
             Calc.HexToColor("F83800"),
             Calc.HexToColor("F87858")
         }; 
-        Array.Resize(ref Names, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
-        Array.Resize(ref Colors, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
-        Array.Resize(ref ColorsB, ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count);
+        var arrowIDCount = ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count;
+        Array.Resize(ref Names, arrowIDCount);
+        Array.Resize(ref Colors, arrowIDCount);
+        Array.Resize(ref ColorsB, arrowIDCount);
         foreach (var arrow in RiseCore.ArrowsID.Values) 
         {
             var loader = RiseCore.PickupGraphicArrows[arrow];
