@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MonoMod;
-using MonoMod.Utils;
 
 namespace TowerFall;
 
@@ -72,10 +71,18 @@ public partial class patch_MainMenu : MainMenu
             var setupName = mod.Meta.Name + " v" + version;
             string author = mod.Meta.Author ?? "";
             var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + author.ToUpperInvariant());
-            modButton.SetCallbacks(() => {
-                State = patch_MenuState.ModOptions;
-                currentModule = mod;
-            });
+            if (mod.InternalSettings is null)
+            {
+                modButton.SetCallbacks(() => { /* Empty */ });
+            }
+            else
+            {
+                modButton.SetCallbacks(() => {
+                    State = patch_MenuState.ModOptions;
+                    currentModule = mod;
+                });
+            }
+
             list.Add(modButton);
         }
         if (list.Count > 0) 
@@ -85,7 +92,6 @@ public partial class patch_MainMenu : MainMenu
         }
         BackState = patch_MenuState.Main;
         TweenUICameraToY(1);
-
     }
 
     public void DestroyMods() 
