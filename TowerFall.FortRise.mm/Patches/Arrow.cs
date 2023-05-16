@@ -7,7 +7,7 @@ using MonoMod;
 
 namespace TowerFall;
 
-public abstract class patch_Arrow 
+public abstract class patch_Arrow : Actor
 {
     public int? OverrideCharacterIndex;
     public int? OverridePlayerIndex;
@@ -21,6 +21,9 @@ public abstract class patch_Arrow
     public static Color[] ColorsB;
     public static Color[] NoneColors;
 
+    protected patch_Arrow() : base(Vector2.Zero)
+    {
+    }
 
     [MonoModConstructor]
     [MonoModReplace]
@@ -89,6 +92,11 @@ public abstract class patch_Arrow
             Colors[(int)arrow] = Calc.HexToColor(value.Color);
             ColorsB[(int)arrow] = Calc.HexToColor(value.ColorB);
         }
+    }
+
+    public override void Added()
+    {
+        base.Added();
     }
 
     [MonoModReplace]
