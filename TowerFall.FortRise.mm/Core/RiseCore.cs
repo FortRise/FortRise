@@ -59,7 +59,7 @@ public static partial class RiseCore
 
         new NoModule(new ModuleMetadata() {
             Name = "TowerFall",
-            Version = new Version(1, 3, 3, 3)
+            Version = TFGame.Version
         }).Register();
 
         new NoModule(new ModuleMetadata() {
