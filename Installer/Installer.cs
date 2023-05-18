@@ -37,8 +37,12 @@ public static class Installer
         }
         if (!shouldProceed) 
         {
+#if ANSI
             if (!AnsiConsole.Confirm("[green]TowerFall has already been patched[/], [underline]do you want to patch again?[/]", false))
-                return;
+#else
+            Console.WriteLine("TowerFall has already been patched");
+#endif
+            return;
         }
 
         var fortOrigPath = Path.Combine(path, "fortOrig");
@@ -48,7 +52,7 @@ public static class Installer
             File.Copy(Path.Combine(fortOrigPath, "TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
         }
 
-        AnsiConsole.MarkupLine("[underline]Moving original TowerFall into fortOrig Folder[/]");
+        Underline("Moving original TowerFall into fortOrig folder");
         if (!Directory.Exists(fortOrigPath))
             Directory.CreateDirectory(fortOrigPath);
         
@@ -61,7 +65,7 @@ public static class Installer
             return;
         }
         var libPath = "lib";
-        AnsiConsole.MarkupLine("[underline]Moving the mod into TowerFall directory[/]");
+        Underline("Moving the mod into TowerFall directory");
 
         var fortRiseDll = Path.Combine(libPath, modFile);
         if (!File.Exists(fortRiseDll)) 
@@ -71,8 +75,7 @@ public static class Installer
         }
         File.Copy(fortRiseDll, Path.Combine(path, "TowerFall.FortRise.mm.dll"), true);
 
-
-        AnsiConsole.MarkupLine("[underline]Moving all of the lib files[/]");
+        Underline("Moving all of the lib files");
         foreach (var file in fileDependencies) 
         {
             var filePath = Path.Combine(libPath, path);
@@ -86,7 +89,7 @@ public static class Installer
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 
-        AnsiConsole.MarkupLine("[underline]Patching TowerFall[/]");
+        Underline("Patching TowerFall");
 
         var monoModPath = Path.Combine(libPath, "MonoMod.exe");
         if (!File.Exists(monoModPath))
@@ -99,12 +102,12 @@ public static class Installer
         if (process.ExitCode != 0) 
         {
             ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
-            AnsiConsole.MarkupLine("[underline][gray]Note that the TowerFall might be patched from other modloader[/][/]");
+            UnderlineInfo("Note that the TowerFall might be patched from other modloader");
             await Task.Delay(1000);
             return;
         }
 
-        AnsiConsole.MarkupLine("[underline]Running HookGen[/]");
+        Underline("Running HookGen");
         var hookGenPath = Path.Combine(libPath, "MonoMod.RuntimeDetour.HookGen.exe");
         if (!File.Exists(hookGenPath))
         {
@@ -118,17 +121,23 @@ public static class Installer
             ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
         }
 
-        AnsiConsole.MarkupLine("[yellow]Finalizing[/]");
+        Yellow("Finalizing");
 
-        AnsiConsole.MarkupLine("[underline]Renaming the output[/]");
+        Underline("Renaming the output");
+
         File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
         File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.pdb"), Path.Combine(path, "TowerFall.pdb"), true);
         File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.exe"));
         File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
 
-        AnsiConsole.MarkupLine("[underline]Writing the version file[/]");
+        Underline("Writing the version file");
 
-        var debugMode = AnsiConsole.Confirm("Do you want to run in debug mode?", false);
+        bool debugMode = false;
+#if ANSI
+        debugMode = AnsiConsole.Confirm("Do you want to run in debug mode?", false);
+#else
+        Console.WriteLine("Run it in Debug Mode by modifying the PatchVersion.txt file");
+#endif
 
         var sb = new StringBuilder();
         sb.AppendLine("TF Version: " + TowerFallVersion);
@@ -137,7 +146,7 @@ public static class Installer
         var text = sb.ToString();
         await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
 
-        AnsiConsole.MarkupLine("[green]Installed![/]");
+        Succeed("Installed");
     }
 
     public static async Task Uninstall(string path) 
@@ -154,11 +163,11 @@ public static class Installer
             return;
         }
         var fortOrigPath = Path.Combine(path, "fortOrig", "TowerFall.exe");
-        AnsiConsole.MarkupLine("[underline]Copying original TowerFall into TowerFall root folder[/]");
+        Underline("Copying original TowerFall into TowerFall root folder");
         File.Copy(fortOrigPath, Path.Combine(path, "TowerFall.exe"), true);
 
+        Underline("Deleting the libraries from the TowerFall root folder");
 
-        AnsiConsole.MarkupLine("[underline]Deleting libraries from the TowerFall root folder[/]");
         foreach (var file in fileDependencies) 
         {
             var lib = Path.Combine(path, file);
@@ -170,7 +179,7 @@ public static class Installer
             File.Delete(lib);
         }
 
-        AnsiConsole.MarkupLine("[underline]Deleting the mod[/]");
+        Underline("Deleting the mod");
 
         var fortRiseDll = Path.Combine(path, modFile);
         if (File.Exists(fortRiseDll)) 
@@ -178,7 +187,7 @@ public static class Installer
             File.Delete(fortRiseDll);
         }
 
-        AnsiConsole.MarkupLine("[underline]Deleting the hooks[/]");
+        Underline("Deleting the hooks");
 
         var hookDll = Path.Combine(path, "MMHOOK_TowerFall.dll");
         if (File.Exists(hookDll)) 
@@ -186,23 +195,65 @@ public static class Installer
             File.Delete(hookDll);
         }
 
-        AnsiConsole.MarkupLine("[underline]Deleting the PatchVersion text file[/]");
-
+        Underline("Deleting the PatchVersion text file");
         
         File.Delete(Path.Combine(path, "PatchVersion.txt"));
         await Task.Delay(1000);
 
-        AnsiConsole.MarkupLine("[underline][green]Unpatched[/][/]");
+        Succeed("Unpatched");
+    }
+    private static void Yellow(string text) 
+    {
+#if ANSI
+        AnsiConsole.MarkupLine("[yellow]Finalizing[/]");
+#else
+        Console.WriteLine("Finalizing");
+#endif
+    }
+
+    private static void UnderlineInfo(string text) 
+    {
+#if ANSI
+        AnsiConsole.MarkupLine($"[underline][gray]{text}[/][/]");
+#else
+        Console.WriteLine(text);
+#endif
+    }
+
+    private static void Underline(string text) 
+    {
+#if ANSI
+        AnsiConsole.MarkupLine($"[underline]{text}[/]");
+#else
+        Console.WriteLine(text);
+#endif
+    }
+
+    private static void Succeed(string text) 
+    {
+#if ANSI
+        AnsiConsole.MarkupLine($"[underline][green]{text}[/][/]");
+#else
+        Console.WriteLine(text);
+#endif
     }
 
 
     private static void ThrowErrorContinous(string error) 
     {
+#if ANSI
         AnsiConsole.MarkupLine(error);
+#else
+        Console.WriteLine("error");
+#endif
     }
 
     private static void ThrowError(string error) 
     {
+#if ANSI
         AnsiConsole.Prompt(new TextPrompt<string>(error).AllowEmpty());
+#else
+        Console.WriteLine(error);
+#endif
     }
 }
