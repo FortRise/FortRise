@@ -1,3 +1,5 @@
+using System.IO;
+using System.Reflection;
 using FortRise;
 using Microsoft.Xna.Framework.Audio;
 using MonoMod;
@@ -54,6 +56,21 @@ public static class patch_Music
 
     public static void PlayCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
+        PlayCustom(filepath, musicType);
+    }
+
+    public static void PlayCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
+    {
+        switch (access) 
+        {
+        case ContentAccess.Content:
+            filepath = Calc.LOADPATH + filepath;
+            break;
+        case ContentAccess.ModContent:
+            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            filepath = Path.Combine(modDirectory, "Content", filepath).Replace("\\", "/");
+            break;
+        }
         if (musicType == CustomMusicType.AsVanilla) 
         {
             currentSong = filepath;
@@ -72,11 +89,26 @@ public static class patch_Music
             SoundHelper.StoredInstance.Add(filepath, instance);
             SoundHelper.PlayMusic(instance);
         }
-
     }
 
     public static void PlayImmediateCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
+        PlayImmediateCustom(filepath, ContentAccess.ModContent, CustomMusicType.FullCustom);
+    }
+
+    public static void PlayImmediateCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
+    {
+        switch (access) 
+        {
+        case ContentAccess.Content:
+            filepath = Calc.LOADPATH + filepath;
+            break;
+        case ContentAccess.ModContent:
+            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            filepath = Path.Combine(modDirectory, "Content", filepath).Replace("\\", "/");
+            break;
+        }
+
         if (musicType == CustomMusicType.AsVanilla) 
         {
             Music.Stop();
