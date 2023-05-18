@@ -14,7 +14,7 @@ internal class Program
         }
         else if (args[0] == "--unpatch") 
         {
-            await Installer.Install(args[1]);
+            await Installer.Uninstall(args[1]);
             return;
         }
         var panel = new Panel("FortRise Installer") {
