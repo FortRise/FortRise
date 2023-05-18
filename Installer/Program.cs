@@ -7,16 +7,27 @@ internal class Program
     [STAThread]
     public async static Task Main(string[] args) 
     {
-        if (args[0] == "--patch") 
+        if (args.Length > 1) 
         {
-            await Installer.Install(args[1]);
-            return;
+            if (!File.Exists(args[1] + "/TowerFall.exe")) 
+            {
+                Console.WriteLine("TowerFall executable not found");
+                return;
+            }
+            if (args[0] == "--patch") 
+            {
+                
+                await Installer.Install(args[1]);
+                return;
+            }
+            else if (args[0] == "--unpatch") 
+            {
+                await Installer.Uninstall(args[1]);
+                return;
+            }
         }
-        else if (args[0] == "--unpatch") 
-        {
-            await Installer.Uninstall(args[1]);
-            return;
-        }
+
+#if ANSI
         var panel = new Panel("FortRise Installer") {
             Border = BoxBorder.Rounded,
             Padding = new Padding(2, 2, 2, 2),
@@ -48,8 +59,9 @@ internal class Program
         }
         End:
         AnsiConsole.WriteLine("Goodbye!");
+#endif
     }
-
+#if ANSI
     public static async Task StateUnpatch() 
     {
         AnsiConsole.MarkupLine("Select a TowerFall directory to unpatch");
@@ -121,11 +133,14 @@ internal class Program
         }
         await Installer.Install(path);
     }
+#endif
 }
 
+#if ANSI
 public enum MenuState 
 {
     Patch,
     Unpatch,
     Quit
 }
+#endif
