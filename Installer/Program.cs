@@ -5,8 +5,18 @@ using Spectre.Console;
 internal class Program 
 {
     [STAThread]
-    public async static Task Main() 
+    public async static Task Main(string[] args) 
     {
+        if (args[0] == "--patch") 
+        {
+            await Installer.Install(args[1]);
+            return;
+        }
+        else if (args[0] == "--unpatch") 
+        {
+            await Installer.Install(args[1]);
+            return;
+        }
         var panel = new Panel("FortRise Installer") {
             Border = BoxBorder.Rounded,
             Padding = new Padding(2, 2, 2, 2),
