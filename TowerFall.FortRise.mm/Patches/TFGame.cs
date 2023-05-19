@@ -97,18 +97,18 @@ public class patch_TFGame : TFGame
 
     protected override void Update(GameTime gameTime)
     {
-        RiseCore.Invoke_BeforeUpdate(gameTime);
-        RiseCore.Invoke_Update(gameTime);
+        RiseCore.Events.Invoke_BeforeUpdate(gameTime);
+        RiseCore.Events.Invoke_Update(gameTime);
         orig_Update(gameTime);
-        RiseCore.Invoke_AfterUpdate(gameTime);
+        RiseCore.Events.Invoke_AfterUpdate(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        RiseCore.Invoke_BeforeRender(Monocle.Draw.SpriteBatch);
-        RiseCore.Invoke_Render(Monocle.Draw.SpriteBatch);
+        RiseCore.Events.Invoke_BeforeRender(Monocle.Draw.SpriteBatch);
+        RiseCore.Events.Invoke_Render(Monocle.Draw.SpriteBatch);
         base.Draw(gameTime);
-        RiseCore.Invoke_AfterRender(Monocle.Draw.SpriteBatch);
+        RiseCore.Events.Invoke_AfterRender(Monocle.Draw.SpriteBatch);
     }
 
 }
