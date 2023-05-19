@@ -8,6 +8,29 @@ using MonoMod.Utils;
 
 namespace MonoMod;
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPostFix))]
+internal class PostFixingAttribute : Attribute 
+{
+    public string TypeName;
+    public string MethodName;
+    public PostFixingAttribute(string typeName, string methodName, bool isStatic = false) 
+    {
+        TypeName = typeName;
+        MethodName = methodName;
+    }
+}
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPreFix))]
+internal class PreFixingAttribute : Attribute 
+{
+    public string TypeName;
+    public string MethodName;
+    public PreFixingAttribute(string typeName, string methodName, bool isStatic = false) 
+    {
+        TypeName = typeName;
+        MethodName = methodName;
+    }
+}
+
 internal class PostPatchDisableTempVariant : Attribute {}
 internal class PostPatchEnableTempVariant : Attribute {}
 internal class PostPatchXmlToVariant : Attribute {}
@@ -115,6 +138,35 @@ internal static partial class MonoModRules
         MonoModRule.Flag.Set("OS:Windows", isWindows);
         MonoModRule.Flag.Set("OS:NotWindows", !isWindows);
         Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
+    }
+
+    public static void PatchPostFix(ILContext ctx, CustomAttribute attrib) 
+    {
+        string typeName = (string)attrib.ConstructorArguments[0].Value;
+        string methodName = (string)attrib.ConstructorArguments[1].Value;
+        bool isStatic = (bool)attrib.ConstructorArguments[2].Value;
+
+        var method = ctx.Module.GetType(typeName).FindMethod(methodName);
+
+        var cursor = new ILCursor(ctx);
+        while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchRet())) {}
+        if (!isStatic)
+            cursor.Emit(OpCodes.Ldarg_0);
+        cursor.Emit(OpCodes.Call, method);
+    }
+
+    public static void PatchPreFix(ILContext ctx, CustomAttribute attrib) 
+    {
+        string typeName = (string)attrib.ConstructorArguments[0].Value;
+        string methodName = (string)attrib.ConstructorArguments[1].Value;
+        bool isStatic = (bool)attrib.ConstructorArguments[2].Value;
+
+        var method = ctx.Module.GetType(typeName).FindMethod(methodName);
+
+        var cursor = new ILCursor(ctx);
+        if (!isStatic)
+            cursor.Emit(OpCodes.Ldarg_0);
+        cursor.Emit(OpCodes.Call, method);
     }
 
     public static void PatchDarkWorldRoundLogicOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 

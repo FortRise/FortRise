@@ -2,6 +2,7 @@ using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
+using MonoMod;
 
 namespace TowerFall;
 
@@ -25,11 +26,14 @@ public class patch_Level : Level
         orig_LoadEntity(e);
     }
 
-    public extern void orig_Render();
 
-    public override void Render()
+    [MonoModIgnore]
+    [PostFixing("TowerFall.Level", "System.Void DebugModeRender()")]
+    public extern override void Render();
+    
+
+    public void DebugModeRender() 
     {
-        orig_Render();
         if (DebugMode) 
         {
 			Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
