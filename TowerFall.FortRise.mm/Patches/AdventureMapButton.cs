@@ -24,11 +24,6 @@ public sealed class AdventureMapButton : MapButton
     {
         author = data.Author.ToUpperInvariant();
         requiredMods = data.RequiredMods;
-    }
-    public override void Added()
-    {
-        Author = author;
-        base.Added();
         string currentRequired = null;
         int more = 0;
         foreach (var mod in requiredMods) 
@@ -60,6 +55,12 @@ public sealed class AdventureMapButton : MapButton
 
             lockedTextB = sb.ToString().ToUpperInvariant();
         }
+    }
+    public override void Added()
+    {
+        Author = author;
+        base.Added();
+
 
         if (Locked)
         {

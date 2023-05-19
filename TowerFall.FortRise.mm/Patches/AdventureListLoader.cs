@@ -32,9 +32,21 @@ public sealed class AdventureListLoader : Entity
         var end = new Vector2(25f, 215f);
         introTween = Tween.Create(Tween.TweenMode.Persist, Ease.CubeOut, 4, true);
 
+        var lockedLevels = new List<MapButton>();
         for (int j = 0; j < patch_GameData.AdventureWorldTowers.Count; j++)
         {
-            buttons.Add(new AdventureMapButton(patch_GameData.AdventureWorldTowers[j]));
+            var mapButton = new AdventureMapButton(patch_GameData.AdventureWorldTowers[j]);
+            if (mapButton.Locked)
+            {
+                lockedLevels.Add(mapButton);
+                continue;
+            }    
+            buttons.Add(mapButton);
+        }
+
+        foreach (MapButton lockedLevel in lockedLevels) 
+        {
+            buttons.Add(lockedLevel);
         }
     }
 
