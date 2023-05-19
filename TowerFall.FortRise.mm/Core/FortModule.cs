@@ -75,7 +75,7 @@ public abstract partial class FortModule
             if (ownName != null)
                 name = ownName.Name;
 
-            var fullName = $"{Name} {name}".ToUpper();
+            var fullName = $"{name}".ToUpper();
 
             if (fieldType == typeof(bool)) 
             {
