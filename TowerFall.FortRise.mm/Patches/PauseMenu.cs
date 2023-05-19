@@ -1,6 +1,4 @@
-using FortRise;
 using Microsoft.Xna.Framework;
-using Monocle;
 
 namespace TowerFall;
 

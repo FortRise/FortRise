@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using FortRise;
-using Microsoft.Xna.Framework.Audio;
 using Monocle;
 using MonoMod;
 
