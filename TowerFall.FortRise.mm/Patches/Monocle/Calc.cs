@@ -41,7 +41,7 @@ public static class patch_Calc
     public static T[] ChildEnumArray<T>(this XmlElement xml, string childName)
     where T : struct
     {
-        var childs = xml[childName].InnerText.Split();
+        var childs = xml[childName].InnerText.Split(',');
         if (childs == null)
             return Array.Empty<T>();
         var array = new T[childs.Length];
@@ -53,6 +53,20 @@ public static class patch_Calc
                 array[i] = result;
             }
             i++;
+        }
+        return array;
+    }
+
+    public static string[] ChildStringArray(this XmlElement xml, string childName) 
+    {
+        var childs = xml[childName].InnerText.Split(',');
+        if (childs == null)
+            return Array.Empty<string>();
+        
+        var array = new string[childs.Length];
+        for (int i = 0; i < childs.Length; i++) 
+        {
+            array[i] = childs[i];
         }
         return array;
     }
