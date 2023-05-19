@@ -6,6 +6,7 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 ### Installation
 + Go to the Releases page, and download the FortRise-Installer in zip file.
 + Extract all of the contents and launch the Installer.exe. You will be opening a interactive command line application.
++ + For NoANSI mode, open your terminal, type `Installer.exe --patch <Path to TowerFall>` to do install and patch TowerFall. Then skip the next step.
 + Press enter on `Patch` selection, and find and select your TowerFall directory, usually in `C:/Program Files (x86)/Steam/steamapps/common/TowerFall`.
 + Then it would prompt you that you want to patch this directory, then say yes. It will copy and create necessary files to get the mod running.
 + It will prompt you if you want to use Debug Mode, say no if you don't want to use Debug Mode, otherwise if you are a mod developer, say yes.
