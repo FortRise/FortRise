@@ -6,35 +6,81 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    public static event Action<GameTime> OnBeforeUpdate;
-    internal static void Invoke_BeforeUpdate(GameTime gameTime) 
+    [Obsolete("Use Events.OnBeforeUpdate instead")]
+    public static event Action<GameTime> OnBeforeUpdate
     {
-        OnBeforeUpdate?.Invoke(gameTime);
-    }
-    public static event Action<GameTime> OnUpdate;
-    internal static void Invoke_Update(GameTime gameTime) 
-    {
-        OnUpdate?.Invoke(gameTime);
-    }
-    public static event Action<GameTime> OnAfterUpdate;
-    internal static void Invoke_AfterUpdate(GameTime gameTime) 
-    {
-        OnAfterUpdate?.Invoke(gameTime);
+        add => Events.OnBeforeUpdate += value;
+        remove => Events.OnBeforeUpdate -= value;
     }
 
-    public static event Action<SpriteBatch> OnBeforeRender;
-    internal static void Invoke_BeforeRender(SpriteBatch spriteBatch) 
+    [Obsolete("Use Events.OnUpdate instead")]
+    public static event Action<GameTime> OnUpdate
     {
-        OnBeforeRender?.Invoke(spriteBatch);
+        add => Events.OnUpdate += value;
+        remove => Events.OnUpdate -= value;
     }
-    public static event Action<SpriteBatch> OnRender;
-    internal static void Invoke_Render(SpriteBatch spriteBatch) 
+    
+    [Obsolete("Use Events.OnAfterUpdate instead")]
+    public static event Action<GameTime> OnAfterUpdate
     {
-        OnRender?.Invoke(spriteBatch);
+        add => Events.OnAfterUpdate += value;
+        remove => Events.OnAfterUpdate -= value;
     }
-    public static event Action<SpriteBatch> OnAfterRender;
-    internal static void Invoke_AfterRender(SpriteBatch spriteBatch) 
+
+    [Obsolete("Use Events.OnBeforeRender instead")]
+    public static event Action<SpriteBatch> OnBeforeRender 
     {
-        OnAfterRender?.Invoke(spriteBatch);
+        add => Events.OnBeforeRender += value;
+        remove => Events.OnBeforeRender -= value;
+    }
+    
+    [Obsolete("Use Events.OnRender instead")]
+    public static event Action<SpriteBatch> OnRender 
+    {
+        add => Events.OnRender += value;
+        remove => Events.OnRender -= value;
+    }
+    
+    [Obsolete("Use Events.OnAfterRender instead")]
+    public static event Action<SpriteBatch> OnAfterRender 
+    {
+        add => Events.OnAfterRender += value;
+        remove => Events.OnAfterRender -= value;
+        
+    }
+
+    public static partial class Events 
+    {
+        public static event Action<GameTime> OnBeforeUpdate;
+        internal static void Invoke_BeforeUpdate(GameTime gameTime) 
+        {
+            OnBeforeUpdate?.Invoke(gameTime);
+        }
+        public static event Action<GameTime> OnUpdate;
+        internal static void Invoke_Update(GameTime gameTime) 
+        {
+            OnUpdate?.Invoke(gameTime);
+        }
+        public static event Action<GameTime> OnAfterUpdate;
+        internal static void Invoke_AfterUpdate(GameTime gameTime) 
+        {
+            OnAfterUpdate?.Invoke(gameTime);
+        }
+
+        public static event Action<SpriteBatch> OnBeforeRender;
+        internal static void Invoke_BeforeRender(SpriteBatch spriteBatch) 
+        {
+            OnBeforeRender?.Invoke(spriteBatch);
+        }
+        public static event Action<SpriteBatch> OnRender;
+        internal static void Invoke_Render(SpriteBatch spriteBatch) 
+        {
+            OnRender?.Invoke(spriteBatch);
+        }
+        public static event Action<SpriteBatch> OnAfterRender; 
+        internal static void Invoke_AfterRender(SpriteBatch spriteBatch) 
+        {
+            OnAfterRender?.Invoke(spriteBatch);
+        }
     }
 }
