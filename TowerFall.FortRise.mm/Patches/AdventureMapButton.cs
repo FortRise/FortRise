@@ -33,12 +33,16 @@ public sealed class AdventureMapButton : MapButton
         int more = 0;
         foreach (var mod in requiredMods) 
         {
-            var trimmed = mod.Trim();
+            var modSplit = mod.Split(':');
+            var trimmed = modSplit[0].Trim();
             if (string.IsNullOrEmpty(trimmed))
                 continue;
             if (FortRise.RiseCore.ModuleGuids.Contains(trimmed)) 
                 continue;
-            currentRequired = trimmed;
+            if (modSplit.Length > 1) 
+                currentRequired = modSplit[1].Trim();
+            else
+                currentRequired = trimmed;
             more++;
         }
         var sb = new StringBuilder();
