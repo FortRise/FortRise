@@ -96,7 +96,7 @@ public sealed class AdventureMapButton : MapButton
             pos += Vector2.UnitY * this.lockedSine.Value * 3f;
             Draw.TextureCentered(lockedWindow, pos, Color.White * lockedMessageLerp);
             Draw.TextCentered(TFGame.Font, lockedTextA, pos + new Vector2(0f, -8f), Color.Black * lockedMessageLerp);
-            Draw.TextCentered(TFGame.Font, lockedTextB, pos + new Vector2(0f, 0f), Color.Black * lockedMessageLerp);
+            Draw.OutlineTextCentered(TFGame.Font, lockedTextB, pos + new Vector2(0f, 0f), Color.Black * lockedMessageLerp, Color.White * lockedMessageLerp);
         }
     }
 
