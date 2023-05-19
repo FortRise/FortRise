@@ -38,6 +38,7 @@ public static partial class RiseCore
 
     public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
     internal static List<FortModule> InternalModules = new();
+    internal static HashSet<string> ModuleGuids = new();
 
     public static List<string> DetourLogs = new List<string>();
 
@@ -121,7 +122,9 @@ public static partial class RiseCore
                     Author = author
                 };
                 obj.ID = customAttribute.GUID;
+                ModuleGuids.Add(obj.ID);
                 obj.Register();
+                // Logger.Log($"{obj.ID} Registered.");
             }
         }
     }

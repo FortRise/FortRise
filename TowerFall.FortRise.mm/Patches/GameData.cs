@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -61,6 +62,7 @@ public class AdventureWorldData : DarkWorldTowerData
 {
     public string StoredDirectory;
     public string Author;
+    public string[] RequiredMods;
     public AdventureWorldTowerStats Stats;
 
     private (bool, string) ParallelLookup(string directory) 
@@ -123,9 +125,9 @@ public class AdventureWorldData : DarkWorldTowerData
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
 
-        this.TimeBase = xmlElement["time"].ChildInt("base");
-        this.TimeAdd = xmlElement["time"].ChildInt("add");
-        this.EnemySets = new Dictionary<string, List<DarkWorldTowerData.EnemyData>>();
+        TimeBase = xmlElement["time"].ChildInt("base");
+        TimeAdd = xmlElement["time"].ChildInt("add");
+        EnemySets = new Dictionary<string, List<DarkWorldTowerData.EnemyData>>();
         foreach (object obj in xmlElement["enemies"].GetElementsByTagName("set"))
         {
             var xmlElement2 = (XmlElement)obj;
@@ -138,9 +140,14 @@ public class AdventureWorldData : DarkWorldTowerData
             }
             this.EnemySets.Add(key, list);
         }
-        this.Normal = LoadLevelSet(xmlElement["normal"]);
-        this.Hardcore = LoadLevelSet(xmlElement["hardcore"]);
-        this.Legendary = LoadLevelSet(xmlElement["legendary"]);
+        Normal = LoadLevelSet(xmlElement["normal"]);
+        Hardcore = LoadLevelSet(xmlElement["hardcore"]);
+        Legendary = LoadLevelSet(xmlElement["legendary"]);
+        if (xmlElement.HasChild("required"))
+            RequiredMods = patch_Calc.ChildStringArray(xmlElement, "required");
+        else
+            RequiredMods = Array.Empty<string>();
+
         return true;
     }
 
