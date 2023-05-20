@@ -4,3 +4,4 @@ lib/**/*.dll
 Installer/lib/**/*.dll
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
+artifacts/

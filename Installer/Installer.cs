@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text;
+#if ANSI
 using Spectre.Console;
+#endif
 
 namespace FortRise.Installer;
 
