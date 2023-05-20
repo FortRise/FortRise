@@ -9,7 +9,6 @@ namespace FortRise.Installer;
 public static class Installer
 {
     public const string TowerFallVersion = "1.3.3.3";
-    public const string InstallerVersion = "2.2.0";
 
     private static readonly string[] fileDependencies = {
         "MonoMod.exe", "MonoMod.xml", "0Harmony.dll",
@@ -32,7 +31,7 @@ public static class Installer
             using var sr = new StreamReader(fs);
             var tfVersion = sr.ReadLine()?.Split(':')[1].Trim();
             var pVersion = sr.ReadLine()?.Split(':')[1].Trim();
-            if (pVersion == InstallerVersion) 
+            if (pVersion == Program.Version) 
             {
                 shouldProceed = false;
             }
@@ -143,7 +142,7 @@ public static class Installer
 
         var sb = new StringBuilder();
         sb.AppendLine("TF Version: " + TowerFallVersion);
-        sb.AppendLine("Installer Version: " + InstallerVersion);
+        sb.AppendLine("Installer Version: " + Program.Version);
         sb.AppendLine("Debug Mode: " + debugMode);
         var text = sb.ToString();
         await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());

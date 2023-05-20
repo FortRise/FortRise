@@ -1,16 +1,17 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
+var version = "2.2.0";
 
 Task("CleanInstallerANSI")
     .Does(() => 
 {
-    CleanDirectory("./artifacts/ANSI");
+    CleanDirectory($"./artifacts/FortRise.Installer.v{version}");
 });
 
 Task("CleanInstallerNoANSI")
     .Does(() => 
 {
-    CleanDirectory("./artifacts/NoANSI");
+    CleanDirectory($"./artifacts/FortRise.Installer.v{version}-NoANSI");
 });
 
 Task("BuildInstallerANSI")
@@ -19,7 +20,11 @@ Task("BuildInstallerANSI")
 {
     DotNetBuild("./Installer/Installer.csproj", new DotNetBuildSettings 
     {
-        Configuration = configuration
+        Configuration = configuration,
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        }
     });
 });
 
@@ -30,8 +35,12 @@ Task("PublishInstallerANSI")
     DotNetPublish("./Installer/Installer.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = "./artifacts/ANSI",
-        NoBuild = true
+        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}",
+        NoBuild = true,
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        },
     });
 });
 
@@ -41,7 +50,11 @@ Task("BuildInstallerNoANSI")
 {
     DotNetBuild("./Installer/Installer.NoAnsi.csproj", new DotNetBuildSettings 
     {
-        Configuration = configuration
+        Configuration = configuration,
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        }
     });
 });
 
@@ -52,7 +65,11 @@ Task("PublishInstallerNoANSI")
     DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = "./artifacts/NoANSI",
+        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        },
         NoBuild = true
     });
 });
@@ -68,8 +85,12 @@ Task("Publish")
     DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = "./artifacts/NoANSI",
-        NoBuild = true
+        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
+        NoBuild = true,
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        },
     });
 });
 

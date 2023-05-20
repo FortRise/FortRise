@@ -6,9 +6,12 @@ using Spectre.Console;
 
 internal class Program 
 {
+    public static string Version = "1.0.0";
+
     [STAThread]
     public async static Task Main(string[] args) 
     {
+        Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
         if (args.Length > 1) 
         {
             if (!File.Exists(args[1] + "/TowerFall.exe")) 
@@ -30,7 +33,7 @@ internal class Program
         }
 
 #if ANSI
-        var panel = new Panel("FortRise Installer") {
+        var panel = new Panel("FortRise Installer v" + Version) {
             Border = BoxBorder.Rounded,
             Padding = new Padding(2, 2, 2, 2),
             Expand = true
