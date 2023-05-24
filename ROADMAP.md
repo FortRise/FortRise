@@ -23,6 +23,8 @@ These are the following roadmap that are planned or completed:
 
 ### Current:
 - [ ] Support .zip files for loading mods.
+- [ ] Custom tilesets for adventure maps.
+- [ ] Custom bg for adventure maps.
 - [ ] Mod Relinker.
 - [ ] Debug Tower maps.
 - [ ] Lua Interpreter.
