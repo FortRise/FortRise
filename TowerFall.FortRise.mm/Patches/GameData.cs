@@ -27,6 +27,8 @@ public static class patch_GameData
         AdventureWorldTowers = new List<AdventureWorldData>();
         if (!Directory.Exists("AdventureWorldContent"))
             Directory.CreateDirectory("AdventureWorldContent");
+        if (!Directory.Exists("AdventureWorldContent/Levels"))
+            Directory.CreateDirectory("AdventureWorldContent/Levels");
         foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
             AW_PATH, "Levels")))
         {
