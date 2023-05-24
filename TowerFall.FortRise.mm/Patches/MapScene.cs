@@ -50,7 +50,7 @@ public class patch_MapScene : MapScene
         patch_SaveData.AdventureActive = true;
         adventureLevels = true;
         WorkshopLevels = true;
-        TweenOutAllButtons();
+        TweenOutAllButtonsAndRemove();
         Buttons.Clear();
         InitAdventure();
     }
@@ -70,7 +70,7 @@ public class patch_MapScene : MapScene
         patch_SaveData.AdventureActive = false;
         adventureLevels = false;
         WorkshopLevels = false;
-        TweenOutAllButtons();
+        TweenOutAllButtonsAndRemove();
         Buttons.Clear();
         Buttons.Add(new GotoAdventureButton());
         for (int j = 0; j < GameData.DarkWorldTowers.Count; j++)
@@ -91,7 +91,7 @@ public class patch_MapScene : MapScene
 
     public override void Update()
     {
-        if (!MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
+        if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
         {
             if (MenuInput.Up && !patch_SaveData.AdventureActive) 
             {
@@ -105,9 +105,7 @@ public class patch_MapScene : MapScene
         orig_Update();
     }
 
-    // Fixing the memory leak that TowerFall has
-    [MonoModReplace]
-    public void TweenOutAllButtons() 
+    public void TweenOutAllButtonsAndRemove() 
     {
         foreach (var mapButton in Buttons) 
         {
