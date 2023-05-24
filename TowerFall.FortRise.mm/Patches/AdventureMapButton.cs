@@ -9,8 +9,9 @@ namespace TowerFall;
 public sealed class AdventureMapButton : MapButton
 {
     // Quite needed to do this to access the private set
+    // I filled it with some non sense so the backing field won't generate
     [MonoModIgnore]
-    public new string Author { get; set; }
+    public new string Author { get => null; set => throw new System.Exception(value); }
     private string author;
     private float lockedMessageLerp;
     private string lockedTextA;
