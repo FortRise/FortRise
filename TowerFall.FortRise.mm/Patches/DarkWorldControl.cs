@@ -9,6 +9,7 @@ namespace TowerFall;
 
 public class patch_DarkWorldControl : DarkWorldControl 
 {
+    private List<Pickups> midwayTreasure;
     private bool bossMode;
     [PostPatchEnableTempVariant]
     public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) 
@@ -115,4 +116,25 @@ public class patch_DarkWorldControl : DarkWorldControl
 
         yield return orig_LevelSequence();
     }
+
+    private void DoBossLevelSetup(int bossID, List<Pickups> treasure) 
+    {
+        //FIXME Will probably not do this soon
+		var levelData = (Level.Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).GetLevelData(base.Level.Session.MatchSettings.DarkWorldDifficulty, base.Level.Session.RoundIndex) as patch_DarkWorldTowerData.patch_LevelData;
+
+        if (!string.IsNullOrEmpty(levelData.CustomBossName)) 
+        {
+            if (RiseCore.DarkWorldBossLoader.TryGetValue(levelData.CustomBossName, out var val)) 
+            {
+                this.midwayTreasure = treasure;
+                int darkWorldDifficulty = (int)base.Level.Session.MatchSettings.DarkWorldDifficulty;
+                Level.Add(val(darkWorldDifficulty));
+                return;
+            }
+            Logger.Error($"Failed to spawn boss type name: {levelData.CustomBossName}. Falling back to Amaranth Boss");
+        }
+        orig_BossLevelSetup(bossID, treasure);
+    }
+
+    private extern void orig_BossLevelSetup(int bossID, List<Pickups> treasure);
 }

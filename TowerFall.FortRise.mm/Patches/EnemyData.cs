@@ -18,9 +18,7 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
     {
         public static string[] OriginalVariantNames;
         public Variant ActiveVariant;
-        public bool Dark;
-        public bool Slippery;
-        public bool GunnStyle;
+        public string CustomBossName = string.Empty;
 
         public patch_LevelData(XmlElement xml, Dictionary<string, List<EnemyData>> enemySets) : base(xml, enemySets)
         {
@@ -37,6 +35,11 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
                 XmlToVariant(xml["variants"]);
             }
             orig_ctor(xml, enemySets);
+            if (xml.HasChild("customboss")) 
+            {
+                CustomBossName = xml.ChildText("customboss");
+                LevelMode = DarkWorldTowerData.LevelData.BossModes.Boss;
+            }
         }
 
         [PostPatchXmlToVariant]

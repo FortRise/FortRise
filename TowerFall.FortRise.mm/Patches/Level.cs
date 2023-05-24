@@ -20,7 +20,7 @@ public class patch_Level : Level
         var name = e.Name;
         if (FortRise.RiseCore.LevelEntityLoader.TryGetValue(name, out var val)) 
         {
-            Add(val(e));
+            Add(val(e, e.Position()));
             return;
         }
         orig_LoadEntity(e);

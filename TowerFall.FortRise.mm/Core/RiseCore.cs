@@ -14,10 +14,11 @@ using TowerFall;
 namespace FortRise;
 
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
+public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
 public delegate ArrowInfo ArrowInfoLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
-public delegate LevelEntity LevelEntityLoader(XmlElement x);
+public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position);
 public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
 
 
@@ -25,6 +26,7 @@ public static partial class RiseCore
 {
     internal static long PickupLoaderCount = 21;
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
+    public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
@@ -329,7 +331,27 @@ public static partial class RiseCore
                     pos, targetPos, stride));
                 PickupLoaderCount++;
             }
+            foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
+            {
+                if (dwBoss is null)
+                    return;
+                var bossName = dwBoss.BossName;
 
+                ConstructorInfo ctor;
+                DarkWorldBossLoader loader = null;
+                ctor = type.GetConstructor(new Type[] { typeof(int) });
+                if (ctor != null) 
+                {
+                    loader = diff => 
+                    {
+                        var invoked = (DarkWorldBoss)ctor.Invoke(new object[] { diff });
+                        return invoked;
+                    };
+                    goto Loaded;
+                }
+                Loaded:
+                DarkWorldBossLoader.Add(bossName, loader);
+            }
             foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
             {
                 if (clea is null)
@@ -341,9 +363,19 @@ public static partial class RiseCore
                 ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
                 if (ctor != null) 
                 {
-                    loader = x => 
+                    loader = (x, _) => 
                     {
                         var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
+                        return invoked;
+                    };
+                    goto Loaded;
+                }
+                ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
+                if (ctor != null) 
+                {
+                    loader = (x, pos) => 
+                    {
+                        var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos});
                         return invoked;
                     };
                     goto Loaded;
