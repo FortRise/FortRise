@@ -133,8 +133,8 @@ public class patch_DarkWorldControl : DarkWorldControl
             }
             Logger.Error($"Failed to spawn boss type name: {levelData.CustomBossName}. Falling back to Amaranth Boss");
         }
-        orig_BossLevelSetup(bossID, treasure);
+        orig_DoBossLevelSetup(bossID, treasure);
     }
 
-    private extern void orig_BossLevelSetup(int bossID, List<Pickups> treasure);
+    private extern void orig_DoBossLevelSetup(int bossID, List<Pickups> treasure);
 }
