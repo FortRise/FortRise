@@ -32,3 +32,4 @@ These are the following roadmap that are planned or completed:
 
 ### Need Testing:
 - [ ] Custom level entity.
+- [ ] Custom Dark World Boss.
