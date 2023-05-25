@@ -45,6 +45,8 @@ public static class patch_GameData
         if (File.Exists("adventureCache.json")) 
         {
             var loadAdventurePath = JsonTextReader.FromFile("adventureCache.json").ConvertToListString();
+            if (loadAdventurePath == null)
+                return;    
             foreach (var adventurePath in loadAdventurePath) 
             {
                 if (LoadAdventureLevelsParallel(adventurePath))

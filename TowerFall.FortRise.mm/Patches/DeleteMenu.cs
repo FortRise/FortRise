@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -20,11 +21,10 @@ public sealed class DeleteMenu : Entity
     private string title;
     private int optionIndex;
     private bool selectionFlash;
-    private MapScene map;
-    private int idToDelete;
+    private patch_MapScene map;
     private bool cantDelete;
 
-    public DeleteMenu(MapScene map, Vector2 position) : base(position, 4)
+    public DeleteMenu(patch_MapScene map, Vector2 position, int id) : base(position, 0)
     {
         this.map = map;
         confirmCounter = new Counter();
@@ -32,9 +32,9 @@ public sealed class DeleteMenu : Entity
 
         selectionWiggler = Wiggler.Create(20, 4f);
         Add(selectionWiggler);
-        title = "Delete Level?";
-        AddItem("Yes", () => {
-            var level = patch_GameData.AdventureWorldTowers[idToDelete];
+        title = "DELETE LEVEL";
+        AddItem("YES", () => {
+            var level = patch_GameData.AdventureWorldTowers[id];
             if (!patch_GameData.AdventureWorldTowersLoaded.Contains(level.StoredDirectory)) 
             {
                 cantDelete = true;
@@ -42,13 +42,73 @@ public sealed class DeleteMenu : Entity
             }
             patch_GameData.AdventureWorldTowers.Remove(level);
             patch_GameData.AdventureWorldTowersLoaded.Remove(level.StoredDirectory);
+            patch_SaveData.AdventureActive = false;
+            UploadMapButton.SaveLoaded();
+            patch_GameData.ReloadCustomLevels();
+            map.GotoAdventure();
+            RemoveSelf();
         });
-        AddItem("No", () => {
-
+        AddItem("NO", () => {
+            RemoveSelf();
+            Visible = false;
+            map.MapPaused = false;
         });
 
         panel = new MenuPanel(120, optionNames.Count * 10 + 30);
         Add(panel);
+    }
+
+    public override void Removed()
+    {
+        base.Removed();
+        MenuInput.Clear();
+        map.MapPaused = false;
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        MenuInput.Update();
+        if (MenuInput.Down)
+        {
+            if (this.optionIndex < this.optionNames.Count - 1)
+            {
+                Sounds.ui_move1.Play(160f, 1f);
+                optionIndex++;
+                selectionWiggler.Start();
+                return;
+            }
+        }
+        else if (MenuInput.Up)
+        {
+            if (this.optionIndex > 0)
+            {
+                Sounds.ui_move1.Play(160f, 1f);
+                optionIndex--;
+                selectionWiggler.Start();
+                return;
+            }
+        }
+        else
+        {
+            if (confirmCounter)
+            {
+                confirmCounter.Update();
+                return;
+            }
+            if (MenuInput.Confirm)
+            {
+                this.optionActions[this.optionIndex]();
+                return;
+            }
+            
+            if (MenuInput.Back)
+            {
+                RemoveSelf();
+                Visible = false;
+                map.MapPaused = false;
+            }
+        }
     }
 
     public override void Render()
@@ -80,11 +140,6 @@ public sealed class DeleteMenu : Entity
         }
     }
 
-    public void ShowUp(int id) 
-    {
-        idToDelete = id;
-    }
-
 
     private void AddItem(string name, Action action)
     {
@@ -92,5 +147,4 @@ public sealed class DeleteMenu : Entity
         this.selectedOptionNames.Add("> " + name);
         this.optionActions.Add(action);
     }
-
 }

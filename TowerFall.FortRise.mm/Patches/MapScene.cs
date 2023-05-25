@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod;
@@ -9,6 +10,7 @@ namespace TowerFall;
 public class patch_MapScene : MapScene
 {
     private bool adventureLevels;
+    public bool MapPaused;
     public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
     {
     }
@@ -95,12 +97,29 @@ public class patch_MapScene : MapScene
         ScrollToButton(Selection);
     }
 
+    [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
+    public void base_Update() 
+    {
+        base.Update();
+    }
+
     private extern void orig_Update();
 
     public override void Update()
     {
+        if (MapPaused) 
+        {
+            base_Update();
+            return;
+        }
         if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
         {
+            if (MenuInput.Alt2 && Selection is AdventureMapButton)
+            {
+                Add(new DeleteMenu(this, new Vector2(160, 120f), Selection.Data.ID.X));
+                MapPaused = true;
+                return;
+            }
             if (MenuInput.Up && !patch_SaveData.AdventureActive) 
             {
                 GotoAdventure();

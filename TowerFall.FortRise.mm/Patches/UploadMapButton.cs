@@ -25,17 +25,22 @@ public sealed class UploadMapButton : patch_MapButton
                 patch_GameData.LoadAdventureLevelsParallel(selectedPath))
             {
                 patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
-                var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureWorldTowersLoaded)
-                    .ToString(JsonTextWriterOptions.Default);
-                using var fs = File.Create("adventureCache.json");
-                using TextWriter tw = new StreamWriter(fs);
-                tw.Write(jArray);
+                SaveLoaded();
             }
         }
         Map.Selection = null;
         OnDeselect();
         Map.GotoAdventure();
         Map.MatchStarting = false;
+    }
+
+    internal static void SaveLoaded() 
+    {
+        var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureWorldTowersLoaded)
+            .ToString(JsonTextWriterOptions.Default);
+        using var fs = File.Create("adventureCache.json");
+        using TextWriter tw = new StreamWriter(fs);
+        tw.Write(jArray);
     }
 
     protected override List<Image> InitImages()
