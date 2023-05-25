@@ -337,6 +337,8 @@ internal static partial class MonoModRules
     public static void PatchMapSceneBegin(ILContext ctx, CustomAttribute attrib) 
     {
         var method = ctx.Method.DeclaringType.FindMethod("System.Void InitAdventureMap()");
+        var methodWithList = 
+            ctx.Method.DeclaringType.FindMethod("System.Void InitAdventureMap(System.Collections.Generic.List`1<TowerFall.MapButton[]>)");
 
         ILCursor cursor = new ILCursor(ctx);
 
@@ -346,6 +348,14 @@ internal static partial class MonoModRules
 
         cursor.Emit(OpCodes.Ldarg_0);
         cursor.Emit(OpCodes.Call, method);
+
+        // Disabled for now
+        // cursor.GotoNext(MoveType.After, 
+        //     instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.MapButton[]>"),
+        //     instr => instr.MatchStloc(4));
+        // cursor.Emit(OpCodes.Ldarg_0);
+        // cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[4]);
+        // cursor.Emit(OpCodes.Call, methodWithList);
     }
 
     public static void PostProcessor(MonoModder modder) 

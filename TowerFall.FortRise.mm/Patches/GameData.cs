@@ -13,8 +13,8 @@ namespace TowerFall;
 public static class patch_GameData 
 {
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
-    public static List<AdventureWorldData> AdventureWorldTowers;
-    public static List<string> AdventureWorldTowersLoaded = new();
+    public static List<AdventureWorldTowerData> AdventureWorldTowers;
+    public static List<string> AdventureWorldTowersLoaded;
 
 
     public static extern void orig_Load();
@@ -24,7 +24,14 @@ public static class patch_GameData
         orig_Load();
         WorldSaveData.Load(WorldSaveData.SavePath);
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
-        AdventureWorldTowers = new List<AdventureWorldData>();
+        ReloadCustomLevels();
+        TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
+    }
+
+    public static void ReloadCustomLevels() 
+    {
+        AdventureWorldTowers = new List<AdventureWorldTowerData>();
+        AdventureWorldTowersLoaded = new List<string>();
         if (!Directory.Exists("AdventureWorldContent"))
             Directory.CreateDirectory("AdventureWorldContent");
         if (!Directory.Exists("AdventureWorldContent/Levels"))
@@ -44,13 +51,11 @@ public static class patch_GameData
                     AdventureWorldTowersLoaded.Add(adventurePath);
             }
         }
-
-        TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
     }
 
     public static bool LoadAdventureLevelsParallel(string directory) 
     {
-        var adventureTowerData = new AdventureWorldData();
+        var adventureTowerData = new AdventureWorldTowerData();
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldTowers.Add(adventureTowerData);
@@ -60,7 +65,7 @@ public static class patch_GameData
     }
 }
 
-public class AdventureWorldData : DarkWorldTowerData 
+public class AdventureWorldTowerData : DarkWorldTowerData 
 {
     public string StoredDirectory;
     public string Author;

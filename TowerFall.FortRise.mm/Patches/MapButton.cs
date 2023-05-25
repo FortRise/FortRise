@@ -47,7 +47,7 @@ public class patch_MapButton : MapButton
 
     public static List<Image> InitAdventureWorldGraphics(int levelID)
     {
-        AdventureWorldData worldData = patch_GameData.AdventureWorldTowers[levelID];
+        AdventureWorldTowerData worldData = patch_GameData.AdventureWorldTowers[levelID];
         AdventureWorldTowerStats stats = worldData.Stats;
         TowerTheme theme = worldData.Theme;
         List<Image> list = new List<Image>();

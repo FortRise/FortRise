@@ -21,7 +21,7 @@ public sealed class AdventureMapButton : MapButton
     private bool wasSelected;
 
 
-    public AdventureMapButton(AdventureWorldData data) : base(new TowerMapData(data))
+    public AdventureMapButton(AdventureWorldTowerData data) : base(new TowerMapData(data))
     {
         author = data.Author.ToUpperInvariant();
         requiredMods = data.RequiredMods;

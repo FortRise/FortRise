@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod;
 
@@ -38,6 +39,13 @@ public class patch_MapScene : MapScene
     private void InitAdventureMap() 
     {
         Buttons.Add(new GotoAdventureButton());
+    }
+
+    private void InitAdventureMap(List<MapButton[]> list) 
+    {
+        var gotoAdventure = new GotoAdventureButton();
+        Buttons.Add(gotoAdventure);
+        list.Add(new MapButton[] { gotoAdventure, gotoAdventure, gotoAdventure });
     }
 
     public void InitAdventure() 
@@ -100,6 +108,12 @@ public class patch_MapScene : MapScene
             else if (MenuInput.Down && patch_SaveData.AdventureActive) 
             {
                 ExitAdventure();
+            }
+
+            if (MInput.Keyboard.Pressed(Keys.F5)) 
+            {
+                patch_GameData.ReloadCustomLevels();
+                GotoAdventure();
             }
         }
         orig_Update();
