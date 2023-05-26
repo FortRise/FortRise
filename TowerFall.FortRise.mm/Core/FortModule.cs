@@ -175,6 +175,7 @@ public class ModuleMetadata
 {
     public string Name;
     public Version Version;
+    public Version FortRiseVersion;
     public string Description;
     public string Author;
 

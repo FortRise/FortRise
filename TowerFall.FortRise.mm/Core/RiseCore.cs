@@ -43,6 +43,7 @@ public static partial class RiseCore
     internal static HashSet<string> ModuleGuids = new();
 
     public static List<string> DetourLogs = new List<string>();
+    public static Version FortRiseVersion;
 
     private static Type[] Types;
 
@@ -61,8 +62,8 @@ public static partial class RiseCore
         }
 
         new NoModule(new ModuleMetadata() {
-            Name = "TowerFall",
-            Version = TFGame.Version
+            Name = "FortRise",
+            Version = FortRiseVersion
         }).Register();
 
         new NoModule(new ModuleMetadata() {
@@ -78,9 +79,27 @@ public static partial class RiseCore
             var metaPath = Path.Combine(dir, "meta.json");
             if (!File.Exists(metaPath))
                 continue;
-            
+
             var json = JsonTextReader.FromFile(metaPath);
             var dll = json.GetJsonValueOrNull("dll");
+            var name = json.Contains("name") ? json["name"].AsString : string.Empty;
+            var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
+            var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
+            var description = json.GetJsonValueOrNull("description") ?? "";
+            var author = json.GetJsonValueOrNull("author") ?? "";
+            if (FortRiseVersion < requiredVersion) 
+            {
+                Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
+                continue;
+            }
+            var moduleMetadata = new ModuleMetadata() 
+            {
+                Name = name,
+                Version = new Version(version),
+                Description = description,
+                Author = author,
+                FortRiseVersion = requiredVersion
+            };
 
             if (dll == null) 
                 continue;
@@ -96,12 +115,12 @@ public static partial class RiseCore
             };
             AppDomain.CurrentDomain.AssemblyResolve += resolver;
             var assembly = Assembly.LoadFrom(pathToAssembly);
-            GetModuleTypes(json, assembly, i++);
+            GetModuleTypes(moduleMetadata, assembly, i++);
             AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
     }
 
-    private static void GetModuleTypes(JsonValue json, Assembly asm, int index) 
+    private static void GetModuleTypes(ModuleMetadata metadata, Assembly asm, int index) 
     {
         foreach (var t in asm.GetTypes()) 
         {
@@ -110,20 +129,14 @@ public static partial class RiseCore
             {
                 Types[index] = t;
                 FortModule obj = Activator.CreateInstance(t) as FortModule;
-                obj.Name = customAttribute.Name;
-                var name = json.Contains("name") ? json["name"].AsString : obj.Name;
-                var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
-                var description = json.GetJsonValueOrNull("description") ?? "";
-                var author = json.GetJsonValueOrNull("author") ?? "";
-                
-                obj.Meta = new ModuleMetadata 
+                if (metadata.Name == string.Empty) 
                 {
-                    Name = name,
-                    Version = new Version(version),
-                    Description = description,
-                    Author = author
-                };
+                    metadata.Name = customAttribute.Name;
+                }
+                obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
+                obj.Meta = metadata;
+
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
                 Logger.Info($"{obj.ID}: {obj.Name} Registered.");
@@ -134,14 +147,7 @@ public static partial class RiseCore
 
     internal static void LogAllTypes() 
     {
-        int i = 0;
-        foreach (var t in Types) 
-        {
-            if (t is null)
-                continue;
-            i++;
-        }
-        Logger.Info(i + " total of mods loaded");
+        Logger.Info(InternalModules.Count + " total of mods loaded");
     }
 
     internal static void Initialize() 
