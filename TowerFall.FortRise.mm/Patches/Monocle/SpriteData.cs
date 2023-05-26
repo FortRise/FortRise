@@ -31,12 +31,6 @@ public class patch_SpriteData
             filename = Path.Combine(modDirectory, "Content", filename).Replace("\\", "/");
             break;
         }
-        filename = access switch 
-        {
-            ContentAccess.Content => Calc.LOADPATH + filename,
-            ContentAccess.ModContent => PathUtils.ToContentPath(filename),
-            _ => filename
-        };
         XmlDocument xmlDocument = Calc.LoadXML(filename);
         var sprites = new Dictionary<string, XmlElement>();
         foreach (object item in xmlDocument["SpriteData"])
