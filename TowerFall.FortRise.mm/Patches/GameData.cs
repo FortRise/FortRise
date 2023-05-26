@@ -81,6 +81,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 {
     public string StoredDirectory;
     public string Author;
+    public int StartingLives = -1;
     public string[] RequiredMods;
     public AdventureWorldTowerStats Stats;
 
@@ -139,6 +140,8 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
+        if (xmlElement.HasChild("lives"))
+            StartingLives = int.Parse(xmlElement["lives"].InnerText);
         Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
 
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)

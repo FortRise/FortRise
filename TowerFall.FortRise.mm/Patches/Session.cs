@@ -21,6 +21,8 @@ public class patch_Session : Session
         {
             var worldTower = patch_GameData.AdventureWorldTowers[MatchSettings.LevelSystem.ID.X];
             worldTower.Stats.Attempts += 1;
+            if (worldTower.StartingLives >= 0)
+                DarkWorldState.ExtraLives = worldTower.StartingLives;
         }
     }
 
