@@ -126,7 +126,7 @@ public static partial class RiseCore
                 obj.ID = customAttribute.GUID;
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
-                // Logger.Log($"{obj.ID} Registered.");
+                Logger.Info($"{obj.ID}: {obj.Name} Registered.");
             }
         }
     }
@@ -139,7 +139,6 @@ public static partial class RiseCore
         {
             if (t is null)
                 continue;
-            Logger.Info(t.Assembly.FullName);
             i++;
         }
         Logger.Info(i + " total of mods loaded");

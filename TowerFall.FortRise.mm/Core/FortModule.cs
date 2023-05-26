@@ -10,6 +10,7 @@ public class FortAttribute : Attribute
 {
     public string GUID;
     public string Name;
+
     public FortAttribute(string guid, string name) 
     {
         GUID = guid;
@@ -25,8 +26,11 @@ public abstract partial class FortModule
     public ModuleMetadata Meta { get; internal set; }
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
+
+
     public abstract void Load();
     public abstract void Unload();
+
 
     public void InternalLoad() 
     {
