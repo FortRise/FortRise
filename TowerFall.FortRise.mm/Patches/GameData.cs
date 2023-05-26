@@ -6,12 +6,12 @@ using FortRise;
 using Monocle;
 using MonoMod;
 using TeuJson;
-using static FortRise.Logger;
 
 namespace TowerFall;
 
 public static class patch_GameData 
 {
+    public static Dictionary<string, TilesetData> CustomTilesets;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static List<string> AdventureWorldTowersLoaded;
@@ -30,6 +30,16 @@ public static class patch_GameData
 
     public static void ReloadCustomLevels() 
     {
+        if (CustomTilesets != null) 
+        {
+            foreach (var tileset in CustomTilesets) 
+            {
+                tileset.Value.Texture.Texture2D.Dispose();
+            }
+        }
+
+        CustomTilesets ??= new();
+        CustomTilesets.Clear();
         AdventureWorldTowers = new List<AdventureWorldTowerData>();
         AdventureWorldTowersLoaded = new List<string>();
         if (!Directory.Exists("AdventureWorldContent"))
@@ -133,6 +143,8 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
+        
+        LoadCustomTileset(xmlElement["theme"]);
 
         TimeBase = xmlElement["time"].ChildInt("base");
         TimeAdd = xmlElement["time"].ChildInt("add");
@@ -158,6 +170,32 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             RequiredMods = Array.Empty<string>();
 
         return true;
+    }
+
+    private void LoadCustomTileset(XmlElement element) 
+    {
+        var fgTileset = element["Tileset"].InnerText.AsSpan();
+        var bgTileset = element["BGTileset"].InnerText.AsSpan();
+        if (fgTileset.StartsWith("custom:".AsSpan())) 
+        {
+            var sliced = fgTileset.Slice(7).ToString();
+            Theme.Tileset = sliced;
+            LoadTileset(sliced);
+        }
+        if (bgTileset.StartsWith("custom:".AsSpan())) 
+        {
+            var sliced = bgTileset.Slice(7).ToString();
+            Theme.BGTileset = sliced;
+            LoadTileset(sliced);
+        }
+
+        void LoadTileset(string tileset) 
+        {
+            var path = Path.Combine(StoredDirectory, tileset);
+            var loadedXML = Calc.LoadXML(path)["Tileset"];
+            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
+            patch_GameData.CustomTilesets.Add(tileset, patch_TilesetData.Create(loadedXML, tilesetPath));
+        }
     }
 
     [MonoModIgnore]

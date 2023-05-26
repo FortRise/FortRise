@@ -42,4 +42,24 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
 
     [MonoModIgnore]
     public extern patch_DarkWorldTowerData.patch_LevelData GetLevelData(DarkWorldDifficulties difficulty, int roundIndex);
+
+    public override TilesetData GetBGTileset()
+    {
+        if (patch_SaveData.AdventureActive) 
+        {
+            if (patch_GameData.CustomTilesets.TryGetValue(Theme.BGTileset, out var val))
+                return val;
+        }
+        return base.GetBGTileset();
+    }
+
+    public override TilesetData GetTileset()
+    {
+        if (patch_SaveData.AdventureActive) 
+        {
+            if (patch_GameData.CustomTilesets.TryGetValue(Theme.Tileset, out var val))
+                return val;
+        }
+        return base.GetTileset();
+    }
 }
