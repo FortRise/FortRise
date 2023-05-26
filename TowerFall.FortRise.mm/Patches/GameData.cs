@@ -12,6 +12,7 @@ namespace TowerFall;
 public static class patch_GameData 
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
+    public static Dictionary<string, XmlElement> CustomBGs;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static List<string> AdventureWorldTowersLoaded;
@@ -39,9 +40,13 @@ public static class patch_GameData
         }
 
         CustomTilesets ??= new();
+        CustomBGs ??= new();
+
         CustomTilesets.Clear();
-        AdventureWorldTowers = new List<AdventureWorldTowerData>();
-        AdventureWorldTowersLoaded = new List<string>();
+        AdventureWorldTowers ??= new List<AdventureWorldTowerData>();
+        AdventureWorldTowers?.Clear();
+        AdventureWorldTowersLoaded ??= new List<string>();
+        AdventureWorldTowersLoaded?.Clear();
         if (!Directory.Exists("AdventureWorldContent"))
             Directory.CreateDirectory("AdventureWorldContent");
         if (!Directory.Exists("AdventureWorldContent/Levels"))
@@ -147,7 +152,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
         
-        LoadCustomTileset(xmlElement["theme"]);
+        LoadCustomElements(xmlElement["theme"]);
 
         TimeBase = xmlElement["time"].ChildInt("base");
         TimeAdd = xmlElement["time"].ChildInt("add");
@@ -175,10 +180,11 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         return true;
     }
 
-    private void LoadCustomTileset(XmlElement element) 
+    private void LoadCustomElements(XmlElement element) 
     {
         var fgTileset = element["Tileset"].InnerText.AsSpan();
         var bgTileset = element["BGTileset"].InnerText.AsSpan();
+        var background = element["Background"].InnerText.AsSpan();
         if (fgTileset.StartsWith("custom:".AsSpan())) 
         {
             var sliced = fgTileset.Slice(7).ToString();
@@ -190,6 +196,21 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             var sliced = bgTileset.Slice(7).ToString();
             Theme.BGTileset = sliced;
             LoadTileset(sliced);
+        }
+        if (background.StartsWith("custom:".AsSpan())) 
+        {
+            var sliced = background.Slice(7).ToString();
+            Theme.BackgroundID = sliced;
+            LoadBG(sliced);
+        }
+
+        void LoadBG(string background) 
+        {
+            var path = Path.Combine(StoredDirectory, background);
+            var loadedXML = Calc.LoadXML(path)["BG"];
+            Theme.ForegroundData = loadedXML["Foreground"];
+            Theme.BackgroundData = loadedXML["Background"];
+            patch_GameData.CustomBGs.Add(background, loadedXML);
         }
 
         void LoadTileset(string tileset) 
