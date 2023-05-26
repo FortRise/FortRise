@@ -43,7 +43,11 @@ public class patch_TFGame : TFGame
                     {
                         var debugMode = readed.Split(':')[1].Trim();
                         RiseCore.DebugMode = bool.Parse(debugMode);
-                        break;
+                    }
+                    if (readed.Contains("Installer")) 
+                    {
+                        var version = readed.Split(':')[1].Trim();
+                        RiseCore.FortRiseVersion = new System.Version(version);
                     }
                 }
             }
