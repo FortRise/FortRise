@@ -114,7 +114,7 @@ public class UIModal : Entity
         var value = new Vector2(X, Y - (float)(num / 2) + offset);
         for (int i = 0; i < fillerNames.Count; i++) 
         {
-            Draw.TextCentered(TFGame.Font, fillerNames[i], value, Color.Aqua);
+            Draw.TextCentered(TFGame.Font, fillerNames[i], value, fillerColor);
             value.Y += 14f;
         }
         for (int i = 0; i < this.optionNames.Count; i++)
