@@ -114,11 +114,18 @@ public class patch_MapScene : MapScene
         }
         if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
         {
-            if (MenuInput.Alt2 && Selection is AdventureMapButton)
+            if (MenuInput.Alt2 && Selection is AdventureMapButton button)
             {
-                Add(new DeleteMenu(this, new Vector2(160, 120f), Selection.Data.ID.X));
-                MapPaused = true;
-                return;
+                var id = Selection.Data.ID.X;
+                var level = patch_GameData.AdventureWorldTowers[id];
+                if (patch_GameData.AdventureWorldTowersLoaded.Contains(level.StoredDirectory)) 
+                {
+                    Add(new DeleteMenu(this, id));
+                    MapPaused = true;
+                    return;
+                }
+                button.Shake();
+                MenuInput.RumblePlayers(1f, 20);
             }
             if (MenuInput.Up && !patch_SaveData.AdventureActive) 
             {
