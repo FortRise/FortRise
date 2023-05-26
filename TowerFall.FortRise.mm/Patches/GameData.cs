@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using FortRise;
+using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
 using TeuJson;
@@ -13,6 +14,7 @@ public static class patch_GameData
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
     public static Dictionary<string, XmlElement> CustomBGs;
+    public static Dictionary<string, Monocle.Texture> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static List<string> AdventureWorldTowersLoaded;
@@ -38,15 +40,25 @@ public static class patch_GameData
                 tileset.Value.Texture.Texture2D.Dispose();
             }
         }
+        if (CustomBGAtlas != null) 
+        {
+            foreach (var bg in CustomBGAtlas) 
+            {
+                bg.Value.Texture2D.Dispose();
+            }
+        }
 
+        CustomBGAtlas ??= new();
         CustomTilesets ??= new();
         CustomBGs ??= new();
 
+        CustomBGAtlas.Clear();
+        CustomBGs.Clear();
         CustomTilesets.Clear();
         AdventureWorldTowers ??= new List<AdventureWorldTowerData>();
-        AdventureWorldTowers?.Clear();
+        AdventureWorldTowers.Clear();
         AdventureWorldTowersLoaded ??= new List<string>();
-        AdventureWorldTowersLoaded?.Clear();
+        AdventureWorldTowersLoaded.Clear();
         if (!Directory.Exists("AdventureWorldContent"))
             Directory.CreateDirectory("AdventureWorldContent");
         if (!Directory.Exists("AdventureWorldContent/Levels"))
@@ -185,17 +197,24 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         var fgTileset = element["Tileset"].InnerText.AsSpan();
         var bgTileset = element["BGTileset"].InnerText.AsSpan();
         var background = element["Background"].InnerText.AsSpan();
+
         if (fgTileset.StartsWith("custom:".AsSpan())) 
         {
             var sliced = fgTileset.Slice(7).ToString();
-            Theme.Tileset = sliced;
-            LoadTileset(sliced);
+            var path = Path.Combine(StoredDirectory, sliced);
+            var loadedXML = Calc.LoadXML(path)["Tileset"];
+            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
+            patch_GameData.CustomTilesets.Add(path, patch_TilesetData.Create(loadedXML, tilesetPath));
+            Theme.Tileset = path;
         }
         if (bgTileset.StartsWith("custom:".AsSpan())) 
         {
             var sliced = bgTileset.Slice(7).ToString();
-            Theme.BGTileset = sliced;
-            LoadTileset(sliced);
+            var path = Path.Combine(StoredDirectory, sliced);
+            var loadedXML = Calc.LoadXML(path)["Tileset"];
+            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
+            patch_GameData.CustomTilesets.Add(path, patch_TilesetData.Create(loadedXML, tilesetPath));
+            Theme.BGTileset = path;
         }
         if (background.StartsWith("custom:".AsSpan())) 
         {
@@ -208,17 +227,18 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var path = Path.Combine(StoredDirectory, background);
             var loadedXML = Calc.LoadXML(path)["BG"];
+            var customBGAtlasPath = loadedXML["ImagePath"]?.InnerText;
+            
+            if (!string.IsNullOrEmpty(customBGAtlasPath)) 
+            {
+                using var fs = File.OpenRead(Path.Combine(StoredDirectory, customBGAtlasPath));
+                var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
+                patch_GameData.CustomBGAtlas.Add(customBGAtlasPath, new Monocle.Texture(texture2D));
+            }
+
             Theme.ForegroundData = loadedXML["Foreground"];
             Theme.BackgroundData = loadedXML["Background"];
-            patch_GameData.CustomBGs.Add(background, loadedXML);
-        }
-
-        void LoadTileset(string tileset) 
-        {
-            var path = Path.Combine(StoredDirectory, tileset);
-            var loadedXML = Calc.LoadXML(path)["Tileset"];
-            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
-            patch_GameData.CustomTilesets.Add(tileset, patch_TilesetData.Create(loadedXML, tilesetPath));
+            patch_GameData.CustomBGs.Add(path, loadedXML);
         }
     }
 
