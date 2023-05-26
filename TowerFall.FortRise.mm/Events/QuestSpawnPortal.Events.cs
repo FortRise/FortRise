@@ -53,6 +53,8 @@ public partial class patch_QuestSpawnPortal
             if (invoked == null || !invoked.Value)
             {
                 Logger.Error($"Entity name: {name} failed to spawn as it does not exists!");
+                Sounds.ui_levelLock.Play(160f);
+                level.ScreenShake(8);
             }
 
             ArrowTypes GetSkeletonArrowTypes(string name) 
