@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using FortRise;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Mdb;
@@ -40,7 +39,6 @@ public static partial class RiseCore
                     return sharedRelinkModuleMap;
                 
                 sharedRelinkModuleMap = new Dictionary<string, ModuleDefinition>();
-                // TODO Get the path to TowerFall
                 string[] entries = Directory.GetFiles(GameRootPath);
                 for (int i = 0; i < entries.Length; i++) 
                 {
