@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Reflection;
 using FortRise;
@@ -60,11 +61,13 @@ public static class patch_Music
         currentSong = filepath;
     }
 
+    [Obsolete("Use MusicExt.PlayCustom instead")]
     public static void PlayCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         PlayCustom(filepath, musicType);
     }
 
+    [Obsolete("Use MusicExt.PlayCustom instead")]
     public static void PlayCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         switch (access) 
@@ -97,11 +100,13 @@ public static class patch_Music
         }
     }
 
+    [Obsolete("Use MusicExt.PlayImmediateCustom instead")]
     public static void PlayImmediateCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         PlayImmediateCustom(filepath, ContentAccess.ModContent, CustomMusicType.FullCustom);
     }
 
+    [Obsolete("Use MusicExt.PlayImmediateCustom instead")]
     public static void PlayImmediateCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         switch (access) 
@@ -167,6 +172,7 @@ public static class patch_Music
         soundBank.PlayCue(filepath);
     }
 
+    [Obsolete("Use MusicExt.StopCustom instead")]
     public static void StopCustom(CustomMusicType musicType = CustomMusicType.FullCustom) 
     {
         if (currentSong != null && SoundHelper.StoredInstance.TryGetValue(currentSong, out var instance) 
@@ -252,6 +258,19 @@ public static class MusicExt
             patch_Music.CurrentSong = filepath;
         else
             patch_Music.CurrentCustomSong = filepath;
+    }
+
+    public static void StopCustom(this MusicHolder content) 
+    {
+        if (patch_Music.CurrentSong != null && SoundHelper.StoredInstance.TryGetValue(patch_Music.CurrentSong, out var instance) 
+            && instance.State == SoundState.Playing)
+        {
+            if (content.MusicType == CustomMusicType.AsVanilla)
+                patch_Music.CurrentSong = null;
+            else
+                patch_Music.CurrentCustomSong = null;
+            instance.Stop();
+        }
     }
 }
 
