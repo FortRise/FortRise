@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using MonoMod.Utils;
@@ -51,8 +52,8 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
+        GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
-        Logger.Log(GameRootPath);
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 
@@ -123,7 +124,7 @@ public static partial class RiseCore
                 return null;
             };
 
-            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, moduleMetadata.Name, fs, pathToAssembly);
+            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, moduleMetadata.Name, fs);
             GetModuleTypes(moduleMetadata, asm, i++);
             // ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
             //     string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
@@ -136,6 +137,38 @@ public static partial class RiseCore
             // GetModuleTypes(moduleMetadata, assembly, i++);
             // AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
+    }
+
+    public static readonly HashAlgorithm ChecksumHasher = MD5.Create();
+
+    public static byte[] GetChecksum(string path) 
+    {
+        using var fs = File.OpenRead(path);
+        return ChecksumHasher.ComputeHash(fs);
+    }
+
+    public static byte[] GetChecksum(ModuleMetadata meta) 
+    {
+        return GetChecksum(meta.DLL);
+    }
+
+    // https://github.com/EverestAPI/Everest/blob/dev/Celeste.Mod.mm/Mod/Everest/Everest.cs
+    public static byte[] GetChecksum(ref Stream stream) 
+    {
+        if (!stream.CanSeek) 
+        {
+            var ms = new MemoryStream();
+            stream.CopyTo(ms);
+            stream.Dispose();
+            stream = ms;
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+
+        long pos = stream.Position;
+        stream.Seek(0, SeekOrigin.Begin);
+        byte[] hash = ChecksumHasher.ComputeHash(stream);
+        stream.Seek(pos, SeekOrigin.Begin);
+        return hash;
     }
 
     private static void GetModuleTypes(ModuleMetadata metadata, Assembly asm, int index) 

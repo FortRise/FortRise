@@ -17,7 +17,8 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    public static string GameRootPath;
+    public static string GameRootPath { get; internal set; }
+    public static string GameChecksum { get; internal set; }
     public static class Relinker 
     {
         private static bool temporaryASM;
@@ -144,12 +145,52 @@ public static partial class RiseCore
         }
 
         public static Assembly GetRelinkedAssembly(
-            ModuleMetadata meta, string asmName, Stream stream, string path) 
+            ModuleMetadata meta, string asmName, Stream stream) 
         {
             ModuleDefinition module = null;
+            asmName = asmName.Replace(" ", "_");
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             var cachedPath = Path.Combine(dirPath, $"FortRise.{asmName}.dll");
+            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+
+            var checksums = new string[2];
+            checksums[0] = GameChecksum;
+            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
+
+            if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
+                ChecksumsEqual(checksums, File.ReadAllLines(cachedChecksumPath))) 
+            {
+                Logger.Info($"Loading cached assembly for {meta} - {asmName}");
+
+                var mod = ModuleDefinition.ReadModule(cachedPath);
+                try 
+                {
+                    var asm = Assembly.LoadFrom(cachedPath);
+                    RelinkedAssemblies.Add(asm);
+
+                    if (!relinkedModules.ContainsKey(mod.Assembly.Name.Name)) 
+                    {
+                        relinkedModules.Add(mod.Assembly.Name.Name, mod);
+                        mod = null;
+                    }
+                    else 
+                    {
+                        Logger.Log($"Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}", Logger.LogLevel.Warning);
+                    }
+                    return asm;
+                }
+                catch (Exception e) 
+                {
+                    Logger.Error($"Failed loading {meta} - {asmName}");
+                    Logger.Error(e.ToString());
+                    return null;
+                }
+                finally 
+                {
+                    mod?.Dispose();
+                }
+            }
 
             try 
             {
@@ -223,6 +264,14 @@ public static partial class RiseCore
 
             try 
             {
+                if (File.Exists(cachedChecksumPath))
+                    File.Delete(cachedChecksumPath);
+                
+                if (!temporaryASM) 
+                {
+                    File.WriteAllLines(cachedChecksumPath, checksums);
+                }
+
                 var asm = Assembly.LoadFrom(cachedPath);
                 RelinkedAssemblies.Add(asm);
                 if (!relinkedModules.ContainsKey(module.Assembly.Name.Name)) 
@@ -247,6 +296,17 @@ public static partial class RiseCore
                 module?.Dispose();
             }
         }
+    }
+
+    public static bool ChecksumsEqual(string[] a, string[] b) {
+        if (a.Length != b.Length)
+            return false;
+        for (int i = 0; i < a.Length; i++) 
+        {
+            if (a[i].Trim() != b[i].Trim())
+                return false;
+        }
+        return true;
     }
 }
 
