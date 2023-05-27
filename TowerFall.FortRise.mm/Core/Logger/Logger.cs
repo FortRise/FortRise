@@ -145,9 +145,6 @@ public static class Logger
 
     public static void WriteToFile(string path) 
     {
-        var directory = Path.GetDirectoryName(path);
-        if (directory != null && !Directory.Exists(directory))
-            Directory.CreateDirectory(directory);
         using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
         WriteToFile(fs);
     }
@@ -155,7 +152,7 @@ public static class Logger
     public static void WriteToFile(Stream stream) 
     {
         var texts = builder.ToString();
-        if (!string.IsNullOrEmpty(texts))
+        if (string.IsNullOrEmpty(texts))
             return;
         using var textWriter = new StreamWriter(stream);
         textWriter.WriteLine(texts);

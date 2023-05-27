@@ -83,8 +83,10 @@ public class patch_TFGame : TFGame
     protected override void Initialize() 
     {
         FortRise.RiseCore.ModuleStart();
+        FortRise.RiseCore.Events.Invoke_OnPreInitialize();
         FortRise.RiseCore.Initialize();
         orig_Initialize();
+        FortRise.RiseCore.Events.Invoke_OnPostInitialize();
         FortRise.RiseCore.LogAllTypes();
     }
 

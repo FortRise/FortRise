@@ -51,6 +51,8 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
+        GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
+        Logger.Log(GameRootPath);
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 
@@ -98,7 +100,8 @@ public static partial class RiseCore
                 Version = new Version(version),
                 Description = description,
                 Author = author,
-                FortRiseVersion = requiredVersion
+                FortRiseVersion = requiredVersion,
+                DLL = Path.GetFullPath(Path.Combine(dir, dll))
             };
 
             if (dll == null) 
@@ -107,16 +110,31 @@ public static partial class RiseCore
             var pathToAssembly = Path.GetFullPath(Path.Combine(dir, dll));
             if (!File.Exists(pathToAssembly))
                 continue;
-            ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
-                string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
-                if (!File.Exists(asmPath))
-                    return null;
-                return Assembly.LoadFrom(asmPath);
+
+            using var fs = File.OpenRead(pathToAssembly);
+
+            AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
+                AssemblyName asmName = new AssemblyName(asmArgs.Name);
+                foreach (Assembly asm in Relinker.RelinkedAssemblies) {
+                    if (asm.GetName().Name == asmName.Name)
+                        return asm;
+                }
+
+                return null;
             };
-            AppDomain.CurrentDomain.AssemblyResolve += resolver;
-            var assembly = Assembly.LoadFrom(pathToAssembly);
-            GetModuleTypes(moduleMetadata, assembly, i++);
-            AppDomain.CurrentDomain.AssemblyResolve -= resolver;
+
+            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, moduleMetadata.Name, fs, pathToAssembly);
+            GetModuleTypes(moduleMetadata, asm, i++);
+            // ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
+            //     string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
+            //     if (!File.Exists(asmPath))
+            //         return null;
+            //     return Assembly.LoadFrom(asmPath);
+            // };
+            // AppDomain.CurrentDomain.AssemblyResolve += resolver;
+            // var assembly = Assembly.LoadFrom(pathToAssembly);
+            // GetModuleTypes(moduleMetadata, assembly, i++);
+            // AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
     }
 

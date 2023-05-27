@@ -51,6 +51,18 @@ public static partial class RiseCore
 
     public static partial class Events 
     {
+        public static event Action OnPreInitialize;
+        public static event Action OnPostInitialize;
+        internal static void Invoke_OnPreInitialize() 
+        {
+            OnPreInitialize?.Invoke();
+        }
+
+        internal static void Invoke_OnPostInitialize() 
+        {
+            OnPostInitialize?.Invoke();
+        }
+
         public static event Action<GameTime> OnBeforeUpdate;
         internal static void Invoke_BeforeUpdate(GameTime gameTime) 
         {

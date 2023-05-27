@@ -26,6 +26,7 @@ public abstract partial class FortModule
     public ModuleMetadata Meta { get; internal set; }
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
+    public FortContent Content;
 
 
     public abstract void Load();
@@ -34,6 +35,7 @@ public abstract partial class FortModule
 
     public void InternalLoad() 
     {
+        Content = new FortContent(this);
         LoadSettings();
         Load();
     }
@@ -178,6 +180,12 @@ public class ModuleMetadata
     public Version FortRiseVersion;
     public string Description;
     public string Author;
+    public string DLL;
 
     internal ModuleMetadata() {}
+
+    public override string ToString()
+    {
+        return $"Metadata: {Name} by {Author} {Version}";
+    }
 }
