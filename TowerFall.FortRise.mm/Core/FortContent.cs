@@ -14,7 +14,6 @@ public class FortContent
     public string GetContentPath(string content) 
     {
         var modDirectory = Path.GetDirectoryName(dllPath);
-        Logger.Log(Path.Combine(modDirectory, "Content", content).Replace("\\", "/"));
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
