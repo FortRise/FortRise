@@ -87,6 +87,7 @@ public class patch_TFGame : TFGame
         FortRise.RiseCore.Initialize();
         orig_Initialize();
         FortRise.RiseCore.Events.Invoke_OnPostInitialize();
+        patch_Arrow.ExtendArrows();
         FortRise.RiseCore.LogAllTypes();
     }
 

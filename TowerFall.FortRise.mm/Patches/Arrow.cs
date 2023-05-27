@@ -77,6 +77,10 @@ public abstract class patch_Arrow : Actor
             Calc.HexToColor("F83800"),
             Calc.HexToColor("F87858")
         }; 
+    }
+
+    internal static void ExtendArrows() 
+    {
         var arrowIDCount = ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count;
         Array.Resize(ref Names, arrowIDCount);
         Array.Resize(ref Colors, arrowIDCount);
