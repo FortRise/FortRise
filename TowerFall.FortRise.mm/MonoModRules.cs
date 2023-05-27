@@ -57,6 +57,7 @@ internal class PatchSessionStartGame : Attribute {}
 internal static partial class MonoModRules 
 {
     private static bool IsTowerFall;
+    private static bool IsWindows;
     private static Version Version;
 
     static MonoModRules() 
@@ -134,9 +135,9 @@ internal static partial class MonoModRules
                 throw new Exception("MonoModRules failed resolving Microsoft.Xna.Framework.Game");
         }
 
-        var isWindows = PlatformHelper.Is(Platform.Windows);
-        MonoModRule.Flag.Set("OS:Windows", isWindows);
-        MonoModRule.Flag.Set("OS:NotWindows", !isWindows);
+        IsWindows = PlatformHelper.Is(Platform.Windows);
+        MonoModRule.Flag.Set("OS:Windows", IsWindows);
+        MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
         Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
     }
 
@@ -248,10 +249,19 @@ internal static partial class MonoModRules
             // Check for TF Version since it does have a different instructions
             // Please confirm if you have an issue with 1.3.3.2, I will fix this later on
 
-            var instrNumToRemove = Version switch {
-                { Major: 1, Minor: 3, Build: 3, Revision: 3} => 31,
-                _ => 36
-            };
+            int instrNumToRemove;
+            if (!IsWindows) 
+            {
+                instrNumToRemove = 41;
+            }
+            else 
+            {
+                instrNumToRemove = Version switch {
+                    { Major: 1, Minor: 3, Build: 3, Revision: 3} => 31,
+                    _ => 36
+                };
+            }
+
             cursor.RemoveRange(instrNumToRemove);
 
             /* matchSettings */
