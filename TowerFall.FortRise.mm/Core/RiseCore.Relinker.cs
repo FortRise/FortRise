@@ -149,6 +149,8 @@ public static partial class RiseCore
             asmName = asmName.Replace(" ", "_");
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
             var cachedPath = Path.Combine(dirPath, $"FortRise.{asmName}.dll");
             var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
 
