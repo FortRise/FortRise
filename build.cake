@@ -1,6 +1,6 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "2.5.0";
+var version = "2.6.0";
 
 Task("CleanInstallerANSI")
     .Does(() => 
@@ -36,6 +36,7 @@ Task("PublishInstallerANSI")
     {
         Configuration = configuration,
         OutputDirectory = $"./artifacts/FortRise.Installer.v{version}",
+        Runtime = "win-x64",
         NoBuild = true,
         MSBuildSettings = new DotNetMSBuildSettings 
         {
@@ -66,6 +67,24 @@ Task("PublishInstallerNoANSI")
     {
         Configuration = configuration,
         OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
+        Runtime = "win-x64",
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        },
+        NoBuild = true
+    });
+});
+
+Task("PublishInstallerMACNoANSI")
+    .IsDependentOn("BuildInstallerNoANSI")
+    .Does(() => 
+{
+    DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = $"./artifacts/FortRise.Installer.OSX.v{version}-NoANSI",
+        SelfContained = true,
         MSBuildSettings = new DotNetMSBuildSettings 
         {
             Version = version

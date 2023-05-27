@@ -5,12 +5,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants>ANSI</DefineConstants>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <!-- <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <PublishAOT>true</PublishAOT>
-  </PropertyGroup> -->
+  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="lib/**/*">

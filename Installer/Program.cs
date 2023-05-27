@@ -1,6 +1,6 @@
 ﻿using FortRise.Installer;
-using NativeFileDialogSharp;
 #if ANSI
+using NativeFileDialogSharp;
 using Spectre.Console;
 #endif
 
