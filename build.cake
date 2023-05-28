@@ -1,6 +1,6 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "3.1.1";
+var version = "3.2.0";
 
 Task("CleanInstallerANSI")
     .Does(() => 
@@ -93,16 +93,6 @@ Task("Publish")
         {
             Version = version
         },
-    });
-
-    DotNetBuild("./Installer/Installer.NoAnsi.OSX.csproj", new DotNetBuildSettings 
-    {
-        Configuration = configuration,
-        OutputDirectory = $"./artifacts/FortRise.Installer.Wine.v{version}-NoANSI",
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        }
     });
 });
 

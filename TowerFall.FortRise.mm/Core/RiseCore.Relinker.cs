@@ -143,15 +143,18 @@ public static partial class RiseCore
         }
 
         public static Assembly GetRelinkedAssembly(
-            ModuleMetadata meta, string asmName, Stream stream) 
+            ModuleMetadata meta, string pathToAssembly, Stream stream) 
         {
+            var assemblyDirectories = Path.GetDirectoryName(pathToAssembly).Replace("\\", "/").Split('/');
+            var lastDirectory = assemblyDirectories[assemblyDirectories.Length - 1];
+            string asmName = meta.Name;
             ModuleDefinition module = null;
             asmName = asmName.Replace(" ", "_");
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
-            var cachedPath = Path.Combine(dirPath, $"FortRise.{asmName}.dll");
+            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{asmName}.dll");
             var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
 
             var checksums = new string[2];

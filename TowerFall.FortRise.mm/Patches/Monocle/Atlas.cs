@@ -46,7 +46,13 @@ public class patch_Atlas : Texture
             imagePath = Calc.LOADPATH + imagePath;
             break;
         case ContentAccess.ModContent:
-            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            // try to access the path
+            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.')[0];
+            var modDirectory = Path.Combine("Mods", modName);
+            if (!Directory.Exists(modDirectory)) 
+            {
+                Logger.Error($"Directory {modDirectory} does not exists!");
+            }
             xmlPath = Path.Combine(modDirectory, "Content", xmlPath).Replace("\\", "/");
             imagePath = Path.Combine(modDirectory, "Content", imagePath).Replace("\\", "/");
             break;

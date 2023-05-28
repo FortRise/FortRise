@@ -33,7 +33,13 @@ public class patch_SpriteData
             filename = Calc.LOADPATH + filename;
             break;
         case ContentAccess.ModContent:
-            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            // try to access the path
+            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.')[0];
+            var modDirectory = Path.Combine("Mods", modName);
+            if (!Directory.Exists(modDirectory)) 
+            {
+                Logger.Error($"Directory {modDirectory} does not exists!");
+            }
             filename = Path.Combine(modDirectory, "Content", filename).Replace("\\", "/");
             break;
         }

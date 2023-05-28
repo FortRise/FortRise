@@ -127,7 +127,7 @@ public static partial class RiseCore
                 return null;
             };
 
-            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, moduleMetadata.Name, fs);
+            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
             GetModuleTypes(moduleMetadata, asm, i++);
             // ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
             //     string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
