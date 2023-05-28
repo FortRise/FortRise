@@ -84,13 +84,6 @@ public static class Installer
         LoadAssembly("MonoMod.Utils.dll");
         LoadAssembly("MonoMod.RuntimeDetour.dll");
         AsmHookGen = LoadAssembly("MonoMod.RuntimeDetour.HookGen.exe");
-        // LoadAssembly(Path.Combine(path, "Mono.Cecil.dll"));
-        // LoadAssembly(Path.Combine(path, "Mono.Cecil.Mdb.dll"));
-        // LoadAssembly(Path.Combine(path, "Mono.Cecil.Pdb.dll"));
-        // AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.exe"));
-        // LoadAssembly(Path.Combine(path, "MonoMod.Utils.dll"));
-        // LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.dll"));
-        // AsmHookGen = LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.HookGen.exe"));
 #endif
         Underline("Moving the mod into TowerFall directory");
 
