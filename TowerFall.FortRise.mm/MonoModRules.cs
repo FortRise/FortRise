@@ -217,7 +217,9 @@ internal static partial class MonoModRules
             var invoked = eventHook.FindMethod("System.Void InvokeDarkWorldComplete_Result(System.Int32,TowerFall.DarkWorldDifficulties,System.Int32,System.Int64,System.Int32,System.Int32,System.Int32)");
             var SaveData = ctx.Module.GetType("TowerFall", "SaveData");
             var AdventureActive = SaveData.FindField("AdventureActive");
-            var deaths = complete.DeclaringType.FindField("<deaths>5__2");
+            var deaths = IsWindows 
+                ? complete.DeclaringType.FindField("<deaths>5__2") 
+                : complete.DeclaringType.FindField("<deaths>5__1b");
             var this_4 = complete.DeclaringType.FindField("<>4__this");
 
             var session = method.DeclaringType.FindField("session");
@@ -249,18 +251,11 @@ internal static partial class MonoModRules
             // Check for TF Version since it does have a different instructions
             // Please confirm if you have an issue with 1.3.3.2, I will fix this later on
 
-            int instrNumToRemove;
-            if (!IsWindows) 
-            {
-                instrNumToRemove = 41;
-            }
-            else 
-            {
-                instrNumToRemove = Version switch {
-                    { Major: 1, Minor: 3, Build: 3, Revision: 3} => 31,
-                    _ => 36
-                };
-            }
+            // Linux or maybe MacOS has different instructions
+            int instrNumToRemove = !IsWindows ? 41 : Version switch {
+                { Major: 1, Minor: 3, Build: 3, Revision: 3} => 31,
+                _ => 36
+            };
 
             cursor.RemoveRange(instrNumToRemove);
 
