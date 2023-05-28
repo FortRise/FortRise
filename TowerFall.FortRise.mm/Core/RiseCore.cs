@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Xml;
 using Microsoft.Xna.Framework;
+using MonoMod;
 using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
@@ -45,6 +46,7 @@ public static partial class RiseCore
 
     public static List<string> DetourLogs = new List<string>();
     public static Version FortRiseVersion;
+    public static bool IsWindows { get; internal set; }
 
     private static Type[] Types;
 
@@ -52,6 +54,7 @@ public static partial class RiseCore
 
     internal static void ModuleStart() 
     {
+        RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
         if (!Directory.Exists("Mods"))
@@ -137,6 +140,12 @@ public static partial class RiseCore
             // GetModuleTypes(moduleMetadata, assembly, i++);
             // AppDomain.CurrentDomain.AssemblyResolve -= resolver;
         }
+    }
+
+    [PatchFlags]
+    internal static void Flags() 
+    {
+
     }
 
     public static readonly HashAlgorithm ChecksumHasher = MD5.Create();

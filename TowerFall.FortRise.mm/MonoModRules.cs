@@ -53,6 +53,9 @@ internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
 internal class PatchSessionStartGame : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchFlags))]
+internal class PatchFlags : Attribute {}
+
 
 internal static partial class MonoModRules 
 {
@@ -168,6 +171,18 @@ internal static partial class MonoModRules
         if (!isStatic)
             cursor.Emit(OpCodes.Ldarg_0);
         cursor.Emit(OpCodes.Call, method);
+    }
+
+    public static void PatchFlags(ILContext ctx, CustomAttribute attrib) 
+    {
+        var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
+        var cursor = new ILCursor(ctx);
+
+        if (MonoModRules.IsWindows)
+            cursor.Emit(OpCodes.Ldc_I4_1);
+        else    
+            cursor.Emit(OpCodes.Ldc_I4_0);
+        cursor.Emit(OpCodes.Call, IsWindows);
     }
 
     public static void PatchDarkWorldRoundLogicOnPlayerDeath(ILContext ctx, CustomAttribute attrib) 
