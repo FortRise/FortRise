@@ -76,23 +76,6 @@ Task("PublishInstallerNoANSI")
     });
 });
 
-Task("PublishInstallerMACNoANSI")
-    .IsDependentOn("BuildInstallerNoANSI")
-    .Does(() => 
-{
-    DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
-    {
-        Configuration = configuration,
-        OutputDirectory = $"./artifacts/FortRise.Installer.OSX.v{version}-NoANSI",
-        SelfContained = true,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        },
-        NoBuild = true
-    });
-});
-
 Task("Publish")
     .IsDependentOn("CleanInstallerNoANSI")
     .IsDependentOn("CleanInstallerANSI")
@@ -110,6 +93,16 @@ Task("Publish")
         {
             Version = version
         },
+    });
+
+    DotNetBuild("./Installer/Installer.NoAnsi.OSX.csproj", new DotNetBuildSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = $"./artifacts/FortRise.Installer.Wine.v{version}-NoANSI",
+        MSBuildSettings = new DotNetMSBuildSettings 
+        {
+            Version = version
+        }
     });
 });
 
