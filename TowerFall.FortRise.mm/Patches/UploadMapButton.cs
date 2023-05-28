@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
-using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TeuJson;
@@ -16,21 +14,18 @@ public sealed class UploadMapButton : patch_MapButton
 
     public override void OnConfirm()
     {
-        if (RiseCore.IsWindows)
-            LoadWindows();
-        else
-            LoadMacOrLinux();
+        LoadTower();
         Map.Selection = null;
         OnDeselect();
         Map.GotoAdventure();
         Map.MatchStarting = false;
     }
 
-    private void LoadMacOrLinux() 
+    private void LoadTower() 
     {
-        if (XNAFileDialog.ShowDialogSynchronous("Load .xml file") && !string.IsNullOrEmpty(XNAFileDialog.Path)) 
+        if (XNAFileDialog.ShowDialogSynchronous("Load DarkWorld Tower .xml file") && !string.IsNullOrEmpty(XNAFileDialog.Path)) 
         {
-            Load(Path.GetFileName(XNAFileDialog.Path));
+            Load(Path.GetDirectoryName(XNAFileDialog.Path));
         }
     }
 
@@ -42,16 +37,6 @@ public sealed class UploadMapButton : patch_MapButton
         {
             patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
             SaveLoaded();
-        }
-    }
-
-    private void LoadWindows() 
-    {
-        using FolderBrowserDialog fileDialog = new FolderBrowserDialog();
-
-        if (fileDialog.ShowDialog() != DialogResult.Cancel && !string.IsNullOrEmpty(fileDialog.SelectedPath)) 
-        {
-            Load(fileDialog.SelectedPath);
         }
     }
 
