@@ -5,6 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
     <AssemblyName>FRInstaller</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <PublishAOT>true</PublishAOT>
