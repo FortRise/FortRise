@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TeuJson;
@@ -15,23 +16,43 @@ public sealed class UploadMapButton : patch_MapButton
 
     public override void OnConfirm()
     {
-        using FolderBrowserDialog fileDialog = new FolderBrowserDialog();
-
-
-        if (fileDialog.ShowDialog() != DialogResult.Cancel && !string.IsNullOrEmpty(fileDialog.SelectedPath)) 
-        {
-            var selectedPath = fileDialog.SelectedPath.Replace("\\", "/");
-            if (!patch_GameData.AdventureWorldTowersLoaded.Contains(selectedPath) && 
-                patch_GameData.LoadAdventureLevelsParallel(selectedPath))
-            {
-                patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
-                SaveLoaded();
-            }
-        }
+        if (RiseCore.IsWindows)
+            LoadWindows();
+        else
+            LoadMacOrLinux();
         Map.Selection = null;
         OnDeselect();
         Map.GotoAdventure();
         Map.MatchStarting = false;
+    }
+
+    private void LoadMacOrLinux() 
+    {
+        if (XNAFileDialog.ShowDialogSynchronous("Load .xml file") && !string.IsNullOrEmpty(XNAFileDialog.Path)) 
+        {
+            Load(Path.GetFileName(XNAFileDialog.Path));
+        }
+    }
+
+    private void Load(string path) 
+    {
+        var selectedPath = path.Replace("\\", "/");
+        if (!patch_GameData.AdventureWorldTowersLoaded.Contains(selectedPath) && 
+            patch_GameData.LoadAdventureLevelsParallel(selectedPath))
+        {
+            patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
+            SaveLoaded();
+        }
+    }
+
+    private void LoadWindows() 
+    {
+        using FolderBrowserDialog fileDialog = new FolderBrowserDialog();
+
+        if (fileDialog.ShowDialog() != DialogResult.Cancel && !string.IsNullOrEmpty(fileDialog.SelectedPath)) 
+        {
+            Load(fileDialog.SelectedPath);
+        }
     }
 
     internal static void SaveLoaded() 
