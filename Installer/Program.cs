@@ -1,4 +1,7 @@
 ﻿using FortRise.Installer;
+using System.Threading.Tasks;
+using System.IO;
+using System;
 #if ANSI
 using NativeFileDialogSharp;
 using Spectre.Console;

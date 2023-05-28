@@ -1,5 +1,9 @@
 using System.Diagnostics;
 using System.Text;
+using System.IO;
+using System.Threading.Tasks;
+using System;
+using System.Reflection;
 #if ANSI
 using Spectre.Console;
 #endif
@@ -8,6 +12,10 @@ namespace FortRise.Installer;
 
 public static class Installer
 {
+#if PLATFORM_OSX
+    public static Assembly AsmMonoMod;
+    public static Assembly AsmHookGen;
+#endif
     public const string TowerFallVersion = "1.3.3.3";
 
     private static readonly string[] fileDependencies = {
@@ -66,7 +74,24 @@ public static class Installer
             ThrowError("[underline][red]Copying failed[/][/]");           
             return;
         }
-        var libPath = "lib";
+        var libPath = "";
+#if PLATFORM_OSX
+        Underline("Loading up needed Assembly");
+        LoadAssembly("Mono.Cecil.dll");
+        LoadAssembly("Mono.Cecil.Mdb.dll");
+        LoadAssembly("Mono.Cecil.Pdb.dll");
+        AsmMonoMod = LoadAssembly("MonoMod.exe");
+        LoadAssembly("MonoMod.Utils.dll");
+        LoadAssembly("MonoMod.RuntimeDetour.dll");
+        AsmHookGen = LoadAssembly("MonoMod.RuntimeDetour.HookGen.exe");
+        // LoadAssembly(Path.Combine(path, "Mono.Cecil.dll"));
+        // LoadAssembly(Path.Combine(path, "Mono.Cecil.Mdb.dll"));
+        // LoadAssembly(Path.Combine(path, "Mono.Cecil.Pdb.dll"));
+        // AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.exe"));
+        // LoadAssembly(Path.Combine(path, "MonoMod.Utils.dll"));
+        // LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.dll"));
+        // AsmHookGen = LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.HookGen.exe"));
+#endif
         Underline("Moving the mod into TowerFall directory");
 
         var fortRiseDll = Path.Combine(libPath, modFile);
@@ -93,6 +118,7 @@ public static class Installer
 
         Underline("Patching TowerFall");
 
+#if !PLATFORM_OSX
         var monoModPath = Path.Combine(libPath, "MonoMod.exe");
         if (!File.Exists(monoModPath))
         {
@@ -109,6 +135,7 @@ public static class Installer
             return;
         }
 
+
         Underline("Running HookGen");
         var hookGenPath = Path.Combine(libPath, "MonoMod.RuntimeDetour.HookGen.exe");
         if (!File.Exists(hookGenPath))
@@ -122,6 +149,26 @@ public static class Installer
         {
             ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
         }
+#else
+        Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
+        int returnCode = (int)AsmMonoMod.EntryPoint.Invoke(null, new object[] { new string[] { Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MONOMODDED_TowerFall.exe") } });
+        if (returnCode != 0) 
+        {
+            ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
+            UnderlineInfo("Note that the TowerFall might be patched from other modloader");
+            await Task.Delay(1000);
+            return;
+        }
+        Underline("Running HookGen");
+        var objectCode = AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { 
+            "--private", Path.Combine(path, "TowerFall.exe"), 
+            Path.Combine(path, "MMHOOK_TowerFall.dll") }});
+        
+        if (objectCode == null || (objectCode is int code && code != 0)) 
+        {
+            ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
+        }
+#endif
 
         Yellow("Finalizing");
 
@@ -146,7 +193,11 @@ public static class Installer
         sb.AppendLine("Installer Version: " + Program.Version);
         sb.AppendLine("Debug Mode: " + debugMode);
         var text = sb.ToString();
+#if PLATFORM_OSX
+        File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
+#else
         await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
+#endif
 
         Succeed("Installed");
     }
@@ -258,4 +309,27 @@ public static class Installer
         Console.WriteLine(error);
 #endif
     }
+
+#if PLATFORM_OSX
+    private static Assembly LoadAssembly(string path) 
+    {
+        ResolveEventHandler tmpResolver = (s, e) => {
+            string asmPath = Path.Combine(Path.GetDirectoryName(path), new AssemblyName(e.Name).Name + ".dll");
+            if (!File.Exists(asmPath))
+                return null;
+            return Assembly.LoadFrom(asmPath);
+        };
+        AppDomain.CurrentDomain.AssemblyResolve += tmpResolver;
+        // Assembly asm = Assembly.Load(Path.GetFileNameWithoutExtension(path));
+        Assembly asm = Assembly.LoadFrom(path);
+        AppDomain.CurrentDomain.AssemblyResolve -= tmpResolver;
+        AppDomain.CurrentDomain.TypeResolve += (s, e) => {
+            return asm.GetType(e.Name) != null ? asm : null;
+        };
+        AppDomain.CurrentDomain.AssemblyResolve += (s, e) => {
+            return e.Name == asm.FullName || e.Name == asm.GetName().Name ? asm : null;
+        };
+        return asm;
+    }
+#endif
 }
