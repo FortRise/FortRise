@@ -28,20 +28,8 @@
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Xna.Framework">
-      <HintPath>..\lib\Microsoft.Xna.Framework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Graphics">
-      <HintPath>..\lib\Microsoft.Xna.Framework.Graphics.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Game">
-      <HintPath>..\lib\Microsoft.Xna.Framework.Game.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Xact">
-      <HintPath>..\..\..\Microsoft.Xna.Framework.Xact.dll</HintPath>
+    <Reference Include="FNA">
+      <HintPath>..\lib-stripped\FNA.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Steamworks.NET">

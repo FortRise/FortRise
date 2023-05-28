@@ -1,5 +1,6 @@
 #define FORTMODULE
 
+using System;
 using System.IO;
 using FortRise;
 using Microsoft.Xna.Framework;
@@ -71,7 +72,15 @@ public class patch_TFGame : TFGame
             {
                 RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
             };
-            Logger.AttachConsole(RiseCore.ConsoleAttachment());
+            try 
+            {
+                Logger.AttachConsole(RiseCore.ConsoleAttachment());
+            }
+            catch (Exception e) 
+            {
+                Logger.Error("Failed to attach console.");
+                Logger.Error(e.ToString());
+            }
         }
         orig_Main(args);
         Logger.DetachConsole();

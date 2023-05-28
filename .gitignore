@@ -1,7 +1,9 @@
 obj/
 bin/
-lib/**/*.dll
+lib/**/Microsoft.Xna*.dll
 Installer/lib/**/*.dll
+Installer/lib/**/*.config
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
 artifacts/
+lib-stripped/TestDep

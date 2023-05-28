@@ -11,6 +11,7 @@ public static class Installer
     public const string TowerFallVersion = "1.3.3.3";
 
     private static readonly string[] fileDependencies = {
+        "FNA.dll", "FNA.dll.config",
         "MonoMod.exe", "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.exe", "MonoMod.RuntimeDetour.HookGen.xml",

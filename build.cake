@@ -1,6 +1,6 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "3.0.1";
+var version = "3.1.0";
 
 Task("CleanInstallerANSI")
     .Does(() => 
