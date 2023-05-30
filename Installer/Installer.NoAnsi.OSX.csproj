@@ -3,15 +3,19 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
     <AssemblyName>FRInstaller</AssemblyName>
     <Version>3.2.0</Version>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
-    <PublishAOT>true</PublishAOT>
     <DefineConstants>PLATFORM_OSX</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="lib/MonoMod.dll"/>
+    <Reference Include="lib/MonoMod.RuntimeDetour.HookGen.dll"/>
+    <Reference Include="lib/Mono.Cecil.dll"/>
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="lib/**/*">

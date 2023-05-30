@@ -4,6 +4,13 @@ using System.IO;
 using System.Threading.Tasks;
 using System;
 using System.Reflection;
+
+#if PLATFORM_OSX
+using MonoMod;
+using MonoMod.RuntimeDetour.HookGen;
+using Mono.Cecil;
+#endif
+
 #if ANSI
 using Spectre.Console;
 #endif
@@ -13,16 +20,21 @@ namespace FortRise.Installer;
 public static class Installer
 {
 #if PLATFORM_OSX
-    public static Assembly AsmMonoMod;
-    public static Assembly AsmHookGen;
+    public static Assembly? AsmMonoMod;
+    public static Assembly? AsmHookGen;
 #endif
     public const string TowerFallVersion = "1.3.3.3";
 
+// For MacOS and Linux, you should use the Netstandard2.0 version of MonoMod which supports both Net framework and Net Core
     private static readonly string[] fileDependencies = {
         "FNA.dll", "FNA.dll.config",
-        "MonoMod.exe", "MonoMod.xml", "0Harmony.dll",
+#if !PLATFORM_OSX
+        "MonoMod.RuntimeDetour.HookGen.exe",
+#endif
+        "MonoMod.exe",
+        "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
-        "MonoMod.RuntimeDetour.HookGen.exe", "MonoMod.RuntimeDetour.HookGen.xml",
+        "MonoMod.RuntimeDetour.HookGen.xml",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "TeuJson.dll", "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll"
@@ -50,9 +62,8 @@ public static class Installer
 #if ANSI
             if (!AnsiConsole.Confirm("[green]TowerFall has already been patched[/], [underline]do you want to patch again?[/]", false))
 #else
-            Console.WriteLine("TowerFall has already been patched");
+            Console.WriteLine("TowerFall has already been patched, but you decided to patch again.");
 #endif
-            return;
         }
 
         var fortOrigPath = Path.Combine(path, "fortOrig");
@@ -75,16 +86,6 @@ public static class Installer
             return;
         }
         var libPath = "";
-#if PLATFORM_OSX
-        Underline("Loading up needed Assembly");
-        LoadAssembly("Mono.Cecil.dll");
-        LoadAssembly("Mono.Cecil.Mdb.dll");
-        LoadAssembly("Mono.Cecil.Pdb.dll");
-        AsmMonoMod = LoadAssembly("MonoMod.exe");
-        LoadAssembly("MonoMod.Utils.dll");
-        LoadAssembly("MonoMod.RuntimeDetour.dll");
-        AsmHookGen = LoadAssembly("MonoMod.RuntimeDetour.HookGen.exe");
-#endif
         Underline("Moving the mod into TowerFall directory");
 
         var fortRiseDll = Path.Combine(libPath, modFile);
@@ -129,6 +130,46 @@ public static class Installer
         }
 
 
+
+#else
+        // Run MonoMod
+        try 
+        {
+            using var modder = new MonoModder() 
+            {
+                InputPath = Path.Combine(path, "TowerFall.exe"),
+                OutputPath = Path.Combine(path, "MONOMODDED_TowerFall.exe")
+            };
+            modder.Read();
+            modder.Log("[MMMain] Scanning for mods in directory.");
+            modder.ReadMod(path);
+
+            modder.MapDependencies();
+
+            modder.Log("[MMMain] modder.AutoPatch();");
+            modder.AutoPatch();
+
+            modder.Write();
+            modder.Log("[MMMain] Done.");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
+            UnderlineInfo("Note that the TowerFall might be patched from other modloader");
+            await Task.Delay(1000);
+            return;
+        }
+#endif
+
+        Underline("Renaming the output");
+
+        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
+        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.pdb"), Path.Combine(path, "TowerFall.pdb"), true);
+        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.exe"));
+        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
+
+#if !PLATFORM_OSX
         Underline("Running HookGen");
         var hookGenPath = Path.Combine(libPath, "MonoMod.RuntimeDetour.HookGen.exe");
         if (!File.Exists(hookGenPath))
@@ -143,38 +184,43 @@ public static class Installer
             ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
         }
 #else
-        Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
-        int returnCode = (int)AsmMonoMod.EntryPoint.Invoke(null, new object[] { new string[] { Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MONOMODDED_TowerFall.exe") } });
-        if (returnCode != 0) 
+        try 
         {
-            ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
-            UnderlineInfo("Note that the TowerFall might be patched from other modloader");
-            await Task.Delay(1000);
-            return;
+            var output = Path.Combine(path, "MMHOOK_TowerFall.dll");
+            using var modder = new MonoModder() 
+            {
+                InputPath = Path.Combine(path, "TowerFall.exe"),
+                OutputPath = output
+            };
+            modder.Read();
+            modder.MapDependencies();
+
+            if (File.Exists(output)) 
+            {
+                modder.Log($"[HookGen] Clearing {output}");
+                File.Delete(output);
+            }
+
+            modder.Log("[HookGen] Starting HookGenerator");
+            HookGenerator gen = new HookGenerator(modder, Path.GetFileName(output));
+            ModuleDefinition mOut = gen.OutputModule;
+            {
+                gen.Generate();
+                mOut.Write(output);
+            }
+            modder.Log("[HookGen] Done.");
         }
-        Underline("Running HookGen");
-        var objectCode = AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { 
-            "--private", Path.Combine(path, "TowerFall.exe"), 
-            Path.Combine(path, "MMHOOK_TowerFall.dll") }});
-        
-        if (objectCode == null || (objectCode is int code && code != 0)) 
+        catch (Exception e) 
         {
+            Console.WriteLine(e);
             ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
         }
 #endif
-
         Yellow("Finalizing");
-
-        Underline("Renaming the output");
-
-        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
-        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.pdb"), Path.Combine(path, "TowerFall.pdb"), true);
-        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.exe"));
-        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
 
         Underline("Writing the version file");
 
-        bool debugMode = false;
+        bool debugMode = Program.DebugMode;
 #if ANSI
         debugMode = AnsiConsole.Confirm("Do you want to run in debug mode?", false);
 #else
@@ -290,7 +336,7 @@ public static class Installer
 #if ANSI
         AnsiConsole.MarkupLine(error);
 #else
-        Console.WriteLine("error");
+        Console.WriteLine(error);
 #endif
     }
 

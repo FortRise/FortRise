@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Content Include="lib/**/*">
+      <Link>./%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
