@@ -77,6 +77,7 @@ public static partial class RiseCore
             }
         }
 
+
         private static Dictionary<string, object> sharedRelinkMap;
         public static Dictionary<string, object> SharedRelinkMap 
         {
@@ -147,7 +148,7 @@ public static partial class RiseCore
         {
             var assemblyDirectories = Path.GetDirectoryName(pathToAssembly).Replace("\\", "/").Split('/');
             var lastDirectory = assemblyDirectories[assemblyDirectories.Length - 1];
-            string asmName = meta.Name;
+            string asmName = Path.GetFileNameWithoutExtension(pathToAssembly);
             ModuleDefinition module = null;
             asmName = asmName.Replace(" ", "_");
 
@@ -195,18 +196,76 @@ public static partial class RiseCore
                 }
             }
 
+            var dependencyResolver = GenerateModDependencyResolver(meta);
+
+            AssemblyResolveEventHandler resolver = (s, r) => 
+            {
+                var dep = dependencyResolver(Modder, Modder.Module, r.Name, r.FullName);
+                if (dep != null) 
+                {
+                    return dep.Assembly;
+                }
+                
+                if (r.FullName.ToLowerInvariant().Contains("fna") || r.FullName.ToLowerInvariant().Contains("xna")) 
+                {
+                    var asmRefs = typeof(TFGame).Assembly.GetReferencedAssemblies();
+                    for (int i = 0; i < asmRefs.Length; i++) 
+                    {
+                        var asmRef = asmRefs[i];
+                        if (!asmRef.FullName.ToLowerInvariant().Contains("xna") &&
+                            !asmRef.FullName.ToLowerInvariant().Contains("fna") &&
+                            !asmRef.FullName.ToLowerInvariant().Contains("monogame"))
+                                continue;
+                            
+                        return ((DefaultAssemblyResolver)modder.AssemblyResolver).Resolve(AssemblyNameReference.Parse(asmRef.FullName));
+                    }
+                }
+                return null;
+            };
+
             try 
             {
                 currentMetaRelinking = meta;
                 MonoModder modder = Modder;
                 modder.Input = stream;
                 modder.OutputPath = cachedPath;
+                modder.MissingDependencyResolver = dependencyResolver;
 
-                modder.Read();
+                var metaPath = meta.DLL.Substring(0, meta.DLL.Length - 4) + ".pdb";
+                modder.ReaderParameters.SymbolStream = OpenSymbol(metaPath);
+                modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
+
+                ((DefaultAssemblyResolver)modder.AssemblyResolver).ResolveFailure += resolver;
+
+                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider) 
+                {
+                    ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.PDB;
+                }
+
+                try 
+                {
+                    modder.ReaderParameters.ReadSymbols = true;
+                    modder.Read();
+                }
+                catch 
+                {
+                    modder.ReaderParameters.SymbolStream?.Dispose();
+                    modder.ReaderParameters.SymbolStream = null;
+                    modder.ReaderParameters.ReadSymbols = false;
+                    stream.Seek(0, SeekOrigin.Begin);
+                    modder.Read();
+                }
+
+                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider) 
+                {
+                    ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.Auto;
+                }
+
 
                 modder.MapDependencies();
 
-                if (runtimeRulesParsed) 
+                ModuleDefinition rulesDef = null;
+                if (!runtimeRulesParsed) 
                 {
                     runtimeRulesParsed = true;
 
@@ -223,30 +282,52 @@ public static partial class RiseCore
                     }
                     if (File.Exists(rulesPath)) 
                     {
-                        var rules = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
-                        modder.ParseRules(rules);
-                        rules.Dispose();
+                        rulesDef = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
                     }
                 }
 
+
+                if (rulesDef != null) 
+                {
+                    modder.MapDependencies(rulesDef);
+                    modder.ParseRules(rulesDef);
+                    rulesDef.Dispose();
+                }
                 modder.ParseRules(modder.Module);
                 modder.AutoPatch();
+                ISymbolWriterProvider symbolWriterProvider = modder.WriterParameters.SymbolWriterProvider;
 
                 Retry:
                 try 
                 {
+                    modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
+                    modder.WriterParameters.WriteSymbols = true;
                     modder.Write();
                 }
-                catch when (!temporaryASM) 
+                catch 
                 {
-                    temporaryASM = true;
-                    long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                    dirPath = Path.Combine(Path.GetTempPath(), $"FortRise.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
-                    modder.Module.Name += "." + stamp2;
-                    modder.Module.Assembly.Name.Name += "." + stamp2;
-                    modder.OutputPath =  dirPath;
-                    goto Retry;
+                    try 
+                    {
+                        modder.WriterParameters.SymbolWriterProvider = null;
+                        modder.WriterParameters.WriteSymbols = false;
+                        modder.Write();
+                    }
+                    catch when (!temporaryASM) 
+                    {
+                        temporaryASM = true;
+                        long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                        dirPath = Path.Combine(Path.GetTempPath(), $"FortRise.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
+                        modder.Module.Name += "." + stamp2;
+                        modder.Module.Assembly.Name.Name += "." + stamp2;
+                        modder.OutputPath =  dirPath;
+                        goto Retry;
+                    }
                 }
+                finally 
+                {
+                    modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
+                }
+
 
                 module = modder.Module;
             }
@@ -257,12 +338,15 @@ public static partial class RiseCore
             }
             finally 
             {
+                ((DefaultAssemblyResolver)Modder.AssemblyResolver).ResolveFailure -= resolver;
+                Modder.ReaderParameters.SymbolStream?.Dispose();
                 if (module != Modder.Module)
                     Modder.Module?.Dispose();
                 Modder.Module = null;
 
-                Modder.Dispose();
-                Modder = null;
+                Modder.ClearCaches(moduleSpecific: true);
+                // Modder.Dispose();
+                // Modder = null;
             }
 
             try 
@@ -273,6 +357,17 @@ public static partial class RiseCore
                 if (!temporaryASM) 
                 {
                     File.WriteAllLines(cachedChecksumPath, checksums);
+                }
+
+                if (Modder != null) 
+                {
+                    foreach(AssemblyNameReference aref in module.AssemblyReferences) 
+                    {
+                        if (Modder.DependencyCache.ContainsKey(aref.FullName))
+                            Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
+                        else
+                            Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
+                    }
                 }
 
                 var asm = Assembly.LoadFrom(cachedPath);
@@ -299,17 +394,55 @@ public static partial class RiseCore
                 module?.Dispose();
             }
         }
-    }
 
-    public static bool ChecksumsEqual(string[] a, string[] b) {
-        if (a.Length != b.Length)
-            return false;
-        for (int i = 0; i < a.Length; i++) 
+
+        private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
         {
-            if (a[i].Trim() != b[i].Trim())
-                return false;
+            if (!string.IsNullOrEmpty(Path.GetDirectoryName(meta.DLL))) 
+            {
+                return (mod, main, name, fullname) => 
+                {
+                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
+                    {
+                        return def;
+                    }
+
+                    string path = name + ".dll";
+                    if (!string.IsNullOrEmpty(meta.DLL))
+                        path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
+                    if (!File.Exists(path))
+                        path = Path.Combine(meta.PathDirectory, path);
+                    if (File.Exists(path)) 
+                    {
+                        return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));
+                    }
+                    
+                    Logger.Log($"Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    return null;
+                };
+            }
+            return null;
         }
-        return true;
+
+        private static Stream OpenSymbol(string symbolPath) 
+        {
+            if (!string.IsNullOrEmpty(symbolPath) && File.Exists(symbolPath)) 
+            {
+                return File.OpenRead(symbolPath);
+            }
+            return null;
+        }
+
+        public static bool ChecksumsEqual(string[] a, string[] b) {
+            if (a.Length != b.Length)
+                return false;
+            for (int i = 0; i < a.Length; i++) 
+            {
+                if (a[i].Trim() != b[i].Trim())
+                    return false;
+            }
+            return true;
+        }
     }
 }
 

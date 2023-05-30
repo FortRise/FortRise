@@ -80,6 +80,56 @@ public static partial class RiseCore
 
         int i = 0;
         Types = new Type[directory.Count];
+
+        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
+            AssemblyName asmName = new AssemblyName(asmArgs.Name);
+            foreach (Assembly asm in Relinker.RelinkedAssemblies) {
+                if (asm.GetName().Name == asmName.Name)
+                    return asm;
+            }
+
+            return null;
+        };
+
+        List<string> resolverLoadedPath = new List<string>();
+
+        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
+        {
+            var name = asmArgs?.Name == null ? null : new AssemblyName(asmArgs.Name);
+            if (string.IsNullOrEmpty(name?.Name))
+                return null;
+
+            foreach (var mod in InternalModules) 
+            {
+                var meta = mod.Meta;
+                if (meta == null)
+                    continue;
+                
+                var path = name.Name + ".dll";
+                if (!string.IsNullOrEmpty(meta.DLL)) 
+                {
+                    var pathDirectory = Path.GetDirectoryName(meta.DLL);
+                    path = Path.Combine(pathDirectory, path).Replace('\\', '/');
+                    if (!string.IsNullOrEmpty(pathDirectory))
+                        path = path.Substring(pathDirectory.Length + 1);
+                }
+                if (meta.Dependencies != null) 
+                {
+                    foreach (var dep in meta.Dependencies) 
+                    {
+                        var depPath = Path.Combine(meta.PathDirectory, dep);
+                        if (resolverLoadedPath.Contains(depPath))
+                            continue;
+                        resolverLoadedPath.Add(depPath);
+                        using var fs = File.OpenRead(depPath);
+                        if (fs != null)
+                            return Relinker.GetRelinkedAssembly(meta, Path.GetFullPath(Path.Combine(meta.PathDirectory, dep)), fs);
+                    }
+                }
+            }
+            return null;
+        };
+
         foreach (var dir in directory) 
         {
             var metaPath = Path.Combine(dir, "meta.json");
@@ -93,6 +143,12 @@ public static partial class RiseCore
             var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
             var description = json.GetJsonValueOrNull("description") ?? "";
             var author = json.GetJsonValueOrNull("author") ?? "";
+            var jsonDependencies = json.GetJsonValueOrNull("dependencies");
+            string[] dependencies = null;
+            if (jsonDependencies != null) 
+            {
+                dependencies = jsonDependencies.ConvertToArrayString();
+            }
             if (FortRiseVersion < requiredVersion) 
             {
                 Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
@@ -105,7 +161,9 @@ public static partial class RiseCore
                 Description = description,
                 Author = author,
                 FortRiseVersion = requiredVersion,
-                DLL = Path.GetFullPath(Path.Combine(dir, dll))
+                DLL = Path.GetFullPath(Path.Combine(dir, dll)),
+                PathDirectory = dir,
+                Dependencies = dependencies
             };
 
             if (dll == null) 
@@ -115,17 +173,18 @@ public static partial class RiseCore
             if (!File.Exists(pathToAssembly))
                 continue;
 
+            // if (dependencies != null) 
+            // {
+            //     foreach (var dep in dependencies) 
+            //     {
+            //         using var depStream = File.OpenRead(Path.Combine(dir, dep));
+            //         if (depStream != null)
+            //             Relinker.GetRelinkedAssembly(
+            //                 moduleMetadata, Path.GetFullPath(Path.Combine(dir, dep)), depStream);
+            //     }
+            // }
+
             using var fs = File.OpenRead(pathToAssembly);
-
-            AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
-                AssemblyName asmName = new AssemblyName(asmArgs.Name);
-                foreach (Assembly asm in Relinker.RelinkedAssemblies) {
-                    if (asm.GetName().Name == asmName.Name)
-                        return asm;
-                }
-
-                return null;
-            };
 
             var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
             GetModuleTypes(moduleMetadata, asm, i++);

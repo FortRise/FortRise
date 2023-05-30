@@ -5,5 +5,7 @@ Installer/lib/**/*.dll
 Installer/lib/**/*.config
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
+Installer/lib/**/*.json
+Installer/lib-old/
 artifacts/
 lib-stripped/TestDep

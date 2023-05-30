@@ -10,6 +10,7 @@ using Spectre.Console;
 internal class Program 
 {
     public static string Version = "1.0.0";
+    public static bool DebugMode = false;
 
     [STAThread]
     public async static Task Main(string[] args) 
@@ -32,6 +33,10 @@ internal class Program
             {
                 await Installer.Uninstall(args[1]);
                 return;
+            }
+            if (args.Length > 2 && args[3] == "--debug") 
+            {
+                DebugMode = true;
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -62,10 +63,34 @@ internal static partial class MonoModRules
     private static bool IsTowerFall;
     private static bool IsWindows;
     private static Version Version;
+    public static readonly ModuleDefinition RulesModule;
+    public static string ExecModName;
+
+    public static bool CheckIfMods(ModuleDefinition mod) 
+    {
+        return ExecModName == mod.Name.Substring(0, mod.Name.Length - 4) + ".MonoModRules [MMILRT, ID:" + MonoModRulesManager.GetId(MonoModRule.Modder) + "]";
+    }
 
     static MonoModRules() 
     {
         MonoModRule.Modder.MissingDependencyThrow = false;
+
+        IsWindows = PlatformHelper.Is(Platform.Windows);
+        MonoModRule.Flag.Set("OS:Windows", IsWindows);
+        MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
+        ExecModName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+        RulesModule = MonoModRule.Modder.DependencyMap.Keys.First(CheckIfMods);
+
+        if (!MonoModRule.Modder.Mods.Contains(RulesModule)) 
+        {
+            Console.WriteLine("Mod Relinking");
+            if (RelinkAgainstFNA(MonoModRule.Modder))
+                Console.WriteLine("Relinked with FNA");
+            return;
+        }
+
+        MonoModRule.Modder.PostProcessors += PostProcessor;
+
         bool hasSteamworks = false;
         foreach (var name in MonoModRule.Modder.Module.AssemblyReferences) 
         {
@@ -84,7 +109,6 @@ internal static partial class MonoModRules
         if (t_TFGame == null)
             return;
         IsTowerFall = t_TFGame.Scope == MonoModRule.Modder.Module;
-        MonoModRule.Modder.PostProcessors += PostProcessor;
 
         // Get the version of TowerFall
 
@@ -138,10 +162,136 @@ internal static partial class MonoModRules
                 throw new Exception("MonoModRules failed resolving Microsoft.Xna.Framework.Game");
         }
 
-        IsWindows = PlatformHelper.Is(Platform.Windows);
-        MonoModRule.Flag.Set("OS:Windows", IsWindows);
-        MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
         Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
+
+        if (RelinkAgainstFNA(MonoModRule.Modder))
+            Console.WriteLine("[FortRise] Relinking to FNA");
+
+        static void VisitType(TypeDefinition type) {
+            // Remove readonly attribute from all static fields
+            // This "fixes" https://github.com/dotnet/runtime/issues/11571, which breaks some mods
+            foreach (FieldDefinition field in type.Fields)
+                if ((field.Attributes & FieldAttributes.Static) != 0)
+                    field.Attributes &= ~FieldAttributes.InitOnly;
+
+            // Visit nested types
+            foreach (TypeDefinition nestedType in type.NestedTypes)
+                VisitType(nestedType);
+        }
+
+        foreach (TypeDefinition type in MonoModRule.Modder.Module.Types)
+            VisitType(type);
+    }
+    public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name) 
+    { 
+        System.Reflection.AssemblyName asmName = null;
+        foreach (var asm in System.Reflection.Assembly.GetExecutingAssembly().GetReferencedAssemblies()) 
+        {
+            if (asm.Name.Equals(name)) 
+            {
+                asmName = asm;
+                break;
+            }
+        }
+        return asmName;
+    }
+
+    public static bool ReplaceAssemblyRefs(MonoModder modder, System.Reflection.AssemblyName newRef) 
+    {
+        // Check if the module has a reference affected by the filter
+        bool proceed0 = false;
+        foreach (var asm in modder.Module.AssemblyReferences) 
+        {
+            if (asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+            {
+                proceed0 = true;
+                break;
+            }
+        }
+        if (!proceed0)
+            return false;
+
+        // Add new dependency and map it, if it not already exist
+        bool hasNewRef = false;
+        foreach (var asm in modder.Module.AssemblyReferences) 
+        {
+            if (asm.Name == newRef.Name) 
+            {
+                hasNewRef = true;
+                break;
+            }
+        }
+        if (!hasNewRef) 
+        {
+            AssemblyNameReference asmRef = new AssemblyNameReference(newRef.Name, newRef.Version);
+            // modder.Module.AssemblyReferences.Add(asmRef);
+            modder.MapDependency(modder.Module, asmRef);
+            modder.Log("[FortRise] Adding assembly reference to " +  asmRef.FullName);
+        }
+
+        // Replace old references
+        ModuleDefinition newModule = null;
+        foreach (var module in modder.DependencyMap[modder.Module]) 
+        {
+            if (module.Assembly.Name.Name == newRef.Name) 
+            {
+                newModule = module;
+                break;
+            }
+        }
+
+        for (int i = 0; i < modder.Module.AssemblyReferences.Count; i++) {
+            AssemblyNameReference asmRef = modder.Module.AssemblyReferences[i];
+            if (!asmRef.Name.StartsWith("Microsoft.Xna.Framework"))
+                continue;
+
+            // Remove dependency
+            modder.Module.AssemblyReferences.RemoveAt(i--);
+            var listToRemove = new List<ModuleDefinition>();
+            foreach (var mod in modder.DependencyMap[modder.Module]) 
+            {
+                if (mod.Assembly.FullName == asmRef.FullName) 
+                {
+                    listToRemove.Add(mod);
+                }
+            }
+            foreach (var item in listToRemove) 
+            {
+                modder.DependencyMap[modder.Module].Remove(item);
+            }
+            modder.RelinkModuleMap[asmRef.Name] = newModule;
+            modder.Log("[FortRise] Replacing assembly reference " + asmRef.FullName + " -> " + newRef.FullName);
+        }
+
+        return !hasNewRef;
+    }
+
+
+    private static bool RelinkAgainstFNA(MonoModder modder) 
+    {
+        // Check if the module references either XNA or FNA
+        bool proceed = false;
+        foreach (var asm in modder.Module.AssemblyReferences) 
+        {
+            if (asm.Name == "FNA" || asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+            {
+                proceed = true;
+                break;
+            }
+        }
+        if (!proceed)
+            return false;
+        // if (!modder.Module.AssemblyReferences.Any(asmRef => asmRef.Name == "FNA" || asmRef.Name.StartsWith("Microsoft.Xna.Framework")))
+        //     return false;
+
+        // Replace XNA assembly references with FNA ones
+        bool didReplaceXNA = ReplaceAssemblyRefs(MonoModRule.Modder, GetRulesAssemblyRef("FNA"));
+
+        // Ensure that FNA.dll can be loaded
+        if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null)
+            throw new Exception("Failed to resolve Microsoft.Xna.Framework.Game");
+
+        return didReplaceXNA;
     }
 
     public static void PatchPostFix(ILContext ctx, CustomAttribute attrib) 

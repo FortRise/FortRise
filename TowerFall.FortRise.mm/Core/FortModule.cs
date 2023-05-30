@@ -181,6 +181,8 @@ public class ModuleMetadata
     public string Description;
     public string Author;
     public string DLL;
+    public string PathDirectory;
+    public string[] Dependencies;
 
     internal ModuleMetadata() {}
 

@@ -9,7 +9,7 @@ public partial class patch_DarkWorldComplete : DarkWorldComplete
     {
     }
 
-
+    // The most error prone patch
     [MonoModIgnore]
     [PatchDarkWorldCompleteSequence]
     private extern IEnumerator Sequence();
