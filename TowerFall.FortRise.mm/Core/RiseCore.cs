@@ -149,6 +149,8 @@ public static partial class RiseCore
             var description = json.GetJsonValueOrNull("description") ?? "";
             var author = json.GetJsonValueOrNull("author") ?? "";
             var jsonDependencies = json.GetJsonValueOrNull("dependencies");
+            var nativePath = json.GetJsonValueOrNull("nativePath") ?? "";
+            var nativePathX86 = json.GetJsonValueOrNull("nativePathX86") ?? "";
             string[] dependencies = null;
             if (jsonDependencies != null) 
             {
@@ -168,7 +170,9 @@ public static partial class RiseCore
                 FortRiseVersion = requiredVersion,
                 DLL = Path.GetFullPath(Path.Combine(dir, dll)),
                 PathDirectory = dir,
-                Dependencies = dependencies
+                Dependencies = dependencies,
+                NativePath = nativePath,
+                NativePathX86 = nativePathX86
             };
 
             if (dll == null) 

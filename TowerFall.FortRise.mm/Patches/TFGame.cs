@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using FortRise;
 using Microsoft.Xna.Framework;
 using MonoMod;
@@ -10,8 +11,25 @@ using MonoMod.Utils;
 
 namespace TowerFall;
 
+internal static class NativeMethods 
+{
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetDefaultDllDirectories(int directoryFlags);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern void AddDllDirectory(string lpPathName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetDllDirectory(string lpPathName);
+}
+
 public class patch_TFGame : TFGame
 {
+    private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+
+
     private bool noIntro;
     public patch_TFGame(bool noIntro) : base(noIntro)
     {
@@ -30,6 +48,24 @@ public class patch_TFGame : TFGame
     public extern static void orig_Main(string[] args);
     public static void Main(string[] args) 
     {
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
+        {
+            try 
+            {
+                NativeMethods.SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+                NativeMethods.AddDllDirectory(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    Environment.Is64BitProcess ? "x64" : "x86"
+                ));
+            }
+            catch 
+            {
+                NativeMethods.SetDllDirectory(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    Environment.Is64BitProcess ? "x64" : "x86"
+                ));
+            }
+        }
         var patchFile = "PatchVersion.txt";
         if (File.Exists(patchFile)) 
         {

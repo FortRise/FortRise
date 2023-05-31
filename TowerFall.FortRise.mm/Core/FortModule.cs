@@ -183,6 +183,8 @@ public class ModuleMetadata
     public string DLL;
     public string PathDirectory;
     public string[] Dependencies;
+    public string NativePath;
+    public string NativePathX86;
 
     internal ModuleMetadata() {}
 

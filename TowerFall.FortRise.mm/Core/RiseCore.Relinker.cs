@@ -162,6 +162,23 @@ public static partial class RiseCore
             checksums[0] = GameChecksum;
             checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
 
+            if (Environment.Is64BitProcess) 
+            {
+                if (!string.IsNullOrEmpty(meta.NativePath)) 
+                {
+                    NativeMethods.AddDllDirectory(Path.Combine(Path.GetDirectoryName(pathToAssembly), meta.NativePath));
+                }
+            }
+            else 
+            {
+                if (!string.IsNullOrEmpty(meta.NativePathX86)) 
+                {
+                    NativeMethods.AddDllDirectory(Path.Combine(Path.GetDirectoryName(pathToAssembly), meta.NativePathX86));
+                }
+            }
+
+            
+
             if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
                 ChecksumsEqual(checksums, File.ReadAllLines(cachedChecksumPath))) 
             {
