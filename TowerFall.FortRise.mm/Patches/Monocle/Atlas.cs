@@ -47,11 +47,11 @@ public class patch_Atlas : Texture
             break;
         case ContentAccess.ModContent:
             // try to access the path
-            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.')[0];
-            var modDirectory = Path.Combine("Mods", modName);
+            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.');
+            var modDirectory = Path.Combine("Mods", modName[0]);
             if (!Directory.Exists(modDirectory)) 
             {
-                Logger.Error($"Directory {modDirectory} does not exists!");
+                modDirectory = Path.Combine("Mods", modName[1]);
             }
             xmlPath = Path.Combine(modDirectory, "Content", xmlPath).Replace("\\", "/");
             imagePath = Path.Combine(modDirectory, "Content", imagePath).Replace("\\", "/");
