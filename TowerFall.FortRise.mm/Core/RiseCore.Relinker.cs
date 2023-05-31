@@ -155,7 +155,7 @@ public static partial class RiseCore
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
-            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{asmName}.dll");
+            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
             var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
 
             var checksums = new string[2];
@@ -314,12 +314,14 @@ public static partial class RiseCore
                     }
                     catch when (!temporaryASM) 
                     {
+                        Logger.Error($"{cachedPath} is currently in used.");
                         temporaryASM = true;
                         long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                        dirPath = Path.Combine(Path.GetTempPath(), $"FortRise.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
+                        cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{lastDirectory}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
+                        Logger.Info($"Moving to {cachedPath}");
                         modder.Module.Name += "." + stamp2;
                         modder.Module.Assembly.Name.Name += "." + stamp2;
-                        modder.OutputPath =  dirPath;
+                        modder.OutputPath = cachedPath;
                         goto Retry;
                     }
                 }
