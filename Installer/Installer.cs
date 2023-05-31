@@ -40,6 +40,11 @@ public static class Installer
         "TeuJson.dll", "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll"
     };
 
+    private static readonly string[] fnaLibs = {
+        "FAudio.dll", "FNA3D.dll", "libtheorafile.dll", "MojoShader.dll",
+        "SDL2_image.dll", "SDL2.dll"
+    };
+
     private static readonly string modFile = "TowerFall.FortRise.mm.dll";
 
     public static async Task Install(string path) 
@@ -61,6 +66,7 @@ public static class Installer
         {
 #if ANSI
             if (!AnsiConsole.Confirm("[green]TowerFall has already been patched[/], [underline]do you want to patch again?[/]", false))
+                return;
 #else
             Console.WriteLine("TowerFall has already been patched, but you decided to patch again.");
 #endif
@@ -99,8 +105,20 @@ public static class Installer
         Underline("Moving all of the lib files");
         foreach (var file in fileDependencies) 
         {
-            var filePath = Path.Combine(libPath, path);
             var lib = Path.Combine(libPath, file);
+            if (!File.Exists(lib)) 
+            {
+                ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
+                continue;
+            }
+
+            File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
+        }
+
+        Underline("Copying needed FNA libs");
+        foreach (var file in fnaLibs) 
+        {
+            var lib = Path.Combine(libPath, "x86", file);
             if (!File.Exists(lib)) 
             {
                 ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
@@ -261,6 +279,19 @@ public static class Installer
         Underline("Deleting the libraries from the TowerFall root folder");
 
         foreach (var file in fileDependencies) 
+        {
+            var lib = Path.Combine(path, file);
+            if (!File.Exists(lib)) 
+            {
+                continue;
+            }
+
+            File.Delete(lib);
+        }
+
+        Underline("Deleting the fna libraries from the TowerFall root folder");
+
+        foreach (var file in fnaLibs) 
         {
             var lib = Path.Combine(path, file);
             if (!File.Exists(lib)) 
