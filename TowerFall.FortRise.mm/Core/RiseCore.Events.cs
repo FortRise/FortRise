@@ -6,49 +6,6 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    [Obsolete("Use Events.OnBeforeUpdate instead")]
-    public static event Action<GameTime> OnBeforeUpdate
-    {
-        add => Events.OnBeforeUpdate += value;
-        remove => Events.OnBeforeUpdate -= value;
-    }
-
-    [Obsolete("Use Events.OnUpdate instead")]
-    public static event Action<GameTime> OnUpdate
-    {
-        add => Events.OnUpdate += value;
-        remove => Events.OnUpdate -= value;
-    }
-    
-    [Obsolete("Use Events.OnAfterUpdate instead")]
-    public static event Action<GameTime> OnAfterUpdate
-    {
-        add => Events.OnAfterUpdate += value;
-        remove => Events.OnAfterUpdate -= value;
-    }
-
-    [Obsolete("Use Events.OnBeforeRender instead")]
-    public static event Action<SpriteBatch> OnBeforeRender 
-    {
-        add => Events.OnBeforeRender += value;
-        remove => Events.OnBeforeRender -= value;
-    }
-    
-    [Obsolete("Use Events.OnRender instead")]
-    public static event Action<SpriteBatch> OnRender 
-    {
-        add => Events.OnRender += value;
-        remove => Events.OnRender -= value;
-    }
-    
-    [Obsolete("Use Events.OnAfterRender instead")]
-    public static event Action<SpriteBatch> OnAfterRender 
-    {
-        add => Events.OnAfterRender += value;
-        remove => Events.OnAfterRender -= value;
-        
-    }
-
     public static partial class Events 
     {
         public static event Action OnPreInitialize;
