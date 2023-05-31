@@ -99,6 +99,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     public string StoredDirectory;
     public string Author;
     public int StartingLives = -1;
+    public int[] MaxContinues = new int[3] { -1, -1, -1 };
     public string[] RequiredMods;
     public AdventureWorldTowerStats Stats;
 
@@ -157,9 +158,22 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
-        if (xmlElement.HasChild("lives"))
-            StartingLives = int.Parse(xmlElement["lives"].InnerText);
         Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
+
+        if (xmlElement.HasChild("lives")) 
+        {
+            StartingLives = int.Parse(xmlElement["lives"].InnerText);
+        }
+        if (xmlElement.HasChild("continues")) 
+        {
+            var continues = xmlElement["continues"];
+            if (continues.HasChild("normal"))
+                MaxContinues[0] = int.Parse(continues["normal"].InnerText);
+            if (continues.HasChild("hardcore"))
+                MaxContinues[1] = int.Parse(continues["hardcore"].InnerText);
+            if (continues.HasChild("legendary"))
+                MaxContinues[2] = int.Parse(continues["legendary"].InnerText);
+        }
 
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
