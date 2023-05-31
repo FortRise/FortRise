@@ -138,7 +138,12 @@ public static partial class RiseCore
 
             var json = JsonTextReader.FromFile(metaPath);
             var dll = json.GetJsonValueOrNull("dll");
-            var name = json.Contains("name") ? json["name"].AsString : string.Empty;
+            var name = json.GetJsonValueOrNull("name");
+            if (name == null)
+            {
+                Logger.Error($"{dir} does not have a name metadata.");
+                continue;
+            }
             var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
             var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
             var description = json.GetJsonValueOrNull("description") ?? "";
@@ -172,17 +177,6 @@ public static partial class RiseCore
             var pathToAssembly = Path.GetFullPath(Path.Combine(dir, dll));
             if (!File.Exists(pathToAssembly))
                 continue;
-
-            // if (dependencies != null) 
-            // {
-            //     foreach (var dep in dependencies) 
-            //     {
-            //         using var depStream = File.OpenRead(Path.Combine(dir, dep));
-            //         if (depStream != null)
-            //             Relinker.GetRelinkedAssembly(
-            //                 moduleMetadata, Path.GetFullPath(Path.Combine(dir, dep)), depStream);
-            //     }
-            // }
 
             using var fs = File.OpenRead(pathToAssembly);
 
