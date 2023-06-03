@@ -6,6 +6,9 @@ Installer/lib/**/*.config
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
 Installer/lib/**/*.json
+Installer/lib/**/*.pdb
 Installer/lib-old/
 artifacts/
 lib-stripped/TestDep
+
+*.malfunc.*
