@@ -29,6 +29,7 @@ public static class patch_GameData
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
         ReloadCustomLevels();
         TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
+        patch_MapScene.FixedStatic();
     }
 
     public static void ReloadCustomLevels() 

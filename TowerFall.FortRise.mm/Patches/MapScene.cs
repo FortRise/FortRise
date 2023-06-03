@@ -9,10 +9,21 @@ namespace TowerFall;
 
 public class patch_MapScene : MapScene
 {
+    private static int lastRandomVersusTower;
     private bool adventureLevels;
     public bool MapPaused;
     public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
     {
+    }
+
+    [MonoModConstructor]
+    [MonoModReplace]
+    public static void cctor() {}
+
+    internal static void FixedStatic() 
+    {
+        lastRandomVersusTower = -1;
+        MapScene.NoRandomStates = new bool[GameData.VersusTowers.Count];
     }
 
     [MonoModIgnore]
