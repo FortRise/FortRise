@@ -35,6 +35,7 @@ public static class Installer
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
+        "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "TeuJson.dll", "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll"
