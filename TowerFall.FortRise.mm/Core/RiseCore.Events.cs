@@ -8,6 +8,23 @@ public static partial class RiseCore
 {
     public static partial class Events 
     {
+        public static event Action OnLevelLoaded;
+        internal static void Invoke_OnLevelLoaded()  
+        {
+            OnLevelLoaded?.Invoke();
+        }
+        public static event Action OnLevelEntered;
+        internal static void Invoke_OnLevelEntered()  
+        {
+            OnLevelEntered?.Invoke();
+        }
+
+        public static event Action OnLevelExited;
+        internal static void Invoke_OnLevelExited()  
+        {
+            OnLevelExited?.Invoke();
+        }
+
         public static event Action OnPreInitialize;
         public static event Action OnPostInitialize;
         internal static void Invoke_OnPreInitialize() 

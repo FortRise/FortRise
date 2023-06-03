@@ -26,6 +26,13 @@ public class patch_Level : Level
         orig_LoadEntity(e);
     }
 
+    [MonoModIgnore]
+    [PreFixing("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelEntered()", true)]
+    public extern override void Begin();
+
+    [MonoModIgnore]
+    [PostFixing("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelExited()", true)]
+    public extern override void End();
 
     [MonoModIgnore]
     [PostFixing("TowerFall.Level", "System.Void DebugModeRender()")]
