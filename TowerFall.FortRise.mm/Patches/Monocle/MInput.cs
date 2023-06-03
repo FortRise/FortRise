@@ -70,7 +70,6 @@ public static class patch_MInput
                 Calc.Log("Removed XGamepad: " + xGamepadData);
                 MInput.GamepadsChanged = true;
                 XGamepads[i].Dispose();
-                // TODO stop rumble XGamepad
                 MInput.XGamepads.RemoveAt(i);
                 i--;
             }
