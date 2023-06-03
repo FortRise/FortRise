@@ -196,7 +196,7 @@ public static class Installer
             ThrowError("No MonoMod.RuntimeDetour.HookGen executable found in the lib path");
             return;
         }
-        process = Process.Start(hookGenPath, $"\"{Path.Combine(path, "TowerFall.exe")}\"");
+        process = Process.Start(hookGenPath, $"--private \"{Path.Combine(path, "TowerFall.exe")}\"");
         await process.WaitForExitAsync();
         if (process.ExitCode != 0) 
         {
