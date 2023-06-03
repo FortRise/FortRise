@@ -1,5 +1,3 @@
-#define FORTMODULE
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -25,7 +23,7 @@ internal static class NativeMethods
     public static extern bool SetDllDirectory(string lpPathName);
 }
 
-public class patch_TFGame : TFGame
+public partial class patch_TFGame : TFGame
 {
     private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
@@ -44,7 +42,6 @@ public class patch_TFGame : TFGame
         this.noIntro = RiseCore.DebugMode;
     }
 
-#if FORTMODULE
     public extern static void orig_Main(string[] args);
     public static void Main(string[] args) 
     {
@@ -143,7 +140,6 @@ public class patch_TFGame : TFGame
         FortRise.RiseCore.ModuleEnd();
         orig_UnloadContent();
     }
-#endif
 
     protected extern void orig_Update(GameTime gameTime);
 
