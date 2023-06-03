@@ -281,7 +281,6 @@ public static partial class RiseCore
 
                 modder.MapDependencies();
 
-                ModuleDefinition rulesDef = null;
                 if (!runtimeRulesParsed) 
                 {
                     runtimeRulesParsed = true;
@@ -297,19 +296,17 @@ public static partial class RiseCore
                             "TowerFall.FortRise.mm.dll"
                         );
                     }
+                    if (!File.Exists(rulesPath))
+                        throw new InvalidOperationException($"Couldn't find runtime rules .FortRise.mm.dll");
+
                     if (File.Exists(rulesPath)) 
                     {
-                        rulesDef = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
+                        var rulesDef = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
+                        modder.ParseRules(rulesDef);
+                        rulesDef.Dispose();
                     }
                 }
 
-
-                if (rulesDef != null) 
-                {
-                    modder.MapDependencies(rulesDef);
-                    modder.ParseRules(rulesDef);
-                    rulesDef.Dispose();
-                }
                 modder.ParseRules(modder.Module);
                 modder.AutoPatch();
                 ISymbolWriterProvider symbolWriterProvider = modder.WriterParameters.SymbolWriterProvider;
@@ -317,17 +314,21 @@ public static partial class RiseCore
                 Retry:
                 try 
                 {
+                    Logger.Info("Try writing the module with symbols");
                     modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
                     modder.WriterParameters.WriteSymbols = true;
-                    modder.Write();
+                    using var fs = File.Create(cachedPath);
+                    modder.Write(fs);
                 }
                 catch 
                 {
                     try 
                     {
+                        Logger.Info("Writing the module without symbols");
                         modder.WriterParameters.SymbolWriterProvider = null;
                         modder.WriterParameters.WriteSymbols = false;
-                        modder.Write();
+                        using var fs = File.Create(cachedPath);
+                        modder.Write(fs);
                     }
                     catch when (!temporaryASM) 
                     {
@@ -363,9 +364,9 @@ public static partial class RiseCore
                     Modder.Module?.Dispose();
                 Modder.Module = null;
 
-                Modder.ClearCaches(moduleSpecific: true);
-                // Modder.Dispose();
-                // Modder = null;
+                // Modder.ClearCaches(moduleSpecific: true);
+                Modder.Dispose();
+                Modder = null;
             }
 
             try 
@@ -378,16 +379,16 @@ public static partial class RiseCore
                     File.WriteAllLines(cachedChecksumPath, checksums);
                 }
 
-                if (Modder != null) 
-                {
-                    foreach(AssemblyNameReference aref in module.AssemblyReferences) 
-                    {
-                        if (Modder.DependencyCache.ContainsKey(aref.FullName))
-                            Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
-                        else
-                            Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
-                    }
-                }
+                // if (Modder != null) 
+                // {
+                //     foreach(AssemblyNameReference aref in module.AssemblyReferences) 
+                //     {
+                //         if (Modder.DependencyCache.ContainsKey(aref.FullName))
+                //             Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
+                //         else
+                //             Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
+                //     }
+                // }
 
                 var asm = Assembly.LoadFrom(cachedPath);
                 RelinkedAssemblies.Add(asm);

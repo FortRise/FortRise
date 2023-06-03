@@ -292,7 +292,6 @@ public static partial class RiseCore
         module.InternalLoad();
         module.LoadContent();
         module.Enabled = true;
-        patch_MatchVariants.DeclareVariants += module.OnVariantsRegister;
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
