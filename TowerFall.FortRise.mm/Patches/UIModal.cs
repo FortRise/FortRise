@@ -24,6 +24,7 @@ public class UIModal : Entity
     private bool noTitle;
 
     public bool SelectionFlash;
+    public bool AutoClose = true;
     public string Title;
 
     public Action OnBack;
@@ -89,6 +90,10 @@ public class UIModal : Entity
             if (MenuInput.Confirm)
             {
                 this.optionActions[this.optionIndex]();
+                if (AutoClose)
+                {
+                    RemoveSelf();
+                }
                 return;
             }
             
