@@ -54,15 +54,18 @@ internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
 internal class PatchSessionStartGame : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchScreenResize))]
+internal class PatchScreenResize : Attribute {}
+
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchFlags))]
 internal class PatchFlags : Attribute {}
-
 
 internal static partial class MonoModRules 
 {
     private static bool IsTowerFall;
     private static bool IsWindows;
     private static Version Version;
+    private static bool IsMod;
     public static readonly ModuleDefinition RulesModule;
     public static string ExecModName;
 
@@ -75,13 +78,19 @@ internal static partial class MonoModRules
     {
         MonoModRule.Modder.MissingDependencyThrow = false;
 
+        if (MonoModRule.Modder.WriterParameters.WriteSymbols)
+            MonoModRule.Modder.WriterParameters.SymbolWriterProvider = new PortablePdbWriterProvider();
+
         IsWindows = PlatformHelper.Is(Platform.Windows);
         MonoModRule.Flag.Set("OS:Windows", IsWindows);
         MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
         ExecModName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
         RulesModule = MonoModRule.Modder.DependencyMap.Keys.First(CheckIfMods);
 
-        if (!MonoModRule.Modder.Mods.Contains(RulesModule)) 
+        MonoModRule.Modder.PostProcessors += PostProcessor;
+        IsMod = !MonoModRule.Modder.Mods.Contains(RulesModule);
+
+        if (IsMod) 
         {
             Console.WriteLine("Mod Relinking");
             if (RelinkAgainstFNA(MonoModRule.Modder))
@@ -89,7 +98,7 @@ internal static partial class MonoModRules
             return;
         }
 
-        MonoModRule.Modder.PostProcessors += PostProcessor;
+        MonoModRule.Modder.PostProcessors += PostProcessMacros;
 
         bool hasSteamworks = false;
         foreach (var name in MonoModRule.Modder.Module.AssemblyReferences) 
@@ -323,6 +332,19 @@ internal static partial class MonoModRules
         cursor.Emit(OpCodes.Call, method);
     }
 
+    public static void PatchScreenResize(ILContext ctx, CustomAttribute attrib) 
+    {
+        var height = ctx.Method.DeclaringType.FindField("height");
+        var cursor = new ILCursor(ctx);
+
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld("Monocle.Screen", "width"));
+        if (cursor.TryGotoNext(instr => instr.MatchStfld("Monocle.Screen", "width"))) 
+        {
+            cursor.Remove();
+            cursor.Emit(OpCodes.Stfld, height);
+        }
+    }
+
     public static void PatchFlags(ILContext ctx, CustomAttribute attrib) 
     {
         var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
@@ -528,7 +550,7 @@ internal static partial class MonoModRules
         // cursor.Emit(OpCodes.Call, methodWithList);
     }
 
-    public static void PostProcessor(MonoModder modder) 
+    public static void PostProcessMacros(MonoModder modder) 
     {
         var matchVariant = modder.Module.Types.Where(x => x.FullName == "TowerFall.MatchVariants").First();
         foreach (TypeDefinition type in modder.Module.Types) 
@@ -595,7 +617,6 @@ internal static partial class MonoModRules
                     }
                 }
             }
-            PostProcessType(modder, type);
         }
 
         var controlType = modder.Module.GetType("TowerFall.DarkWorldControl");
@@ -698,28 +719,65 @@ internal static partial class MonoModRules
 
     // https://github.com/EverestAPI/Everest/blob/f4545220fe22ed3f752e358741befe9cc7546234/Celeste.Mod.mm/MonoModRules.cs
     // This is to fix the Enumerators can't be decompiled
-    public static void FixEnumeratorDecompile(TypeDefinition type) {
-    foreach (MethodDefinition method in type.Methods) {
-        new ILContext(method).Invoke(il => {
-            ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(instr => instr.MatchCallvirt(out MethodReference m) &&
-                (m.Name is "System.Collections.IEnumerable.GetEnumerator" or "System.IDisposable.Dispose" ||
-                    m.Name.StartsWith("<>m__Finally")))
-            ) {
-                cursor.Next.OpCode = OpCodes.Call;
-            }
-        });
+    public static void FixEnumeratorDecompile(MonoModder modder, TypeDefinition type) 
+    {
+        foreach (MethodDefinition method in type.Methods) 
+        {
+            new ILContext(method).Invoke(il => 
+            {
+                ILCursor cursor = new ILCursor(il);
+                while (cursor.TryGotoNext(instr => instr.MatchCallvirt(out MethodReference m) &&
+                    (m.Name is "System.Collections.IEnumerable.GetEnumerator" or "System.IDisposable.Dispose" ||
+                        m.Name.StartsWith("<>m__Finally")))
+                ) 
+                {
+                    cursor.Next.OpCode = OpCodes.Call;
+                }
+            });
+        }
     }
-}
+
+    /* 
+    The game is made on Net Framework 4.0, which means it doesn't have IteratorStateMachine.
+    By doing this, we can easily hook up the enumerators via GetStateMachineTarget() from MonoMod when using hooks.
+    */
+    private static void AddIteratorStateMachineAttribute(MonoModder modder, MethodDefinition method) 
+    {
+        var moveNext = method.GetEnumeratorMoveNext();
+        if (moveNext == null)
+            return;
+
+        var typeRef = modder.Module.ImportReference(
+            typeof(System.Type));
+        var impl = modder.Module.ImportReference(
+            typeof(System.Runtime.CompilerServices.IteratorStateMachineAttribute)
+            .GetConstructor(new Type[1] { typeof(Type) }));
+        var customAttribute = new CustomAttribute(impl);
+        var targetType = moveNext.DeclaringType;
+        customAttribute.ConstructorArguments.Add(new CustomAttributeArgument(typeRef, targetType));
+        method.CustomAttributes.Add(customAttribute);
+    }
+
+    private static void PostProcessor(MonoModder modder) 
+    {
+        foreach (var type in modder.Module.Types) 
+        {
+            PostProcessType(modder, type);
+        }
+    }
 
     private static void PostProcessType(MonoModder modder, TypeDefinition type) 
     {
-        if (type.IsCompilerGeneratedEnumerator()) {
-            FixEnumeratorDecompile(type);
+        if (type.IsCompilerGeneratedEnumerator() && !IsMod) 
+        {
+            FixEnumeratorDecompile(modder, type);
         }
         foreach (MethodDefinition method in type.Methods) 
         {
             method.FixShortLongOps();
+            if (!method.HasCustomAttribute("System.Runtime.CompilerServices.IteratorStateMachineAttribute") && !IsMod) 
+                AddIteratorStateMachineAttribute(modder, method);
+            
         }
         foreach (TypeDefinition nested in type.NestedTypes) 
         {
