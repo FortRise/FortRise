@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FortRise;
 using Monocle;
 using MonoMod;
 
@@ -12,10 +13,12 @@ public class patch_MatchVariants : MatchVariants
     private Dictionary<string, Variant> customVariants;
     public IReadOnlyDictionary<string, Variant> CustomVariants => customVariants;
 
-    internal static event Action<MatchVariants, bool> DeclareVariants;
 
     /* Private fields from MatchVariants */
     private List<Variant> canRandoms;
+
+
+    private List<Variant> customs;
     [MonoModIgnore]
     public static int Count { get; private set; }
 
@@ -24,9 +27,24 @@ public class patch_MatchVariants : MatchVariants
     [MonoModConstructor]
     public void ctor(bool noPerPlayer = false) 
     {
-        orig_ctor(noPerPlayer);
         customVariants = new();
-        DeclareVariants?.Invoke(this, noPerPlayer);
+        customs = new();
+
+        orig_ctor(noPerPlayer);
+        foreach (var mod in RiseCore.InternalModules) 
+        {
+            mod.OnVariantsRegister(this, noPerPlayer);
+        }
+
+        int oldLength = Variants.Length;
+        Array.Resize(ref Variants, customs.Count + Variants.Length);
+        int count = 0;
+        for (int i = oldLength; i < Variants.Length; i++) 
+        {
+            Variants[i] = customs[count];
+            count++;
+        }
+        Count = Variants.Length;
     }
 
 
@@ -59,12 +77,11 @@ public class patch_MatchVariants : MatchVariants
             GetVariantIconFromName(variantName, info.VariantAtlas), title, description, 
             itemExclusions, perPlayer, header, null, scrollEffect, hidden, flag, tournamentRule1v, 
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
+        customs.Add(variant);
         customVariants.Add(variantName, variant);
-        list.Add(variant);
         if (flag)
             canRandoms.Add(variant);
-        Variants = list.ToArray();
-        Count = list.Count;
+
         if (!TempVariantHolder.TempCustom.ContainsKey(variantName))
             TempVariantHolder.TempCustom.Add(variantName, false);
         return variant;
