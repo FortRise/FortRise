@@ -81,50 +81,50 @@ public class patch_PlayerInput : PlayerInput
     [MonoModIgnore]
     public extern override InputState GetState();
 
-    // [MonoModReplace]
-    // public static void AssignInputs()
-    // {
-    //     TFGame.PlayerInputs = new PlayerInput[4];
-    //     int num = 0;
-    //     if (!MainMenu.NoGamepads) 
-    //     {
-    //         MInput.UpdateDirectInput = false;
-    //         MInput.UpdateXInput = true;
-    //         for (int i = 0; i < 4; i++) 
-    //         {
-    //             if (MInput.XGamepads.Count <= i) 
-    //                 break;
-    //             TFGame.PlayerInputs[num] = new XGamepadInput(i);
-    //             num++;
-    //         }
-    //     }
+    [MonoModReplace]
+    public static void AssignInputs()
+    {
+        TFGame.PlayerInputs = new PlayerInput[4];
+        int num = 0;
+        if (!MainMenu.NoGamepads) 
+        {
+            MInput.UpdateDirectInput = false;
+            MInput.UpdateXInput = true;
+            for (int i = 0; i < 4; i++) 
+            {
+                if (MInput.XGamepads.Count <= i) 
+                    break;
+                TFGame.PlayerInputs[num] = new XGamepadInput(i);
+                num++;
+            }
+        }
 
-    //     if (num <= 3) 
-    //     {
-    //         if (SaveData.Instance.Keyboard == null || SaveData.Instance.Keyboard.Length == 0) 
-    //         {
-    //             TFGame.PlayerInputs[num] = new KeyboardInput();
-    //             num++;
-    //         }
-    //         else 
-    //         {
-    //             for (int i = 0; i < SaveData.Instance.Keyboard.Length; i++)
-    //             {
-    //                 if (SaveData.Instance.Keyboard[i] == null)
-    //                     continue;
+        if (num <= 3) 
+        {
+            if (SaveData.Instance.Keyboard == null || SaveData.Instance.Keyboard.Length == 0) 
+            {
+                TFGame.PlayerInputs[num] = new KeyboardInput();
+                num++;
+            }
+            else 
+            {
+                for (int i = 0; i < SaveData.Instance.Keyboard.Length; i++)
+                {
+                    if (SaveData.Instance.Keyboard[i] == null)
+                        continue;
                     
-    //                 TFGame.PlayerInputs[num] = new KeyboardInput(SaveData.Instance.Keyboard[i], i);
-    //                 num++;
-    //                 if (num > 3)
-    //                     break;
-    //             }
-    //         }
-    //     }
-    //     for (int i = 0; i < 4; i++) 
-    //     {
-    //         TFGame.PlayerInputs[i] = null;
-    //     }
-    //     MenuInput.UpdateInputs();
-    //     MenuButtons.Update();
-    // }
+                    TFGame.PlayerInputs[num] = new KeyboardInput(SaveData.Instance.Keyboard[i], i);
+                    num++;
+                    if (num > 3)
+                        break;
+                }
+            }
+        }
+        for (int i = num; i < 4; i++) 
+        {
+            TFGame.PlayerInputs[i] = null;
+        }
+        MenuInput.UpdateInputs();
+        MenuButtons.Update();
+    }
 }
