@@ -83,16 +83,19 @@ public abstract partial class FortModule
         InternalSettings.Save(path);
     }
 
-    public void CreateSettings(List<OptionsButton> optionsList) 
+    public virtual void CreateModSettings(List<OptionsButton> optionList) {}
+
+    internal void CreateSettings(List<OptionsButton> optionsList) 
     {
+        CreateModSettings(optionsList);
+
         var type = SettingsType;
         var settings = InternalSettings;
-
 
         if (settings == null || type == null) 
             return;
 
-        
+        // where the automated settings are created
         foreach (var field in type.GetFields()) 
         {
             if (field.IsPrivate)
