@@ -26,6 +26,8 @@ public abstract partial class FortModule
     public ModuleMetadata Meta { get; internal set; }
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
+    public virtual Type SaveDataType { get; }
+    public ModuleSaveData InternalSaveData;
     public FortContent Content;
 
 
@@ -38,6 +40,28 @@ public abstract partial class FortModule
         Content = new FortContent(this);
         LoadSettings();
         Load();
+    }
+
+    internal void SaveData() 
+    {
+        InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
+        if (InternalSaveData == null)
+            return;
+
+        var format = InternalSaveData.Save(this).Format;
+        format.SetPath(this);
+        format.Save();
+    }
+
+    internal void LoadData() 
+    {
+        if (InternalSaveData == null)
+            return;
+
+        var format = InternalSaveData.Formatter;
+        format.SetPath(this);
+        format.Load();
+        InternalSaveData.Load(format);
     }
 
     public void LoadSettings() 
