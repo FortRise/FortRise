@@ -21,16 +21,19 @@ These are the following roadmap that are planned or completed:
 ### v2.1.0
 - [x] Custom arrows.
 
+### v3.0.0
+- [x] Custom tilesets for adventure maps.
+- [x] Custom bg for adventure maps.
+- [x] Mod Relinker.
+
 ### Current:
 - [ ] Support .zip files for loading mods.
-- [ ] Custom tilesets for adventure maps.
-- [ ] Custom bg for adventure maps.
-- [ ] Mod Relinker.
 - [ ] Debug Tower maps.
 - [ ] Lua Interpreter.
 - [ ] Disable/Enable mods.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
+- [x] FNA.
 
 ### Need Testing:
 - [ ] Custom level entity.
