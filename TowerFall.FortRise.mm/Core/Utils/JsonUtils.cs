@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using TeuJson;
 
-namespace TowerFall;
+namespace FortRise;
 
 public static class JsonUtils 
 {

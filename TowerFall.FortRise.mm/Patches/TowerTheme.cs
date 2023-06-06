@@ -1,5 +1,6 @@
 using System;
 using System.Xml;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
