@@ -53,9 +53,26 @@ public static class SaveDataFormatExt
     }
 }
 
+public class JsonBinarySaveDataFormat : JsonSaveDataFormat
+{
+    public override string FileExtension => "bin";
+
+    public override void Load()
+    {
+        if (!File.Exists(SavePath))
+            return;
+        BaseObject = JsonBinaryReader.FromFile(SavePath).AsJsonObject;
+    }
+
+    public override void Save()
+    {
+        JsonBinaryWriter.WriteToFile(SavePath, BaseObject);
+    }
+}
+
 public class JsonSaveDataFormat : SaveDataFormat
 {
-    private JsonObject baseObject;
+    protected JsonObject BaseObject;
 
     public override string FileExtension => "json";
 
@@ -67,19 +84,19 @@ public class JsonSaveDataFormat : SaveDataFormat
     {
         if (!File.Exists(SavePath))
             return;
-        baseObject = JsonTextReader.FromFile(SavePath).AsJsonObject;
+        BaseObject = JsonTextReader.FromFile(SavePath).AsJsonObject;
     }
 
     public override void Save()
     {
-        JsonTextWriter.WriteToFile(SavePath, baseObject);
+        JsonTextWriter.WriteToFile(SavePath, BaseObject);
     }
 
-    public JsonValue GetJsonObject() => baseObject;
+    public JsonValue GetJsonObject() => BaseObject;
 
     public ClosedFormat Close(JsonObject obj) 
     {
-        baseObject = obj;
+        BaseObject = obj;
         return new ClosedFormat(this);
     }
 
@@ -90,7 +107,7 @@ public class JsonSaveDataFormat : SaveDataFormat
             Logger.Error("Close object must be of type JsonObject.");
             return new ClosedFormat(this);
         }
-        baseObject = (JsonObject)obj;
+        BaseObject = (JsonObject)obj;
         return new ClosedFormat(this);
     }
 }
