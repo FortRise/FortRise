@@ -20,7 +20,7 @@ public class UIModal : Entity
     private MenuPanel panel;
     private Counter confirmCounter;
     private int optionIndex;
-    private Color fillerColor;
+    private Color fillerColor = Color.White;
     private bool noTitle;
 
     public bool SelectionFlash;
