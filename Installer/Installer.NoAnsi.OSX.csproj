@@ -12,14 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="lib/MonoMod.dll"/>
-    <Reference Include="lib/MonoMod.RuntimeDetour.HookGen.dll"/>
-    <Reference Include="lib/Mono.Cecil.dll"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="lib/**/*">
-      <Link>./%(Filename)%(Extension)</Link>
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

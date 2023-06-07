@@ -1,1 +1,2 @@
-macpack -m:4 -a:./bin/Release/net472/Installer.NoAnsi.OSX.exe -n:FRInstaller -r:lib/0Harmony.dll -r:lib/FNA.dll -r:lib/FNA.dll.config -r:lib/Mono.Cecil.dll -r:lib/Mono.Cecil.Mdb.dll -r:lib/Mono.Cecil.Pdb.dll -r:lib/MonoMod.Backports.dll -r:lib/MonoMod.exe -r:lib/MonoMod.ILHelpers.dll -r:lib/MonoMod.RuntimeDetour.dll -r:lib/MonoMod.RuntimeDetour.HookGen.exe -r:lib/MonoMod.RuntimeDetour.HookGen.xml -r:lib/MonoMod.RuntimeDetour.xml -r:lib/MonoMod.Utils.dll -r:lib/MonoMod.Utils.xml -r:lib/MonoMod.xml -r:lib/TeuJson.dll -r:lib/TowerFall.FortRise.mm.dll
+mkbundle --cross mono-4.8.0-osx-10 FRInstaller.exe -o FRInstaller.osx
+

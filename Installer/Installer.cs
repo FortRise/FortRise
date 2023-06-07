@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using System;
 using System.Reflection;
 
-#if PLATFORM_OSX
-using MonoMod;
-using MonoMod.RuntimeDetour.HookGen;
-using Mono.Cecil;
-#endif
+// #if PLATFORM_OSX
+// using MonoMod;
+// using MonoMod.RuntimeDetour.HookGen;
+// using Mono.Cecil;
+// #endif
 
 #if ANSI
 using Spectre.Console;
@@ -147,38 +147,56 @@ public static class Installer
             await Task.Delay(1000);
             return;
         }
-
-
-
 #else
-        // Run MonoMod
-        try 
+        LoadAssembly(Path.Combine(path, "Mono.Cecil.dll"));
+        LoadAssembly(Path.Combine(path, "Mono.Cecil.Pdb.dll"));
+        LoadAssembly(Path.Combine(path, "Mono.Cecil.Mdb.dll"));
+        LoadAssembly(Path.Combine(path, "MonoMod.Utils.dll"));
+        LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.dll"));
+        AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.exe"));
+        AsmHookGen = LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.HookGen.exe"));
+
+        Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
+        int returnCode = (int) AsmMonoMod.EntryPoint.Invoke(null, new object[] { 
+            new string[] { Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MONOMODDED_TowerFall.exe") } });
+        if (returnCode != 0) 
         {
-            using var modder = new MonoModder() 
-            {
-                InputPath = Path.Combine(path, "TowerFall.exe"),
-                OutputPath = Path.Combine(path, "MONOMODDED_TowerFall.exe")
-            };
-            modder.Read();
-            modder.Log("[MMMain] Scanning for mods in directory.");
-            modder.ReadMod(path);
-
-            modder.MapDependencies();
-
-            modder.Log("[MMMain] modder.AutoPatch();");
-            modder.AutoPatch();
-
-            modder.Write();
-            modder.Log("[MMMain] Done.");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
             ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
             UnderlineInfo("Note that the TowerFall might be patched from other modloader");
-            await Task.Delay(1000);
+            await Task.Delay(1000);   
             return;
         }
+
+
+        // Run MonoMod
+        // try 
+        // {
+        //     using var modder = new MonoModder() 
+        //     {
+        //         InputPath = Path.Combine(path, "TowerFall.exe"),
+        //         OutputPath = Path.Combine(path, "MONOMODDED_TowerFall.exe"),
+        //         MissingDependencyThrow = false
+        //     };
+        //     modder.Read();
+        //     modder.Log("[MMMain] Scanning for mods in directory.");
+        //     modder.ReadMod(path);
+
+        //     modder.MapDependencies();
+
+        //     modder.Log("[MMMain] modder.AutoPatch();");
+        //     modder.AutoPatch();
+
+        //     modder.Write();
+        //     modder.Log("[MMMain] Done.");
+        // }
+        // catch (Exception e)
+        // {
+        //     Console.WriteLine(e);
+        //     ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
+        //     UnderlineInfo("Note that the TowerFall might be patched from other modloader");
+        //     await Task.Delay(1000);
+        //     return;
+        // }
 #endif
 
         Underline("Renaming the output");
@@ -203,37 +221,40 @@ public static class Installer
             ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
         }
 #else
-        try 
-        {
-            var output = Path.Combine(path, "MMHOOK_TowerFall.dll");
-            using var modder = new MonoModder() 
-            {
-                InputPath = Path.Combine(path, "TowerFall.exe"),
-                OutputPath = output
-            };
-            modder.Read();
-            modder.MapDependencies();
+        Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
+        AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { "--private", Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MMHOOK_TowerFall.dll") } });
 
-            if (File.Exists(output)) 
-            {
-                modder.Log($"[HookGen] Clearing {output}");
-                File.Delete(output);
-            }
+        // try 
+        // {
+        //     var output = Path.Combine(path, "MMHOOK_TowerFall.dll");
+        //     using var modder = new MonoModder() 
+        //     {
+        //         InputPath = Path.Combine(path, "TowerFall.exe"),
+        //         OutputPath = output
+        //     };
+        //     modder.Read();
+        //     modder.MapDependencies();
 
-            modder.Log("[HookGen] Starting HookGenerator");
-            HookGenerator gen = new HookGenerator(modder, Path.GetFileName(output));
-            ModuleDefinition mOut = gen.OutputModule;
-            {
-                gen.Generate();
-                mOut.Write(output);
-            }
-            modder.Log("[HookGen] Done.");
-        }
-        catch (Exception e) 
-        {
-            Console.WriteLine(e);
-            ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
-        }
+        //     if (File.Exists(output)) 
+        //     {
+        //         modder.Log($"[HookGen] Clearing {output}");
+        //         File.Delete(output);
+        //     }
+
+        //     modder.Log("[HookGen] Starting HookGenerator");
+        //     HookGenerator gen = new HookGenerator(modder, Path.GetFileName(output));
+        //     ModuleDefinition mOut = gen.OutputModule;
+        //     {
+        //         gen.Generate();
+        //         mOut.Write(output);
+        //     }
+        //     modder.Log("[HookGen] Done.");
+        // }
+        // catch (Exception e) 
+        // {
+        //     Console.WriteLine(e);
+        //     ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
+        // }
 #endif
         Yellow("Finalizing");
 
