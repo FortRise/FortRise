@@ -88,6 +88,7 @@ public static class patch_GameData
         var adventureTowerData = new AdventureWorldTowerData();
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
+            Logger.Verbose($"[Adventure] Added {directory} tower.");
             AdventureWorldTowers.Add(adventureTowerData);
             return true;
         }

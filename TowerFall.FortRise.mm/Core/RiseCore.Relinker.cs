@@ -55,7 +55,7 @@ public static partial class RiseCore
                         }
                         else 
                         {
-                            Logger.Log($"Found unknown {name}", Logger.LogLevel.Warning);
+                            Logger.Warning($"Found unknown {name}");
                             int dot = name.IndexOf(".");
                             if (dot < 0)
                                 continue;
@@ -68,7 +68,7 @@ public static partial class RiseCore
                                 relinked = ModuleDefinition.ReadModule(pathRelinked, new ReaderParameters(ReadingMode.Immediate));
                                 StaticRelinkModuleCache[nameRelinkedNeutral] = relinked;
                             }
-                            Logger.Log($"Remapped to {nameRelinked}", Logger.LogLevel.Info);
+                            Logger.Info($"Remapped to {nameRelinked}");
                             sharedRelinkModuleMap[nn] = relinked;
                         }
                     }
@@ -197,7 +197,7 @@ public static partial class RiseCore
                     }
                     else 
                     {
-                        Logger.Log($"Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}", Logger.LogLevel.Warning);
+                        Logger.Warning($"Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
                     }
                     return asm;
                 }

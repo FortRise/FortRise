@@ -77,6 +77,14 @@ public partial class patch_TFGame : TFGame
                     {
                         var debugMode = readed.Split(':')[1].Trim();
                         RiseCore.DebugMode = bool.Parse(debugMode);
+                        if (RiseCore.DebugMode && Logger.Verbosity < Logger.LogLevel.Error)
+                            Logger.Verbosity = Logger.LogLevel.Error;
+                    }
+                    if (readed.Contains("Verbose")) 
+                    {
+                        var verbose = readed.Split(':')[1].Trim();
+                        if (bool.Parse(verbose))
+                            Logger.Verbosity = Logger.LogLevel.Assert;
                     }
                     if (readed.Contains("Installer")) 
                     {

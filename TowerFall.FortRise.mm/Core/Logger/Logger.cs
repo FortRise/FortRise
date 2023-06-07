@@ -8,7 +8,7 @@ namespace FortRise;
 
 public static class Logger 
 {
-    public enum LogLevel { Debug, Warning, Error, Assert, Info }
+    public enum LogLevel { Info, Debug, Warning, Error, Verbose, Assert}
     private static StringBuilder builder = new();
     private static IConsole consoleWindow;
 
@@ -36,6 +36,7 @@ public static class Logger
             LogLevel.Assert => "[ASSERT]",
             LogLevel.Warning => "[WARNING]",
             LogLevel.Error => "[ERROR]",
+            LogLevel.Verbose => "[VERBOSE]",
             _ => "[INFO]"
         };
         var text = $"{logName} Ln: {lineNumber} {message}";
@@ -103,6 +104,52 @@ public static class Logger
         };
         
         LogInternal(LogLevel.Info, message, callerLineNumber);
+    }
+
+    public static void Warning(
+        string log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        LogInternal(LogLevel.Warning, log, callerLineNumber);
+    }
+
+
+    public static void Warning(
+        object log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        string message = log switch 
+        {
+            null => "null",
+            _ => log.ToString() ?? "null"
+        };
+        
+        LogInternal(LogLevel.Warning, message, callerLineNumber);
+    }
+
+    public static void Verbose(
+        string log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        LogInternal(LogLevel.Verbose, log, callerLineNumber);
+    }
+
+
+    public static void Verbose(
+        object log, 
+        [CallerLineNumber] int callerLineNumber = 0
+    ) 
+    {
+        string message = log switch 
+        {
+            null => "null",
+            _ => log.ToString() ?? "null"
+        };
+        
+        LogInternal(LogLevel.Verbose, message, callerLineNumber);
     }
 
     public static void Error(
