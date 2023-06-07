@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using FortRise;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
@@ -17,7 +18,6 @@ public static class patch_GameData
     public static Dictionary<string, Monocle.Texture> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
-    public static List<string> AdventureWorldTowersLoaded;
 
 
     public static extern void orig_Load();
@@ -25,7 +25,6 @@ public static class patch_GameData
     public static void Load() 
     {
         orig_Load();
-        WorldSaveData.Load(WorldSaveData.SavePath);
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
         ReloadCustomLevels();
         TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
@@ -58,8 +57,7 @@ public static class patch_GameData
         CustomTilesets.Clear();
         AdventureWorldTowers ??= new List<AdventureWorldTowerData>();
         AdventureWorldTowers.Clear();
-        AdventureWorldTowersLoaded ??= new List<string>();
-        AdventureWorldTowersLoaded.Clear();
+
         if (!Directory.Exists("AdventureWorldContent"))
             Directory.CreateDirectory("AdventureWorldContent");
         if (!Directory.Exists("AdventureWorldContent/Levels"))
@@ -70,16 +68,9 @@ public static class patch_GameData
             LoadAdventureLevelsParallel(directory2);
         }
 
-        if (File.Exists("adventureCache.json")) 
+        foreach (var adventurePath in AdventureModule.SaveData.LevelLocations) 
         {
-            var loadAdventurePath = JsonTextReader.FromFile("adventureCache.json").ConvertToListString();
-            if (loadAdventurePath == null)
-                return;    
-            foreach (var adventurePath in loadAdventurePath) 
-            {
-                if (LoadAdventureLevelsParallel(adventurePath))
-                    AdventureWorldTowersLoaded.Add(adventurePath);
-            }
+            LoadAdventureLevelsParallel(adventurePath);
         }
     }
 
@@ -160,7 +151,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
         Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
-        Stats = WorldSaveData.Instance.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
+        Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
 
         if (xmlElement.HasChild("lives")) 
         {

@@ -14,9 +14,11 @@ public sealed class AdventureListLoader : Entity
     private float tweenEnd;
     private bool finished;
     private Tween introTween;
+    private int startingID;
 
-    public AdventureListLoader(MapScene map) : base(0) 
+    public AdventureListLoader(MapScene map, int id) : base(0) 
     {
+        startingID = id;
         this.map = map;
         Depth = -100000;
         Visible = false;
@@ -64,8 +66,12 @@ public sealed class AdventureListLoader : Entity
                 map.Buttons.Add(button);
                 map.Add(button);
             }
+            if (startingID >= map.Buttons.Count) 
+            {
+                startingID = map.Buttons.Count - 1;
+            }
             map.LinkButtonsList();
-            map.InitButtons(map.Buttons[0]);
+            map.InitButtons(map.Buttons[startingID]);
             map.ScrollToButton(map.Selection);
             introTween.Stop();
             var start = Position;

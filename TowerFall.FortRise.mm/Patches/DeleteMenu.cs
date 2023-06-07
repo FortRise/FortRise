@@ -1,3 +1,5 @@
+using FortRise.Adventure;
+
 namespace TowerFall;
 
 public sealed class DeleteMenu : UIModal
@@ -15,9 +17,10 @@ public sealed class DeleteMenu : UIModal
         AddItem("YES", () => {
             var level = patch_GameData.AdventureWorldTowers[id];
             patch_GameData.AdventureWorldTowers.Remove(level);
-            patch_GameData.AdventureWorldTowersLoaded.Remove(level.StoredDirectory);
+            AdventureModule.SaveData.LevelLocations.Remove(level.StoredDirectory);
             patch_SaveData.AdventureActive = false;
-            UploadMapButton.SaveLoaded();
+            var saver = new Saver(true);
+            Scene.Add(saver);
             patch_GameData.ReloadCustomLevels();
             map.GotoAdventure();
             RemoveSelf();

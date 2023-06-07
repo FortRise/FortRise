@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TeuJson;
@@ -32,21 +33,19 @@ public sealed class UploadMapButton : patch_MapButton
     private void Load(string path) 
     {
         var selectedPath = path.Replace("\\", "/");
-        if (!patch_GameData.AdventureWorldTowersLoaded.Contains(selectedPath) && 
+        var loader = AdventureModule.SaveData.LevelLocations;
+        if (!loader.Contains(selectedPath) && 
             patch_GameData.LoadAdventureLevelsParallel(selectedPath))
         {
-            patch_GameData.AdventureWorldTowersLoaded.Add(selectedPath);
+            loader.Add(selectedPath);
             SaveLoaded();
         }
     }
 
-    internal static void SaveLoaded() 
+    internal void SaveLoaded() 
     {
-        var jArray = TeuJson.JsonUtility.ConvertToJsonArray(patch_GameData.AdventureWorldTowersLoaded)
-            .ToString(JsonTextWriterOptions.Default);
-        using var fs = File.Create("adventureCache.json");
-        using TextWriter tw = new StreamWriter(fs);
-        tw.Write(jArray);
+        var saver = new Saver(true);
+        Scene.Add(saver);
     }
 
     protected override List<Image> InitImages()

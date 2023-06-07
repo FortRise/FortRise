@@ -44,7 +44,6 @@ public abstract partial class FortModule
 
     internal void SaveData() 
     {
-        InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
         if (InternalSaveData == null)
             return;
 
@@ -55,13 +54,14 @@ public abstract partial class FortModule
 
     internal void LoadData() 
     {
+        InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
         if (InternalSaveData == null)
             return;
 
         var format = InternalSaveData.Formatter;
         format.SetPath(this);
-        format.Load();
-        InternalSaveData.Load(format);
+        if (format.Load())
+            InternalSaveData.Load(format);
     }
 
     public void LoadSettings() 

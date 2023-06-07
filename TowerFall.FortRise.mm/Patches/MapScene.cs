@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
@@ -61,19 +63,19 @@ public class patch_MapScene : MapScene
         list.Add(new MapButton[] { gotoAdventure, gotoAdventure, gotoAdventure });
     }
 
-    public void InitAdventure() 
+    public void InitAdventure(int id) 
     {
-        Add(new AdventureListLoader(this));
+        Add(new AdventureListLoader(this, id));
     }
 
-    public void GotoAdventure() 
+    public void GotoAdventure(int id = 0) 
     {
         patch_SaveData.AdventureActive = true;
         adventureLevels = true;
         WorkshopLevels = true;
         TweenOutAllButtonsAndRemove();
         Buttons.Clear();
-        InitAdventure();
+        InitAdventure(id);
     }
 
     public extern void orig_ExitWorkshop();
@@ -86,7 +88,7 @@ public class patch_MapScene : MapScene
             orig_ExitWorkshop();
     }
 
-    public void ExitAdventure() 
+    public void ExitAdventure(int id = 1) 
     {
         patch_SaveData.AdventureActive = false;
         adventureLevels = false;
@@ -102,7 +104,9 @@ public class patch_MapScene : MapScene
             }
         }
         this.LinkButtonsList();
-        InitButtons(Buttons[1]);
+        if (id >= Buttons.Count)
+            id = Buttons.Count - 1;
+        InitButtons(Buttons[id]);
         foreach (var button in Buttons)
             Add(button);
         ScrollToButton(Selection);
@@ -129,7 +133,7 @@ public class patch_MapScene : MapScene
             {
                 var id = Selection.Data.ID.X;
                 var level = patch_GameData.AdventureWorldTowers[id];
-                if (patch_GameData.AdventureWorldTowersLoaded.Contains(level.StoredDirectory)) 
+                if (AdventureModule.SaveData.LevelLocations.Contains(level.StoredDirectory)) 
                 {
                     Add(new DeleteMenu(this, id));
                     MapPaused = true;
@@ -140,17 +144,32 @@ public class patch_MapScene : MapScene
             }
             if (MenuInput.Up && !patch_SaveData.AdventureActive) 
             {
-                GotoAdventure();
+                var id = Buttons.IndexOf(Selection);
+                GotoAdventure(id);
+                if (Selection.Data == null)
+                {
+                    Renderer.OnSelectionChange("");
+                    return;
+                }
+                Renderer.OnSelectionChange(Selection.Data.Title);
             }
             else if (MenuInput.Down && patch_SaveData.AdventureActive) 
             {
-                ExitAdventure();
+                var id = Buttons.IndexOf(Selection);
+                ExitAdventure(id);
+                if (Selection.Data == null)
+                {
+                    Renderer.OnSelectionChange("");
+                    return;
+                }
+                Renderer.OnSelectionChange(Selection.Data.Title);
             }
 
             if (MInput.Keyboard.Pressed(Keys.F5)) 
             {
+                var id = Buttons.IndexOf(Selection);
                 patch_GameData.ReloadCustomLevels();
-                GotoAdventure();
+                GotoAdventure(id);
             }
         }
         orig_Update();

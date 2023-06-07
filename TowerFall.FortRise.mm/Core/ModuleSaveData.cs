@@ -36,10 +36,13 @@ public abstract class SaveDataFormat
     internal void SetPath(FortModule module) 
     {
         SavePath = Path.Combine("Saves", module.ID, $"{module.Name}.saveData.{FileExtension}");
+        if (!Directory.Exists(SavePath))    
+            Directory.CreateDirectory(Path.GetDirectoryName(SavePath));
     }
 
     public abstract void Save();
-    public abstract void Load();
+    public abstract bool Load();
+    public abstract ClosedFormat Close();
     public abstract ClosedFormat Close(object obj);
 
 }
@@ -57,22 +60,23 @@ public class JsonBinarySaveDataFormat : JsonSaveDataFormat
 {
     public override string FileExtension => "bin";
 
-    public override void Load()
+    public override bool Load()
     {
         if (!File.Exists(SavePath))
-            return;
-        BaseObject = JsonBinaryReader.FromFile(SavePath).AsJsonObject;
+            return false;
+        BaseValue = JsonBinaryReader.FromFile(SavePath).AsJsonObject;
+        return true;
     }
 
     public override void Save()
     {
-        JsonBinaryWriter.WriteToFile(SavePath, BaseObject);
+        JsonBinaryWriter.WriteToFile(SavePath, BaseValue);
     }
 }
 
 public class JsonSaveDataFormat : SaveDataFormat
 {
-    protected JsonObject BaseObject;
+    protected JsonValue BaseValue;
 
     public override string FileExtension => "json";
 
@@ -80,34 +84,40 @@ public class JsonSaveDataFormat : SaveDataFormat
     {
     }
 
-    public override void Load()
+    public override bool Load()
     {
         if (!File.Exists(SavePath))
-            return;
-        BaseObject = JsonTextReader.FromFile(SavePath).AsJsonObject;
+            return false;
+        BaseValue = JsonTextReader.FromFile(SavePath);
+        return true;
     }
 
     public override void Save()
     {
-        JsonTextWriter.WriteToFile(SavePath, BaseObject);
+        JsonTextWriter.WriteToFile(SavePath, BaseValue);
     }
 
-    public JsonValue GetJsonObject() => BaseObject;
+    public JsonValue GetJsonObject() => BaseValue;
 
     public ClosedFormat Close(JsonObject obj) 
     {
-        BaseObject = obj;
+        BaseValue = obj;
         return new ClosedFormat(this);
     }
 
     public override ClosedFormat Close(object obj)
     {
-        if (obj is not JsonObject)
+        if (obj is not JsonValue)
         {
-            Logger.Error("Close object must be of type JsonObject.");
+            Logger.Error("Close object must be of type JsonValue.");
             return new ClosedFormat(this);
         }
-        BaseObject = (JsonObject)obj;
+        BaseValue = (JsonValue)obj;
+        return Close();
+    }
+
+    public override ClosedFormat Close()
+    {
         return new ClosedFormat(this);
     }
 }

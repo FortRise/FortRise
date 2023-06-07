@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Xml;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using MonoMod;
 using MonoMod.Utils;
@@ -66,16 +67,11 @@ public static partial class RiseCore
             Types = Array.Empty<Type>();
             return;
         }
+        new AdventureModule().Register();
 
         new NoModule(new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
-        }).Register();
-
-        new NoModule(new ModuleMetadata() {
-            Name = "Adventure",
-            Author = "Terria",
-            Version = new Version(2, 0, 0)
         }).Register();
 
         int i = 0;
