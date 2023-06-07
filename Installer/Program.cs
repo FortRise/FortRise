@@ -9,7 +9,7 @@ using Spectre.Console;
 
 internal class Program 
 {
-    public static string Version = "1.0.0";
+    public static string? Version = "1.0.0";
     public static bool DebugMode = false;
 
     [STAThread]
