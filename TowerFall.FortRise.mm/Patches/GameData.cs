@@ -24,11 +24,13 @@ public static class patch_GameData
 
     public static void Load() 
     {
+        RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
         ReloadCustomLevels();
         TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
         patch_MapScene.FixedStatic();
+        RiseCore.Events.Invoke_OnAfterDataLoad();
     }
 
     public static void ReloadCustomLevels() 

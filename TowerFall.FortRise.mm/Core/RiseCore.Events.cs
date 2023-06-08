@@ -25,6 +25,18 @@ public static partial class RiseCore
             OnLevelExited?.Invoke();
         }
 
+        public static event Action OnBeforeDataLoad;
+        internal static void Invoke_OnBeforeDataLoad()  
+        {
+            OnBeforeDataLoad?.Invoke();
+        }
+
+        public static event Action OnAfterDataLoad;
+        internal static void Invoke_OnAfterDataLoad()  
+        {
+            OnAfterDataLoad?.Invoke();
+        }
+
         public static event Action OnPreInitialize;
         public static event Action OnPostInitialize;
         internal static void Invoke_OnPreInitialize() 
