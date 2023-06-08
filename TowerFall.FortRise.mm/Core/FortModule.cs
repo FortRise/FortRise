@@ -52,6 +52,14 @@ public abstract partial class FortModule
         format.Save();
     }
 
+    internal void VerifyData() 
+    {
+        if (InternalSaveData == null)
+            return;
+
+        InternalSaveData.Verify();
+    }
+
     internal void LoadData() 
     {
         InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());

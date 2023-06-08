@@ -13,6 +13,8 @@ public abstract class ModuleSaveData
 
     public abstract ClosedFormat Save(FortModule fortModule);
     public abstract void Load(SaveDataFormat formatter);
+
+    public virtual void Verify() {}
 }
 
 

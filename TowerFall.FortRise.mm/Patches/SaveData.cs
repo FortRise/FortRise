@@ -29,4 +29,15 @@ public class patch_SaveData : SaveData
         }
         return orig_Load();
     }
+
+    public extern void orig_Verify();
+
+    public void Verify() 
+    {
+        orig_Verify();
+        foreach (var module in RiseCore.InternalModules) 
+        {
+            module.VerifyData();
+        }
+    }
 }
