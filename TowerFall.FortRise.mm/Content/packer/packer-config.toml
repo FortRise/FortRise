@@ -1,0 +1,16 @@
+name = "menuatlas"
+output_path = "../Atlas"
+output_type = "Json"
+template_path = ["template.xml"]
+folders = [
+    "mmg"
+]
+
+[image_options]
+output_extension = "Png"
+max_size = 4096
+show_extension = false
+
+[features]
+nine_patch = false
+

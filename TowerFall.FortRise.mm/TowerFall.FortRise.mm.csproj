@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Content\Atlas\**\*">
+      <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Windows.Forms"/>
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>

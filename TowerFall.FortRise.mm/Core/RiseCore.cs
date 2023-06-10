@@ -288,6 +288,9 @@ public static partial class RiseCore
         module.InternalLoad();
         module.LoadContent();
         module.Enabled = true;
+        try 
+        {
+
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
@@ -500,6 +503,11 @@ public static partial class RiseCore
                 Loaded:
                 LevelEntityLoader.Add(name, loader);
             }
+        }
+        }
+        catch (Exception e) 
+        {
+            Logger.Log(e.ToString());
         }
     }
 

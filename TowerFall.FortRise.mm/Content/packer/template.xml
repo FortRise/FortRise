@@ -1,0 +1,5 @@
+<TextureAtlas imagePath="{{atlas.sheet_path}}">
+  {{#each atlas.frames as frame}}
+  <SubTexture name="{{@key}}" x="{{this.x}}" y="{{this.y}}" width="{{this.width}}" height="{{this.height}}"/>
+  {{/each}}
+</TextureAtlas>

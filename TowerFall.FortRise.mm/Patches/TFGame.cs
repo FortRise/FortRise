@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FortRise;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
@@ -26,6 +27,8 @@ internal static class NativeMethods
 public partial class patch_TFGame : TFGame
 {
     private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+
+    public static patch_Atlas FortRiseMenuAtlas;
 
 
     private bool noIntro;
@@ -99,7 +102,6 @@ public partial class patch_TFGame : TFGame
                 Logger.Log("Please report this bug", Logger.LogLevel.Warning);
                 RiseCore.DebugMode = true;
             }
-
         }
         if (RiseCore.DebugMode) 
         {
@@ -123,9 +125,18 @@ public partial class patch_TFGame : TFGame
                 Logger.Error(e.ToString());
             }
         }
+
         orig_Main(args);
         Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
+    }
+
+    protected extern void orig_LoadContent();
+
+    protected override void LoadContent()
+    {
+        orig_LoadContent();
+        FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content\\Atlas\\menuatlas.xml", "Content\\Atlas\\menuatlas.png");
     }
 
     protected extern void orig_Initialize();

@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using FortRise;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
 
 namespace Monocle;
@@ -12,6 +14,15 @@ public class patch_Atlas : Texture
 {
     private string xmlPath;
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
+
+    public Subtexture this[string name]
+    {
+        [MonoModIgnore]
+        get
+        {
+            return this.SubTextures[name];
+        }
+    }
 
     internal void SetXMLPath(string xmlPath) 
     {
@@ -34,6 +45,9 @@ public class patch_Atlas : Texture
 
     [MonoModConstructor]
     internal void ctor() {}
+
+    [MonoModIgnore]
+    public extern bool Contains(string name);
 
 
     [Obsolete("Use the AtlasExt.CreateAtlas instead")]
@@ -76,10 +90,42 @@ public class patch_Atlas : Texture
         }
         return atlas;
     }
+
+    internal void LoadStream(Stream fs) 
+    {
+        Texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
+        Rect = new Rectangle(0, 0, this.Texture2D.Width, this.Texture2D.Height);
+    }
 }
 
 public static class AtlasExt 
 {
+    internal static patch_Atlas CreateAtlasFromEmbedded(string xmlPath, string imagePath) 
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        using Stream xmlStream = assembly.GetManifestResourceStream(xmlPath);
+        using Stream imageStream = assembly.GetManifestResourceStream(imagePath);
+
+        using var streamReader = new StreamReader(xmlStream);
+        var xmlDocument = new XmlDocument();
+        xmlDocument.LoadXml(streamReader.ReadToEnd());
+
+        XmlNodeList elementsByTagName = xmlDocument["TextureAtlas"].GetElementsByTagName("SubTexture");
+        var atlas = new patch_Atlas();
+
+        atlas.SetXMLPath(xmlPath);
+        atlas.SetImagePath(imagePath);
+        atlas.SetSubTextures(new Dictionary<string, Subtexture>(elementsByTagName.Count));
+        foreach (XmlElement item in elementsByTagName)
+        {
+            XmlAttributeCollection attributes = item.Attributes;
+            atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
+        }
+        atlas.LoadStream(imageStream);
+        
+        return atlas;
+    }
+
     public static patch_Atlas CreateAtlas(this FortContent content, string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
     {
         switch (access) 
