@@ -93,6 +93,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 {
     public string StoredDirectory;
     public string Author;
+    public bool Procedural;
     public int StartingLives = -1;
     public int[] MaxContinues = new int[3] { -1, -1, -1 };
     public string[] RequiredMods;
@@ -159,6 +160,8 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             StartingLives = int.Parse(xmlElement["lives"].InnerText);
         }
+        if (xmlElement.HasChild("procedural"))
+            Procedural = bool.Parse(xmlElement["procedural"].InnerText);
         if (xmlElement.HasChild("continues")) 
         {
             var continues = xmlElement["continues"];

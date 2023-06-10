@@ -12,6 +12,18 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
     {
     }
 
+    public override bool Procedural 
+    {
+        get 
+        {
+            if (DarkWorldTowerData is AdventureWorldTowerData towerData) 
+            {
+                return towerData.Procedural;
+            }
+            return false;
+        }
+    }
+
     [MonoModIgnore]
     public DarkWorldTowerData DarkWorldTowerData { get; private set; }
 
