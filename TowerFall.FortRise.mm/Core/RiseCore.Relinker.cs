@@ -105,7 +105,7 @@ public static partial class RiseCore
                     Type[] types = asm.GetExportedTypes();
                     for (int k = 0; k < types.Length; k++) 
                     {
-                        var type = types[i];
+                        var type = types[k];
                         var typeDef = module.GetType(type.FullName) ?? module.GetType(type.FullName.Replace('+', '/'));
                         if (typeDef == null)
                             continue;
@@ -279,6 +279,7 @@ public static partial class RiseCore
                     ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.Auto;
                 }
 
+                modder.MapDependencies();
                 if (runtimeRulesModule == null) 
                 {
                     string rulesPath = Path.Combine(
@@ -301,7 +302,6 @@ public static partial class RiseCore
                     }
                 }
 
-                modder.MapDependencies();
                 modder.MapDependencies(runtimeRulesModule);
                 var runtimeRulesType = runtimeRulesModule.GetType("MonoMod.MonoModRules");
                 modder.ParseRules(runtimeRulesModule);
