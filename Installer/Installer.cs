@@ -315,19 +315,6 @@ public static class Installer
             File.Delete(lib);
         }
 
-        Underline("Deleting the fna libraries from the TowerFall root folder");
-
-        foreach (var file in fnaLibs) 
-        {
-            var lib = Path.Combine(path, file);
-            if (!File.Exists(lib)) 
-            {
-                continue;
-            }
-
-            File.Delete(lib);
-        }
-
         Underline("Deleting the mod");
 
         var fortRiseDll = Path.Combine(path, modFile);
