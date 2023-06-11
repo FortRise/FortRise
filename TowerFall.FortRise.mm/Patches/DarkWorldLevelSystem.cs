@@ -1,3 +1,4 @@
+using System;
 using System.Xml;
 using FortRise;
 using Monocle;
@@ -42,14 +43,27 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
     [MonoModReplace]
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)
     {
-        int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
-        randomSeed = file;
-        var levelFile = DarkWorldTowerData.Levels[file];
-        if (DarkWorldTowerData is AdventureWorldTowerData worldData && levelFile.EndsWith("json")) 
+        try 
         {
-            return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(worldData.Levels[file]))["level"];
+            if (Procedural) 
+            {
+                matchSettings.RandomLevelSeed = new Random().Next(1000000000);
+            }
+            int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
+            randomSeed = file;
+            var levelFile = DarkWorldTowerData.Levels[file];
+            if (DarkWorldTowerData is AdventureWorldTowerData worldData && levelFile.EndsWith("json")) 
+            {
+                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(worldData.Levels[file]))["level"];
+            }
+            return Calc.LoadXML(DarkWorldTowerData.Levels[file])["level"];
         }
-        return Calc.LoadXML(DarkWorldTowerData.Levels[file])["level"];
+        catch (Exception e)
+        {
+            ErrorHelper.StoreException("Missing Level", e);
+            randomSeed = 0;
+            return null;
+        }
     }
 
     [MonoModIgnore]
