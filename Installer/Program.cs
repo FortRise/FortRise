@@ -11,6 +11,7 @@ internal class Program
 {
     public static string? Version = "1.0.0";
     public static bool DebugMode = false;
+    public static bool FNA = true;
 
     [STAThread]
     public async static Task Main(string[] args) 
@@ -36,11 +37,24 @@ internal class Program
             }
             if (args.Length > 2 && args[3] == "--debug") 
             {
-                DebugMode = true;
+                for (int i = 3; i < 6; i++) 
+                {
+                    var arg = args[i];
+                    switch (arg) 
+                    {
+                    case "--debug":
+                        DebugMode = true;
+                        break;
+                    case "--fna":
+                        FNA = true;
+                        break;
+                    }
+                }
             }
         }
 
 #if ANSI
+        Load();
         var panel = new Panel("FortRise Installer v" + Version) {
             Border = BoxBorder.Rounded,
             Padding = new Padding(2, 2, 2, 2),
@@ -55,7 +69,7 @@ internal class Program
                 new SelectionPrompt<MenuState>()
                     .Title("[underline]Main Menu[/]")
                     .PageSize(10)
-                    .AddChoices(new [] { MenuState.Patch, MenuState.Unpatch, MenuState.Quit})
+                    .AddChoices(new [] { MenuState.Patch, MenuState.Unpatch, MenuState.Settings, MenuState.Quit})
             );
 
             switch (stateSelection) 
@@ -66,6 +80,9 @@ internal class Program
             case MenuState.Unpatch:
                 await StateUnpatch();
                 break;
+            case MenuState.Settings:
+                OpenSettings();
+                break;
             case MenuState.Quit:
                 goto End;
             }
@@ -75,6 +92,54 @@ internal class Program
 #endif
     }
 #if ANSI
+    public static void OpenSettings() 
+    {
+        while (true) 
+        {
+            var settingsSelection = AnsiConsole.Prompt(
+                new SelectionPrompt<SettingsState>()
+                    .Title($"[underline]Settings[/]\nFNA: {(FNA ? "ON" : "OFF")}\nDebug: {(DebugMode ? "ON" : "OFF")}")
+                    .PageSize(10)
+                    .AddChoices(new [] { SettingsState.Debug, SettingsState.FNA, SettingsState.Quit })
+            );
+
+            switch (settingsSelection) 
+            {
+            case SettingsState.Debug:
+                DebugMode = !DebugMode;
+                Save();
+                continue;
+            case SettingsState.FNA:
+                FNA = !FNA;
+                Save();
+                continue;
+            case SettingsState.Quit:
+                goto End;
+            }
+            End:
+            break;
+        }
+    }
+
+    public static void Save() 
+    {
+        var json = new TeuJson.JsonObject() 
+        {
+            ["FNA"] = FNA,
+            ["DEBUG"] = DebugMode
+        };
+        TeuJson.JsonTextWriter.WriteToFile("options.json", json);
+    }
+
+    public static void Load() 
+    {
+        if (!File.Exists("options.json"))
+            return;
+        var json = TeuJson.JsonTextReader.FromFile("options.json");
+        FNA = json["FNA"];
+        DebugMode = json["DEBUG"];
+    }
+
     public static async Task StateUnpatch() 
     {
         AnsiConsole.MarkupLine("Select a TowerFall directory to unpatch");
@@ -154,6 +219,14 @@ public enum MenuState
 {
     Patch,
     Unpatch,
+    Settings,
+    Quit
+}
+
+public enum SettingsState
+{
+    Debug,
+    FNA,
     Quit
 }
 #endif

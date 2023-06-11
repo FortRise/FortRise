@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -66,6 +67,7 @@ internal static partial class MonoModRules
     private static bool IsWindows;
     private static Version Version;
     private static bool IsMod;
+    private static bool IsFNA = true;
     public static readonly ModuleDefinition RulesModule;
     public static string ExecModName;
 
@@ -90,10 +92,23 @@ internal static partial class MonoModRules
         MonoModRule.Modder.PostProcessors += PostProcessor;
         IsMod = !MonoModRule.Modder.Mods.Contains(RulesModule);
 
+        try 
+        {
+            using var fs = File.OpenRead("PatchVersion.txt");
+            using StreamReader sr = new StreamReader(fs);
+            var lines = sr.ReadToEnd().Split('\n');
+            ParseArgs(lines);
+        }
+        catch 
+        {
+            // No-Op
+        }
+
+
         if (IsMod) 
         {
             Console.WriteLine("Mod Relinking");
-            if (RelinkAgainstFNA(MonoModRule.Modder))
+            if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
                 Console.WriteLine("Relinked with FNA");
             return;
         }
@@ -169,7 +184,7 @@ internal static partial class MonoModRules
 
         Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
 
-        if (RelinkAgainstFNA(MonoModRule.Modder))
+        if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
             Console.WriteLine("[FortRise] Relinking to FNA");
 
         static void VisitType(TypeDefinition type) {
@@ -187,6 +202,22 @@ internal static partial class MonoModRules
         foreach (TypeDefinition type in MonoModRule.Modder.Module.Types)
             VisitType(type);
     }
+
+    public static void ParseArgs(string[] lines) 
+    {
+        foreach (var line in lines) 
+        {
+            var split = line.Split(':');
+            switch (split[0]) 
+            {
+            case "FNA":
+                var isTrue = bool.Parse(split[1]);
+                IsFNA = isTrue;
+                break;
+            }
+        }
+    }
+
     public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name) 
     { 
         System.Reflection.AssemblyName asmName = null;

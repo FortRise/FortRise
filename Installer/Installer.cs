@@ -73,6 +73,21 @@ public static class Installer
 #endif
         }
 
+        Underline("Writing the version file");
+
+        var sb = new StringBuilder();
+        sb.AppendLine("TF Version: " + TowerFallVersion);
+        sb.AppendLine("Installer Version: " + Program.Version);
+        sb.AppendLine("Debug Mode: " + Program.DebugMode);
+        sb.AppendLine("FNA: " + Program.FNA);
+        var text = sb.ToString();
+#if PLATFORM_OSX
+        File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
+#else
+        await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
+        await File.WriteAllTextAsync("PatchVersion.txt", sb.ToString());
+#endif
+
         var fortOrigPath = Path.Combine(path, "fortOrig");
 
         if (File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe"))) 
@@ -117,19 +132,22 @@ public static class Installer
         }
 
 #if !PLATFORM_OSX
-        Underline("Copying needed FNA libs");
-        if (!Directory.Exists(Path.Combine(libPath, "x86")))
-            Directory.CreateDirectory(Path.Combine(libPath, "x86"));
-        foreach (var file in fnaLibs) 
+        if (Program.FNA) 
         {
-            var lib = Path.Combine(libPath, "x86", file);
-            if (!File.Exists(lib)) 
+            Underline("Copying needed FNA libs");
+            if (!Directory.Exists(Path.Combine(libPath, "x86")))
+                Directory.CreateDirectory(Path.Combine(libPath, "x86"));
+            foreach (var file in fnaLibs) 
             {
-                ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
-                continue;
-            }
+                var lib = Path.Combine(libPath, "x86", file);
+                if (!File.Exists(lib)) 
+                {
+                    ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
+                    continue;
+                }
 
-            File.Copy(lib, Path.Combine(path, "x86", Path.GetFileName(lib)), true);
+                File.Copy(lib, Path.Combine(path, "x86", Path.GetFileName(lib)), true);
+            }
         }
 #endif
 
@@ -170,37 +188,6 @@ public static class Installer
             await Task.Delay(1000);   
             return;
         }
-
-
-        // Run MonoMod
-        // try 
-        // {
-        //     using var modder = new MonoModder() 
-        //     {
-        //         InputPath = Path.Combine(path, "TowerFall.exe"),
-        //         OutputPath = Path.Combine(path, "MONOMODDED_TowerFall.exe"),
-        //         MissingDependencyThrow = false
-        //     };
-        //     modder.Read();
-        //     modder.Log("[MMMain] Scanning for mods in directory.");
-        //     modder.ReadMod(path);
-
-        //     modder.MapDependencies();
-
-        //     modder.Log("[MMMain] modder.AutoPatch();");
-        //     modder.AutoPatch();
-
-        //     modder.Write();
-        //     modder.Log("[MMMain] Done.");
-        // }
-        // catch (Exception e)
-        // {
-        //     Console.WriteLine(e);
-        //     ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
-        //     UnderlineInfo("Note that the TowerFall might be patched from other modloader");
-        //     await Task.Delay(1000);
-        //     return;
-        // }
 #endif
 
         Underline("Renaming the output");
@@ -209,6 +196,8 @@ public static class Installer
         File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.pdb"), Path.Combine(path, "TowerFall.pdb"), true);
         File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.exe"));
         File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
+
+        Yellow("Finalizing");
 
 #if !PLATFORM_OSX
         Underline("Running HookGen");
@@ -227,60 +216,8 @@ public static class Installer
 #else
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
         AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { "--private", Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MMHOOK_TowerFall.dll") } });
-
-        // try 
-        // {
-        //     var output = Path.Combine(path, "MMHOOK_TowerFall.dll");
-        //     using var modder = new MonoModder() 
-        //     {
-        //         InputPath = Path.Combine(path, "TowerFall.exe"),
-        //         OutputPath = output
-        //     };
-        //     modder.Read();
-        //     modder.MapDependencies();
-
-        //     if (File.Exists(output)) 
-        //     {
-        //         modder.Log($"[HookGen] Clearing {output}");
-        //         File.Delete(output);
-        //     }
-
-        //     modder.Log("[HookGen] Starting HookGenerator");
-        //     HookGenerator gen = new HookGenerator(modder, Path.GetFileName(output));
-        //     ModuleDefinition mOut = gen.OutputModule;
-        //     {
-        //         gen.Generate();
-        //         mOut.Write(output);
-        //     }
-        //     modder.Log("[HookGen] Done.");
-        // }
-        // catch (Exception e) 
-        // {
-        //     Console.WriteLine(e);
-        //     ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
-        // }
-#endif
-        Yellow("Finalizing");
-
-        Underline("Writing the version file");
-
-        bool debugMode = Program.DebugMode;
-#if ANSI
-        debugMode = AnsiConsole.Confirm("Do you want to run in debug mode?", false);
-#else
-        Console.WriteLine("Run it in Debug Mode by modifying the PatchVersion.txt file");
 #endif
 
-        var sb = new StringBuilder();
-        sb.AppendLine("TF Version: " + TowerFallVersion);
-        sb.AppendLine("Installer Version: " + Program.Version);
-        sb.AppendLine("Debug Mode: " + debugMode);
-        var text = sb.ToString();
-#if PLATFORM_OSX
-        File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
-#else
-        await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
-#endif
 
         Succeed("Installed");
     }

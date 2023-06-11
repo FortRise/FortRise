@@ -5,7 +5,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants>ANSI</DefineConstants>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Nullable>enable</Nullable>
     <PublishAOT>true</PublishAOT>
   </PropertyGroup>
@@ -20,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.46.0" />
+    <PackageReference Include="TeuJson" Version="3.1.2" />
   </ItemGroup>
 
   <ItemGroup>

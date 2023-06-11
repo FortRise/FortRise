@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer.NoAnsi.OSX", "Installer.NoAnsi.OSX.csproj", "{831FD1F4-36A5-453A-8143-CB8F39861EED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer.csproj", "{BCC58551-77AB-4944-885C-CC5C4B6C2DC7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{831FD1F4-36A5-453A-8143-CB8F39861EED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{831FD1F4-36A5-453A-8143-CB8F39861EED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{831FD1F4-36A5-453A-8143-CB8F39861EED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCC58551-77AB-4944-885C-CC5C4B6C2DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCC58551-77AB-4944-885C-CC5C4B6C2DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCC58551-77AB-4944-885C-CC5C4B6C2DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCC58551-77AB-4944-885C-CC5C4B6C2DC7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

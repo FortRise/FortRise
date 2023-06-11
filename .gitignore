@@ -10,5 +10,7 @@ Installer/lib/**/*.pdb
 Installer/lib-old/
 artifacts/
 lib-stripped/TestDep
+PatchVersion.txt
+options.json
 
 *.malfunc.*
