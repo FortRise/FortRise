@@ -21,7 +21,6 @@ public static partial class RiseCore
     public static class Relinker 
     {
         private static bool temporaryASM;
-        private static bool runtimeRulesParsed;
         private static ModuleMetadata currentMetaRelinking;
         public static List<Assembly> RelinkedAssemblies = new();
         private static Dictionary<string, ModuleDefinition> relinkedModules = new ();
@@ -142,6 +141,8 @@ public static partial class RiseCore
                 modder = value;
             }
         }
+
+        private static ModuleDefinition runtimeRulesModule;
 
         public static Assembly GetRelinkedAssembly(
             ModuleMetadata meta, string pathToAssembly, Stream stream) 
@@ -278,13 +279,8 @@ public static partial class RiseCore
                     ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.Auto;
                 }
 
-
-                modder.MapDependencies();
-
-                if (!runtimeRulesParsed) 
+                if (runtimeRulesModule == null) 
                 {
-                    runtimeRulesParsed = true;
-
                     string rulesPath = Path.Combine(
                         Path.GetDirectoryName(typeof(TFGame).Assembly.Location),
                         Path.GetFileNameWithoutExtension(typeof(TFGame).Assembly.Location) + ".FortRise.mm.dll");
@@ -301,11 +297,16 @@ public static partial class RiseCore
 
                     if (File.Exists(rulesPath)) 
                     {
-                        var rulesDef = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
-                        modder.ParseRules(rulesDef);
-                        rulesDef.Dispose();
+                        runtimeRulesModule = ModuleDefinition.ReadModule(rulesPath, new ReaderParameters(ReadingMode.Immediate));
                     }
                 }
+
+                modder.MapDependencies();
+                modder.MapDependencies(runtimeRulesModule);
+                var runtimeRulesType = runtimeRulesModule.GetType("MonoMod.MonoModRules");
+                modder.ParseRules(runtimeRulesModule);
+                if (runtimeRulesType != null)
+                    runtimeRulesModule.Types.Add(runtimeRulesType);
 
                 modder.ParseRules(modder.Module);
                 modder.AutoPatch();
