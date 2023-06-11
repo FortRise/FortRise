@@ -116,6 +116,7 @@ public static class Installer
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 
+#if !PLATFORM_OSX
         Underline("Copying needed FNA libs");
         if (!Directory.Exists(Path.Combine(libPath, "x86")))
             Directory.CreateDirectory(Path.Combine(libPath, "x86"));
@@ -130,6 +131,7 @@ public static class Installer
 
             File.Copy(lib, Path.Combine(path, "x86", Path.GetFileName(lib)), true);
         }
+#endif
 
         Underline("Patching TowerFall");
 
