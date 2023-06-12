@@ -135,8 +135,8 @@ public static class Installer
         if (Program.FNA) 
         {
             Underline("Copying needed FNA libs");
-            if (!Directory.Exists(Path.Combine(libPath, "x86")))
-                Directory.CreateDirectory(Path.Combine(libPath, "x86"));
+            if (!Directory.Exists(Path.Combine(path, "x86")))
+                Directory.CreateDirectory(Path.Combine(path, "x86"));
             foreach (var file in fnaLibs) 
             {
                 var lib = Path.Combine(libPath, "x86", file);
