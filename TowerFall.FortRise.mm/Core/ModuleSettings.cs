@@ -84,3 +84,14 @@ public class SettingsNumberAttribute : Attribute
         Step = step;
     }
 }
+
+[AttributeUsage(AttributeTargets.Field)]
+public class SettingsOptionsAttribute : Attribute 
+{
+    public string[] Options;
+
+    public SettingsOptionsAttribute(params string[] options) 
+    {
+        Options = options;
+    }
+}

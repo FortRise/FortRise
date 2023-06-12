@@ -111,12 +111,13 @@ public abstract partial class FortModule
             var name = field.Name;
             var fieldType = field.FieldType;
             SettingsNumberAttribute attrib = null;
+            SettingsOptionsAttribute optAttrib = null;
 
             var ownName = field.GetCustomAttribute<SettingsNameAttribute>();
             if (ownName != null)
                 name = ownName.Name;
 
-            var fullName = $"{name}".ToUpper();
+            var fullName = $"{name}".ToUpperInvariant();
 
             if (fieldType == typeof(bool)) 
             {
@@ -137,6 +138,25 @@ public abstract partial class FortModule
                     var action = (Action)field.GetValue(settings);
                     action();
                 });
+                optionsList.Add(optionButton);
+            }
+            else if ((fieldType == typeof(int)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
+            {
+                var optionButton = new OptionsButton(fullName);
+                optionButton.SetCallbacks(() => {
+                    var value = (int)field.GetValue(settings);
+                    optionButton.State = optAttrib.Options[value].ToUpperInvariant();
+                    optionButton.CanLeft = (value > 0);
+                    optionButton.CanRight = (value < optAttrib.Options.Length - 1);
+                }, () => {
+                    var value = (int)field.GetValue(settings);
+                    value -= 1;
+                    field.SetValue(settings, value);
+                }, () => {
+                    var value = (int)field.GetValue(settings);
+                    value += 1;
+                    field.SetValue(settings, value);
+                }, null);
                 optionsList.Add(optionButton);
             }
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) && 
