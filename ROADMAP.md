@@ -26,6 +26,10 @@ These are the following roadmap that are planned or completed:
 - [x] Custom bg for adventure maps.
 - [x] Mod Relinker.
 
+### v4.0.0
+- [x] FNA.
+
+
 ### Current:
 - [ ] Support .zip files for loading mods.
 - [ ] Debug Tower maps.
@@ -33,7 +37,6 @@ These are the following roadmap that are planned or completed:
 - [ ] Disable/Enable mods.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
-- [x] FNA.
 
 ### Need Testing:
 - [ ] Custom level entity.
