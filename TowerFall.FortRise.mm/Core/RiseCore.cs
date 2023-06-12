@@ -41,9 +41,11 @@ public static partial class RiseCore
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
     public static Dictionary<ArrowTypes, ArrowInfoLoader> PickupGraphicArrows = new();
 
-    public static ReadOnlyCollection<FortModule> Modules => InternalModules.AsReadOnly();
-    internal static List<FortModule> InternalModules = new();
+    public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
+    public static ReadOnlyCollection<ModuleMetadata> Mods => InternalMods.AsReadOnly();
+    internal static List<FortModule> InternalFortModules = new();
     internal static HashSet<string> ModuleGuids = new();
+    internal static List<ModuleMetadata> InternalMods = new();
 
     public static List<string> DetourLogs = new List<string>();
     public static Version FortRiseVersion;
@@ -95,7 +97,7 @@ public static partial class RiseCore
             if (string.IsNullOrEmpty(name?.Name))
                 return null;
 
-            foreach (var mod in InternalModules) 
+            foreach (var mod in InternalFortModules) 
             {
                 var meta = mod.Meta;
                 if (meta == null)
@@ -164,13 +166,16 @@ public static partial class RiseCore
                 Description = description,
                 Author = author,
                 FortRiseVersion = requiredVersion,
-                DLL = Path.GetFullPath(Path.Combine(dir, dll)),
+                DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : "",
                 PathDirectory = dir,
                 Dependencies = dependencies,
                 NativePath = nativePath,
                 NativePathX86 = nativePathX86
             };
 
+            InternalMods.Add(moduleMetadata);
+
+            // Assembly Mod Loading
             if (dll == null) 
                 continue;
             
@@ -182,16 +187,30 @@ public static partial class RiseCore
 
             var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
             GetModuleTypes(moduleMetadata, asm, i++);
-            // ResolveEventHandler resolver = (object o, ResolveEventArgs args) => {
-            //     string asmPath = Path.Combine(dir, new AssemblyName(args.Name).Name + ".dll");
-            //     if (!File.Exists(asmPath))
-            //         return null;
-            //     return Assembly.LoadFrom(asmPath);
-            // };
-            // AppDomain.CurrentDomain.AssemblyResolve += resolver;
-            // var assembly = Assembly.LoadFrom(pathToAssembly);
-            // GetModuleTypes(moduleMetadata, assembly, i++);
-            // AppDomain.CurrentDomain.AssemblyResolve -= resolver;
+        }
+    }
+
+    private static void GetModuleTypes(ModuleMetadata metadata, Assembly asm, int index) 
+    {
+        foreach (var t in asm.GetTypes()) 
+        {
+            var customAttribute = t.GetCustomAttribute<FortAttribute>();
+            if (customAttribute != null) 
+            {
+                Types[index] = t;
+                FortModule obj = Activator.CreateInstance(t) as FortModule;
+                if (metadata.Name == string.Empty) 
+                {
+                    metadata.Name = customAttribute.Name;
+                }
+                obj.Name = customAttribute.Name;
+                obj.ID = customAttribute.GUID;
+                obj.Meta = metadata;
+
+                ModuleGuids.Add(obj.ID);
+                obj.Register();
+                Logger.Info($"{obj.ID}: {obj.Name} Registered.");
+            }
         }
     }
 
@@ -233,39 +252,15 @@ public static partial class RiseCore
         return hash;
     }
 
-    private static void GetModuleTypes(ModuleMetadata metadata, Assembly asm, int index) 
-    {
-        foreach (var t in asm.GetTypes()) 
-        {
-            var customAttribute = t.GetCustomAttribute<FortAttribute>();
-            if (customAttribute != null) 
-            {
-                Types[index] = t;
-                FortModule obj = Activator.CreateInstance(t) as FortModule;
-                if (metadata.Name == string.Empty) 
-                {
-                    metadata.Name = customAttribute.Name;
-                }
-                obj.Name = customAttribute.Name;
-                obj.ID = customAttribute.GUID;
-                obj.Meta = metadata;
-
-                ModuleGuids.Add(obj.ID);
-                obj.Register();
-                Logger.Info($"{obj.ID}: {obj.Name} Registered.");
-            }
-        }
-    }
-
 
     internal static void LogAllTypes() 
     {
-        Logger.Info(InternalModules.Count + " total of mods loaded");
+        Logger.Info(InternalFortModules.Count + " total of mods loaded");
     }
 
     internal static void Initialize() 
     {
-        foreach (var t in InternalModules) 
+        foreach (var t in InternalFortModules) 
         {
             t.Initialize();
         }
@@ -273,7 +268,7 @@ public static partial class RiseCore
 
     internal static void ModuleEnd() 
     {
-        foreach (var t in InternalModules) 
+        foreach (var t in InternalFortModules) 
         {
             t.Unload();
         }
@@ -281,7 +276,7 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module) 
     {
-        InternalModules.Add(module);
+        InternalFortModules.Add(module);
 
         if (module is NoModule)
             return;
@@ -514,7 +509,7 @@ public static partial class RiseCore
     internal static void Unregister(this FortModule module) 
     {
         module.Unload();
-        InternalModules.Remove(module);
+        InternalFortModules.Remove(module);
     }
 
 
