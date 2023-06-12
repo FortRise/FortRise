@@ -31,7 +31,7 @@ public class patch_MatchVariants : MatchVariants
         customs = new();
 
         orig_ctor(noPerPlayer);
-        foreach (var mod in RiseCore.InternalModules) 
+        foreach (var mod in RiseCore.InternalFortModules) 
         {
             mod.OnVariantsRegister(this, noPerPlayer);
         }

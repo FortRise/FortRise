@@ -65,7 +65,7 @@ public partial class patch_MainMenu : MainMenu
     public void CreateMods() 
     {
         var list = new List<OptionsButton>();
-        foreach (var mod in FortRise.RiseCore.InternalModules) 
+        foreach (var mod in FortRise.RiseCore.InternalFortModules) 
         {
             var version = mod.Meta.Version.ToString();
             var setupName = mod.Meta.Name + " v" + version;
@@ -99,7 +99,7 @@ public partial class patch_MainMenu : MainMenu
         if (switchTo != patch_MenuState.ModOptions)
         {
             SaveOnTransition = true;
-            foreach (var mod in FortRise.RiseCore.InternalModules) 
+            foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
                 mod.SaveSettings();
             }

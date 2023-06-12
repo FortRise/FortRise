@@ -1,7 +1,6 @@
 using System.Reflection;
 using Monocle;
 using FortRise;
-using MonoMod;
 
 namespace TowerFall;
 
@@ -37,7 +36,7 @@ public static class patch_TFCommands
             patch_Level.DebugMode = !patch_Level.DebugMode;
         });
 
-        foreach (var module in FortRise.RiseCore.InternalModules) 
+        foreach (var module in FortRise.RiseCore.InternalFortModules) 
         {
             var types = module.GetType().Assembly.GetTypes();
             foreach (var type in types) 
