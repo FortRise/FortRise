@@ -8,6 +8,13 @@ namespace TowerFall;
 
 public class patch_Level : Level
 {
+    public XmlElement XML
+    {
+        [MonoModIgnore]
+        get => throw null;
+        [MonoModIgnore]
+        private set => throw null;
+    }
     public static bool DebugMode;
     public patch_Level(Session session, XmlElement xml) : base(session, xml)
     {
@@ -49,6 +56,36 @@ public class patch_Level : Level
                 entity.DebugRender();
             }
 			Draw.SpriteBatch.End();
+        }
+    }
+
+    public void Reload(XmlElement xml, int width, int height) 
+    {
+        XML = xml;
+        bool[,] solidsBitData = Calc.GetBitData(this.XML["Solids"].InnerText, width, height);
+        bool[,] bgBitData = Calc.GetBitData(this.XML["BG"].InnerText, width, height);
+        int[,] overwriteData = Calc.ReadCSVIntGrid(this.XML["BGTiles"].InnerText, width, height);
+        foreach (var entity in Layers[0].Entities) 
+        {
+            if (entity is LevelEntity and not (TowerFall.Player or Enemy or TreasureChest or Arrow))
+                continue;
+            
+            Remove(entity);
+        }
+
+        Add<LevelTiles>(Tiles = new LevelTiles(this.XML, solidsBitData));
+        Add<LevelBGTiles>(BGTiles = new LevelBGTiles(this.XML, bgBitData, solidsBitData, overwriteData));
+        foreach (XmlElement xmlElement2 in this.XML["Entities"])
+        {
+            LoadEntity(xmlElement2);
+        }
+        if (xml["Entities"].GetElementsByTagName("BlueSwitchBlock").Count > 0 || xml["Entities"].GetElementsByTagName("RedSwitchBlock").Count > 0)
+        {
+            Add<SwitchBlockControl>(new SwitchBlockControl(this.Session));
+        }
+        else if (this.Session.MatchSettings.Variants.DarkPortals)
+        {
+            Add<DarkPortalsVariantSequence>(new DarkPortalsVariantSequence());
         }
     }
 }
