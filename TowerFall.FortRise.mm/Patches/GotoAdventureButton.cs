@@ -13,6 +13,7 @@ public sealed class GotoAdventureButton : patch_MapButton
     {
         Map.Selection = null;
         OnDeselect();
+        Map.CustomLevelCategory++;
         Map.GotoAdventure();
         Map.MatchStarting = false;
     }

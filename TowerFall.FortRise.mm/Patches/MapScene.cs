@@ -1,8 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using FortRise.Adventure;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod;
@@ -13,9 +11,17 @@ public class patch_MapScene : MapScene
 {
     private static int lastRandomVersusTower;
     private bool adventureLevels;
+    private float crashDelay;
     public bool MapPaused;
+    public int CustomLevelCategory;
     public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
     {
+    }
+
+    private void ExtendCtor() 
+    {
+        CustomLevelCategory = -1;
+        crashDelay = 10;
     }
 
     [MonoModConstructor]
@@ -30,6 +36,7 @@ public class patch_MapScene : MapScene
 
     [MonoModIgnore]
     [PatchMapSceneBegin]
+    [PreFixing("TowerFall.MapScene", "System.Void ExtendCtor()")]
     public extern override void Begin();
 
     [MonoModReplace]
@@ -75,6 +82,7 @@ public class patch_MapScene : MapScene
         WorkshopLevels = true;
         TweenOutAllButtonsAndRemove();
         Buttons.Clear();
+        patch_GameData.AdventureWorldTowers = patch_GameData.AdventureWorldModTowers[CustomLevelCategory];
         InitAdventure(id);
     }
 
@@ -127,7 +135,7 @@ public class patch_MapScene : MapScene
             base_Update();
             return;
         }
-        if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld) 
+        if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld && crashDelay <= 0) 
         {
             if (MenuInput.Alt2 && Selection is AdventureMapButton button)
             {
@@ -142,27 +150,50 @@ public class patch_MapScene : MapScene
                 button.Shake();
                 MenuInput.RumblePlayers(1f, 20);
             }
-            if (MenuInput.Up && !patch_SaveData.AdventureActive) 
+            if (MenuInput.Up) 
             {
-                var id = Buttons.IndexOf(Selection);
-                GotoAdventure(id);
-                if (Selection.Data == null)
+                if (CustomLevelCategory != patch_GameData.AdventureWorldModTowers.Count - 1) 
                 {
-                    Renderer.OnSelectionChange("");
-                    return;
+                    CustomLevelCategory++;
+                    var id = Buttons.IndexOf(Selection);
+                    GotoAdventure(id);
+                    if (Selection.Data == null)
+                    {
+                        Renderer.OnSelectionChange("");
+                        return;
+                    }
+                    Renderer.OnSelectionChange(Selection.Data.Title);
                 }
-                Renderer.OnSelectionChange(Selection.Data.Title);
             }
             else if (MenuInput.Down && patch_SaveData.AdventureActive) 
             {
+                if (CustomLevelCategory != -1)
+                    CustomLevelCategory--;
+
                 var id = Buttons.IndexOf(Selection);
-                ExitAdventure(id);
-                if (Selection.Data == null)
+                if (CustomLevelCategory == -1) 
                 {
-                    Renderer.OnSelectionChange("");
-                    return;
+                    ExitAdventure(id);
+                    if (Selection.Data == null)
+                    {
+                        Renderer.OnSelectionChange("");
+                        return;
+                    }
+                }
+                else 
+                {
+                    GotoAdventure(id);
+                    if (Selection.Data == null)
+                    {
+                        Renderer.OnSelectionChange("");
+                        return;
+                    }
                 }
                 Renderer.OnSelectionChange(Selection.Data.Title);
+            }
+            if (MenuInput.Back) 
+            {
+                CustomLevelCategory = -1;
             }
 
             if (MInput.Keyboard.Pressed(Keys.F5)) 
@@ -173,6 +204,8 @@ public class patch_MapScene : MapScene
             }
         }
         orig_Update();
+        if (crashDelay > 0)
+            crashDelay--;
     }
 
     public void TweenOutAllButtonsAndRemove() 

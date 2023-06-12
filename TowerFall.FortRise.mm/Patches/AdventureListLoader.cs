@@ -6,7 +6,7 @@ namespace TowerFall;
 
 public sealed class AdventureListLoader : Entity 
 {
-    private MapScene map;
+    private patch_MapScene map;
     private List<MapButton> buttons;
     private float spin;
     private Tween spinTween;
@@ -16,14 +16,16 @@ public sealed class AdventureListLoader : Entity
     private Tween introTween;
     private int startingID;
 
-    public AdventureListLoader(MapScene map, int id) : base(0) 
+    public AdventureListLoader(patch_MapScene map, int id) : base(0) 
     {
         startingID = id;
         this.map = map;
         Depth = -100000;
         Visible = false;
         buttons = new List<MapButton>();
-        buttons.Add(new UploadMapButton());
+        if (map.CustomLevelCategory == 0) 
+            buttons.Add(new UploadMapButton());
+        
         spinTween = Tween.Create(Tween.TweenMode.Persist, Ease.BackOut, 18, false);
         spinTween.OnUpdate = t => spin = MathHelper.Lerp(tweenStart, tweenEnd, t.Eased);
         Add(spinTween);

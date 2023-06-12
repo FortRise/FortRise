@@ -18,6 +18,8 @@ public static class patch_GameData
     public static Dictionary<string, Monocle.Texture> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
+    public static Dictionary<string, int> AdventureWorldModTowersLookup;
+    public static List<List<AdventureWorldTowerData>> AdventureWorldModTowers;
 
 
     public static extern void orig_Load();
@@ -57,35 +59,77 @@ public static class patch_GameData
         CustomBGAtlas.Clear();
         CustomBGs.Clear();
         CustomTilesets.Clear();
-        AdventureWorldTowers ??= new List<AdventureWorldTowerData>();
+        AdventureWorldTowers ??= new();
         AdventureWorldTowers.Clear();
 
-        if (!Directory.Exists("AdventureWorldContent"))
-            Directory.CreateDirectory("AdventureWorldContent");
-        if (!Directory.Exists("AdventureWorldContent/Levels"))
-            Directory.CreateDirectory("AdventureWorldContent/Levels");
-        foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
-            AW_PATH, "Levels")))
+        AdventureWorldModTowersLookup ??= new();
+        AdventureWorldModTowersLookup.Clear();
+
+        AdventureWorldModTowers ??= new();
+        AdventureWorldModTowers.Clear();
+
+
+        if (Directory.Exists("AdventureWorldContent/Levels")) 
         {
-            LoadAdventureLevelsParallel(directory2);
+            foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
+                AW_PATH, "Levels")))
+            {
+                LoadAdventureLevelsParallel(directory2, "::global::");
+            }
         }
 
         foreach (var adventurePath in AdventureModule.SaveData.LevelLocations) 
         {
-            LoadAdventureLevelsParallel(adventurePath);
+            LoadAdventureLevelsParallel(adventurePath, "::global::");
         }
+
+        // Load mods that contains Levels/DarkWorld folder
+        foreach (var mod in RiseCore.InternalMods) 
+        {
+            var modPath = mod.PathDirectory;
+            var darkWorld = Path.Combine(modPath, "Content", "Levels", "DarkWorld");
+            if (Directory.Exists(darkWorld)) 
+            {
+                foreach (string dir in Directory.EnumerateDirectories(darkWorld)) 
+                {
+                    LoadAdventureLevelsParallel(dir, mod.Name);
+                }
+            }
+        }
+        AdventureWorldTowers = AdventureWorldModTowers[0];
     }
 
-    public static bool LoadAdventureLevelsParallel(string directory) 
+    public static bool LoadAdventureLevelsParallel(string directory, string modName) 
     {
+        if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
+        {
+            var tower = AdventureWorldModTowers[id];
+            var adventureTowerDataOnCache = new AdventureWorldTowerData();
+            if (adventureTowerDataOnCache.AdventureLoadParallel(tower.Count, directory)) 
+            {
+                AdventureWorldModTowers[id].Add(adventureTowerDataOnCache);
+                Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
+                return true;
+            }
+            return false;
+        }
+        var lookup = AdventureWorldModTowers.Count;
+        AdventureWorldModTowersLookup.Add(modName, lookup);
+
         var adventureTowerData = new AdventureWorldTowerData();
         if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
         {
-            Logger.Verbose($"[Adventure] Added {directory} tower.");
-            AdventureWorldTowers.Add(adventureTowerData);
+            AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
+            Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
             return true;
         }
         return false;
+    }
+
+    [Obsolete("Use LoadAdventureLevelsParallel(string directory, string modName) instead")]
+    public static bool LoadAdventureLevelsParallel(string directory) 
+    {
+        return LoadAdventureLevelsParallel(directory, "::global::");
     }
 }
 
