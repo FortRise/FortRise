@@ -58,7 +58,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             }
             return Calc.LoadXML(DarkWorldTowerData.Levels[file])["level"];
         }
-        catch (Exception e)
+        catch (ArgumentOutOfRangeException e)
         {
             ErrorHelper.StoreException("Missing Level", e);
             randomSeed = 0;
