@@ -60,6 +60,8 @@ public static class patch_Calc
 
     public static string[] ChildStringArray(this XmlElement xml, string childName) 
     {
+        if (!xml.HasChild(childName))
+            return null;
         var childs = xml[childName].InnerText.Split(',');
         if (childs == null)
             return Array.Empty<string>();
