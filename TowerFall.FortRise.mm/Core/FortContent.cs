@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
 
 namespace FortRise;
@@ -17,19 +20,64 @@ public class FortContent
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
-    public patch_Atlas LoadAtlas(string xmlPath, string imagePath, bool load = true) 
+
+    public string GetContentPath() 
     {
-        return AtlasExt.CreateAtlas(this, xmlPath, imagePath, load, ContentAccess.ModContent);
+        var modDirectory = Path.GetDirectoryName(dllPath);
+        return Path.Combine(modDirectory, "Content").Replace("\\", "/");
     }
 
-    public patch_SpriteData LoadSpriteData(string filename, Atlas atlas) 
+    [Obsolete("Use LoadAtlas(string xmlPath, string imagePath) instead")]
+    public patch_Atlas LoadAtlas(string xmlPath, string imagePath, bool load = true) 
+    {
+        return AtlasExt.CreateAtlas(this, xmlPath, imagePath, ContentAccess.ModContent);
+    }
+
+    public patch_Atlas LoadAtlas(string xmlPath, string imagePath) 
+    {
+        return AtlasExt.CreateAtlas(this, xmlPath, imagePath, ContentAccess.ModContent);
+    }
+
+    public patch_SpriteData LoadSpriteData(string filename, patch_Atlas atlas) 
     {
         return SpriteDataExt.CreateSpriteData(this, filename, atlas, ContentAccess.ModContent);
+    }
+
+    public Stream LoadStream(string path) 
+    {
+        var filePath = GetContentPath(path);
+        return File.OpenRead(filePath);
+    }
+
+    public XNAGraphics::Texture2D LoadRawTexture2D(string path) 
+    {
+        using var stream = LoadStream(path);
+        var tex2D = XNAGraphics::Texture2D.FromStream(Engine.Instance.GraphicsDevice, stream);
+        return tex2D;
+    }
+
+    public Texture LoadTexture(string path) 
+    {
+        var tex2D = LoadRawTexture2D(path);
+        var tex = new Texture(tex2D);
+        return tex;
     }
 
     public MusicHolder LoadMusic(string fileName, CustomMusicType musicType) 
     {
         return new MusicHolder(this, fileName, ContentAccess.ModContent, musicType);
+    }
+}
+
+public class ModResource 
+{
+    public ModuleMetadata Metadata;
+    public FortContent Content;
+
+    public ModResource(FortContent content, ModuleMetadata metadata) 
+    {
+        Metadata = metadata;
+        Content = content;
     }
 }
 
