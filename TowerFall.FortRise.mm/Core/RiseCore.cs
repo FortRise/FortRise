@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Xml;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod;
 using MonoMod.Utils;
 using TeuJson;
@@ -42,10 +43,10 @@ public static partial class RiseCore
     public static Dictionary<ArrowTypes, ArrowInfoLoader> PickupGraphicArrows = new();
 
     public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
-    public static ReadOnlyCollection<ModuleMetadata> Mods => InternalMods.AsReadOnly();
+    public static ReadOnlyCollection<ModResource> Mods => InternalMods.AsReadOnly();
     internal static List<FortModule> InternalFortModules = new();
     internal static HashSet<string> ModuleGuids = new();
-    internal static List<ModuleMetadata> InternalMods = new();
+    internal static List<ModResource> InternalMods = new();
 
     public static List<string> DetourLogs = new List<string>();
     public static Version FortRiseVersion;
@@ -126,55 +127,23 @@ public static partial class RiseCore
         foreach (var dir in directory) 
         {
             var metaPath = Path.Combine(dir, "meta.json");
+            ModuleMetadata moduleMetadata = null;
+            if (!File.Exists(metaPath)) 
+                metaPath = Path.Combine(dir, "meta.xml");
             if (!File.Exists(metaPath))
                 continue;
+            
+            if (metaPath.EndsWith("json"))
+                moduleMetadata = ParseMetadataWithJson(dir, metaPath);
+            else
+                moduleMetadata = ParseMetadataWithXML(dir, metaPath);
 
-            var json = JsonTextReader.FromFile(metaPath);
-            var dll = json.GetJsonValueOrNull("dll");
-            var name = json.GetJsonValueOrNull("name");
-            if (name == null)
-            {
-                Logger.Error($"{dir} does not have a name metadata.");
-                continue;
-            }
-            var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
-            var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
-            var description = json.GetJsonValueOrNull("description") ?? "";
-            var author = json.GetJsonValueOrNull("author") ?? "";
-            var jsonDependencies = json.GetJsonValueOrNull("dependencies");
-            var nativePath = json.GetJsonValueOrNull("nativePath") ?? "";
-            var nativePathX86 = json.GetJsonValueOrNull("nativePathX86") ?? "";
-            string[] dependencies = null;
-            if (jsonDependencies != null) 
-            {
-                dependencies = jsonDependencies.ConvertToArrayString();
-            }
-            if (FortRiseVersion < requiredVersion) 
-            {
-                Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
-                continue;
-            }
-            var moduleMetadata = new ModuleMetadata() 
-            {
-                Name = name,
-                Version = new Version(version),
-                Description = description,
-                Author = author,
-                FortRiseVersion = requiredVersion,
-                DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
-                PathDirectory = dir,
-                Dependencies = dependencies,
-                NativePath = nativePath,
-                NativePathX86 = nativePathX86
-            };
-
-            InternalMods.Add(moduleMetadata);
 
             // Assembly Mod Loading
-            if (dll == null) 
+            if (moduleMetadata.DLL == null) 
                 continue;
             
-            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, dll));
+            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
             if (!File.Exists(pathToAssembly))
                 continue;
 
@@ -197,15 +166,101 @@ public static partial class RiseCore
                 {
                     metadata.Name = customAttribute.Name;
                 }
+
+                var content = new FortContent(obj);
+                var modResource = new ModResource(content, metadata);
+                InternalMods.Add(modResource);
                 obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
                 obj.Meta = metadata;
 
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
+
                 Logger.Info($"{obj.ID}: {obj.Name} Registered.");
             }
         }
+    }
+
+    private static ModuleMetadata ParseMetadataWithXML(string dir, string path) 
+    {
+        var xml = Calc.LoadXML(path)["meta"];
+        var dll = xml.ChildText("dll");
+        var name = xml.ChildText("name", null);
+        if (name == null)
+        {
+            Logger.Error($"{dir} does not have a name metadata.");
+            return null;
+        }
+        var version = xml.ChildText("version", "1.0.0");
+        var requiredVersion = new Version(xml.ChildText("required", "4.0.0"));
+        var description = xml.ChildText("description", string.Empty);
+        var author = xml.ChildText("author", string.Empty);
+        var xmlDependencies = xml.ChildStringArray("dependencies"); 
+        var nativePath = xml.ChildText("nativePath", string.Empty);
+        var nativePathX86 = xml.ChildText("nativePathX86", string.Empty);
+        string[] dependencies = xmlDependencies;
+        
+        if (FortRiseVersion < requiredVersion) 
+        {
+            Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
+            return null;
+        }
+        return new ModuleMetadata() 
+        {
+            Name = name,
+            Version = new Version(version),
+            Description = description,
+            Author = author,
+            FortRiseVersion = requiredVersion,
+            DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
+            PathDirectory = dir,
+            Dependencies = dependencies,
+            NativePath = nativePath,
+            NativePathX86 = nativePathX86
+        };
+    }
+
+    private static ModuleMetadata ParseMetadataWithJson(string dir, string path) 
+    {
+        var json = JsonTextReader.FromFile(path);
+        var dll = json.GetJsonValueOrNull("dll");
+        var name = json.GetJsonValueOrNull("name");
+        if (name == null)
+        {
+            Logger.Error($"{dir} does not have a name metadata.");
+            return null;
+        }
+        var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
+        var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
+        var description = json.GetJsonValueOrNull("description") ?? "";
+        var author = json.GetJsonValueOrNull("author") ?? "";
+        var jsonDependencies = json.GetJsonValueOrNull("dependencies");
+        var nativePath = json.GetJsonValueOrNull("nativePath") ?? "";
+        var nativePathX86 = json.GetJsonValueOrNull("nativePathX86") ?? "";
+        string[] dependencies = null;
+        if (jsonDependencies != null) 
+        {
+            dependencies = jsonDependencies.ConvertToArrayString();
+        }
+        if (FortRiseVersion < requiredVersion) 
+        {
+            Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
+            return null;
+        }
+        return new ModuleMetadata() 
+        {
+            Name = name,
+            Version = new Version(version),
+            Description = description,
+            Author = author,
+            FortRiseVersion = requiredVersion,
+            DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
+            PathDirectory = dir,
+            Dependencies = dependencies,
+            NativePath = nativePath,
+            NativePathX86 = nativePathX86
+        };
     }
 
     [PatchFlags]
@@ -507,7 +562,7 @@ public static partial class RiseCore
     {
         module.Unload();
         InternalFortModules.Remove(module);
-        InternalMods.Remove(module.Meta);
+        // InternalMods.Remove(module.Meta);
     }
 
 
