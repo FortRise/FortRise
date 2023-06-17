@@ -51,7 +51,6 @@ public static partial class RiseCore
     public static Version FortRiseVersion;
     public static bool IsWindows { get; internal set; }
 
-    private static Type[] Types;
 
     public static bool DebugMode;
 
@@ -70,15 +69,6 @@ public static partial class RiseCore
             Name = "FortRise",
             Version = FortRiseVersion
         }).Register();
-
-        if (directory.Count <= 0) 
-        {
-            Types = Array.Empty<Type>();
-            return;
-        }
-
-        int i = 0;
-        Types = new Type[directory.Count];
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
             AssemblyName asmName = new AssemblyName(asmArgs.Name);
@@ -129,6 +119,11 @@ public static partial class RiseCore
             return null;
         };
 
+        if (directory.Count <= 0) 
+            return;
+
+        int i = 0;
+
         foreach (var dir in directory) 
         {
             var metaPath = Path.Combine(dir, "meta.json");
@@ -167,7 +162,7 @@ public static partial class RiseCore
                 Description = description,
                 Author = author,
                 FortRiseVersion = requiredVersion,
-                DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : "",
+                DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
                 PathDirectory = dir,
                 Dependencies = dependencies,
                 NativePath = nativePath,
@@ -187,18 +182,17 @@ public static partial class RiseCore
             using var fs = File.OpenRead(pathToAssembly);
 
             var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
-            GetModuleTypes(moduleMetadata, asm, i++);
+            RegisterAssembly(moduleMetadata, asm, i++);
         }
     }
 
-    private static void GetModuleTypes(ModuleMetadata metadata, Assembly asm, int index) 
+    private static void RegisterAssembly(ModuleMetadata metadata, Assembly asm, int index) 
     {
         foreach (var t in asm.GetTypes()) 
         {
             var customAttribute = t.GetCustomAttribute<FortAttribute>();
             if (customAttribute != null) 
             {
-                Types[index] = t;
                 FortModule obj = Activator.CreateInstance(t) as FortModule;
                 if (metadata.Name == string.Empty) 
                 {
@@ -511,6 +505,7 @@ public static partial class RiseCore
     {
         module.Unload();
         InternalFortModules.Remove(module);
+        InternalMods.Remove(module.Meta);
     }
 
 
