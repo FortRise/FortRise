@@ -126,7 +126,13 @@ public static class AtlasExt
         return atlas;
     }
 
+    [Obsolete("Use AtlasExt.CreateAtlas(this FortContent content, string xmlPath, string imagePath, ContentAccess access) instead.")]
     public static patch_Atlas CreateAtlas(this FortContent content, string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
+    {
+        return CreateAtlas(content, xmlPath, imagePath, access);
+    }
+
+    public static patch_Atlas CreateAtlas(this FortContent content, string xmlPath, string imagePath, ContentAccess access = ContentAccess.Root)
     {
         switch (access) 
         {
@@ -150,10 +156,8 @@ public static class AtlasExt
             XmlAttributeCollection attributes = item.Attributes;
             atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
         }
-        if (load)
-        {
-            atlas.Load();
-        }
+
+        atlas.Load();
         return atlas;
     }
 }

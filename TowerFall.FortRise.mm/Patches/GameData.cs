@@ -19,8 +19,8 @@ public static class patch_GameData
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static Dictionary<string, int> AdventureWorldModTowersLookup;
+    public static List<(bool contains, CustomMapRenderer renderer)> AdventureWorldMapRenderer;
     public static List<List<AdventureWorldTowerData>> AdventureWorldModTowers;
-
 
     public static extern void orig_Load();
 
@@ -68,35 +68,55 @@ public static class patch_GameData
         AdventureWorldModTowers ??= new();
         AdventureWorldModTowers.Clear();
 
+        AdventureWorldMapRenderer ??= new();
+        AdventureWorldMapRenderer.Clear();
 
+        bool created = false;
         if (Directory.Exists("AdventureWorldContent/Levels")) 
         {
+            Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder instead");
             foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
                 AW_PATH, "Levels")))
             {
                 LoadAdventureLevelsParallel(directory2, "::global::");
             }
+
+            AdventureWorldMapRenderer.Add((false, null));
+            created = true;
         }
 
         foreach (var adventurePath in AdventureModule.SaveData.LevelLocations) 
         {
             LoadAdventureLevelsParallel(adventurePath, "::global::");
+            if (!created)
+                AdventureWorldMapRenderer.Add((false, null));
         }
 
         // Load mods that contains Levels/DarkWorld folder
         foreach (var mod in RiseCore.InternalMods) 
         {
-            var modPath = mod.PathDirectory;
-            var darkWorld = Path.Combine(modPath, "Content", "Levels", "DarkWorld");
+            var modPath = mod.Content.GetContentPath("Content");
+            var levelPath = Path.Combine(modPath, "Levels");
+            var darkWorld = Path.Combine(levelPath, "DarkWorld");
             if (Directory.Exists(darkWorld)) 
             {
                 foreach (string dir in Directory.EnumerateDirectories(darkWorld)) 
                 {
-                    LoadAdventureLevelsParallel(dir, mod.Name);
+                    LoadAdventureLevelsParallel(dir, mod.Metadata.Name);
                 }
+                var mapXmlPath = Path.Combine(levelPath, "map.xml");
+                if (!File.Exists(mapXmlPath)) 
+                {
+                    AdventureWorldMapRenderer.Add((false, null));
+                    continue;
+                }
+                
+                var xmlMapRenderer = new XmlMapRenderer(mapXmlPath, modPath);
+                AdventureWorldMapRenderer.Add((true, xmlMapRenderer));
             }
         }
-        AdventureWorldTowers = AdventureWorldModTowers[0];
+        if (AdventureWorldModTowers.Count > 0)
+            AdventureWorldTowers = AdventureWorldModTowers[0];
     }
 
     public static bool LoadAdventureLevelsParallel(string directory, string modName) 

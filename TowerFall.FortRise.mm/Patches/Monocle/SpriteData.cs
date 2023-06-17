@@ -15,17 +15,20 @@ public class patch_SpriteData
     [MonoModConstructor]
     internal void ctor() {}
 
-    private Atlas atlas;
+    private patch_Atlas atlas;
     private Dictionary<string, XmlElement> sprites;
 
-    internal void SetAtlasAndSprite(Atlas atlas, Dictionary<string, XmlElement> sprites) 
+    [MonoModIgnore]
+    public extern Sprite<int> GetSpriteInt(string id);
+
+    internal void SetAtlasAndSprite(patch_Atlas atlas, Dictionary<string, XmlElement> sprites) 
     {
         this.atlas = atlas;
         this.sprites = sprites;
     }
 
     [Obsolete("Use SpriteDataExt.CreateSpriteData instead")]
-    public static patch_SpriteData Create(string filename, Atlas atlas, ContentAccess access = ContentAccess.Root)
+    public static patch_SpriteData Create(string filename, patch_Atlas atlas, ContentAccess access = ContentAccess.Root)
     {
         switch (access) 
         {
@@ -63,7 +66,7 @@ public class patch_SpriteData
 
 public static class SpriteDataExt 
 {
-    public static patch_SpriteData CreateSpriteData(this FortContent content, string filename, Atlas atlas, ContentAccess access = ContentAccess.Root)
+    public static patch_SpriteData CreateSpriteData(this FortContent content, string filename, patch_Atlas atlas, ContentAccess access = ContentAccess.Root)
     {
         switch (access) 
         {

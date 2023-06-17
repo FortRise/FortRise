@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
@@ -12,16 +13,26 @@ public class patch_MapScene : MapScene
     private static int lastRandomVersusTower;
     private bool adventureLevels;
     private float crashDelay;
+    private CustomMapRenderer currentCustomMapRenderer;
     public bool MapPaused;
     public int CustomLevelCategory;
     public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
     {
     }
 
-    private void ExtendCtor() 
+    private void InitializeCustoms() 
     {
         CustomLevelCategory = -1;
         crashDelay = 10;
+        foreach (var (contaning, mapRenderer) in patch_GameData.AdventureWorldMapRenderer) 
+        {
+            var entity = new Entity(-1);
+            if (!contaning) 
+                continue;
+            entity.Add(mapRenderer);
+            Add(entity);
+            mapRenderer.Visible = false;
+        }
     }
 
     [MonoModConstructor]
@@ -36,7 +47,7 @@ public class patch_MapScene : MapScene
 
     [MonoModIgnore]
     [PatchMapSceneBegin]
-    [PreFixing("TowerFall.MapScene", "System.Void ExtendCtor()")]
+    [PreFixing("TowerFall.MapScene", "System.Void InitializeCustoms()")]
     public extern override void Begin();
 
     [MonoModReplace]
@@ -157,12 +168,33 @@ public class patch_MapScene : MapScene
                     CustomLevelCategory++;
                     var id = Buttons.IndexOf(Selection);
                     GotoAdventure(id);
-                    if (Selection.Data == null)
+                    var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[CustomLevelCategory];
+                    if (customMapRenderer.contains) 
                     {
-                        Renderer.OnSelectionChange("");
-                        return;
+                        if (currentCustomMapRenderer != null)
+                            currentCustomMapRenderer.Visible = false;
+                        currentCustomMapRenderer = customMapRenderer.renderer;
+                        Renderer.Visible = false;
+                        currentCustomMapRenderer.Visible = true;
+                        if (Selection.Data == null) 
+                        {
+                            currentCustomMapRenderer.OnSelectionChange(null);
+                            return;
+                        }
+                        currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
                     }
-                    Renderer.OnSelectionChange(Selection.Data.Title);
+                    else 
+                    {
+                        if (currentCustomMapRenderer != null)
+                            currentCustomMapRenderer.Visible = false;
+                        Renderer.Visible = true;
+                        if (Selection.Data == null)
+                        {
+                            Renderer.OnSelectionChange("");
+                            return;
+                        }
+                        Renderer.OnSelectionChange(Selection.Data.Title);
+                    }
                 }
             }
             else if (MenuInput.Down && patch_SaveData.AdventureActive) 
@@ -173,7 +205,11 @@ public class patch_MapScene : MapScene
                 var id = Buttons.IndexOf(Selection);
                 if (CustomLevelCategory == -1) 
                 {
+                    if (currentCustomMapRenderer != null)
+                        currentCustomMapRenderer.Visible = false;
                     ExitAdventure(id);
+                    Renderer.Visible = true;
+
                     if (Selection.Data == null)
                     {
                         Renderer.OnSelectionChange("");
@@ -183,10 +219,31 @@ public class patch_MapScene : MapScene
                 else 
                 {
                     GotoAdventure(id);
-                    if (Selection.Data == null)
+                    var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[CustomLevelCategory];
+                    if (customMapRenderer.contains) 
                     {
-                        Renderer.OnSelectionChange("");
+                        if (currentCustomMapRenderer != null)
+                            currentCustomMapRenderer.Visible = false;
+                        currentCustomMapRenderer = customMapRenderer.renderer;
+                        Renderer.Visible = false;
+                        currentCustomMapRenderer.Visible = true;
+                        if (Selection.Data == null) 
+                        {
+                            customMapRenderer.renderer.OnSelectionChange(null);
+                        }
+                        customMapRenderer.renderer.OnSelectionChange(Selection.Data.Title);
                         return;
+                    }
+                    else 
+                    {
+                        if (currentCustomMapRenderer != null)
+                            currentCustomMapRenderer.Visible = false;
+                        Renderer.Visible = true;
+                        if (Selection.Data == null)
+                        {
+                            Renderer.OnSelectionChange("");
+                            return;
+                        }
                     }
                 }
                 Renderer.OnSelectionChange(Selection.Data.Title);
