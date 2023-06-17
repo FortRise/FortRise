@@ -80,7 +80,7 @@ public static partial class RiseCore
             return null;
         };
 
-        List<string> resolverLoadedPath = new List<string>();
+        // List<string> resolverLoadedPath = new List<string>();
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
         {
@@ -91,7 +91,11 @@ public static partial class RiseCore
             foreach (var mod in InternalFortModules) 
             {
                 var meta = mod.Meta;
+
                 if (meta == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(meta.PathDirectory))
                     continue;
                 
                 var path = name.Name + ".dll";
@@ -102,19 +106,14 @@ public static partial class RiseCore
                     if (!string.IsNullOrEmpty(pathDirectory))
                         path = path.Substring(pathDirectory.Length + 1);
                 }
-                if (meta.Dependencies != null) 
-                {
-                    foreach (var dep in meta.Dependencies) 
-                    {
-                        var depPath = Path.Combine(meta.PathDirectory, dep);
-                        if (resolverLoadedPath.Contains(depPath))
-                            continue;
-                        resolverLoadedPath.Add(depPath);
-                        using var fs = File.OpenRead(depPath);
-                        if (fs != null)
-                            return Relinker.GetRelinkedAssembly(meta, Path.GetFullPath(Path.Combine(meta.PathDirectory, dep)), fs);
-                    }
-                }
+
+                var depPath = Path.Combine(meta.PathDirectory, path);
+                if (!File.Exists(depPath))
+                    continue;
+                using var fs = File.OpenRead(depPath);
+                if (fs != null)
+                    return Relinker.GetRelinkedAssembly(meta, Path.GetFullPath(Path.Combine(meta.PathDirectory, path)), fs);
+                
             }
             return null;
         };
@@ -259,6 +258,9 @@ public static partial class RiseCore
         {
             t.Initialize();
         }
+
+        Relinker.Modder.Dispose();
+        Relinker.Modder = null;
     }
 
     internal static void ModuleEnd() 

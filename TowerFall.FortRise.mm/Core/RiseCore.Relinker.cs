@@ -365,9 +365,9 @@ public static partial class RiseCore
                     Modder.Module?.Dispose();
                 Modder.Module = null;
 
-                // Modder.ClearCaches(moduleSpecific: true);
-                Modder.Dispose();
-                Modder = null;
+                Modder.ClearCaches(moduleSpecific: true);
+                // Modder.Dispose();
+                // Modder = null;
             }
 
             try 
@@ -380,16 +380,16 @@ public static partial class RiseCore
                     File.WriteAllLines(cachedChecksumPath, checksums);
                 }
 
-                // if (Modder != null) 
-                // {
-                //     foreach(AssemblyNameReference aref in module.AssemblyReferences) 
-                //     {
-                //         if (Modder.DependencyCache.ContainsKey(aref.FullName))
-                //             Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
-                //         else
-                //             Logger.Info($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
-                //     }
-                // }
+                if (Modder != null) 
+                {
+                    foreach (AssemblyNameReference aref in module.AssemblyReferences) 
+                    {
+                        if (Modder.DependencyCache.ContainsKey(aref.FullName))
+                            Logger.Verbose($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
+                        else
+                            Logger.Verbose($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
+                    }
+                }
 
                 var asm = Assembly.LoadFrom(cachedPath);
                 RelinkedAssemblies.Add(asm);
