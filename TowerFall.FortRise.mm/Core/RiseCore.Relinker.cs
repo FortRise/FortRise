@@ -366,8 +366,6 @@ public static partial class RiseCore
                 Modder.Module = null;
 
                 Modder.ClearCaches(moduleSpecific: true);
-                // Modder.Dispose();
-                // Modder = null;
             }
 
             try 

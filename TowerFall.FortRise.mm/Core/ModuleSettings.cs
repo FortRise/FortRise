@@ -30,6 +30,14 @@ public abstract class ModuleSettings
             {
                 json[key] = (float)value;
             }
+            else if (field.FieldType == typeof(string)) 
+            {
+                json[key] = (string)value;
+            }
+            else 
+            {
+                Logger.Error("[Settings] Type unsupported: " + field.FieldType);
+            }
         }
         JsonTextWriter.WriteToFile(path, json);
     }
