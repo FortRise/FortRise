@@ -64,17 +64,18 @@ public static partial class RiseCore
             Directory.CreateDirectory("Mods");
 
         var directory = Directory.EnumerateDirectories("Mods").ToList();
-        if (directory.Count <= 0) 
-        {
-            Types = Array.Empty<Type>();
-            return;
-        }
         new AdventureModule().Register();
 
         new NoModule(new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
         }).Register();
+
+        if (directory.Count <= 0) 
+        {
+            Types = Array.Empty<Type>();
+            return;
+        }
 
         int i = 0;
         Types = new Type[directory.Count];
