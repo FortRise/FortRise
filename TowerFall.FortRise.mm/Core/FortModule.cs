@@ -159,6 +159,30 @@ public abstract partial class FortModule
                 }, null);
                 optionsList.Add(optionButton);
             }
+            else if ((fieldType == typeof(string)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
+            {
+                var optionButton = new OptionsButton(fullName);
+                optionButton.SetCallbacks(() => {
+                    var value = (string)field.GetValue(settings);
+                    var index = Array.IndexOf(optAttrib.Options, value);
+                    optionButton.State = optAttrib.Options[index].ToUpperInvariant();
+                    optionButton.CanLeft = (index > 0);
+                    optionButton.CanRight = (index < optAttrib.Options.Length - 1);
+                }, () => {
+                    var value = (string)field.GetValue(settings);
+                    var index = Array.IndexOf(optAttrib.Options, value);
+                    index -= 1;
+                    value = optAttrib.Options[index];
+                    field.SetValue(settings, value);
+                }, () => {
+                    var value = (string)field.GetValue(settings);
+                    var index = Array.IndexOf(optAttrib.Options, value);
+                    index += 1;
+                    value = optAttrib.Options[index];
+                    field.SetValue(settings, value);
+                }, null);
+                optionsList.Add(optionButton);
+            }
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) && 
                 (attrib = field.GetCustomAttribute<SettingsNumberAttribute>()) != null) 
             {
