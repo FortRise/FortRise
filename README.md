@@ -18,6 +18,23 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + Paste all of the mod content and done.
 + Launch TowerFall to see the changes.
 
+### Mods Created in FortRise
+## [Archer Loader](https://github.com/RedDude/ArcherLoader/releases/)
+### By: [RedDude](https://github.com/RedDude)
+Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers with custom hair, wings, ghost, particles, layers and even taunts and skins for archers.
+![archer-loader](./img/archer-loader.png)
+
+## Adventure
+### By: [Terria](https://github.com/Terria-K)
+Loads custom Dark World levels with workshop-like button without having to mess around with original game files.
+![adventure](./img/menu.png)
+
+## [Eight-Player Mode (WIP)](https://github.com/Terria-K/EightPlayerMod)
+### By: [Terria](https://github.com/Terria-K) and [RedDude](https://github.com/RedDude)
+Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide quest.
+![eight-player-versus](./img/eight-player-versus.png)
+![eight-player-quest](./img/eight-player-quest.png)
+
 
 ### Creating mods
 For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
