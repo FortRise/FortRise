@@ -37,7 +37,6 @@ public abstract partial class FortModule
 
     public void InternalLoad() 
     {
-        Content = new FortContent(this);
         LoadSettings();
         Load();
     }

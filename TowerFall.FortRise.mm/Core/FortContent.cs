@@ -8,22 +8,27 @@ namespace FortRise;
 
 public class FortContent 
 {
-    private string dllPath;
+    private string modPath;
     public FortContent(FortModule module) 
     {
-        dllPath = module.Meta.DLL;
+        modPath = module.Meta.DLL;
+    }
+
+    public FortContent(string pathDirectory) 
+    {
+        modPath = pathDirectory;
     }
 
     public string GetContentPath(string content) 
     {
-        var modDirectory = Path.GetDirectoryName(dllPath);
+        var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
 
     public string GetContentPath() 
     {
-        var modDirectory = Path.GetDirectoryName(dllPath);
+        var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content").Replace("\\", "/");
     }
 

@@ -95,7 +95,7 @@ public static class patch_GameData
         // Load mods that contains Levels/DarkWorld folder
         foreach (var mod in RiseCore.InternalMods) 
         {
-            var modPath = mod.Content.GetContentPath("Content");
+            var modPath = mod.Content.GetContentPath();
             var levelPath = Path.Combine(modPath, "Levels");
             var darkWorld = Path.Combine(levelPath, "DarkWorld");
             if (Directory.Exists(darkWorld)) 

@@ -122,8 +122,6 @@ public static partial class RiseCore
         if (directory.Count <= 0) 
             return;
 
-        int i = 0;
-
         foreach (var dir in directory) 
         {
             var metaPath = Path.Combine(dir, "meta.json");
@@ -140,8 +138,13 @@ public static partial class RiseCore
 
 
             // Assembly Mod Loading
-            if (moduleMetadata.DLL == null) 
+            if (moduleMetadata.DLL == string.Empty) 
+            {
+                var fortContent = new FortContent(moduleMetadata.PathDirectory);
+                var modResource = new ModResource(fortContent, moduleMetadata);
+                InternalMods.Add(modResource);
                 continue;
+            }
             
             var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
             if (!File.Exists(pathToAssembly))
@@ -150,11 +153,11 @@ public static partial class RiseCore
             using var fs = File.OpenRead(pathToAssembly);
 
             var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
-            RegisterAssembly(moduleMetadata, asm, i++);
+            RegisterAssembly(moduleMetadata, asm);
         }
     }
 
-    private static void RegisterAssembly(ModuleMetadata metadata, Assembly asm, int index) 
+    private static void RegisterAssembly(ModuleMetadata metadata, Assembly asm) 
     {
         foreach (var t in asm.GetTypes()) 
         {
@@ -166,13 +169,14 @@ public static partial class RiseCore
                 {
                     metadata.Name = customAttribute.Name;
                 }
-
-                var content = new FortContent(obj);
-                var modResource = new ModResource(content, metadata);
-                InternalMods.Add(modResource);
+                obj.Meta = metadata;
                 obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
-                obj.Meta = metadata;
+                var content = new FortContent(obj);
+                obj.Content = content;
+
+                var modResource = new ModResource(content, metadata);
+                InternalMods.Add(modResource);
 
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
@@ -185,7 +189,7 @@ public static partial class RiseCore
     private static ModuleMetadata ParseMetadataWithXML(string dir, string path) 
     {
         var xml = Calc.LoadXML(path)["meta"];
-        var dll = xml.ChildText("dll");
+        var dll = xml.ChildText("dll", null);
         var name = xml.ChildText("name", null);
         if (name == null)
         {

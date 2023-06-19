@@ -3,7 +3,6 @@ using System.IO;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
-using TeuJson;
 
 namespace TowerFall;
 
