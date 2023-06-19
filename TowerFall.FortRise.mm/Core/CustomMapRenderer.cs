@@ -6,6 +6,8 @@ using Microsoft.Xna.Framework;
 using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using TowerFall;
+using MonoMod;
+using MonoMod.Utils;
 
 namespace FortRise;
 
@@ -27,7 +29,6 @@ public abstract class CustomMapRenderer : CompositeComponent
     }
 
     public abstract void OnSelectionChange(string title);
-    public abstract void OnStartSelection(string title);
 
     public void Set(ICustomMapElement element) 
     {
@@ -45,16 +46,20 @@ public abstract class CustomMapRenderer : CompositeComponent
         elements.Add(name, mapImage);
         if (Graphics != null)
             Graphics.Add(mapImage);
+        Add(mapImage);
         return mapImage;
     }
 
     public MapSprite AddAnimatedImage(patch_SpriteData spriteData, string name, Action onSelect = null, Action onDeselect = null, Rectangle? clipRect = null) 
     {
-        var spriteInt = spriteData.GetSpriteInt(name);
-        var mapImage = new MapSprite(spriteInt.Texture, spriteInt.FramesX, spriteInt.FramesY) {
+        var spriteString = spriteData.GetSpriteString(name);
+        var mapImage = new MapSprite(spriteString.Texture, 60, 60) {
             OnSelectImage = onSelect,
             OnDeselectImage = onDeselect
         };
+        mapImage.ClipRect = spriteString.ClipRect;
+        DynamicData.For(mapImage).Set("Animations", 
+            DynamicData.For(spriteString).Get("Animations"));
         elements.Add(name, mapImage);
         if (Graphics != null)
             Graphics.Add(mapImage);
@@ -94,8 +99,16 @@ public class XmlMapRenderer : CustomMapRenderer
                 var name = element.Attr("name");
                 var x = element.AttrInt("x");
                 var y = element.AttrInt("y");
+                patch_Atlas atlasPack;
+                if (name.StartsWith("TFGame.MenuAtlas::")) 
+                {
+                    atlasPack = (patch_Atlas)(object)TFGame.MenuAtlas;
+                    name = name.Replace("TFGame.MenuAtlas::", "");
+                }
+                else
+                    atlasPack = atlas;
 
-                AddImage(atlas[name], name, () => {}, () => {});
+                AddImage(atlasPack[name], name, () => {}, () => {});
             }
             else if (element.Name == "landImage") 
             {
@@ -104,24 +117,42 @@ public class XmlMapRenderer : CustomMapRenderer
             }
             else if (element.Name == "mapAnimated")
             {
-                if (!containSpriteData) 
+                var name = element.Attr("name");
+                if (!containSpriteData && !name.Contains("TFGame.MenuSpriteData::")) 
                 {
                     Logger.Error("[CustomMapRenderer] Use of mapAnimated without spriteData is not allowed.");
                     continue;
                 }
-                var name = element.Attr("name");
                 var x = element.AttrInt("x");
                 var y = element.AttrInt("y");
-                var animation = AddAnimatedImage(spriteData, name, () => {}, () => {});
-                animation.Play("notSelected");
+                var inAnimation = element.ChildText("in", "in");
+                var outAnimation = element.ChildText("in", "out");
+                var notSelected = element.ChildText("notSelected", "notSelected");
+                var selected = element.ChildText("selected", "selected");
+                MapSprite animation;
+                if (name.StartsWith("TFGame.MenuSpriteData::"))
+                    animation = AddAnimatedImage(
+                        (patch_SpriteData)(object)TFGame.MenuSpriteData, name.Replace("TFGame.MenuSpriteData::", ""), 
+                        () => {}, () => {});
+                else
+                    animation = AddAnimatedImage(spriteData, name, () => {}, () => {});
+                
+                animation.OnSelectImage = () => {
+                    animation.Play(inAnimation);
+                };
+                animation.OnDeselectImage = () => {
+                    animation.Play(outAnimation);
+                };
+                animation.Play(notSelected);
                 animation.OnAnimationComplete = (s) => {
-                    if (s.CurrentAnimID == "notSelected")
-                        s.Play("notSelected");
-                    if (s.CurrentAnimID == "selected")
-                        s.Play("selected");
+                    if (s.CurrentAnimID == outAnimation)
+                        s.Play(notSelected);
+                    if (s.CurrentAnimID == inAnimation)
+                        s.Play(selected);
                 };
                 animation.TowerName = element.ChildText("towerName");
                 ElementMap.Add(animation.TowerName, animation);
+                Add(animation);
             }
         }
     }
@@ -134,10 +165,6 @@ public class XmlMapRenderer : CustomMapRenderer
             return;
         }
         Set(null);
-    }
-
-    public override void OnStartSelection(string title)
-    {
     }
 }
 

@@ -21,6 +21,9 @@ public class patch_SpriteData
     [MonoModIgnore]
     public extern Sprite<int> GetSpriteInt(string id);
 
+    [MonoModIgnore]
+    public extern Sprite<string> GetSpriteString(string id);
+
     internal void SetAtlasAndSprite(patch_Atlas atlas, Dictionary<string, XmlElement> sprites) 
     {
         this.atlas = atlas;

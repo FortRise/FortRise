@@ -178,7 +178,7 @@ public class patch_MapScene : MapScene
                         currentCustomMapRenderer.Visible = true;
                         if (Selection.Data == null) 
                         {
-                            currentCustomMapRenderer.OnSelectionChange(null);
+                            currentCustomMapRenderer.OnSelectionChange("");
                             return;
                         }
                         currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
@@ -188,6 +188,7 @@ public class patch_MapScene : MapScene
                         if (currentCustomMapRenderer != null)
                             currentCustomMapRenderer.Visible = false;
                         Renderer.Visible = true;
+                        currentCustomMapRenderer = null;
                         if (Selection.Data == null)
                         {
                             Renderer.OnSelectionChange("");
@@ -209,6 +210,7 @@ public class patch_MapScene : MapScene
                         currentCustomMapRenderer.Visible = false;
                     ExitAdventure(id);
                     Renderer.Visible = true;
+                    currentCustomMapRenderer = null;
 
                     if (Selection.Data == null)
                     {
@@ -229,7 +231,7 @@ public class patch_MapScene : MapScene
                         currentCustomMapRenderer.Visible = true;
                         if (Selection.Data == null) 
                         {
-                            customMapRenderer.renderer.OnSelectionChange(null);
+                            customMapRenderer.renderer.OnSelectionChange("");
                         }
                         customMapRenderer.renderer.OnSelectionChange(Selection.Data.Title);
                         return;
@@ -239,6 +241,7 @@ public class patch_MapScene : MapScene
                         if (currentCustomMapRenderer != null)
                             currentCustomMapRenderer.Visible = false;
                         Renderer.Visible = true;
+                        currentCustomMapRenderer = null;
                         if (Selection.Data == null)
                         {
                             Renderer.OnSelectionChange("");
@@ -250,6 +253,10 @@ public class patch_MapScene : MapScene
             }
             if (MenuInput.Back) 
             {
+                if (currentCustomMapRenderer != null)
+                    currentCustomMapRenderer.Visible = false;
+                Renderer.Visible = true;
+                currentCustomMapRenderer = null;
                 CustomLevelCategory = -1;
             }
 
@@ -263,6 +270,21 @@ public class patch_MapScene : MapScene
         orig_Update();
         if (crashDelay > 0)
             crashDelay--;
+    }
+
+    public extern void orig_SelectLevel(MapButton button, bool scrollTo = true);
+
+    public void SelectLevel(MapButton button, bool scrollTo = true) 
+    {
+        orig_SelectLevel(button, scrollTo);
+        if (currentCustomMapRenderer != null) 
+        {
+            if (Selection.Data == null) 
+            {
+                currentCustomMapRenderer.OnSelectionChange("");
+            }
+            currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
+        }
     }
 
     public void TweenOutAllButtonsAndRemove() 
