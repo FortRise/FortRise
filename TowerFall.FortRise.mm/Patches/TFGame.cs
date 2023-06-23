@@ -1,12 +1,15 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
+using Steamworks;
 
 namespace TowerFall;
 
@@ -26,9 +29,18 @@ internal static class NativeMethods
 
 public partial class patch_TFGame : TFGame
 {
+    public static bool SoundLoaded;
     private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
     public static patch_Atlas FortRiseMenuAtlas;
+    public static bool Loaded
+    {
+        [MonoModIgnore]
+        get => throw null;
+        [MonoModIgnore]
+        set => throw null;
+    }
+
 
 
     private bool noIntro;
@@ -178,4 +190,128 @@ public partial class patch_TFGame : TFGame
         RiseCore.Events.Invoke_AfterRender(Monocle.Draw.SpriteBatch);
     }
 
+    [MonoModReplace]
+    public static void Load()
+    {
+        Task.Factory.StartNew(delegate
+        {
+            try
+            {
+                Loader.Message = "LOADING";
+                Calc.Log(new object[] { "=== LOADING DATA ===" });
+                Calc.Log(new object[] { "...Input" });
+                TFGame.WriteLineToLoadLog("Initializing Input...");
+                NewGamepadInput.Init();
+                PlayerInput.AssignInputs();
+                for (int i = 0; i < 4; i++)
+                {
+                    TFGame.Characters[i] = i;
+                }
+                Calc.Log(new object[] { "...Archer Data" });
+                ArcherData.Initialize();
+                Calc.Log(new object[] { "...Level Data" });
+                GameData.Load();
+                TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
+                MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();
+                MainMenu.TrialsMatchSettings = MatchSettings.GetDefaultTrials();
+                MainMenu.QuestMatchSettings = MatchSettings.GetDefaultQuest();
+                MainMenu.DarkWorldMatchSettings = MatchSettings.GetDefaultDarkWorld();
+                Calc.Log(new object[] { "...Awards and Tips" });
+                TFGame.WriteLineToLoadLog("Loading Versus Awards...");
+                VersusAwards.Initialize();
+                TFGame.WriteLineToLoadLog("Loading Versus Tips...");
+                GameTips.Initialize();
+                Calc.Log(new object[] { "...Save Data" });
+                TFGame.WriteLineToLoadLog("Verifying Save Data...");
+                SaveData.Instance.Verify();
+                SessionStats.Initialize();
+                Calc.Log(new object[] { "...Entity Caching" });
+                TFGame.WriteLineToLoadLog("Initializing Entity Caching...");
+                Arrow.Initialize();
+                Cache.Init<CatchShine>();
+                Cache.Init<LightFade>();
+                Cache.Init<Explosion>();
+                Cache.Init<PlayerBreath>();
+                Cache.Init<ShockCircle>();
+                Cache.Init<SmallShock>();
+                Cache.Init<QuestScorePopup>();
+                Cache.Init<EnemyAttack>();
+                Cache.Init<Prism>();
+                Cache.Init<PrismVanish>();
+                Cache.Init<PrismParticle>();
+                Cache.Init<CrumbleWallChunk>();
+                Cache.Init<AmaranthShot>();
+                Cache.Init<BrambleSpore>();
+                Cache.Init<CyclopsShot>();
+                Cache.Init<CataclysmBullet>();
+                Cache.Init<WorkshopPortal>();
+                Calc.Log(new object[] { "...Particles and Lighting" });
+                TFGame.WriteLineToLoadLog("Initializing Particle Systems...");
+                Particles.Initialize();
+                TFGame.WriteLineToLoadLog("Initializing Lighting Systems...");
+                LightingLayer.Initialize();
+
+                Calc.Log(new object[] { "...Shaders (1/2)" });
+                TFGame.WriteLineToLoadLog("Initializing Shaders (1 of 2)...");
+                ScreenEffects.Initialize();
+                Calc.Log(new object[] { "...Shaders (2/2)" });
+                TFGame.WriteLineToLoadLog("Initializing Shaders (2 of 2)...");
+                TFGame.LoadLightingEffect();
+                Calc.Log(new object[] { "=== LOADING COMPLETE ===" });
+                TFGame.WriteLineToLoadLog("Loading Complete!");
+                Loader.Message = "";
+                TFGame.GameLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                TFGame.Log(ex, true);
+                TFGame.OpenLog();
+                Engine.Instance.Exit();
+            }
+        });
+
+        Task.Factory.StartNew(() => 
+        {
+            Calc.Log(new object[] { "...Music" });
+            TFGame.WriteLineToLoadLog("Loading Music...");
+            patch_Music.Initialize();
+            if (!Sounds.Loaded)
+            {
+                Calc.Log("...SFX" );
+                TFGame.WriteLineToLoadLog("Loading Sounds...");
+                Sounds.Load();
+            }
+            SoundLoaded = true;
+            Calc.Log("=== SOUND LOADING COMPLETE ===");
+        });
+    }
+
+    [MonoModReplace]
+    public static IEnumerator MainMenuLoadWait()
+    {
+        while (!TFGame.GameLoaded || !patch_TFGame.SoundLoaded)
+        {
+            yield return 0;
+        }
+        if (SaveData.NewDataCreated && MainMenu.LoadError == null)
+        {
+            Saver saver = new Saver(true, null);
+            Engine.Instance.Scene.Add<Saver>(saver);
+            saver.CanHandleError = true;
+            while (!saver.Finished)
+            {
+                yield return 0;
+            }
+            saver = null;
+        }
+        MainMenu.PlayMenuMusic(false, false);
+        Engine.ConsoleEnabled = SaveData.Instance.Options.DevConsole;
+        if (SaveData.Instance.Unlocks.Ascension)
+        {
+            (Engine.Instance.Scene as MainMenu).Background.AscensionTransition();
+        }
+        Calc.Log(new object[] { "Steam? " + SteamAPI.IsSteamRunning().ToString() });
+        patch_TFGame.Loaded = true;
+        yield break;
+    }
 }
