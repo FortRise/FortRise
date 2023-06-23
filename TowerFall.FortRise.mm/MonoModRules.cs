@@ -365,8 +365,8 @@ internal static partial class MonoModRules
         var height = ctx.Method.DeclaringType.FindField("height");
         var cursor = new ILCursor(ctx);
 
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld<Monocle.Screen>("width"));
-        if (cursor.TryGotoNext(instr => instr.MatchStfld<Monocle.Screen>("width"))) 
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(typeof(Monocle.Screen), "width"));
+        if (cursor.TryGotoNext(instr => instr.MatchStfld(typeof(Monocle.Screen), "width"))) 
         {
             cursor.Remove();
             cursor.Emit(OpCodes.Stfld, height);
@@ -395,11 +395,11 @@ internal static partial class MonoModRules
         cursor.GotoNext(
             MoveType.After,
             instr => instr.MatchAdd(),
-            instr => instr.MatchStfld<TowerFall.DarkWorldTowerStats>("Deaths")
+            instr => instr.MatchStfld(typeof(TowerFall.DarkWorldTowerStats), "Deaths")
         );
         cursor.MarkLabel(label);
 
-        cursor.GotoPrev(instr => instr.MatchCallOrCallvirt<TowerFall.RoundLogic>("OnPlayerDeath"));
+        cursor.GotoPrev(instr => instr.MatchCallOrCallvirt(typeof(TowerFall.RoundLogic), "OnPlayerDeath"));
         cursor.GotoNext();
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
         cursor.Emit(OpCodes.Brtrue_S, label);
@@ -414,11 +414,11 @@ internal static partial class MonoModRules
         cursor.GotoNext(
             MoveType.After,
             instr => instr.MatchAdd(),
-            instr => instr.MatchStfld<TowerFall.DarkWorldTowerStats>("Attempts")
+            instr => instr.MatchStfld(typeof(TowerFall.DarkWorldStats), "Attempts")
         );
         var label = ctx.DefineLabel(cursor.Next);
 
-        cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld<TowerFall.Session>("DarkWorldState"));
+        cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld(typeof(TowerFall.Session), "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
         cursor.Emit(OpCodes.Brtrue_S, label);
     }
@@ -460,7 +460,7 @@ internal static partial class MonoModRules
 
             var cursor = new ILCursor(ctx);
 
-            cursor.GotoNext(instr => instr.MatchLdsfld<TowerFall.SaveData>("Instance"));
+            cursor.GotoNext(instr => instr.MatchLdsfld(typeof(TowerFall.SaveData), "Instance"));
             // This part of instructions will replace one method call from the DarkWorldTowerStats into a hook
             
             // Check for TF Version since it does have a different instructions
@@ -542,13 +542,13 @@ internal static partial class MonoModRules
 
         var cursor = new ILCursor(ctx);
         var label = ctx.DefineLabel();
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld<TowerFall.DarkWorldLevelSelectOverlay>("drawStatsLerp"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(typeof(TowerFall.DarkWorldLevelSelectOverlay), "drawStatsLerp"));
 
         cursor.Emit(OpCodes.Ldarg_1);
         cursor.Emit(OpCodes.Ldfld, Selection);
         cursor.Emit(OpCodes.Callvirt, get_Data);
 
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld<TowerFall.DarkWorldLevelSelectOverlay>("statsID"));
+        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld(typeof(TowerFall.DarkWorldLevelSelectOverlay), "statsID"));
         cursor.MarkLabel(label);
         cursor.GotoPrev(MoveType.After, instr => instr.MatchCallvirt(get_Data));
         cursor.Emit(OpCodes.Brfalse_S, label);
