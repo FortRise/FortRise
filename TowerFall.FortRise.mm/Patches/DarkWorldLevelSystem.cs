@@ -52,11 +52,11 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
             randomSeed = file;
             var levelFile = DarkWorldTowerData.Levels[file];
-            if (DarkWorldTowerData is AdventureWorldTowerData worldData && levelFile.EndsWith("json")) 
+            if (DarkWorldTowerData is AdventureWorldTowerData && levelFile.EndsWith("json")) 
             {
-                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(worldData.Levels[file]))["level"];
+                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(levelFile))["level"];
             }
-            return Calc.LoadXML(DarkWorldTowerData.Levels[file])["level"];
+            return Calc.LoadXML(levelFile)["level"];
         }
         catch (ArgumentOutOfRangeException e)
         {
