@@ -18,6 +18,15 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + Paste all of the mod content and done.
 + Launch TowerFall to see the changes.
 
+
+### Creating mods
+For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
+
+## Troubleshooting
+### The game crashes before it even loads! (Windows only)
+If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
+
+
 ### Mods Created in FortRise
 ## [Archer Loader](https://github.com/RedDude/ArcherLoader/releases/)
 ### By: [RedDude](https://github.com/RedDude)
@@ -35,13 +44,6 @@ Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide 
 ![eight-player-versus](./img/eight-player-versus.png)
 ![eight-player-quest](./img/eight-player-quest.png)
 
-
-### Creating mods
-For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
-
-## Troubleshooting
-### The game crashes before it even loads! (Windows only)
-If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
 
 ## Roadmap
 Check the [roadmap](./ROADMAP.md) for planned features.
