@@ -367,8 +367,7 @@ internal static partial class MonoModRules
         cursor.GotoNext(MoveType.After, instr => instr.MatchStfld("Monocle.Screen", "width"));
         if (cursor.TryGotoNext(instr => instr.MatchStfld("Monocle.Screen", "width"))) 
         {
-            cursor.Remove();
-            cursor.Emit(OpCodes.Stfld, height);
+            cursor.Next.Operand = height;
         }
     }
 
