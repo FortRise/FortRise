@@ -35,6 +35,9 @@ public static class patch_Music
         set => currentSong = value;
     }
 
+    [MonoModIgnore]
+    internal static extern void Initialize();
+
     [MonoModReplace]
     public static void Play(string filepath) 
     {
