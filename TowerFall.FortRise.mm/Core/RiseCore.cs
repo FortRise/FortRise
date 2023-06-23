@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
@@ -55,6 +56,35 @@ public static partial class RiseCore
 
     public static bool DebugMode;
 
+    private static ReadOnlySpan<char> SpanTest(ReadOnlySpan<char> variant) 
+    {
+        int offset = 0;
+        Span<char> dest = default;
+        variant.ToUpperInvariant(dest);
+        for (int i = 0; i < dest.Length + offset; i++) 
+        {
+            if (char.IsUpper(dest[i + 1]) && char.IsLower(dest[i])) 
+            {
+                dest[i] += ' ';
+                offset++;
+            }
+        }
+
+        return dest; 
+    }
+
+    private static void Process() 
+    {
+        string variant = "BIG HEADS";
+
+        ReadOnlySpan<char> parsed = SpanTest(variant.AsSpan());
+
+        if (parsed.SequenceEqual("BigHeads".AsSpan())) 
+        {
+
+        }
+    }
+
     internal static void ModuleStart() 
     {
         RiseCore.Flags();
@@ -80,8 +110,6 @@ public static partial class RiseCore
 
             return null;
         };
-
-        // List<string> resolverLoadedPath = new List<string>();
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
         {
@@ -122,6 +150,7 @@ public static partial class RiseCore
         if (directory.Count <= 0) 
             return;
 
+        // Get all mods metadata before loading the mod.
         foreach (var dir in directory) 
         {
             var metaPath = Path.Combine(dir, "meta.json");
@@ -138,26 +167,43 @@ public static partial class RiseCore
 
 
             // Assembly Mod Loading
-            if (moduleMetadata.DLL == string.Empty) 
-            {
-                var fortContent = new FortContent(moduleMetadata.PathDirectory);
-                var modResource = new ModResource(fortContent, moduleMetadata);
-                InternalMods.Add(modResource);
-                continue;
-            }
+            var fortContent = new FortContent(moduleMetadata.PathDirectory);
+            var modResource = new ModResource(fortContent, moduleMetadata);
+            InternalMods.Add(modResource);
+        
+            // var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
+            // if (!File.Exists(pathToAssembly))
+            //     continue;
+
+            // using var fs = File.OpenRead(pathToAssembly);
+
+            // var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
+            // RegisterAssembly_OLD(moduleMetadata, asm);
+        }
+
+        foreach (var mod in InternalMods) 
+        {
+            var metadata = mod.Metadata;
+            if (metadata.DLL == string.Empty) 
+                return;
             
-            var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
+            var pathToAssembly = Path.GetFullPath(metadata.DLL);
             if (!File.Exists(pathToAssembly))
-                continue;
+                return;
 
             using var fs = File.OpenRead(pathToAssembly);
 
-            var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
-            RegisterAssembly(moduleMetadata, asm);
+            var asm = Relinker.GetRelinkedAssembly(metadata, pathToAssembly, fs);
+            if (asm == null) 
+            {
+                Logger.Error("Failed to load assembly: " + asm.FullName);
+                return;
+            }
+            RegisterAssembly(metadata, mod, asm);
         }
     }
 
-    private static void RegisterAssembly(ModuleMetadata metadata, Assembly asm) 
+    private static void RegisterAssembly(ModuleMetadata metadata, ModResource resource, Assembly asm) 
     {
         foreach (var t in asm.GetTypes()) 
         {
@@ -172,11 +218,8 @@ public static partial class RiseCore
                 obj.Meta = metadata;
                 obj.Name = customAttribute.Name;
                 obj.ID = customAttribute.GUID;
-                var content = new FortContent(obj);
+                var content = resource.Content;
                 obj.Content = content;
-
-                var modResource = new ModResource(content, metadata);
-                InternalMods.Add(modResource);
 
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
@@ -395,7 +438,6 @@ public static partial class RiseCore
                 RoundLogicLoader.Add(name, loader);
                 
             }
-
             foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
             {
                 if (attrib is null)
@@ -459,7 +501,6 @@ public static partial class RiseCore
                     EnemyLoader.Add(id, loader);
                 }
             }
-
             foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
             {
                 const int offset = 11;
@@ -500,6 +541,39 @@ public static partial class RiseCore
                 PickupID.Add(name, (Pickups)PickupLoaderCount);
                 PickupLoader.Add((Pickups)PickupLoaderCount, (pos, targetPos, _) => new ArrowTypePickup(
                     pos, targetPos, stride));
+                PickupLoaderCount++;
+            }
+            foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
+            {
+                if (pickup is null)
+                    return;
+                var pickupName = pickup.Name;
+                var stride = PickupLoaderCount;
+                ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Vector2), typeof(Vector2) });
+                PickupLoader loader = null;
+
+                if (ctor != null) 
+                {
+                    loader = (pos, targetPos, idx) => 
+                    {
+                        var custom = (Pickup)ctor.Invoke(new object[2] { pos, targetPos });
+                        if (custom is CustomOrbPickup customOrb) 
+                        {
+                            var info = customOrb.CreateInfo();
+                            customOrb.Sprite = info.Sprite;
+                            customOrb.LightColor = info.Color.Invert();
+                            customOrb.Collider = info.Hitbox;
+                            customOrb.Border.Color = info.Color;
+                            customOrb.Sprite.Play(0);
+                            customOrb.Add(customOrb.Sprite);
+                        }
+
+                        return custom;
+                    };
+                }
+
+                PickupID.Add(pickupName, (Pickups)stride);
+                PickupLoader.Add((Pickups)PickupLoaderCount, loader);
                 PickupLoaderCount++;
             }
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
