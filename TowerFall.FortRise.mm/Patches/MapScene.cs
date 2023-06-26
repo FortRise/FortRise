@@ -264,7 +264,7 @@ public class patch_MapScene : MapScene
             {
                 var id = Buttons.IndexOf(Selection);
                 patch_GameData.ReloadCustomLevels();
-                if (!patch_SaveData.AdventureActive)
+                if (patch_SaveData.AdventureActive)
                     GotoAdventure(id);
             }
         }
