@@ -322,7 +322,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             if (loadedXML.HasChild("ImagePath")) 
             {
                 var oldAPIPath = loadedXML.InnerText;
-                Logger.Log("[Background] Use of deprecated APIs should no longer be used");
+                Logger.Warning("[Background] Use of deprecated APIs should no longer be used");
 
                 if (!string.IsNullOrEmpty(oldAPIPath)) 
                 {
