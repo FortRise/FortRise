@@ -1,6 +1,7 @@
 <TextureAtlas imagePath="../Atlas/menuatlas/png">
-  <SubTexture name="mmg/0" x="0" y="7" width="8" height="7"/>
-  <SubTexture name="mmg/1" x="0" y="0" width="12" height="7"/>
-  <SubTexture name="mmg/2" x="12" y="0" width="6" height="7"/>
-  <SubTexture name="mmg/3" x="8" y="7" width="6" height="7"/>
+  <SubTexture name="icon/levelcategoryicon" x="0" y="0" width="16" height="16"/>
+  <SubTexture name="mmg/0" x="16" y="7" width="8" height="7"/>
+  <SubTexture name="mmg/1" x="16" y="0" width="12" height="7"/>
+  <SubTexture name="mmg/2" x="16" y="14" width="6" height="7"/>
+  <SubTexture name="mmg/3" x="24" y="7" width="6" height="7"/>
 </TextureAtlas>

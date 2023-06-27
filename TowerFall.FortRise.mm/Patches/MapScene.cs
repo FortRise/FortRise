@@ -17,6 +17,12 @@ public class patch_MapScene : MapScene
     private CustomMapRenderer currentCustomMapRenderer;
     public bool MapPaused;
     public int CustomLevelCategory;
+
+    public CustomMapRenderer CurrentMapRender 
+    {
+        get => currentCustomMapRenderer;
+        set => currentCustomMapRenderer = value;
+    }
     public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
     {
     }
@@ -239,7 +245,8 @@ public class patch_MapScene : MapScene
                         {
                             customMapRenderer.renderer.OnSelectionChange("");
                         }
-                        customMapRenderer.renderer.OnSelectionChange(Selection.Data.Title);
+                        else
+                            customMapRenderer.renderer.OnSelectionChange(Selection.Data.Title);
                         return;
                     }
                     else 
@@ -281,17 +288,18 @@ public class patch_MapScene : MapScene
 
     public extern void orig_SelectLevel(MapButton button, bool scrollTo = true);
 
-    public void SelectLevel(MapButton button, bool scrollTo = true) 
+    public void SelectLevel(MapButton button, bool scrollTo = true)
     {
         orig_SelectLevel(button, scrollTo);
-        if (currentCustomMapRenderer != null) 
+        if (currentCustomMapRenderer == null)
+            return;
+        
+        if (Selection.Data == null)
         {
-            if (Selection.Data == null) 
-            {
-                currentCustomMapRenderer.OnSelectionChange("");
-            }
-            currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
+            currentCustomMapRenderer.OnSelectionChange("");
+            return;
         }
+        currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
     }
 
     public void TweenOutAllButtonsAndRemove() 

@@ -47,6 +47,10 @@ public class UIModal : Entity
     public override void Added()
     {
         base.Added();
+        if (optionIndex <= 0)
+            optionIndex = 0;
+        else if (optionIndex >= optionNames.Count - 1)
+            optionIndex = optionNames.Count - 1;
         Sounds.ui_pause.Play(160f);
         panel = new MenuPanel(120, itemCount * 10 + 30);
         Add(panel);
@@ -144,6 +148,17 @@ public class UIModal : Entity
             Draw.TextCentered(TFGame.Font, (this.optionIndex == i) ? this.selectedOptionNames[i] : this.optionNames[i], value + zero, color);
             value.Y += 14f;
         }
+    }
+
+    /// <summary>
+    /// Set the start index of a modal. It will automatically adjust if the index is out of bounds.
+    /// </summary>
+    /// <param name="index">A start index</param>
+    /// <returns>A UIModal context</returns>
+    public UIModal SetStartIndex(int index) 
+    {
+        optionIndex = index;
+        return this;
     }
 
     /// <summary>

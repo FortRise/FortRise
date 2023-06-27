@@ -17,6 +17,7 @@ public static class patch_GameData
     public static Dictionary<Guid, CustomBGStorage> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
+    public static List<string> AdventureWorldCategories;
     public static Dictionary<string, int> AdventureWorldModTowersLookup;
     public static List<(bool contains, CustomMapRenderer renderer)> AdventureWorldMapRenderer;
     public static List<List<AdventureWorldTowerData>> AdventureWorldModTowers;
@@ -46,13 +47,6 @@ public static class patch_GameData
                 tileset.Value.Texture.Texture2D.Dispose();
             }
         }
-        // if (CustomBGAtlas != null) 
-        // {
-        //     foreach (var bg in CustomBGAtlas) 
-        //     {
-        //         bg.Value.Atlas.Texture2D.Dispose();
-        //     }
-        // }
 
         CustomBGAtlas ??= new();
         CustomTilesets ??= new();
@@ -70,6 +64,9 @@ public static class patch_GameData
 
         AdventureWorldMapRenderer ??= new();
         AdventureWorldMapRenderer.Clear();
+
+        AdventureWorldCategories ??= new();
+        AdventureWorldCategories.Clear();
 
         const string AdventureModPath = "Content/Mod/Adventure/DarkWorld";
         if (!Directory.Exists(AdventureModPath))
@@ -142,6 +139,7 @@ public static class patch_GameData
             return false;
         }
         var lookup = AdventureWorldModTowers.Count;
+        AdventureWorldCategories.Add(modName);
         AdventureWorldModTowersLookup.Add(modName, lookup);
 
         var adventureTowerData = new AdventureWorldTowerData();
