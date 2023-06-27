@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -135,7 +136,7 @@ public partial class patch_QuestSpawnPortal : QuestSpawnPortal
             break;
         
         default:
-            Events.InvokeQuestSpawnPortal_FinishSpawn(name, Position, facing, Level);
+            RiseCore.Events.InvokeQuestSpawnPortal_FinishSpawn(name, Position, facing, Level);
             break;
         }
 

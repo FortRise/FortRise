@@ -426,7 +426,7 @@ internal static partial class MonoModRules
         MethodDefinition complete = method.GetEnumeratorMoveNext();
 
         new ILContext(complete).Invoke(ctx => {
-            var eventHook = ctx.Module.GetType("TowerFall.DarkWorldComplete/Events");
+            var eventHook = ctx.Module.GetType("FortRise.RiseCore/Events");
             var invoked = eventHook.FindMethod("System.Void InvokeDarkWorldComplete_Result(System.Int32,TowerFall.DarkWorldDifficulties,System.Int32,System.Int64,System.Int32,System.Int32,System.Int32)");
             var SaveData = ctx.Module.GetType("TowerFall", "SaveData");
             var AdventureActive = SaveData.FindField("AdventureActive");
