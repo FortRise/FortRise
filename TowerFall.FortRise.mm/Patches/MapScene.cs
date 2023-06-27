@@ -13,6 +13,7 @@ public class patch_MapScene : MapScene
     private static int lastRandomVersusTower;
     private bool adventureLevels;
     private float crashDelay;
+    private Counter counterDelay;
     private CustomMapRenderer currentCustomMapRenderer;
     public bool MapPaused;
     public int CustomLevelCategory;
@@ -22,6 +23,10 @@ public class patch_MapScene : MapScene
 
     private void InitializeCustoms() 
     {
+        var counterHolder = new Entity();
+        counterDelay = new Counter();
+        counterHolder.Add(counterDelay);
+        Add(counterHolder);
         CustomLevelCategory = -1;
         crashDelay = 10;
         foreach (var (contaning, mapRenderer) in patch_GameData.AdventureWorldMapRenderer) 
@@ -83,6 +88,7 @@ public class patch_MapScene : MapScene
 
     public void InitAdventure(int id) 
     {
+        counterDelay.Set(20);
         Add(new AdventureListLoader(this, id));
     }
 
@@ -161,7 +167,7 @@ public class patch_MapScene : MapScene
                 button.Shake();
                 MenuInput.RumblePlayers(1f, 20);
             }
-            if (MenuInput.Up) 
+            if (MenuInput.Up && !counterDelay) 
             {
                 if (CustomLevelCategory != patch_GameData.AdventureWorldModTowers.Count - 1) 
                 {
@@ -198,7 +204,7 @@ public class patch_MapScene : MapScene
                     }
                 }
             }
-            else if (MenuInput.Down && patch_SaveData.AdventureActive) 
+            else if (MenuInput.Down && !counterDelay && patch_SaveData.AdventureActive) 
             {
                 if (CustomLevelCategory != -1)
                     CustomLevelCategory--;
@@ -260,7 +266,7 @@ public class patch_MapScene : MapScene
                 CustomLevelCategory = -1;
             }
 
-            if (MInput.Keyboard.Pressed(Keys.F5)) 
+            if (MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
             {
                 var id = Buttons.IndexOf(Selection);
                 patch_GameData.ReloadCustomLevels();
