@@ -158,7 +158,6 @@ public static class patch_GameData
     /// Load Adventure towers by directory, and specify its metadata or null if it's global.
     /// </summary>
     /// <param name="directory">A directory path to the levels</param>
-    /// <param name="mod">A mod metadata or null to categorize the level</param>
     /// <returns>A boolean determines whether the load success or fails</returns>
     public static bool LoadAdventureLevelsParallel(string directory) 
     {
