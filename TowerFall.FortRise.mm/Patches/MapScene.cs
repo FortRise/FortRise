@@ -269,7 +269,7 @@ public class patch_MapScene : MapScene
             if (MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
             {
                 var id = Buttons.IndexOf(Selection);
-                patch_GameData.ReloadCustomLevels();
+                patch_GameData.ReloadCustomTowers();
                 if (patch_SaveData.AdventureActive)
                     GotoAdventure(id);
             }

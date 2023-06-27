@@ -29,13 +29,16 @@ public static class patch_GameData
         RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
-        ReloadCustomLevels();
+        ReloadCustomTowers();
         TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
         patch_MapScene.FixedStatic();
         RiseCore.Events.Invoke_OnAfterDataLoad();
     }
 
-    public static void ReloadCustomLevels() 
+    /// <summary>
+    /// Reload custom adventure towers.
+    /// </summary>
+    public static void ReloadCustomTowers() 
     {
         if (CustomTilesets != null) 
         {
@@ -87,7 +90,7 @@ public static class patch_GameData
 
         foreach (var adventurePath in contentModDirectories) 
         {
-            LoadAdventureLevelsParallel(adventurePath, "::global::");
+            LoadAdventureTowers(adventurePath, null);
         }
 
         AdventureWorldMapRenderer.Add((false, null));
@@ -102,7 +105,7 @@ public static class patch_GameData
             {
                 foreach (string dir in Directory.EnumerateDirectories(darkWorld)) 
                 {
-                    LoadAdventureLevelsParallel(dir, mod.Metadata.Name);
+                    LoadAdventureTowers(dir, mod.Metadata);
                 }
                 var mapXmlPath = Path.Combine(levelPath, "map.xml");
                 if (!File.Exists(mapXmlPath)) 
@@ -119,13 +122,21 @@ public static class patch_GameData
             AdventureWorldTowers = AdventureWorldModTowers[0];
     }
 
-    public static bool LoadAdventureLevelsParallel(string directory, string modName) 
+
+    /// <summary>
+    /// Load Adventure towers by directory, and specify its metadata or null if it's global.
+    /// </summary>
+    /// <param name="directory">A directory path to the levels</param>
+    /// <param name="mod">A mod metadata or null to categorize the level</param>
+    /// <returns>A boolean determines whether the load success or fails</returns>
+    public static bool LoadAdventureTowers(string directory, ModuleMetadata mod) 
     {
+        string modName = mod.Name ?? "::global::";
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {
             var tower = AdventureWorldModTowers[id];
             var adventureTowerDataOnCache = new AdventureWorldTowerData();
-            if (adventureTowerDataOnCache.AdventureLoadParallel(tower.Count, directory)) 
+            if (adventureTowerDataOnCache.AdventureLoad(tower.Count, directory)) 
             {
                 AdventureWorldModTowers[id].Add(adventureTowerDataOnCache);
                 Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
@@ -137,7 +148,7 @@ public static class patch_GameData
         AdventureWorldModTowersLookup.Add(modName, lookup);
 
         var adventureTowerData = new AdventureWorldTowerData();
-        if (adventureTowerData.AdventureLoadParallel(AdventureWorldTowers.Count, directory)) 
+        if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
             Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
@@ -146,10 +157,15 @@ public static class patch_GameData
         return false;
     }
 
-    [Obsolete("Use LoadAdventureLevelsParallel(string directory, string modName) instead")]
+    /// <summary>
+    /// Load Adventure towers by directory, and specify its metadata or null if it's global.
+    /// </summary>
+    /// <param name="directory">A directory path to the levels</param>
+    /// <param name="mod">A mod metadata or null to categorize the level</param>
+    /// <returns>A boolean determines whether the load success or fails</returns>
     public static bool LoadAdventureLevelsParallel(string directory) 
     {
-        return LoadAdventureLevelsParallel(directory, "::global::");
+        return LoadAdventureTowers(directory, null);
     }
 }
 
@@ -163,7 +179,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     public string[] RequiredMods;
     public AdventureWorldTowerStats Stats;
 
-    private (bool, string) ParallelLookup(string directory) 
+    private (bool, string) Lookup(string directory) 
     {
         bool customIcon = false;
         string pathToIcon = string.Empty;
@@ -192,20 +208,20 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         var y = grid2D.GetLength(0);
         if (x != 16 || y != 16) 
         {
-            Logger.Error($"{path}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
+            Logger.Error($"[Adventure] {path}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
             return;
         }
         Theme.Icon = new Subtexture(new Monocle.Texture(TowerMapData.BuildIcon(bitString, Theme.TowerType)));
     }
 
-    public bool AdventureLoadParallel(int id, string levelDirectory) 
+    internal bool AdventureLoad(int id, string levelDirectory) 
     {
         Levels = new List<string>();
-        var (customIcon, pathToIcon) = ParallelLookup(levelDirectory);
+        var (customIcon, pathToIcon) = Lookup(levelDirectory);
         return InternalAdventureLoad(id, levelDirectory, pathToIcon, customIcon);
     }
 
-    public bool InternalAdventureLoad(int id, string levelDirectory, string pathToIcon, bool customIcons = false) 
+    internal bool InternalAdventureLoad(int id, string levelDirectory, string pathToIcon, bool customIcons = false) 
     {
         if (this.Levels.Count <= 0) 
         {

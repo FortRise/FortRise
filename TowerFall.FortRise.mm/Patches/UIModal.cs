@@ -5,6 +5,9 @@ using Monocle;
 
 namespace TowerFall;
 
+/// <summary>
+/// A modal api that can be used to spawn a dialog that can be added in the scene.
+/// </summary>
 public class UIModal : Entity
 {
     public Color SelectionA = Calc.HexToColor("F87858");
@@ -143,48 +146,89 @@ public class UIModal : Entity
         }
     }
 
+    /// <summary>
+    /// Set the title of a modal.
+    /// </summary>
+    /// <param name="title">A title of the modal you want to set</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetTitle(string title) 
     {
         Title = title.ToUpperInvariant();
         return this;
     }
 
+    /// <summary>
+    /// Set the filler text a color.
+    /// </summary>
+    /// <param name="title">A color of a filler text you want to set</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetFillerColor(Color color) 
     {
         fillerColor = color;
         return this;
     }
 
+    /// <summary>
+    /// Set the selection text a color.
+    /// </summary>
+    /// <param name="color">A color of a selection text you want to set</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetSelectionColor(Color color) 
     {
         SelectionA = color;
         return this;
     }
 
+    /// <summary>
+    /// Set the alternate selection text a color.
+    /// </summary>
+    /// <param name="color">A color of a alternate selection text you want to set</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetAltSelectionColor(Color color) 
     {
         SelectionB = color;
         return this;
     }
 
+    /// <summary>
+    /// Set the default text color or unselected text color.
+    /// </summary>
+    /// <param name="color">A color of an unselected text you want to set</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetColor(Color color) 
     {
         NotSelection = color;
         return this;
     }
 
+    /// <summary>
+    /// Hides the title of a modal.
+    /// </summary>
+    /// <param name="hide">A value between true or false to hide the title</param>
+    /// <returns>A UIModal context</returns>
     public UIModal HideTitle(bool hide) 
     {
         noTitle = hide;
         return this;
     }
 
+    /// <summary>
+    /// A callback when a user press the `BACK` button.
+    /// </summary>
+    /// <param name="onBack">A function or callback that will be called when the use press `BACK` button</param>
+    /// <returns>A UIModal context</returns>
     public UIModal SetOnBackCallBack(Action onBack) 
     {
         OnBack = onBack;
         return this;
     }
 
+    /// <summary>
+    /// Add an item or button that a user can interact with.
+    /// </summary>
+    /// <param name="name">A name of the text in an item</param>
+    /// <param name="action">A function or callback that will be called when the user press this item</param>
+    /// <returns>A UIModal context</returns>
     public UIModal AddItem(string name, Action action)
     {
         name = name.ToUpperInvariant();
@@ -195,6 +239,11 @@ public class UIModal : Entity
         return this;
     }
 
+    /// <summary>
+    /// Add an extra item that represents just a normal plain text and cannot be interact. (This item will be in the priority first).
+    /// </summary>
+    /// <param name="name">A name of the text in an item</param>
+    /// <returns>A UIModal context</returns>
     public UIModal AddFiller(string name) 
     {
         fillerNames.Add(name.ToUpperInvariant());

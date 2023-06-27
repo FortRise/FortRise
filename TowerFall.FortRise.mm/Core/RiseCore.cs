@@ -198,15 +198,6 @@ public static partial class RiseCore
             var fortContent = new FortContent(moduleMetadata.PathDirectory);
             var modResource = new ModResource(fortContent, moduleMetadata);
             InternalMods.Add(modResource);
-        
-            // var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
-            // if (!File.Exists(pathToAssembly))
-            //     continue;
-
-            // using var fs = File.OpenRead(pathToAssembly);
-
-            // var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
-            // RegisterAssembly_OLD(moduleMetadata, asm);
         }
 
         foreach (var mod in InternalMods) 
