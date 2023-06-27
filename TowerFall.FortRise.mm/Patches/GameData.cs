@@ -15,7 +15,7 @@ public static class patch_GameData
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
     public static Dictionary<string, XmlElement> CustomBGs;
-    public static Dictionary<string, Monocle.Texture> CustomBGAtlas;
+    public static Dictionary<Guid, CustomBGStorage> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static Dictionary<string, int> AdventureWorldModTowersLookup;
@@ -47,13 +47,13 @@ public static class patch_GameData
                 tileset.Value.Texture.Texture2D.Dispose();
             }
         }
-        if (CustomBGAtlas != null) 
-        {
-            foreach (var bg in CustomBGAtlas) 
-            {
-                bg.Value.Texture2D.Dispose();
-            }
-        }
+        // if (CustomBGAtlas != null) 
+        // {
+        //     foreach (var bg in CustomBGAtlas) 
+        //     {
+        //         bg.Value.Atlas.Texture2D.Dispose();
+        //     }
+        // }
 
         CustomBGAtlas ??= new();
         CustomTilesets ??= new();
@@ -131,7 +131,7 @@ public static class patch_GameData
     /// <returns>A boolean determines whether the load success or fails</returns>
     public static bool LoadAdventureTowers(string directory, ModuleMetadata mod) 
     {
-        string modName = mod.Name ?? "::global::";
+        string modName = mod == null ? "::global::" : mod.Name;
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {
             var tower = AdventureWorldModTowers[id];
@@ -232,9 +232,10 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
         ID.X = id;
         var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
-        Theme = xmlElement.HasChild("theme") ? new TowerTheme(xmlElement["theme"]) : TowerTheme.GetDefault();
+        Theme = xmlElement.HasChild("theme") ? new patch_TowerTheme(xmlElement["theme"]) : patch_TowerTheme.GetDefault();
         Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
         Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
+        var guid = (Theme as patch_TowerTheme).GenerateThemeID();
 
         if (xmlElement.HasChild("lives")) 
         {
@@ -256,7 +257,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
         
-        LoadCustomElements(xmlElement["theme"]);
+        LoadCustomElements(xmlElement["theme"], guid);
 
         TimeBase = xmlElement["time"].ChildInt("base");
         TimeAdd = xmlElement["time"].ChildInt("add");
@@ -284,7 +285,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         return true;
     }
 
-    private void LoadCustomElements(XmlElement element) 
+    private void LoadCustomElements(XmlElement element, Guid guid) 
     {
         var fgTileset = element["Tileset"].InnerText.AsSpan();
         var bgTileset = element["BGTileset"].InnerText.AsSpan();
@@ -319,17 +320,25 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var path = Path.Combine(StoredDirectory, background);
             var loadedXML = Calc.LoadXML(path)["BG"];
-            var customBGAtlasPath = loadedXML["ImagePath"]?.InnerText;
-            
-            if (!string.IsNullOrEmpty(customBGAtlasPath)) 
-            {
-                using var fs = File.OpenRead(Path.Combine(StoredDirectory, customBGAtlasPath));
-                var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
-                patch_GameData.CustomBGAtlas.Add(customBGAtlasPath, new Monocle.Texture(texture2D));
-            }
 
+            var customBGAtlas = loadedXML.Attr("atlas", null);
+            var customSpriteDataAtlas = loadedXML.Attr("spriteData", null);
+            
+            patch_Atlas atlas = null;
+            patch_SpriteData spriteData = null;
+            if (customBGAtlas != null)
+                atlas = AtlasExt.CreateAtlas(null, 
+                Path.Combine(StoredDirectory, customBGAtlas + ".xml"), 
+                Path.Combine(StoredDirectory, customBGAtlas + ".png"));
+            if (customSpriteDataAtlas != null)
+                spriteData = SpriteDataExt.CreateSpriteData(null, Path.Combine(StoredDirectory, customSpriteDataAtlas + ".xml"), atlas);
+
+            var storage = new CustomBGStorage(atlas, spriteData);
+            patch_GameData.CustomBGAtlas.Add(guid, storage);
+            
             Theme.ForegroundData = loadedXML["Foreground"];
             Theme.BackgroundData = loadedXML["Background"];
+
             patch_GameData.CustomBGs.Add(path, loadedXML);
         }
     }
