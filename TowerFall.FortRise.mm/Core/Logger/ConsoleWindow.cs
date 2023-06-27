@@ -31,10 +31,17 @@ public class ConsoleWindow
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr CreateFile(string fileName, uint desiredAccess, int shareMode, IntPtr securityAttributes, int creationDisposition, int flagsAndAttributes, IntPtr templateFile);
 
+    [DllImport("kernel32.dll")]
+    public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll")]
+    public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
 
     public static bool IsAttached;
     public static IntPtr StdOutHandle;
     public static IntPtr ConsoleOutHandle;
+    public static bool ColorEnabled;
 
 
     public static void Attach() 
@@ -57,6 +64,9 @@ public class ConsoleWindow
         }
 
         ConsoleOutHandle = CreateFile("CONOUT$", 0x80000000 | 0x40000000, 2, IntPtr.Zero, 3, 0, IntPtr.Zero); 
+
+        ColorEnabled = GetConsoleMode(ConsoleOutHandle, out var consoleMode) &&
+                        SetConsoleMode(ConsoleOutHandle, consoleMode | 0x0004);
 
         if (!SetStdHandle(STD_OUTPUT_HANDLE, ConsoleOutHandle))
             throw new Win32Exception("SetStdHandle() failed");
