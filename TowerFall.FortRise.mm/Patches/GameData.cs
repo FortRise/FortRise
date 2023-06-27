@@ -14,7 +14,6 @@ namespace TowerFall;
 public static class patch_GameData 
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
-    public static Dictionary<string, XmlElement> CustomBGs;
     public static Dictionary<Guid, CustomBGStorage> CustomBGAtlas;
     public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
@@ -57,10 +56,8 @@ public static class patch_GameData
 
         CustomBGAtlas ??= new();
         CustomTilesets ??= new();
-        CustomBGs ??= new();
 
         CustomBGAtlas.Clear();
-        CustomBGs.Clear();
         CustomTilesets.Clear();
         AdventureWorldTowers ??= new();
         AdventureWorldTowers.Clear();
@@ -321,6 +318,25 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             var path = Path.Combine(StoredDirectory, background);
             var loadedXML = Calc.LoadXML(path)["BG"];
 
+            // Old API
+            if (loadedXML.HasChild("ImagePath")) 
+            {
+                var oldAPIPath = loadedXML.InnerText;
+                Logger.Log("[Background] Use of deprecated APIs should no longer be used");
+
+                if (!string.IsNullOrEmpty(oldAPIPath)) 
+                {
+                    using var fs = File.OpenRead(Path.Combine(StoredDirectory, oldAPIPath));
+                    var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
+                    var old_api_atlas = new patch_Atlas();
+                    old_api_atlas.SetSubTextures(new Dictionary<string, Subtexture>() {{oldAPIPath, new Subtexture(new Monocle.Texture(texture2D)) }});
+                    patch_GameData.CustomBGAtlas.Add(guid, new CustomBGStorage(old_api_atlas, null));
+                }
+                return;
+            }
+
+            // New API
+
             var customBGAtlas = loadedXML.Attr("atlas", null);
             var customSpriteDataAtlas = loadedXML.Attr("spriteData", null);
             
@@ -338,8 +354,6 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             
             Theme.ForegroundData = loadedXML["Foreground"];
             Theme.BackgroundData = loadedXML["Background"];
-
-            patch_GameData.CustomBGs.Add(path, loadedXML);
         }
     }
 
