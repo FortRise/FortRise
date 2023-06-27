@@ -80,7 +80,7 @@ public static class patch_GameData
 
         if (Directory.Exists("AdventureWorldContent/Levels")) 
         {
-            Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder instead");
+            Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
             contentModDirectories.AddRange(Directory.EnumerateDirectories(Path.Combine(AW_PATH, "Levels")));
         }
 
