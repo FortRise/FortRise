@@ -226,10 +226,10 @@ public static partial class RiseCore
                 if (ModuleGuids.Contains(generatedGuid)) 
                 {
                     Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    return;
+                    continue;
                 }
                 Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
-                return;
+                continue;
             }
 
             // Check dependencies
