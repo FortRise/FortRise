@@ -107,9 +107,9 @@ internal static partial class MonoModRules
 
         if (IsMod) 
         {
-            Console.WriteLine("Mod Relinking");
+            Console.WriteLine("[FortRise] Mod Relinking");
             if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
-                Console.WriteLine("Relinked with FNA");
+                Console.WriteLine("[FortRise] Relinked to FNA");
             return;
         }
 
