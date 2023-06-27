@@ -71,26 +71,26 @@ public static class patch_GameData
         AdventureWorldMapRenderer ??= new();
         AdventureWorldMapRenderer.Clear();
 
-        bool created = false;
+        const string AdventureModPath = "Content/Mod/Adventure/DarkWorld";
+        if (!Directory.Exists(AdventureModPath))
+            Directory.CreateDirectory(AdventureModPath);
+
+        var contentModDirectories = new List<string>(Directory.EnumerateDirectories(AdventureModPath));
+        contentModDirectories.InsertRange(0, AdventureModule.SaveData.LevelLocations);
+
         if (Directory.Exists("AdventureWorldContent/Levels")) 
         {
             Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder instead");
-            foreach (string directory2 in Directory.EnumerateDirectories(Path.Combine(
-                AW_PATH, "Levels")))
-            {
-                LoadAdventureLevelsParallel(directory2, "::global::");
-            }
-
-            AdventureWorldMapRenderer.Add((false, null));
-            created = true;
+            contentModDirectories.AddRange(Directory.EnumerateDirectories(Path.Combine(AW_PATH, "Levels")));
         }
 
-        foreach (var adventurePath in AdventureModule.SaveData.LevelLocations) 
+
+        foreach (var adventurePath in contentModDirectories) 
         {
             LoadAdventureLevelsParallel(adventurePath, "::global::");
-            if (!created)
-                AdventureWorldMapRenderer.Add((false, null));
         }
+
+        AdventureWorldMapRenderer.Add((false, null));
 
         // Load mods that contains Levels/DarkWorld folder
         foreach (var mod in RiseCore.InternalMods) 
