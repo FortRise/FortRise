@@ -6,13 +6,26 @@ using TeuJson.Attributes;
 
 namespace FortRise;
 
+/// <summary>
+/// A utility class that loads and convert Ogmo Editor 3 level Json format to Ogmo Editor level OEL/XML format.
+/// </summary>
 public static class Ogmo3ToOel 
 {
+    /// <summary>
+    /// Loads a Ogmo Editor 3 *.json level file.
+    /// </summary>
+    /// <param name="path">A path to the *.json file</param>
+    /// <returns>An Ogmo Editor 3 level data</returns>
     public static OgmoLevelData LoadOgmo(string path) 
     {
         return JsonConvert.DeserializeFromFile<OgmoLevelData>(path);
     }
 
+    /// <summary>
+    /// Convert an Ogmo Editor 3 level data into Ogmo Editor XML/OEL level data.
+    /// </summary>
+    /// <param name="levelData">An Ogmo Editor 3 level Json format to convert</param>
+    /// <returns>XmlDocument that represent Ogmo Editor XML/OEL level data</returns>
     public static XmlDocument OgmoToOel(OgmoLevelData levelData) 
     {
         XmlDocument xmlDocument = new XmlDocument();
@@ -84,15 +97,20 @@ public static class Ogmo3ToOel
         return xmlDocument;
     }
 
-    public static string Array2DToCSV(int[,] levels) 
+    /// <summary>
+    /// Convert an Array2D to CSV format.
+    /// </summary>
+    /// <param name="array2D">An Array2D to be converted as CSV format</param>
+    /// <returns>CSV String</returns>
+    public static string Array2DToCSV(int[,] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < levels.GetLength(0); x++) 
+        for (int x = 0; x < array2D.GetLength(0); x++) 
         {
-            for (int y = 0; y < levels.GetLength(1); y++) 
+            for (int y = 0; y < array2D.GetLength(1); y++) 
             {
-                sb.Append(levels[x, y]);
-                if (x != (levels.GetLength(1) - 1))
+                sb.Append(array2D[x, y]);
+                if (x != (array2D.GetLength(1) - 1))
                     sb.Append(',');
             }
             sb.AppendLine();
@@ -100,14 +118,19 @@ public static class Ogmo3ToOel
         return sb.ToString();
     }
 
-    public static string Array2DToBitString(string[,] levels) 
+    /// <summary>
+    /// Convert an Array2D to bit string format.
+    /// </summary>
+    /// <param name="array2D">An Array2D to be converted as CSV format</param>
+    /// <returns>Bit string</returns>
+    public static string Array2DToBitString(string[,] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < levels.GetLength(0); x++) 
+        for (int x = 0; x < array2D.GetLength(0); x++) 
         {
-            for (int y = 0; y < levels.GetLength(1); y++) 
+            for (int y = 0; y < array2D.GetLength(1); y++) 
             {
-                sb.Append(levels[x, y]);
+                sb.Append(array2D[x, y]);
             }
             sb.AppendLine();
         }
@@ -128,6 +151,9 @@ public static class Ogmo3ToOel
     }
 }
 
+/// <summary>
+/// Ogmo Editor 3 level data.
+/// </summary>
 public sealed partial class OgmoLevelData : IDeserialize
 {
     [Name("width")]

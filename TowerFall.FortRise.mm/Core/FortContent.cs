@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
