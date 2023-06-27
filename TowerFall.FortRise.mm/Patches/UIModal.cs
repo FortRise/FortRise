@@ -160,7 +160,7 @@ public class UIModal : Entity
     /// <summary>
     /// Set the filler text a color.
     /// </summary>
-    /// <param name="title">A color of a filler text you want to set</param>
+    /// <param name="color">A color of a filler text you want to set</param>
     /// <returns>A UIModal context</returns>
     public UIModal SetFillerColor(Color color) 
     {
