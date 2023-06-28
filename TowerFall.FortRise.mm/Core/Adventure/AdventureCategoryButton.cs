@@ -34,6 +34,11 @@ public sealed class AdventureCategoryButton : patch_MapButton
         }
 
         uiModal.SetStartIndex(Map.CustomLevelCategory);
+        uiModal.OnBack = () => 
+        {
+            Map.Selection = this;
+            Map.MapPaused = false;
+        };
         Map.Add(uiModal);
     }
 
