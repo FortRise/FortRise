@@ -37,9 +37,6 @@ internal class PostPatchDisableTempVariant : Attribute {}
 internal class PostPatchEnableTempVariant : Attribute {}
 internal class PostPatchXmlToVariant : Attribute {}
 
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMapSceneBegin))]
-internal class PatchMapSceneBegin : Attribute {}
-
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldRoundLogicOnPlayerDeath))]
 internal class PatchDarkWorldRoundLogicOnPlayerDeath : Attribute {}
 
@@ -48,15 +45,6 @@ internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldCompleteSequence))]
 internal class PatchDarkWorldCompleteSequence : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchQuestSpawnPortalFinishSpawn))]
-internal class PatchQuestSpawnPortalFinishSpawn : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
-internal class PatchSessionStartGame : Attribute {}
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchScreenResize))]
-internal class PatchScreenResize : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchFlags))]
 internal class PatchFlags : Attribute {}
@@ -359,18 +347,6 @@ internal static partial class MonoModRules
         cursor.Emit(OpCodes.Call, method);
     }
 
-    public static void PatchScreenResize(ILContext ctx, CustomAttribute attrib) 
-    {
-        var height = ctx.Method.DeclaringType.FindField("height");
-        var cursor = new ILCursor(ctx);
-
-        cursor.GotoNext(MoveType.After, instr => instr.MatchStfld("Monocle.Screen", "width"));
-        if (cursor.TryGotoNext(instr => instr.MatchStfld("Monocle.Screen", "width"))) 
-        {
-            cursor.Next.Operand = height;
-        }
-    }
-
     public static void PatchFlags(ILContext ctx, CustomAttribute attrib) 
     {
         var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
@@ -399,24 +375,6 @@ internal static partial class MonoModRules
 
         cursor.GotoPrev(instr => instr.MatchCallOrCallvirt("TowerFall.RoundLogic", "OnPlayerDeath"));
         cursor.GotoNext();
-        cursor.Emit(OpCodes.Ldsfld, AdventureActive);
-        cursor.Emit(OpCodes.Brtrue_S, label);
-    }
-
-    public static void PatchSessionStartGame(ILContext ctx, CustomAttribute attrib) 
-    {
-        var SaveData = ctx.Module.Assembly.MainModule.GetType("TowerFall", "SaveData");
-        var AdventureActive = SaveData.FindField("AdventureActive");
-        var cursor = new ILCursor(ctx);
-
-        cursor.GotoNext(
-            MoveType.After,
-            instr => instr.MatchAdd(),
-            instr => instr.MatchStfld("TowerFall.DarkWorldTowerStats", "Attempts")
-        );
-        var label = ctx.DefineLabel(cursor.Next);
-
-        cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
         cursor.Emit(OpCodes.Ldsfld, AdventureActive);
         cursor.Emit(OpCodes.Brtrue_S, label);
     }
@@ -507,28 +465,6 @@ internal static partial class MonoModRules
         });
     }
 
-    public static void PatchQuestSpawnPortalFinishSpawn(ILContext ctx, CustomAttribute attrib) 
-    {
-        var LevelEntity = ctx.Module.GetType("TowerFall.LevelEntity");
-        var get_level = LevelEntity.FindMethod("TowerFall.Level get_Level()");
-        var Entity = ctx.Module.GetType("Monocle.Entity");
-        var Position = Entity.FindField("Position");
-        var RiseCore = ctx.Module.GetType("FortRise.RiseCore");
-        var InvokeEvent = RiseCore.FindMethod(
-            "System.Void InvokeQuestSpawnPortal_FinishSpawn(System.String,Microsoft.Xna.Framework.Vector2,TowerFall.Facing,TowerFall.Level)");
-        var cursor = new ILCursor(ctx);
-        cursor.GotoNext(instr => instr.MatchLdstr("Unknown enemy type: "));
-        // cursor.GotoNext();
-
-        cursor.RemoveRange(5);
-        cursor.Emit(OpCodes.Ldloc_1);
-        cursor.Emit(OpCodes.Ldarg_0);
-        cursor.Emit(OpCodes.Ldfld, Position);
-        cursor.Emit(OpCodes.Ldloc_0);
-        cursor.Emit(OpCodes.Ldarg_0);
-        cursor.Emit(OpCodes.Call, get_level);
-        cursor.Emit(OpCodes.Call, InvokeEvent);
-    }
 
     public static void PatchDarkWorldLevelSelectOverlayCtor(ILContext ctx, CustomAttribute attrib) 
     {
@@ -550,30 +486,6 @@ internal static partial class MonoModRules
         cursor.MarkLabel(label);
         cursor.GotoPrev(MoveType.After, instr => instr.MatchCallvirt(get_Data));
         cursor.Emit(OpCodes.Brfalse_S, label);
-    }
-
-    public static void PatchMapSceneBegin(ILContext ctx, CustomAttribute attrib) 
-    {
-        var method = ctx.Method.DeclaringType.FindMethod("System.Void InitAdventureMap()");
-        var methodWithList = 
-            ctx.Method.DeclaringType.FindMethod("System.Void InitAdventureMap(System.Collections.Generic.List`1<TowerFall.MapButton[]>)");
-
-        ILCursor cursor = new ILCursor(ctx);
-
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
-        cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
-        cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
-
-        cursor.Emit(OpCodes.Ldarg_0);
-        cursor.Emit(OpCodes.Call, method);
-
-        // Disabled for now
-        // cursor.GotoNext(MoveType.After, 
-        //     instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.MapButton[]>"),
-        //     instr => instr.MatchStloc(4));
-        // cursor.Emit(OpCodes.Ldarg_0);
-        // cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[4]);
-        // cursor.Emit(OpCodes.Call, methodWithList);
     }
 
     public static void PostProcessMacros(MonoModder modder) 
