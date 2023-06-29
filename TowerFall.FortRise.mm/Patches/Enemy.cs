@@ -8,8 +8,5 @@ public class patch_Enemy : Enemy
     {
     }
 
-    /// <summary>
-    /// Additional initialization method after the constructor was called.
-    /// </summary>
     public virtual void Load() {}
 }

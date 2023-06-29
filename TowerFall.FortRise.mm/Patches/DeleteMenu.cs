@@ -21,7 +21,7 @@ public sealed class DeleteMenu : UIModal
             patch_SaveData.AdventureActive = false;
             var saver = new Saver(true);
             Scene.Add(saver);
-            patch_GameData.ReloadCustomTowers();
+            patch_GameData.ReloadCustomLevels();
             map.GotoAdventure();
             RemoveSelf();
         });

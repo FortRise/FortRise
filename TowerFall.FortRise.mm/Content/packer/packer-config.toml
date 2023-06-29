@@ -1,11 +1,9 @@
 name = "menuatlas"
 output_path = "../Atlas"
 output_type = "Json"
-allow_normal_output = false
 template_path = ["template.xml"]
 folders = [
-    "mmg",
-    "icon"
+    "mmg"
 ]
 
 [image_options]

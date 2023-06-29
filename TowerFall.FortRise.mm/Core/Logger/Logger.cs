@@ -44,23 +44,9 @@ public static class Logger
         builder.AppendLine(text);
         Engine.Instance?.Commands?.Log(text);
         if (consoleWindow != null)
-            WriteLine(consoleWindow, text, level);
+            consoleWindow.StdOut.WriteLine(text);
         if (level == LogLevel.Error || level == LogLevel.Assert)
             Debugger.Break();
-    }
-
-    private static void WriteLine(IConsole console, string text, LogLevel level) 
-    {
-        var colors = level switch 
-        {
-            LogLevel.Debug => $"\u001b[37m",
-            LogLevel.Assert => $"\u001b[91m",
-            LogLevel.Warning => $"\u001b[93m",
-            LogLevel.Error => $"\u001b[91m",
-            LogLevel.Verbose => $"\u001b[95m",
-            _ => "\u001b[96m"
-        };
-        console.StdOut.WriteLine($"{colors}{text}\u001b[0m");
     }
 
     public static void Log(

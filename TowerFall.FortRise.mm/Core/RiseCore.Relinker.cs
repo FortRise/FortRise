@@ -16,15 +16,8 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    /// <summary>
-    /// A TowerFall root directory.
-    /// </summary>
     public static string GameRootPath { get; internal set; }
-    /// <summary>
-    /// A TowerFall checksum executable.
-    /// </summary>
     public static string GameChecksum { get; internal set; }
-
     public static class Relinker 
     {
         private static bool temporaryASM;
@@ -57,11 +50,11 @@ public static partial class RiseCore
                         if (name.StartsWith("TowerFall.")) 
                         {
                             sharedRelinkModuleMap[nn] = StaticRelinkModuleCache["TowerFall"];
-                            Logger.Info($"[Relinker] Relinking {name}");
+                            Logger.Info($"Relinking {name}");
                         }
                         else 
                         {
-                            Logger.Warning($"[Relinker] Found unknown {name}");
+                            Logger.Warning($"Found unknown {name}");
                             int dot = name.IndexOf(".");
                             if (dot < 0)
                                 continue;
@@ -74,7 +67,7 @@ public static partial class RiseCore
                                 relinked = ModuleDefinition.ReadModule(pathRelinked, new ReaderParameters(ReadingMode.Immediate));
                                 StaticRelinkModuleCache[nameRelinkedNeutral] = relinked;
                             }
-                            Logger.Info($"[Relinker] Remapped to {nameRelinked}");
+                            Logger.Info($"Remapped to {nameRelinked}");
                             sharedRelinkModuleMap[nn] = relinked;
                         }
                     }
@@ -104,7 +97,7 @@ public static partial class RiseCore
                         !asmRef.FullName.ToLowerInvariant().Contains("monogame"))
                             continue;
                     
-                    Logger.Info($"[Relinker] Relinking {asmRef.Name}");
+                    Logger.Info($"Relinking {asmRef.Name}");
 
                     var asm = Assembly.Load(asmRef);
                     var module = ModuleDefinition.ReadModule(asm.Location, new ReaderParameters(ReadingMode.Immediate));
@@ -190,7 +183,7 @@ public static partial class RiseCore
             if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
                 ChecksumsEqual(checksums, File.ReadAllLines(cachedChecksumPath))) 
             {
-                Logger.Info($"[Relinker] Loading cached assembly for {meta} - {asmName}");
+                Logger.Info($"Loading cached assembly for {meta} - {asmName}");
 
                 var mod = ModuleDefinition.ReadModule(cachedPath);
                 try 
@@ -205,13 +198,13 @@ public static partial class RiseCore
                     }
                     else 
                     {
-                        Logger.Warning($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
+                        Logger.Warning($"Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
                     }
                     return asm;
                 }
                 catch (Exception e) 
                 {
-                    Logger.Error($"[Relinker] Failed loading {meta} - {asmName}");
+                    Logger.Error($"Failed loading {meta} - {asmName}");
                     Logger.Error(e.ToString());
                     return null;
                 }
@@ -301,7 +294,7 @@ public static partial class RiseCore
                         );
                     }
                     if (!File.Exists(rulesPath))
-                        throw new InvalidOperationException($"[Relinker] Couldn't find runtime rules .FortRise.mm.dll");
+                        throw new InvalidOperationException($"Couldn't find runtime rules .FortRise.mm.dll");
 
                     if (File.Exists(rulesPath)) 
                     {
@@ -322,7 +315,7 @@ public static partial class RiseCore
                 Retry:
                 try 
                 {
-                    Logger.Info("[Relinker] Try writing the module with symbols");
+                    Logger.Info("Try writing the module with symbols");
                     modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
                     modder.WriterParameters.WriteSymbols = true;
                     using var fs = File.Create(cachedPath);
@@ -332,7 +325,7 @@ public static partial class RiseCore
                 {
                     try 
                     {
-                        Logger.Info("[Relinker] Writing the module without symbols");
+                        Logger.Info("Writing the module without symbols");
                         modder.WriterParameters.SymbolWriterProvider = null;
                         modder.WriterParameters.WriteSymbols = false;
                         using var fs = File.Create(cachedPath);
@@ -340,11 +333,11 @@ public static partial class RiseCore
                     }
                     catch when (!temporaryASM) 
                     {
-                        Logger.Error($"[Relinker] {cachedPath} is currently in used.");
+                        Logger.Error($"{cachedPath} is currently in used.");
                         temporaryASM = true;
                         long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                         cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{lastDirectory}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
-                        Logger.Info($"[Relinker] Moving to {cachedPath}");
+                        Logger.Info($"Moving to {cachedPath}");
                         modder.Module.Name += "." + stamp2;
                         modder.Module.Assembly.Name.Name += "." + stamp2;
                         modder.OutputPath = cachedPath;
@@ -361,7 +354,7 @@ public static partial class RiseCore
             }
             catch (Exception e) 
             {
-                Logger.Error($"[Relinker] Failed Relinking {meta} - {asmName}");
+                Logger.Error($"Failed Relinking {meta} - {asmName}");
                 Logger.Error(e.ToString());
             }
             finally 
@@ -390,9 +383,9 @@ public static partial class RiseCore
                     foreach (AssemblyNameReference aref in module.AssemblyReferences) 
                     {
                         if (Modder.DependencyCache.ContainsKey(aref.FullName))
-                            Logger.Verbose($"[Relinker] dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
+                            Logger.Verbose($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
                         else
-                            Logger.Verbose($"[Relinker] dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
+                            Logger.Verbose($"dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
                     }
                 }
 
@@ -405,13 +398,13 @@ public static partial class RiseCore
                 }
                 else 
                 {
-                    Logger.Log($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}", Logger.LogLevel.Warning);
+                    Logger.Log($"Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}", Logger.LogLevel.Warning);
                 }
                 return asm;
             }
             catch (Exception e) 
             {
-                Logger.Error($"[Relinker] Failed Loading {meta} - {asmName}");
+                Logger.Error($"Failed Loading {meta} - {asmName}");
                 Logger.Error(e.ToString());
                 return null;
             }
@@ -443,7 +436,7 @@ public static partial class RiseCore
                         return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));
                     }
                     
-                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    Logger.Log($"Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
                     return null;
                 };
             }

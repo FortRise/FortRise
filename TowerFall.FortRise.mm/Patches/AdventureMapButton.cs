@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -34,7 +33,7 @@ public sealed class AdventureMapButton : MapButton
             var trimmed = modSplit[0].Trim();
             if (string.IsNullOrEmpty(trimmed))
                 continue;
-            if (FortRise.RiseCore.ContainsGuidMod(trimmed)) 
+            if (FortRise.RiseCore.ModuleGuids.Contains(trimmed)) 
                 continue;
             if (modSplit.Length > 1) 
                 currentRequired = modSplit[1].Trim();
@@ -63,6 +62,7 @@ public sealed class AdventureMapButton : MapButton
         Author = author;
         base.Added();
 
+
         if (Locked)
         {
             var smallLock = new Image(TFGame.MenuAtlas["map/smallLock"]);
@@ -72,11 +72,6 @@ public sealed class AdventureMapButton : MapButton
             lockedSine = new SineWave(120);
             Add(lockedSine);
         }
-    }
-
-    protected override bool GetLocked()
-    {
-        return false;
     }
 
     public override void Update()
@@ -109,6 +104,11 @@ public sealed class AdventureMapButton : MapButton
             Draw.TextCentered(TFGame.Font, lockedTextA, pos + new Vector2(0f, -8f), Color.Black * lockedMessageLerp);
             Draw.OutlineTextCentered(TFGame.Font, lockedTextB, pos + new Vector2(0f, 0f), Color.Black * lockedMessageLerp, Color.White * lockedMessageLerp);
         }
+    }
+
+    protected override bool GetLocked()
+    {
+        return false;
     }
 
     public override void OnConfirm()

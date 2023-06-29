@@ -8,9 +8,9 @@ using MonoMod;
 
 namespace Monocle;
 
-public class patch_SpriteData : SpriteData
+public class patch_SpriteData 
 {
-    public patch_SpriteData() :base(null, null) {} 
+    public patch_SpriteData() {} 
 
     [MonoModConstructor]
     internal void ctor() {}

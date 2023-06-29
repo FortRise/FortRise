@@ -12,22 +12,6 @@ public static partial class CallHelper
     for (int i = 1; i <= 10; i++) 
     {
 #>
-    /// <summary>
-    /// Generate a base method to be call later.
-    /// </summary>
-    /// <param name="methodName">A method name</param>
-    /// <typeparam name="TBase">A base type</typeparam>
-    /// <typeparam name="TTarget">A target type</typeparam>
-<#
-        for (int docX = 1; docX <= i; docX++) 
-        {
-#>
-    /// <typeparam name="T<#=docX#>">A type of an argument</typeparam>
-<#
-        
-        }
-#>
-    /// <returns>A base function</returns>
     public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName) 
     {
         var targetType = typeof(TTarget);
@@ -57,23 +41,6 @@ public static partial class CallHelper
         return (Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>)dm.CreateDelegate(typeof(Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>));
     }
 
-    /// <summary>
-    /// Generate a base method to be call later.
-    /// </summary>
-    /// <param name="methodName">A method name</param>
-    /// <param name="flags">A binding flags for specific use cases</param> 
-    /// <typeparam name="TBase">A base type</typeparam>
-    /// <typeparam name="TTarget">A target type</typeparam>
-<#
-        for (int docX = 1; docX <= i; docX++) 
-        {
-#>
-    /// <typeparam name="T<#=docX#>">A type of an argument</typeparam>
-<#
-        
-        }
-#>
-    /// <returns>A base function</returns>
     public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName, BindingFlags flags) 
     {
         var targetType = typeof(TTarget);

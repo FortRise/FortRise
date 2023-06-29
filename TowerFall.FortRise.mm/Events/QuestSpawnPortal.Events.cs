@@ -1,12 +1,11 @@
 using FortRise;
 using Microsoft.Xna.Framework;
-using TowerFall;
 
-namespace FortRise;
+namespace TowerFall;
 
-public static partial class RiseCore
+public partial class patch_QuestSpawnPortal 
 {
-    public static partial class Events 
+    public static class Events 
     {
         public delegate bool GetArrowTypesHandler(string name, out ArrowTypes types);
         public static event GetArrowTypesHandler OnGetSkeletonArrowTypes;

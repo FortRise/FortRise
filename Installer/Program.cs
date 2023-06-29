@@ -128,22 +128,14 @@ internal class Program
             ["FNA"] = FNA,
             ["DEBUG"] = DebugMode
         };
-
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var combined = Path.Combine(appData, "FortRiseInstaller", "options.json");
-        if (!Directory.Exists(Path.GetDirectoryName(combined)))
-            Directory.CreateDirectory(Path.GetDirectoryName(combined)!);    
-        TeuJson.JsonTextWriter.WriteToFile(combined, json);
+        TeuJson.JsonTextWriter.WriteToFile("options.json", json);
     }
 
     public static void Load() 
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var combined = Path.Combine(appData, "FortRiseInstaller", "options.json");
-
-        if (!File.Exists(combined))
+        if (!File.Exists("options.json"))
             return;
-        var json = TeuJson.JsonTextReader.FromFile(combined);
+        var json = TeuJson.JsonTextReader.FromFile("options.json");
         FNA = json["FNA"];
         DebugMode = json["DEBUG"];
     }
@@ -197,22 +189,16 @@ internal class Program
             return;
         }
         AnsiConsole.MarkupLine("[underline][green]TowerFall found in this directory! [/][/]");
+        await Task.Delay(1000);
 
-        AnsiConsole.WriteLine("Checking if the TowerFall has DarkWorld DLC");
-        if (!Directory.Exists(Path.Combine(path, "DarkWorldContent"))) 
-        {
-            AnsiConsole.MarkupLine("[underline][yellow]WARNING: TowerFall does not have DarkWorld DLC.[/][/]");
-            AnsiConsole.MarkupLine("[underline][yellow]Mods might not work properly on the game.[/][/]");
-            if (!AnsiConsole.Confirm("Are you sure you want to proceed?")) 
-            {
-                AnsiConsole.MarkupLine("[red]Cancelled[/]");
-                return;
-            }
-        }
+        AnsiConsole.WriteLine("Checking if the TowerFall is from Steam");
+        if (!File.Exists(Path.Combine(path, "Steamworks.NET.dll")))
+            AnsiConsole.MarkupLine("[underline][green]TowerFall is pure[/][/]");
         else 
-            AnsiConsole.MarkupLine("[underline][green]TowerFall has DarkWorld DLC[/][/]");
+            AnsiConsole.MarkupLine("[underline][green]TowerFall is from Steam[/][/]");
         
         await Task.Delay(1000);
+
 
         if (!AnsiConsole.Confirm($"""
         Are you sure you want to patch this directory?

@@ -34,7 +34,7 @@ public sealed class UploadMapButton : patch_MapButton
         var selectedPath = path.Replace("\\", "/");
         var loader = AdventureModule.SaveData.LevelLocations;
         if (!loader.Contains(selectedPath) && 
-            patch_GameData.LoadAdventureTowers(selectedPath, null))
+            patch_GameData.LoadAdventureLevelsParallel(selectedPath, "::global::"))
         {
             loader.Add(selectedPath);
             SaveLoaded();

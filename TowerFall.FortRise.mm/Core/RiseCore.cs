@@ -23,19 +23,10 @@ public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
 public delegate ArrowInfo ArrowInfoLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
-
 public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position);
-/// <summary>
-/// A loader delegate for custom RoundLogic.
-/// </summary>
-/// <param name="session">A game current session</param>
-/// <param name="canHaveMiasma">If the RoundLogic can have miasma</param>
-/// <returns></returns>
 public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
 
-/// <summary>
-/// Core API of FortRise
-/// </summary>
+
 public static partial class RiseCore 
 {
     internal static long PickupLoaderCount = 21;
@@ -52,13 +43,7 @@ public static partial class RiseCore
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
     public static Dictionary<ArrowTypes, ArrowInfoLoader> PickupGraphicArrows = new();
 
-    /// <summary>
-    /// Contains a read-only access to all of the Fort Modules.
-    /// </summary>
     public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
-    /// <summary>
-    /// Contains a read-only access to all of the Mods' metadata and resource.
-    /// </summary>
     public static ReadOnlyCollection<ModResource> Mods => InternalMods.AsReadOnly();
     internal static List<FortModule> InternalFortModules = new();
     internal static HashSet<string> ModuleGuids = new();
@@ -71,60 +56,33 @@ public static partial class RiseCore
 
     public static bool DebugMode;
 
-    public static bool ContainsGuidMod(string guid) 
+    private static ReadOnlySpan<char> SpanTest(ReadOnlySpan<char> variant) 
     {
-        var trimmed = guid.AsSpan().Trim();
-        if (ModuleGuids.Contains(trimmed.ToString())) 
+        int offset = 0;
+        Span<char> dest = default;
+        variant.ToUpperInvariant(dest);
+        for (int i = 0; i < dest.Length + offset; i++) 
         {
-            return true;
+            if (char.IsUpper(dest[i + 1]) && char.IsLower(dest[i])) 
+            {
+                dest[i] += ' ';
+                offset++;
+            }
         }
-        return false;
+
+        return dest; 
     }
 
-    public static bool ContainsComplexName(string name) 
+    private static void Process() 
     {
-        var splitName = name.Split('-');
-        return splitName.Length switch 
-        {
-            1 => ContainsMod(splitName[0].Trim()),
-            2 => ContainsMod(splitName[0].Trim(), splitName[1].Trim()),
-            3 => ContainsMod(splitName[0].Trim(), splitName[1].Trim(), splitName[2].Trim()),
-            _ => Invalid()
-        };
+        string variant = "BIG HEADS";
 
-        bool Invalid() 
+        ReadOnlySpan<char> parsed = SpanTest(variant.AsSpan());
+
+        if (parsed.SequenceEqual("BigHeads".AsSpan())) 
         {
-            Logger.Log("[Loader] Invalid syntax");
-            return false;
+
         }
-    }
-
-    public static bool ContainsMod(string name, string version = null, string author = null) 
-    {
-        var versionNull = version == null;
-        var authorNull = author == null;
-        foreach (var mods in InternalMods)
-        {
-            if (mods.Metadata.Name != name)
-            {
-                continue;
-            }
-
-            bool authorPassed = false;
-            bool versionPassed = false;
-
-            if ((!authorNull && mods.Metadata.Author == author) || authorNull)
-            {
-                authorPassed = true;
-            }
-            
-            if ((!versionNull && mods.Metadata.Version == new Version(version)) || versionNull) 
-            {
-                versionPassed = true;
-            }
-            return authorPassed && versionPassed;
-        }
-        return false;
     }
 
     internal static void ModuleStart() 
@@ -136,13 +94,12 @@ public static partial class RiseCore
             Directory.CreateDirectory("Mods");
 
         var directory = Directory.EnumerateDirectories("Mods").ToList();
+        new AdventureModule().Register();
 
         new NoModule(new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
         }).Register();
-
-        new AdventureModule().Register();
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
             AssemblyName asmName = new AssemblyName(asmArgs.Name);
@@ -213,45 +170,22 @@ public static partial class RiseCore
             var fortContent = new FortContent(moduleMetadata.PathDirectory);
             var modResource = new ModResource(fortContent, moduleMetadata);
             InternalMods.Add(modResource);
+        
+            // var pathToAssembly = Path.GetFullPath(Path.Combine(dir, moduleMetadata.DLL));
+            // if (!File.Exists(pathToAssembly))
+            //     continue;
+
+            // using var fs = File.OpenRead(pathToAssembly);
+
+            // var asm = Relinker.GetRelinkedAssembly(moduleMetadata, pathToAssembly, fs);
+            // RegisterAssembly_OLD(moduleMetadata, asm);
         }
 
         foreach (var mod in InternalMods) 
         {
             var metadata = mod.Metadata;
             if (metadata.DLL == string.Empty) 
-            {
-                // Generate custom guids for DLL-Less mods
-                string generatedGuid;
-                if (string.IsNullOrEmpty(metadata.Author)) 
-                {
-                    Logger.Warning($"[Loader] [{metadata.Name}] Author is empty. Guids might conflict with other DLL-Less mods.");
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}";
-                }
-                else 
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
-                if (ModuleGuids.Contains(generatedGuid)) 
-                {
-                    Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    continue;
-                }
-                Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
-                continue;
-            }
-
-            // Check dependencies
-            if (metadata.Dependencies != null) 
-            {
-                foreach (var dep in metadata.Dependencies) 
-                {
-                    if (ContainsGuidMod(dep))
-                        continue;
-                    if (ContainsMod(dep))
-                        continue;
-                    if (ContainsComplexName(dep))
-                        continue;
-                    Logger.Log($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
-                }
-            }
+                return;
             
             var pathToAssembly = Path.GetFullPath(metadata.DLL);
             if (!File.Exists(pathToAssembly))
@@ -262,7 +196,7 @@ public static partial class RiseCore
             var asm = Relinker.GetRelinkedAssembly(metadata, pathToAssembly, fs);
             if (asm == null) 
             {
-                Logger.Error("[Loader] Failed to load assembly: " + asm.FullName);
+                Logger.Error("Failed to load assembly: " + asm.FullName);
                 return;
             }
             RegisterAssembly(metadata, mod, asm);
@@ -290,7 +224,7 @@ public static partial class RiseCore
                 ModuleGuids.Add(obj.ID);
                 obj.Register();
 
-                Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
+                Logger.Info($"{obj.ID}: {obj.Name} Registered.");
             }
         }
     }
@@ -469,7 +403,7 @@ public static partial class RiseCore
                 info = type.GetMethod(overriden);
                 if (info == null || !info.IsStatic)
                 {
-                    Logger.Error($"[Register] [{module.Meta.Name}] No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
+                    Logger.Error($"No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
                     continue;
                 }
                 var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
@@ -524,7 +458,7 @@ public static partial class RiseCore
                     }
                     else 
                     {
-                        Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
+                        Logger.Error($"Invalid syntax of custom entity ID: {name}, {type.FullName}");
                         continue;
                     }
                     id = id.Trim();
@@ -590,7 +524,7 @@ public static partial class RiseCore
                 }
                 if (graphic == null || !graphic.IsStatic)
                 {
-                    Logger.Log($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                    Logger.Log($"No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
                 }
                 else 
                 {

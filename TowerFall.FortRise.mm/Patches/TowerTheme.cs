@@ -10,10 +10,6 @@ namespace TowerFall;
 
 public class patch_TowerTheme : TowerTheme 
 {
-    public Guid ThemeID;
-    public patch_TowerTheme(XmlElement xml) {}
-
-
     [MonoModConstructor]
     public void ctor(XmlElement xml) 
     {
@@ -129,10 +125,5 @@ public class patch_TowerTheme : TowerTheme
         Tileset = value["Tileset"];
         BGTileset = value["BGTileset"];
         Cataclysm = value["Tileset"] == "Cataclysm";
-    }
-
-    public Guid GenerateThemeID() 
-    {
-        return ThemeID = Guid.NewGuid();
     }
 }
