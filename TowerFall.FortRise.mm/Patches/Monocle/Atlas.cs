@@ -10,9 +10,18 @@ using MonoMod;
 
 namespace Monocle;
 
-public class patch_Atlas : Texture
+public class patch_Atlas : Atlas
 {
     private string xmlPath;
+
+    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load)
+    {
+    }
+
+    public patch_Atlas() : base(null, null, false)
+    {
+    }
+
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
 
     public Subtexture this[string name]
@@ -41,7 +50,6 @@ public class patch_Atlas : Texture
 
 
     
-    public patch_Atlas() {} 
 
     [MonoModConstructor]
     internal void ctor() {}

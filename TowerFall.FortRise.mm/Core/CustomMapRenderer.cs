@@ -16,16 +16,20 @@ public abstract class CustomMapRenderer : CompositeComponent
     protected List<GraphicsComponent> Graphics;
     private ICustomMapElement currentElement;
     private Dictionary<string, ICustomMapElement> elements = new();
+    private Subtexture mapWater;
 
     public CustomMapRenderer() : base(true, true)
     {
     }
+
 
     public override void Added()
     {
         base.Added();
         Graphics = new();
         Graphics = GetList<GraphicsComponent>();
+        if (mapWater == null)
+            mapWater = TFGame.MenuAtlas["mapWater"];
     }
 
     public abstract void OnSelectionChange(string title);
@@ -35,6 +39,11 @@ public abstract class CustomMapRenderer : CompositeComponent
         currentElement?.OnDeselect();
         currentElement = element;
         currentElement?.OnSelect();
+    }
+
+    public void SetWaterImage(Subtexture water) 
+    {
+        mapWater = water;
     }
 
     public MapImage AddImage(Subtexture texture, string name, Action onSelect = null, Action onDeselect = null, Rectangle? clipRect = null) 
@@ -53,11 +62,13 @@ public abstract class CustomMapRenderer : CompositeComponent
     public MapSprite AddAnimatedImage(patch_SpriteData spriteData, string name, Action onSelect = null, Action onDeselect = null, Rectangle? clipRect = null) 
     {
         var spriteString = spriteData.GetSpriteString(name);
-        var mapImage = new MapSprite(spriteString.Texture, 60, 60) {
+        var mapImage = new MapSprite(spriteString.Texture, spriteString.ClipRect, 
+            spriteString.FrameRects[0].Width, spriteString.FrameRects[0].Height) {
+            Origin = spriteString.Origin,
+            Color = spriteString.Color,
             OnSelectImage = onSelect,
             OnDeselectImage = onDeselect
         };
-        mapImage.ClipRect = spriteString.ClipRect;
         DynamicData.For(mapImage).Set("Animations", 
             DynamicData.For(spriteString).Get("Animations"));
         elements.Add(name, mapImage);
@@ -68,7 +79,7 @@ public abstract class CustomMapRenderer : CompositeComponent
 
     public override void Render()
     {
-        Draw.SineTextureV(TFGame.MenuAtlas["mapWater"], base.Entity.Position, new Vector2(5f, 0f), Vector2.One, 0f, Color.White, XNAGraphics.SpriteEffects.None, base.Scene.FrameCounter * 0.03f, 2f, 1, 0.3926991f);
+        Draw.SineTextureV(mapWater, base.Entity.Position, new Vector2(5f, 0f), Vector2.One, 0f, Color.White, XNAGraphics.SpriteEffects.None, base.Scene.FrameCounter * 0.03f, 2f, 1, 0.3926991f);
         base.Render();
     }
 }
@@ -91,51 +102,56 @@ public class XmlMapRenderer : CustomMapRenderer
             spriteData = SpriteDataExt.CreateSpriteData(null, spriteDataMapPath + ".xml", atlas, ContentAccess.Root);
         }
 
-
         foreach (XmlElement element in map["elements"]) 
         {
-            if (element.Name == "mapImage") 
+            switch (element.Name)
             {
-                var name = element.Attr("name");
+            case "mapImage":
+                var mapImageName = element.Attr("name");
                 var x = element.AttrInt("x");
                 var y = element.AttrInt("y");
                 patch_Atlas atlasPack;
-                if (name.StartsWith("TFGame.MenuAtlas::")) 
+                if (mapImageName.StartsWith("TFGame.MenuAtlas::")) 
                 {
                     atlasPack = (patch_Atlas)(object)TFGame.MenuAtlas;
-                    name = name.Replace("TFGame.MenuAtlas::", "");
+                    mapImageName = mapImageName.Replace("TFGame.MenuAtlas::", "");
                 }
                 else
                     atlasPack = atlas;
-
-                AddImage(atlasPack[name], name, () => {}, () => {});
-            }
-            else if (element.Name == "landImage") 
-            {
-                var name = element.Attr("name");
-                Add(new Image(atlas[name]));
-            }
-            else if (element.Name == "mapAnimated")
-            {
-                var name = element.Attr("name");
-                if (!containSpriteData && !name.Contains("TFGame.MenuSpriteData::")) 
+                
+                var image = AddImage(atlasPack[mapImageName], mapImageName, () => {}, () => {});
+                image.Position = new Vector2(x, y);
+                break;
+            case "landImage":
+                var landImageName = element.Attr("name");
+                Add(new Image(atlas[landImageName]));
+                break;
+            case "waterImage":
+                var waterImageName = element.Attr("name");
+                SetWaterImage(atlas[waterImageName]);
+                break;
+            case "mapAnimated":
+                var mapAnimated = element.Attr("name");
+                if (!containSpriteData && !mapAnimated.Contains("TFGame.MenuSpriteData::")) 
                 {
                     Logger.Error("[CustomMapRenderer] Use of mapAnimated without spriteData is not allowed.");
                     continue;
                 }
-                var x = element.AttrInt("x");
-                var y = element.AttrInt("y");
+                var mapX = element.AttrInt("x");
+                var mapY = element.AttrInt("y");
                 var inAnimation = element.ChildText("in", "in");
-                var outAnimation = element.ChildText("in", "out");
+                var outAnimation = element.ChildText("out", "out");
                 var notSelected = element.ChildText("notSelected", "notSelected");
                 var selected = element.ChildText("selected", "selected");
                 MapSprite animation;
-                if (name.StartsWith("TFGame.MenuSpriteData::"))
+                if (mapAnimated.StartsWith("TFGame.MenuSpriteData::"))
                     animation = AddAnimatedImage(
-                        (patch_SpriteData)(object)TFGame.MenuSpriteData, name.Replace("TFGame.MenuSpriteData::", ""), 
+                        (patch_SpriteData)(object)TFGame.MenuSpriteData, mapAnimated.Replace("TFGame.MenuSpriteData::", ""), 
                         () => {}, () => {});
                 else
-                    animation = AddAnimatedImage(spriteData, name, () => {}, () => {});
+                    animation = AddAnimatedImage(spriteData, mapAnimated, () => {}, () => {});
+
+                animation.Position = new Vector2(mapX, mapY);
                 
                 animation.OnSelectImage = () => {
                     animation.Play(inAnimation);
@@ -153,6 +169,7 @@ public class XmlMapRenderer : CustomMapRenderer
                 animation.TowerName = element.ChildText("towerName");
                 ElementMap.Add(animation.TowerName, animation);
                 Add(animation);
+                break;
             }
         }
     }

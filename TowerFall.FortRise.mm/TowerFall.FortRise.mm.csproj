@@ -3,11 +3,17 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
-    <NoWarn>$(NoWarn);CS0414</NoWarn>
-    <NoWarn>$(NoWarn);CS0649</NoWarn>
-    <NoWarn>$(NoWarn);CS0169</NoWarn>
-    <NoWarn>$(NoWarn);CS0626</NoWarn>
-    <NoWarn>$(NoWarn);CS0108</NoWarn>
+    <RootNamespace>TowerFall</RootNamespace>
+    <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
+    <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
 
   <ItemGroup>

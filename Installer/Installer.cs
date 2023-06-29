@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System;
 using System.Reflection;
+using System.Xml;
 
 // #if PLATFORM_OSX
 // using MonoMod;
@@ -35,6 +36,7 @@ public static class Installer
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
+        "TowerFall.FortRise.mm.xml",
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
@@ -130,6 +132,9 @@ public static class Installer
 
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
+
+        Underline("Generating XML Document");
+        GenerateDOC(Path.Combine(libPath, "TowerFall.FortRise.mm.xml"), Path.Combine(path, "TowerFall.xml"));
 
 #if !PLATFORM_OSX
         if (Program.FNA) 
@@ -275,6 +280,30 @@ public static class Installer
 
         Succeed("Unpatched");
     }
+
+    private static void GenerateDOC(string docXML, string toPath) 
+    {
+        var xmlDocument = new XmlDocument();
+        try 
+        {
+            xmlDocument.Load(docXML);
+        }
+        catch 
+        {
+            ThrowErrorContinous("Failed to generate doc xml");
+            return;
+        }
+        var xmlName = xmlDocument["doc"]?["assembly"]?["name"];
+        if (xmlName == null) 
+        {
+            ThrowErrorContinous("Failed to generate doc xml");
+            return;
+        }
+        xmlName.InnerText = "TowerFall";
+        xmlDocument.Save(toPath);
+    }
+
+
     private static void Yellow(string text) 
     {
 #if ANSI

@@ -1,8 +1,10 @@
-namespace TowerFall;
+using TowerFall;
 
-public partial class patch_DarkWorldComplete 
+namespace FortRise;
+
+public static partial class RiseCore
 {
-    public static class Events 
+    public static partial class Events 
     {
         public delegate void DarkWorldComplete_ResultHandler(
             int levelID, DarkWorldDifficulties difficulties,
