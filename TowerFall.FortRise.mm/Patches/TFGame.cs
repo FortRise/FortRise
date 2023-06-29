@@ -128,16 +128,6 @@ public partial class patch_TFGame : TFGame
                 RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
             };
 
-            var detourModManagers = new DetourModManager();
-            detourModManagers.OnILHook += (assembly, source, dest) => 
-            {
-                object obj = dest.Target;
-                RiseCore.DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
-            };
-            detourModManagers.OnHook += (assembly, source, dest, obj) => 
-            {
-                RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
-            };
             try 
             {
                 Logger.AttachConsole(RiseCore.ConsoleAttachment());
