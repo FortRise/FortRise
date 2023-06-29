@@ -117,16 +117,16 @@ public partial class patch_TFGame : TFGame
         }
         if (RiseCore.DebugMode) 
         {
-            var detourModManager = new DetourModManager();
-            detourModManager.OnILHook += (assembly, source, dest) => 
-            {
-                object obj = dest.Target;
-                RiseCore.DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
-            };
-            detourModManager.OnHook += (assembly, source, dest, obj) => 
-            {
-                RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
-            };
+            // var detourModManager = new DetourModManager();
+            // detourModManager.OnILHook += (assembly, source, dest) => 
+            // {
+            //     object obj = dest.Target;
+            //     RiseCore.DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
+            // };
+            // detourModManager.OnHook += (assembly, source, dest, obj) => 
+            // {
+            //     RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
+            // };
             try 
             {
                 Logger.AttachConsole(RiseCore.ConsoleAttachment());
