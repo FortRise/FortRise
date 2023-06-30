@@ -7,6 +7,7 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
+using TowerFall;
 
 namespace Monocle;
 
@@ -166,6 +167,23 @@ public static class AtlasExt
         }
 
         atlas.Load();
+        return atlas;
+    }
+
+    public static patch_Atlas CreateAtlas(this FortContent content, Stream xmlPath, Stream imagePath)
+    {
+        XmlNodeList elementsByTagName = patch_Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
+        var atlas = new patch_Atlas();
+
+        atlas.SetSubTextures(new Dictionary<string, Subtexture>(elementsByTagName.Count));
+        foreach (XmlElement item in elementsByTagName)
+        {
+            XmlAttributeCollection attributes = item.Attributes;
+            atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
+        }
+
+        atlas.LoadStream(imagePath);
+
         return atlas;
     }
 }

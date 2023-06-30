@@ -2,20 +2,40 @@ using System;
 using System.IO;
 using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
+using System.Collections.Generic;
+using Ionic.Zip;
 
 namespace FortRise;
 
 public class FortContent 
 {
+    public RiseCore.ResourceSystem ResourceSystem;
     private string modPath;
-    public FortContent(FortModule module) 
+
+    public Dictionary<string, RiseCore.Resource> MapResource = new();
+
+    public FortContent(FortModule module) : base()
     {
         modPath = module.Meta.DLL;
     }
 
-    public FortContent(string pathDirectory) 
+    public FortContent(string dir, bool isZip = false) : base()
     {
-        modPath = pathDirectory;
+        modPath = dir;
+        if (isZip) 
+        {
+            var zipFile = ZipFile.Read(dir);
+            ResourceSystem = new RiseCore.ZipResourceSystem(zipFile);
+            MapResource = ResourceSystem.GetFilesystem(dir);
+            return;
+        }
+        ResourceSystem = new RiseCore.FolderResourceSystem(dir);
+        MapResource = ResourceSystem.GetFilesystem(dir);
+    }
+
+    internal void Unload() 
+    {
+        ResourceSystem.Dispose();
     }
 
     public string GetContentPath(string content) 
@@ -31,6 +51,12 @@ public class FortContent
         return Path.Combine(modDirectory, "Content").Replace("\\", "/");
     }
 
+    public RiseCore.Resource[] GetFiles(string path) 
+    {
+        var folder = MapResource[path];
+        return folder.Childrens.ToArray();
+    }
+
     [Obsolete("Use LoadAtlas(string xmlPath, string imagePath) instead")]
     public patch_Atlas LoadAtlas(string xmlPath, string imagePath, bool load = true) 
     {
@@ -39,12 +65,15 @@ public class FortContent
 
     public patch_Atlas LoadAtlas(string xmlPath, string imagePath) 
     {
-        return AtlasExt.CreateAtlas(this, xmlPath, imagePath, ContentAccess.ModContent);
+        using var xml = MapResource["Content/" + xmlPath].Stream;
+        using var image = MapResource["Content/" + imagePath].Stream;
+        return AtlasExt.CreateAtlas(this, xml, image);
     }
 
     public patch_SpriteData LoadSpriteData(string filename, patch_Atlas atlas) 
     {
-        return SpriteDataExt.CreateSpriteData(this, filename, atlas, ContentAccess.ModContent);
+        using var xml = MapResource["Content/" + filename].Stream;
+        return SpriteDataExt.CreateSpriteData(this, xml, atlas);
     }
 
     public Stream LoadStream(string path) 
@@ -77,11 +106,13 @@ public class ModResource
 {
     public ModuleMetadata Metadata;
     public FortContent Content;
+    public bool IsZip;
 
-    public ModResource(FortContent content, ModuleMetadata metadata) 
+    public ModResource(FortContent content, ModuleMetadata metadata, bool zip = false) 
     {
         Metadata = metadata;
         Content = content;
+        IsZip = zip;
     }
 }
 

@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Xml;
 using FortRise.Adventure;
+using Ionic.Zip;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -135,8 +136,6 @@ public static partial class RiseCore
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 
-        var directory = Directory.EnumerateDirectories("Mods").ToList();
-
         new NoModule(new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
@@ -190,28 +189,67 @@ public static partial class RiseCore
             return null;
         };
 
-        if (directory.Count <= 0) 
-            return;
+        var directory = Directory.EnumerateDirectories("Mods").ToList();
 
-        // Get all mods metadata before loading the mod.
-        foreach (var dir in directory) 
+        if (directory.Count > 0)  
         {
-            var metaPath = Path.Combine(dir, "meta.json");
+            // Get all mods metadata before loading the mod.
+            foreach (var dir in directory) 
+            {
+                var metaPath = Path.Combine(dir, "meta.json");
+                ModuleMetadata moduleMetadata = null;
+                if (!File.Exists(metaPath)) 
+                    metaPath = Path.Combine(dir, "meta.xml");
+                if (!File.Exists(metaPath))
+                    continue;
+                
+                if (metaPath.EndsWith("json"))
+                    moduleMetadata = ParseMetadataWithJson(dir, metaPath);
+                else
+                    moduleMetadata = ParseMetadataWithXML(dir, metaPath);
+
+
+                // Assembly Mod Loading
+                var fortContent = new FortContent(moduleMetadata.PathDirectory);
+                var modResource = new ModResource(fortContent, moduleMetadata);
+                InternalMods.Add(modResource);
+            }
+        }
+
+        var files = Directory.GetFiles("Mods");
+        foreach (var file in files) 
+        {
+            if (!file.EndsWith("zip"))
+                continue;
+            using var zipFile = ZipFile.Read(file);
+
             ModuleMetadata moduleMetadata = null;
-            if (!File.Exists(metaPath)) 
-                metaPath = Path.Combine(dir, "meta.xml");
-            if (!File.Exists(metaPath))
+            string metaPath = null;
+            if (zipFile.ContainsEntry("meta.json")) 
+            {
+                metaPath = "meta.json";
+            }
+            else if (zipFile.ContainsEntry("meta.xml")) 
+            {
+                metaPath = "meta.xml";
+            }
+            else 
                 continue;
             
+            var entry = zipFile[metaPath];
+            using var memStream = new MemoryStream();
+            entry.Extract(memStream);
+
+            memStream.Seek(0, SeekOrigin.Begin);
+            var fileDir = Path.GetDirectoryName(file);
+            
             if (metaPath.EndsWith("json"))
-                moduleMetadata = ParseMetadataWithJson(dir, metaPath);
+                moduleMetadata = ParseMetadataWithJson(fileDir, memStream, true);
             else
-                moduleMetadata = ParseMetadataWithXML(dir, metaPath);
+                moduleMetadata = ParseMetadataWithXML(fileDir, memStream, true);
 
-
-            // Assembly Mod Loading
-            var fortContent = new FortContent(moduleMetadata.PathDirectory);
-            var modResource = new ModResource(fortContent, moduleMetadata);
+            var fortContent = new FortContent(file, true);
+            var modResource = new ModResource(fortContent, moduleMetadata, true);
             InternalMods.Add(modResource);
         }
 
@@ -252,12 +290,16 @@ public static partial class RiseCore
                     Logger.Log($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
                 }
             }
-            
-            var pathToAssembly = Path.GetFullPath(metadata.DLL);
-            if (!File.Exists(pathToAssembly))
-                return;
+            var dllPath = mod.IsZip ? metadata.DLL : Path.GetFileName(metadata.DLL);
 
-            using var fs = File.OpenRead(pathToAssembly);
+            using var fs = mod.Content.MapResource[dllPath].Stream;
+            if (fs == null)
+                return;
+            var pathToAssembly = Path.Combine(metadata.PathDirectory, metadata.DLL);
+            // if (!File.Exists(pathToAssembly))
+            //     return;
+
+            // using var fs = File.OpenRead(pathToAssembly);
 
             var asm = Relinker.GetRelinkedAssembly(metadata, pathToAssembly, fs);
             if (asm == null) 
@@ -294,10 +336,15 @@ public static partial class RiseCore
             }
         }
     }
-
     private static ModuleMetadata ParseMetadataWithXML(string dir, string path) 
     {
-        var xml = Calc.LoadXML(path)["meta"];
+        using var fs = File.OpenRead(path);
+        return ParseMetadataWithXML(dir, fs);
+    }
+
+    private static ModuleMetadata ParseMetadataWithXML(string dir, Stream path, bool zip = false) 
+    {
+        var xml = patch_Calc.LoadXML(path)["meta"];
         var dll = xml.ChildText("dll", null);
         var name = xml.ChildText("name", null);
         if (name == null)
@@ -334,9 +381,15 @@ public static partial class RiseCore
         };
     }
 
-    private static ModuleMetadata ParseMetadataWithJson(string dir, string path) 
+    private static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
     {
-        var json = JsonTextReader.FromFile(path);
+        using var fs = File.OpenRead(path);
+        return ParseMetadataWithJson(dir, fs);
+    }
+
+    private static ModuleMetadata ParseMetadataWithJson(string dir, Stream path, bool zip = false) 
+    {
+        var json = JsonTextReader.FromStream(path);
         var dll = json.GetJsonValueOrNull("dll");
         var name = json.GetJsonValueOrNull("name");
         if (name == null)
@@ -361,6 +414,8 @@ public static partial class RiseCore
             Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
             return null;
         }
+        if (!zip)
+            dll = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty;
         return new ModuleMetadata() 
         {
             Name = name,
@@ -368,7 +423,7 @@ public static partial class RiseCore
             Description = description,
             Author = author,
             FortRiseVersion = requiredVersion,
-            DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
+            DLL = dll,
             PathDirectory = dir,
             Dependencies = dependencies,
             NativePath = nativePath,
@@ -435,7 +490,7 @@ public static partial class RiseCore
     {
         foreach (var t in InternalFortModules) 
         {
-            t.Unload();
+            t.InternalUnload();
         }
     }
 
@@ -704,7 +759,7 @@ public static partial class RiseCore
 
     internal static void Unregister(this FortModule module) 
     {
-        module.Unload();
+        module.InternalUnload();
         InternalFortModules.Remove(module);
         // InternalMods.Remove(module.Meta);
     }

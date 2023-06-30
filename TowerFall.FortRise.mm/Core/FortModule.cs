@@ -35,10 +35,16 @@ public abstract partial class FortModule
     public abstract void Unload();
 
 
-    public void InternalLoad() 
+    internal void InternalLoad() 
     {
         LoadSettings();
         Load();
+    }
+
+    internal void InternalUnload() 
+    {
+        Content?.Unload();
+        Unload();
     }
 
     internal void SaveData() 

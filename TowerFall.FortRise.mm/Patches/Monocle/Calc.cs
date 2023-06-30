@@ -4,11 +4,20 @@ using System.Reflection;
 using MonoMod;
 using FortRise;
 using TowerFall;
+using System.IO;
 
 namespace Monocle;
 
 public static class patch_Calc 
 {
+    public static XmlDocument LoadXML(Stream stream) 
+    {
+        using var textReader = new StreamReader(stream);
+        var xmlDocument = new XmlDocument();
+        xmlDocument.LoadXml(textReader.ReadToEnd());
+        return xmlDocument;
+    }
+
     [MonoModReplace]
     public static T StringToEnum<T>(string str) where T : struct 
     {
