@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -23,6 +24,7 @@ public sealed class AdventureListLoader : Entity
         Depth = -100000;
         Visible = false;
         buttons = new List<MapButton>();
+        buttons.Add(new AdventureCategoryButton());
         if (map.CustomLevelCategory == 0) 
             buttons.Add(new UploadMapButton());
         

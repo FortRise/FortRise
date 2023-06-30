@@ -29,9 +29,11 @@ public class patch_LevelLoaderXML : LevelLoaderXML
     }
 
     [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
+    [MonoModIgnore]
     public void base_Update() { base.Update(); }
 
     [MonoModLinkTo("Monocle.Scene", "System.Void Render()")]
+    [MonoModIgnore]
     public void base_Render() { base.Render(); }
 
 
