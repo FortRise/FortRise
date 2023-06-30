@@ -9,7 +9,6 @@ using Monocle;
 using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
-using Steamworks;
 
 namespace TowerFall;
 
