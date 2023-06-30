@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using FortRise;
 using FortRise.Adventure;
+using Ionic.Zip;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
@@ -80,7 +81,6 @@ public static class patch_GameData
             Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
             contentModDirectories.AddRange(Directory.EnumerateDirectories(Path.Combine(AW_PATH, "Levels")));
         }
-
 
         foreach (var adventurePath in contentModDirectories) 
         {
