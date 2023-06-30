@@ -83,8 +83,7 @@ internal static partial class MonoModRules
         if (MonoModRule.Modder.WriterParameters.WriteSymbols)
             MonoModRule.Modder.WriterParameters.SymbolWriterProvider = new PortablePdbWriterProvider();
 
-        IsWindows = PlatformDetection.OS == OSKind.Windows;
-        // IsWindows = PlatformHelper.Is(Platform.Windows);
+        IsWindows = PlatformHelper.Is(Platform.Windows);
         MonoModRule.Flag.Set("OS:Windows", IsWindows);
         MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
         ExecModName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
@@ -183,7 +182,7 @@ internal static partial class MonoModRules
                 throw new Exception("This version of TowerFall is already modded. You need a clean install of TowerFall to mod it.");
         }
 
-        Console.WriteLine($"[FortRise] Platform Found: {PlatformDetection.OS}");
+        Console.WriteLine($"[FortRise] Platform Found: {PlatformHelper.Current}");
 
         if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
             Console.WriteLine("[FortRise] Relinking to FNA");
