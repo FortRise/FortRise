@@ -74,6 +74,16 @@ public static class patch_GameData
             Directory.CreateDirectory(AdventureModPath);
 
         var contentModDirectories = new List<string>(Directory.EnumerateDirectories(AdventureModPath));
+        var zipFiles = Directory.GetFiles(AdventureModPath);
+
+        foreach (var zip in zipFiles) 
+        {
+            if (!ZipFile.IsZipFile(zip))
+                continue;
+            var zipFile = ZipFile.Read(zip);
+            LoadAdventureTowers(zip, null, () => new RiseCore.ZipResourceSystem(zipFile));
+        }
+
         contentModDirectories.InsertRange(0, AdventureModule.SaveData.LevelLocations);
 
         if (Directory.Exists("AdventureWorldContent/Levels")) 
@@ -87,28 +97,27 @@ public static class patch_GameData
             LoadAdventureTowers(adventurePath, null);
         }
 
+
         AdventureWorldMapRenderer.Add((false, null));
 
         // Load mods that contains Levels/DarkWorld folder
         foreach (var mod in RiseCore.InternalMods) 
         {
-            var modPath = mod.Content.GetContentPath();
-            var levelPath = Path.Combine(modPath, "Levels");
-            var darkWorld = Path.Combine(levelPath, "DarkWorld");
-            if (Directory.Exists(darkWorld)) 
+            if (mod.Content.MapResource.TryGetValue("Content/Levels/DarkWorld", out var resource)) 
             {
-                foreach (string dir in Directory.EnumerateDirectories(darkWorld)) 
+                foreach (RiseCore.Resource dir in resource.Childrens) 
                 {
-                    LoadAdventureTowers(dir, mod.Metadata);
+                    LoadAdventureModTowers(dir.FullPath, dir.Path + '/', mod.Metadata, mod.Content.ResourceSystem);
                 }
-                var mapXmlPath = Path.Combine(levelPath, "map.xml");
-                if (!File.Exists(mapXmlPath)) 
+                if (!mod.Content.MapResource.TryGetValue("Content/Levels/map.xml", out var mapXml)) 
                 {
                     AdventureWorldMapRenderer.Add((false, null));
                     continue;
                 }
+
+                using var mapXmlStream = mapXml.Stream;
                 
-                var xmlMapRenderer = new XmlMapRenderer(mapXmlPath, modPath);
+                var xmlMapRenderer = new XmlMapRenderer(mapXmlStream, mod.Content);
                 AdventureWorldMapRenderer.Add((true, xmlMapRenderer));
             }
         }
@@ -122,14 +131,53 @@ public static class patch_GameData
     /// </summary>
     /// <param name="directory">A directory path to the levels</param>
     /// <param name="mod">A mod metadata or null to categorize the level</param>
+    /// <param name="prefix">A prefix which will add for lookup</param>
+    /// <param name="system">A ResourceSystem which will be used to manage the files</param>
     /// <returns>A boolean determines whether the load success or fails</returns>
-    public static bool LoadAdventureTowers(string directory, ModuleMetadata mod) 
+    public static bool LoadAdventureModTowers(string directory, string prefix, ModuleMetadata mod, RiseCore.ResourceSystem system) 
     {
         string modName = mod == null ? "::global::" : mod.Name;
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {
             var tower = AdventureWorldModTowers[id];
-            var adventureTowerDataOnCache = new AdventureWorldTowerData();
+            var adventureTowerDataOnCache = new AdventureWorldTowerData(system);
+            if (adventureTowerDataOnCache.ModAdventureLoad(tower.Count, directory, prefix)) 
+            {
+                AdventureWorldModTowers[id].Add(adventureTowerDataOnCache);
+                Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
+                return true;
+            }
+            return false;
+        }
+        var lookup = AdventureWorldModTowers.Count;
+        AdventureWorldCategories.Add(modName);
+        AdventureWorldModTowersLookup.Add(modName, lookup);
+
+        var adventureTowerData = new AdventureWorldTowerData(system);
+        if (adventureTowerData.ModAdventureLoad(AdventureWorldTowers.Count, directory, prefix)) 
+        {
+            AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
+            Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Load Adventure towers by directory, and specify its metadata or null if it's global.
+    /// </summary>
+    /// <param name="directory">A directory path to the levels</param>
+    /// <param name="mod">A mod metadata or null to categorize the level</param>
+    /// <param name="system">A callback to initialize the ResourceSystem which will be used to manage the files</param>
+    /// <returns>A boolean determines whether the load success or fails</returns>
+    public static bool LoadAdventureTowers(string directory, ModuleMetadata mod, Func<RiseCore.ResourceSystem> system = null) 
+    {
+        system = system == null ? () => new RiseCore.FolderResourceSystem(directory) : system;
+        string modName = mod == null ? "::global::" : mod.Name;
+        if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
+        {
+            var tower = AdventureWorldModTowers[id];
+            var adventureTowerDataOnCache = new AdventureWorldTowerData(system(), directory);
             if (adventureTowerDataOnCache.AdventureLoad(tower.Count, directory)) 
             {
                 AdventureWorldModTowers[id].Add(adventureTowerDataOnCache);
@@ -142,7 +190,7 @@ public static class patch_GameData
         AdventureWorldCategories.Add(modName);
         AdventureWorldModTowersLookup.Add(modName, lookup);
 
-        var adventureTowerData = new AdventureWorldTowerData();
+        var adventureTowerData = new AdventureWorldTowerData(system(), directory);
         if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory)) 
         {
             AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
@@ -163,197 +211,3 @@ public static class patch_GameData
     }
 }
 
-public class AdventureWorldTowerData : DarkWorldTowerData 
-{
-    public string StoredDirectory;
-    public string Author;
-    public bool Procedural;
-    public int StartingLives = -1;
-    public int[] MaxContinues = new int[3] { -1, -1, -1 };
-    public string[] RequiredMods;
-    public AdventureWorldTowerStats Stats;
-
-    private (bool, string) Lookup(string directory) 
-    {
-        bool customIcon = false;
-        string pathToIcon = string.Empty;
-        foreach (string path in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
-        {
-            if (path.Contains("icon")) 
-            {
-                customIcon = true;
-                pathToIcon = path;
-                continue;
-            }
-            if (path.EndsWith(".json") || path.EndsWith(".oel"))
-                Levels.Add(path);
-        }
-        return (customIcon, pathToIcon);
-    }
-
-    private void BuildIcon(string path) 
-    {
-        var json = JsonConvert.DeserializeFromFile(path);
-        var layers = json["layers"].AsJsonArray;
-        var solids = layers[0];
-        var grid2D = solids["grid2D"].ConvertToArrayString2D();
-        var bitString = Ogmo3ToOel.Array2DToStraightBitString(grid2D);
-        var x = grid2D.GetLength(1);
-        var y = grid2D.GetLength(0);
-        if (x != 16 || y != 16) 
-        {
-            Logger.Error($"[Adventure] {path}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
-            return;
-        }
-        Theme.Icon = new Subtexture(new Monocle.Texture(TowerMapData.BuildIcon(bitString, Theme.TowerType)));
-    }
-
-    internal bool AdventureLoad(int id, string levelDirectory) 
-    {
-        Levels = new List<string>();
-        var (customIcon, pathToIcon) = Lookup(levelDirectory);
-        return InternalAdventureLoad(id, levelDirectory, pathToIcon, customIcon);
-    }
-
-    internal bool InternalAdventureLoad(int id, string levelDirectory, string pathToIcon, bool customIcons = false) 
-    {
-        if (this.Levels.Count <= 0) 
-        {
-            return false;
-        }
-
-        StoredDirectory = levelDirectory;
-
-        ID.X = id;
-        var xmlElement =  Calc.LoadXML(Path.Combine(levelDirectory, "tower.xml"))["tower"];
-        Theme = xmlElement.HasChild("theme") ? new patch_TowerTheme(xmlElement["theme"]) : patch_TowerTheme.GetDefault();
-        Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
-        Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
-        var guid = (Theme as patch_TowerTheme).GenerateThemeID();
-
-        if (xmlElement.HasChild("lives")) 
-        {
-            StartingLives = int.Parse(xmlElement["lives"].InnerText);
-        }
-        if (xmlElement.HasChild("procedural"))
-            Procedural = bool.Parse(xmlElement["procedural"].InnerText);
-        if (xmlElement.HasChild("continues")) 
-        {
-            var continues = xmlElement["continues"];
-            if (continues.HasChild("normal"))
-                MaxContinues[0] = int.Parse(continues["normal"].InnerText);
-            if (continues.HasChild("hardcore"))
-                MaxContinues[1] = int.Parse(continues["hardcore"].InnerText);
-            if (continues.HasChild("legendary"))
-                MaxContinues[2] = int.Parse(continues["legendary"].InnerText);
-        }
-
-        if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
-            BuildIcon(pathToIcon);
-        
-        LoadCustomElements(xmlElement["theme"], guid);
-
-        TimeBase = xmlElement["time"].ChildInt("base");
-        TimeAdd = xmlElement["time"].ChildInt("add");
-        EnemySets = new Dictionary<string, List<DarkWorldTowerData.EnemyData>>();
-        foreach (object obj in xmlElement["enemies"].GetElementsByTagName("set"))
-        {
-            var xmlElement2 = (XmlElement)obj;
-            string key = xmlElement2.Attr("id");
-            List<DarkWorldTowerData.EnemyData> list = new List<DarkWorldTowerData.EnemyData>();
-            foreach (object obj2 in xmlElement2.GetElementsByTagName("spawn"))
-            {
-                XmlElement xml = (XmlElement)obj2;
-                list.Add(new DarkWorldTowerData.EnemyData(xml));
-            }
-            this.EnemySets.Add(key, list);
-        }
-        Normal = LoadLevelSet(xmlElement["normal"]);
-        Hardcore = LoadLevelSet(xmlElement["hardcore"]);
-        Legendary = LoadLevelSet(xmlElement["legendary"]);
-        if (xmlElement.HasChild("required"))
-            RequiredMods = patch_Calc.ChildStringArray(xmlElement, "required");
-        else
-            RequiredMods = Array.Empty<string>();
-
-        return true;
-    }
-
-    private void LoadCustomElements(XmlElement element, Guid guid) 
-    {
-        var fgTileset = element["Tileset"].InnerText.AsSpan();
-        var bgTileset = element["BGTileset"].InnerText.AsSpan();
-        var background = element["Background"].InnerText.AsSpan();
-
-        if (fgTileset.StartsWith("custom:".AsSpan())) 
-        {
-            var sliced = fgTileset.Slice(7).ToString();
-            var path = Path.Combine(StoredDirectory, sliced);
-            var loadedXML = Calc.LoadXML(path)["Tileset"];
-            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
-            patch_GameData.CustomTilesets.Add(path, patch_TilesetData.Create(loadedXML, tilesetPath));
-            Theme.Tileset = path;
-        }
-        if (bgTileset.StartsWith("custom:".AsSpan())) 
-        {
-            var sliced = bgTileset.Slice(7).ToString();
-            var path = Path.Combine(StoredDirectory, sliced);
-            var loadedXML = Calc.LoadXML(path)["Tileset"];
-            var tilesetPath = Path.Combine(StoredDirectory, loadedXML.Attr("image"));
-            patch_GameData.CustomTilesets.Add(path, patch_TilesetData.Create(loadedXML, tilesetPath));
-            Theme.BGTileset = path;
-        }
-        if (background.StartsWith("custom:".AsSpan())) 
-        {
-            var sliced = background.Slice(7).ToString();
-            Theme.BackgroundID = sliced;
-            LoadBG(sliced);
-        }
-
-        void LoadBG(string background) 
-        {
-            var path = Path.Combine(StoredDirectory, background);
-            var loadedXML = Calc.LoadXML(path)["BG"];
-
-            // Old API
-            if (loadedXML.HasChild("ImagePath")) 
-            {
-                var oldAPIPath = loadedXML.InnerText;
-                Logger.Warning("[Background] Use of deprecated APIs should no longer be used");
-
-                if (!string.IsNullOrEmpty(oldAPIPath)) 
-                {
-                    using var fs = File.OpenRead(Path.Combine(StoredDirectory, oldAPIPath));
-                    var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
-                    var old_api_atlas = new patch_Atlas();
-                    old_api_atlas.SetSubTextures(new Dictionary<string, Subtexture>() {{oldAPIPath, new Subtexture(new Monocle.Texture(texture2D)) }});
-                    patch_GameData.CustomBGAtlas.Add(guid, new CustomBGStorage(old_api_atlas, null));
-                }
-                return;
-            }
-
-            // New API
-
-            var customBGAtlas = loadedXML.Attr("atlas", null);
-            var customSpriteDataAtlas = loadedXML.Attr("spriteData", null);
-            
-            patch_Atlas atlas = null;
-            patch_SpriteData spriteData = null;
-            if (customBGAtlas != null)
-                atlas = AtlasExt.CreateAtlas(null, 
-                Path.Combine(StoredDirectory, customBGAtlas + ".xml"), 
-                Path.Combine(StoredDirectory, customBGAtlas + ".png"));
-            if (customSpriteDataAtlas != null)
-                spriteData = SpriteDataExt.CreateSpriteData(null, Path.Combine(StoredDirectory, customSpriteDataAtlas + ".xml"), atlas);
-
-            var storage = new CustomBGStorage(atlas, spriteData);
-            patch_GameData.CustomBGAtlas.Add(guid, storage);
-            
-            Theme.ForegroundData = loadedXML["Foreground"];
-            Theme.BackgroundData = loadedXML["Background"];
-        }
-    }
-
-    [MonoModIgnore]
-    private extern List<DarkWorldTowerData.LevelData> LoadLevelSet(XmlElement xml);
-}
