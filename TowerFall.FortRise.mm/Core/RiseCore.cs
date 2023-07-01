@@ -415,7 +415,7 @@ public static partial class RiseCore
             return null;
         }
         if (!zip)
-            dll = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty;
+            dll = dll is not null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty;
         return new ModuleMetadata() 
         {
             Name = name,
@@ -423,7 +423,7 @@ public static partial class RiseCore
             Description = description,
             Author = author,
             FortRiseVersion = requiredVersion,
-            DLL = dll,
+            DLL = dll ?? string.Empty,
             PathDirectory = dir,
             Dependencies = dependencies,
             NativePath = nativePath,
