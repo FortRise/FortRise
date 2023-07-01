@@ -4,7 +4,7 @@ using FortRise;
 
 namespace TowerFall;
 
-public static class patch_TFCommands 
+public static partial class patch_TFCommands 
 {
     public extern static void orig_Init();
 
@@ -59,5 +59,8 @@ public static class patch_TFCommands
                 }
             }
         }
+        CheatMethod(commands);
     }
+
+    public static partial void CheatMethod(Commands command);
 }
