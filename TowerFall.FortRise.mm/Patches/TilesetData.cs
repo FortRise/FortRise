@@ -37,4 +37,13 @@ public class patch_TilesetData : TilesetData
         tilesetData.AutotileData = new AutotileData(xml);
         return tilesetData;
     }
+
+    public static patch_TilesetData Create(XmlElement xml, Stream fs) 
+    {
+        var tilesetData = new patch_TilesetData();
+        var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
+        tilesetData.Texture = new Subtexture(new Monocle.Texture(texture2D));
+        tilesetData.AutotileData = new AutotileData(xml);
+        return tilesetData;
+    }
 }

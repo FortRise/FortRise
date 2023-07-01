@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Xml;
 using FortRise;
+using FortRise.Adventure;
 using Monocle;
 using MonoMod;
 
@@ -52,19 +54,30 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
             randomSeed = file;
             var levelFile = DarkWorldTowerData.Levels[file];
-            if (DarkWorldTowerData is AdventureWorldTowerData && levelFile.EndsWith("json")) 
+            if (DarkWorldTowerData is AdventureWorldTowerData data) 
             {
-                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(levelFile))["level"];
+                if (levelFile.EndsWith("json")) 
+                {
+                    using var level = data.System.MapResource[levelFile].Stream;
+                    return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
+                }
+                else 
+                {
+                    using var level = data.System.MapResource[levelFile].Stream;
+                    return patch_Calc.LoadXML(level)["level"];
+                }
             }
-            return Calc.LoadXML(levelFile)["level"];
+            using Stream stream = File.OpenRead(levelFile);
+            return patch_Calc.LoadXML(stream)["level"];
         }
-        catch (ArgumentOutOfRangeException e)
+        catch (Exception e)
         {
             ErrorHelper.StoreException("Missing Level", e);
             randomSeed = 0;
             return null;
         }
     }
+
 
     [MonoModIgnore]
     public extern patch_DarkWorldTowerData.patch_LevelData GetLevelData(DarkWorldDifficulties difficulty, int roundIndex);

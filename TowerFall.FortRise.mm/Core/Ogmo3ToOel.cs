@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using System.Xml;
 using Microsoft.Xna.Framework;
@@ -19,6 +20,11 @@ public static class Ogmo3ToOel
     public static OgmoLevelData LoadOgmo(string path) 
     {
         return JsonConvert.DeserializeFromFile<OgmoLevelData>(path);
+    }
+
+    public static OgmoLevelData LoadOgmo(Stream path) 
+    {
+        return JsonConvert.DeserializeFromStream<OgmoLevelData>(path);
     }
 
     /// <summary>

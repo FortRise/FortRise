@@ -88,18 +88,32 @@ public class XmlMapRenderer : CustomMapRenderer
 {
     public Dictionary<string, ICustomMapElement> ElementMap = new();
 
-    public XmlMapRenderer(string path, string modPath) 
+    public XmlMapRenderer(string path, FortContent content) 
     {
-        var map = Calc.LoadXML(path)["map"];
+        using var fsPath = File.OpenRead(path);
+        CreateMapInternal(fsPath, content);
+    }
+
+    public XmlMapRenderer(Stream path, FortContent content) 
+    {
+        CreateMapInternal(path, content);
+    }
+
+    internal void CreateMapInternal(Stream path, FortContent content) 
+    {
+        var map = patch_Calc.LoadXML(path)["map"];
         var containSpriteData = map.HasAttr("spriteData");
-        var xmlMapPath = Path.Combine(modPath, map.Attr("atlas"));
-        var atlas = AtlasExt.CreateAtlas(null, xmlMapPath + ".xml", xmlMapPath + ".png", ContentAccess.Root);
+        var mapAtlasAttr = map.Attr("atlas");
+        using var xmlStream = content.MapResource["Content/" + mapAtlasAttr + ".xml"].Stream;
+        using var pngStream = content.MapResource["Content/" + mapAtlasAttr + ".png"].Stream;
+        var atlas = AtlasExt.CreateAtlas(null, xmlStream, pngStream);
 
         patch_SpriteData spriteData = null;
         if (containSpriteData) 
         {
-            var spriteDataMapPath = Path.Combine(modPath, map.Attr("spriteData"));
-            spriteData = SpriteDataExt.CreateSpriteData(null, spriteDataMapPath + ".xml", atlas, ContentAccess.Root);
+            var spriteDataAttr = map.Attr("spriteData");
+            using var spriteDataStream = content.MapResource["Content/" + spriteDataAttr + ".xml"].Stream;
+            spriteData = SpriteDataExt.CreateSpriteData(null, spriteDataStream, atlas);
         }
 
         foreach (XmlElement element in map["elements"]) 
