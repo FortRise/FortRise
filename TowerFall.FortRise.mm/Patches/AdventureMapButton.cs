@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using FortRise;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
