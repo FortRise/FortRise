@@ -12,7 +12,7 @@ public class FortContent
     public RiseCore.ResourceSystem ResourceSystem;
     private string modPath;
 
-    public Dictionary<string, RiseCore.Resource> MapResource = new();
+    public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.MapResource;
 
     public FortContent(FortModule module) : base()
     {
@@ -26,11 +26,10 @@ public class FortContent
         {
             var zipFile = ZipFile.Read(dir);
             ResourceSystem = new RiseCore.ZipResourceSystem(zipFile);
-            MapResource = ResourceSystem.GetFilesystem(dir);
-            return;
         }
-        ResourceSystem = new RiseCore.FolderResourceSystem(dir);
-        MapResource = ResourceSystem.GetFilesystem(dir);
+        else
+            ResourceSystem = new RiseCore.FolderResourceSystem(dir);
+        ResourceSystem.Open(dir);
     }
 
     internal void Unload() 
@@ -38,17 +37,48 @@ public class FortContent
         ResourceSystem.Dispose();
     }
 
+    [Obsolete("Use Content.MapResources to look for resources")]
     public string GetContentPath(string content) 
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
-
+    [Obsolete("Use Content.MapResources to look for resources")]
     public string GetContentPath() 
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content").Replace("\\", "/");
+    }
+
+    public IEnumerable<string> EnumerateFilesString(string path) 
+    {
+        var folder = MapResource[path];
+
+        string[] childrens = new string[folder.Childrens.Count];
+        for (int i = 0; i < folder.Childrens.Count; i++)
+        {
+            childrens[i] = folder.Childrens[i].Path;
+        }
+        return childrens;
+    }
+
+    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path) 
+    {
+        var folder = MapResource[path];
+        return folder.Childrens.ToArray();
+    }
+
+    public string[] GetFilesString(string path) 
+    {
+        var folder = MapResource[path];
+
+        string[] childrens = new string[folder.Childrens.Count];
+        for (int i = 0; i < folder.Childrens.Count; i++)
+        {
+            childrens[i] = folder.Childrens[i].Path;
+        }
+        return childrens;
     }
 
     public RiseCore.Resource[] GetFiles(string path) 
@@ -78,8 +108,7 @@ public class FortContent
 
     public Stream LoadStream(string path) 
     {
-        var filePath = GetContentPath(path);
-        return File.OpenRead(filePath);
+        return MapResource["Content/" + path].Stream;
     }
 
     public XNAGraphics::Texture2D LoadRawTexture2D(string path) 
@@ -126,11 +155,22 @@ public class MusicHolder
             return Access switch 
             {
                 ContentAccess.Content => Calc.LOADPATH + FilePath,
-                ContentAccess.ModContent => content.GetContentPath(filePath),
+                ContentAccess.ModContent => "Content/" + filePath,
                 _ => filePath
             };
         }
         set => filePath = value;
+    }
+    public Stream Stream 
+    {
+        get 
+        {
+            if (content.MapResource.TryGetValue(FilePath, out var resource)) 
+            {
+                return resource.Stream;
+            }
+            return File.OpenRead(FilePath);
+        }
     }
     public ContentAccess Access;
     public CustomMusicType MusicType;
@@ -143,7 +183,7 @@ public class MusicHolder
         FilePath = access switch 
         {
             ContentAccess.Content => Calc.LOADPATH + FilePath,
-            ContentAccess.ModContent => content.GetContentPath(filePath),
+            ContentAccess.ModContent => "Content/" + filePath,
             _ => filePath
         };
         Access = access;
