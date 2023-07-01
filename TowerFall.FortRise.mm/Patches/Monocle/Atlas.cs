@@ -150,9 +150,14 @@ public static class AtlasExt
             imagePath = Calc.LOADPATH + imagePath;
             break;
         case ContentAccess.ModContent:
-            xmlPath = content.GetContentPath(xmlPath);
-            imagePath = content.GetContentPath(imagePath);
-            break;
+            if (content == null) 
+            {
+                Logger.Error("[Atlas] You cannot use AtlasExt.CreateAtlas while FortContent is null");
+                return null;
+            }
+            var xmlStream = content.MapResource[xmlPath].Stream;
+            var imageStream = content.MapResource[imagePath].Stream;
+            return AtlasExt.CreateAtlas(content, xmlStream, imageStream);
         }
         XmlNodeList elementsByTagName = Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
         var atlas = new patch_Atlas();

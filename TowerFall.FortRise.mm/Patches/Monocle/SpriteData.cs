@@ -77,8 +77,13 @@ public static class SpriteDataExt
             filename = Calc.LOADPATH + filename;
             break;
         case ContentAccess.ModContent:
-            filename = content.GetContentPath(filename);
-            break;
+            if (content == null) 
+            {
+                Logger.Error("[SpriteData] You cannot use SpriteDataExt.CreateSpriteData while FortContent is null");
+                return null;
+            }
+            var fileStream = content.MapResource[filename].Stream;
+            return SpriteDataExt.CreateSpriteData(content, fileStream, atlas);
         }
         XmlDocument xmlDocument = Calc.LoadXML(filename);
         var sprites = new Dictionary<string, XmlElement>();
