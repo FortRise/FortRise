@@ -26,12 +26,11 @@ public static class Installer
 #endif
     public const string TowerFallVersion = "1.3.3.3";
 
-// For MacOS and Linux, you should use the Netstandard2.0 version of MonoMod which supports both Net framework and Net Core
     private static readonly string[] fileDependencies = {
-        "FNA.dll", "FNA.dll.config",
 #if !PLATFORM_OSX
-        "MonoMod.RuntimeDetour.HookGen.exe",
+        "FNA.dll", "FNA.dll.config",
 #endif
+        "MonoMod.RuntimeDetour.HookGen.exe",
         "MonoMod.exe",
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
@@ -40,7 +39,9 @@ public static class Installer
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll"
+        "TeuJson.dll", "DotNetZip.dll",
+        "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
+        "gamecontrollerdb.txt"
     };
 
     private static readonly string[] fnaLibs = {

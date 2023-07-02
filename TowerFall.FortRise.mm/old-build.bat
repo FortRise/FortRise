@@ -8,7 +8,6 @@ copy TowerFall.FortRise.mm.pdb "../../../../Installer/lib/TowerFall.FortRise.mm.
 copy TowerFall.FortRise.mm.xml "../../../../Installer/lib/TowerFall.FortRise.mm.xml"
 
 
-copy TeuJson.dll "../../../../../../TeuJson.dll"
 cd ../../../../../../orig
 copy "TowerFall.exe" "../TowerFall.exe"
 cd ../

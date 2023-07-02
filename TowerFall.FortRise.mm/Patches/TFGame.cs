@@ -201,7 +201,6 @@ public partial class patch_TFGame : TFGame
                 Calc.Log(new object[] { "=== LOADING DATA ===" });
                 Calc.Log(new object[] { "...Input" });
                 TFGame.WriteLineToLoadLog("Initializing Input...");
-                NewGamepadInput.Init();
                 PlayerInput.AssignInputs();
                 for (int i = 0; i < 4; i++)
                 {

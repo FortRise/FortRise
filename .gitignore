@@ -6,8 +6,10 @@ Installer/lib/**/*.config
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
 Installer/lib/**/*.json
+Installer/lib/**/*.txt
 Installer/lib/**/*.pdb
 Installer/lib-old/
+Installer/lib-mac/
 artifacts/
 lib-stripped/TestDep
 PatchVersion.txt
