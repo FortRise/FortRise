@@ -82,22 +82,11 @@ public static class SpriteDataExt
                 Logger.Error("[SpriteData] You cannot use SpriteDataExt.CreateSpriteData while FortContent is null");
                 return null;
             }
-            var fileStream = content.MapResource[filename].Stream;
+            var fileStream = content[filename].Stream;
             return SpriteDataExt.CreateSpriteData(content, fileStream, atlas);
         }
-        XmlDocument xmlDocument = Calc.LoadXML(filename);
-        var sprites = new Dictionary<string, XmlElement>();
-        foreach (object item in xmlDocument["SpriteData"])
-        {
-            if (item is XmlElement)
-            {
-                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
-            }
-        }
-        var spriteData = new patch_SpriteData();
-
-        spriteData.SetAtlasAndSprite(atlas, sprites);
-        return spriteData;
+        using var stream = File.OpenRead(filename);
+        return SpriteDataExt.CreateSpriteData(content, stream, atlas);
     }
 
     public static patch_SpriteData CreateSpriteData(this FortContent content, Stream filename, patch_Atlas atlas)
