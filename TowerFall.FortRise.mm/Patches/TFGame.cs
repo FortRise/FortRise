@@ -309,7 +309,6 @@ public partial class patch_TFGame : TFGame
         {
             (Engine.Instance.Scene as MainMenu).Background.AscensionTransition();
         }
-        Calc.Log(new object[] { "Steam? " + SteamAPI.IsSteamRunning().ToString() });
         patch_TFGame.Loaded = true;
         yield break;
     }
