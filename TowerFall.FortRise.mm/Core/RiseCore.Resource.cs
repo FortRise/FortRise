@@ -11,6 +11,14 @@ namespace FortRise;
 
 public partial class RiseCore 
 {
+    internal static HashSet<string> BlacklistedExtension = new() {
+        ".csproj", ".cs", ".md", ".toml"
+    };
+
+    internal static HashSet<string> BlacklistedRootFolders = new() {
+        "bin", "obj"
+    };
+
     public abstract class Resource 
     {
         public string FullPath;
@@ -123,6 +131,8 @@ public partial class RiseCore
             for (int i = 0; i < files.Length; i++) 
             {
                 var filePath = files[i].Replace('\\', '/');
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                    continue;
                 var simplifiedPath = filePath.Replace(modDirectory + '/', "");
                 Logger.Verbose("[RESOURCE] " + filePath.Replace(modDirectory + '/', ""));
                 var fileResource = new FileResource(simplifiedPath, filePath);
@@ -201,6 +211,8 @@ public partial class RiseCore
 
                 else 
                 {
+                    if (BlacklistedExtension.Contains(Path.GetExtension(fileName))) 
+                        continue;
                     var zipResource = new ZipResource(fileName, entry);
                     resources.Add(fileName, zipResource);
                     Logger.Verbose("[RESOURCE] " + fileName);

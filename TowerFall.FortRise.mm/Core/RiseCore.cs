@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using System.Xml;
 using FortRise.Adventure;
 using Ionic.Zip;
@@ -128,6 +127,21 @@ public static partial class RiseCore
         return false;
     }
 
+    internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
+    {
+        using var fs = File.OpenRead(blackListPath);
+        if (fs == null)
+            return null;
+        using TextReader sr = new StreamReader(fs);
+        var blacklisted = new HashSet<string>();
+        string current;
+        while ((current = sr.ReadLine()) != null) 
+        {
+            blacklisted.Add(current.Trim());
+        }
+        return blacklisted;
+    }
+
     internal static void ModuleStart() 
     {
         RiseCore.Flags();
@@ -140,6 +154,8 @@ public static partial class RiseCore
             Name = "FortRise",
             Version = FortRiseVersion
         }).Register();
+
+        var blackListed = ReadBlacklistedMods("Mods/blacklist.txt");
 
         new AdventureModule().Register();
 
@@ -196,6 +212,12 @@ public static partial class RiseCore
             // Get all mods metadata before loading the mod.
             foreach (var dir in directory) 
             {
+                var dirInfo = new DirectoryInfo(dir);
+                if (blackListed != null && blackListed.Contains(dirInfo.Name))  
+                {
+                    Logger.Verbose($"[Loader] Ignored {dir} as it's blacklisted");
+                    continue;
+                }
                 var metaPath = Path.Combine(dir, "meta.json");
                 ModuleMetadata moduleMetadata = null;
                 if (!File.Exists(metaPath)) 
@@ -219,6 +241,11 @@ public static partial class RiseCore
         var files = Directory.GetFiles("Mods");
         foreach (var file in files) 
         {
+            if (blackListed != null && blackListed.Contains(Path.GetFileName(file))) 
+            {
+                Logger.Verbose($"[Loader] Ignored {file} as it's blacklisted");
+                continue;
+            }
             if (!file.EndsWith("zip"))
                 continue;
             using var zipFile = ZipFile.Read(file);
@@ -292,7 +319,7 @@ public static partial class RiseCore
             }
             var dllPath = mod.IsZip ? metadata.DLL : Path.GetFileName(metadata.DLL);
 
-            using var fs = mod.Content.MapResource[dllPath].Stream;
+            using var fs = mod.Content[dllPath].Stream;
             if (fs == null)
                 return;
             var pathToAssembly = Path.Combine(metadata.PathDirectory, metadata.DLL);
