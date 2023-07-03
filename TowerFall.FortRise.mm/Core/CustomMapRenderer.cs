@@ -104,15 +104,15 @@ public class XmlMapRenderer : CustomMapRenderer
         var map = patch_Calc.LoadXML(path)["map"];
         var containSpriteData = map.HasAttr("spriteData");
         var mapAtlasAttr = map.Attr("atlas");
-        using var xmlStream = content.MapResource["Content/" + mapAtlasAttr + ".xml"].Stream;
-        using var pngStream = content.MapResource["Content/" + mapAtlasAttr + ".png"].Stream;
+        using var xmlStream = content["Content/" + mapAtlasAttr + ".xml"].Stream;
+        using var pngStream = content["Content/" + mapAtlasAttr + ".png"].Stream;
         var atlas = AtlasExt.CreateAtlas(null, xmlStream, pngStream);
 
         patch_SpriteData spriteData = null;
         if (containSpriteData) 
         {
             var spriteDataAttr = map.Attr("spriteData");
-            using var spriteDataStream = content.MapResource["Content/" + spriteDataAttr + ".xml"].Stream;
+            using var spriteDataStream = content["Content/" + spriteDataAttr + ".xml"].Stream;
             spriteData = SpriteDataExt.CreateSpriteData(null, spriteDataStream, atlas);
         }
 

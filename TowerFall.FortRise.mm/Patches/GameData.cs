@@ -103,13 +103,13 @@ public static class patch_GameData
         // Load mods that contains Levels/DarkWorld folder
         foreach (var mod in RiseCore.InternalMods) 
         {
-            if (mod.Content.MapResource.TryGetValue("Content/Levels/DarkWorld", out var resource)) 
+            if (mod.Content.TryGetValue("Content/Levels/DarkWorld", out var resource)) 
             {
                 foreach (RiseCore.Resource dir in resource.Childrens) 
                 {
                     LoadAdventureModTowers(dir.FullPath, dir.Path + '/', mod.Metadata, mod.Content.ResourceSystem);
                 }
-                if (!mod.Content.MapResource.TryGetValue("Content/Levels/map.xml", out var mapXml)) 
+                if (!mod.Content.TryGetValue("Content/Levels/map.xml", out var mapXml)) 
                 {
                     AdventureWorldMapRenderer.Add((false, null));
                     continue;
