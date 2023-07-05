@@ -54,11 +54,6 @@ public sealed class LuaAdventureLoader : IAdventureTowerLoader<NLua.LuaTable>
         return info;
     }
 
-    public void LoadCustomElements(LuaTable data, Guid guid, string prefix)
-    {
-        throw new NotImplementedException();
-    }
-
     public ExtraAdventureTowerInfo LoadExtraData(LuaTable data)
     {
         var info = new ExtraAdventureTowerInfo();

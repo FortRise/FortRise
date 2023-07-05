@@ -15,7 +15,6 @@ public interface IAdventureTowerLoader<T> : IAdventureTowerLoader
 {
     List<DarkWorldTowerData.LevelData> LoadLevelSet(T data, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets);
     ExtraAdventureTowerInfo LoadExtraData(T data);
-    void LoadCustomElements(T data, Guid guid, string prefix);
 }
 
 public struct ExtraAdventureTowerInfo 
