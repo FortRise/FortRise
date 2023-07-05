@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using MonoMod;
@@ -12,6 +14,7 @@ public partial class patch_MainMenu : MainMenu
     private int totalScroll;
     private int count;
     private int scrollAmount = 12;
+    private UILoader modLoader;
     private patch_MenuState state;
     private patch_MenuState switchTo;
     public patch_MenuState BackState;
@@ -47,6 +50,40 @@ public partial class patch_MainMenu : MainMenu
     public void CreateModOptions() 
     {
         var list = new List<OptionsButton>();
+        var enabledButton = new OptionsButton("ENABLED");
+        enabledButton.SetCallbacks(() => {
+            enabledButton.State = currentModule.Enabled ? "YES" : "NO";
+        }, null, null, () => {
+            enabledButton.Selected = false;
+            if (!currentModule.SupportModDisabling) 
+            {
+                var uiModal = new UIModal();
+                uiModal.SetTitle("Error");
+                uiModal.AddFiller("Does not support disabling mod");
+                uiModal.AutoClose = true;
+                uiModal.AddItem("Ok", () => enabledButton.Selected = true);
+                Add(uiModal);
+                return currentModule.Enabled;
+            }
+            currentModule.Enabled = !currentModule.Enabled;
+            modLoader = new UILoader();
+            modLoader.WaitWith(() => {
+                enabledButton.Selected = true;
+            });
+            Add(modLoader);
+            if (currentModule.Enabled)
+                Task.Run(() => { 
+                    currentModule.Register();
+                    modLoader.Finished = true;
+                });
+            else
+                Task.Run(() => { 
+                    currentModule.Unregister();
+                    modLoader.Finished = true;
+                });
+            return currentModule.Enabled;
+        });
+        list.Add(enabledButton);
         currentModule.CreateSettings(list);
         if (list.Count > 0) 
         {
@@ -141,8 +178,20 @@ public partial class patch_MainMenu : MainMenu
 
     public extern void orig_Update();
 
+    [MonoModReplace]
+    [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
+    public void base_Update() 
+    {
+        base.Update();
+    }
+
     public override void Update()
     {
+        if (modLoader != null && !modLoader.Finished)
+        {
+            base_Update();
+            return;
+        }
         if (state is patch_MenuState.Mods or patch_MenuState.ModOptions) 
         {
             if (MenuInput.Up && totalScroll > 0) 

@@ -24,6 +24,8 @@ public abstract partial class FortModule
     public string Name { get; internal set; }
     public string ID { get; internal set; }
     public ModuleMetadata Meta { get; internal set; }
+    public bool SupportModDisabling { get; set; } = true;
+
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
@@ -100,18 +102,6 @@ public abstract partial class FortModule
 
     internal void CreateSettings(List<OptionsButton> optionsList) 
     {
-        var enabledButton = new OptionsButton("ENABLED");
-        enabledButton.SetCallbacks(() => {
-            enabledButton.State = BoolToString(Enabled);
-        }, null, null, () => {
-            Enabled = !Enabled;
-            if (Enabled)
-                this.Register();
-            else
-                this.Unregister();
-            return Enabled;
-        });
-        optionsList.Add(enabledButton);
         CreateModSettings(optionsList);
 
         var type = SettingsType;

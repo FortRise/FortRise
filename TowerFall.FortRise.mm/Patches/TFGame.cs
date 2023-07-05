@@ -258,7 +258,6 @@ public partial class patch_TFGame : TFGame
                 TFGame.LoadLightingEffect();
                 Calc.Log(new object[] { "=== LOADING COMPLETE ===" });
                 TFGame.WriteLineToLoadLog("Loading Complete!");
-                Loader.Message = "";
                 TFGame.GameLoaded = true;
             }
             catch (Exception ex)
@@ -292,6 +291,7 @@ public partial class patch_TFGame : TFGame
         {
             yield return 0;
         }
+        Loader.Message = "";
         if (SaveData.NewDataCreated && MainMenu.LoadError == null)
         {
             Saver saver = new Saver(true, null);
