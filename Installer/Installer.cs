@@ -39,9 +39,9 @@ public static class Installer
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "DotNetZip.dll",
+        "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
-        "gamecontrollerdb.txt"
+        "gamecontrollerdb.txt", "lua53.dll", "liblua53.dylib", "liblua53.so"
     };
 
     private static readonly string[] fnaLibs = {
@@ -197,11 +197,21 @@ public static class Installer
 #endif
 
         Underline("Renaming the output");
+        var towerFallExe = Path.Combine(path, "TowerFall.exe");
+        var towerFallPdb = Path.Combine(path, "TowerFall.pdb");
+        if (File.Exists(towerFallExe)) 
+        {
+            File.Delete(towerFallExe);
+        }
+        if (File.Exists(towerFallPdb)) 
+        {
+            File.Delete(towerFallPdb);
+        }
 
-        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
-        File.Copy(Path.Combine(path, "MONOMODDED_TowerFall.pdb"), Path.Combine(path, "TowerFall.pdb"), true);
-        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.exe"));
-        File.Delete(Path.Combine(path, "MONOMODDED_TowerFall.pdb"));
+        var moddedOutputExe = Path.Combine(path, "MONOMODDED_TowerFall.exe");
+        var moddedOutputPdb = Path.Combine(path, "MONOMODDED_TowerFall.pdb");
+        File.Move(moddedOutputExe, towerFallExe);
+        File.Move(moddedOutputPdb, towerFallPdb);
 
         Yellow("Finalizing");
 

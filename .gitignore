@@ -8,6 +8,8 @@ Installer/lib/**/*.xml
 Installer/lib/**/*.json
 Installer/lib/**/*.txt
 Installer/lib/**/*.pdb
+Installer/lib/**/*.so
+Installer/lib/**/*.dylib
 Installer/lib-old/
 Installer/lib-mac/
 artifacts/

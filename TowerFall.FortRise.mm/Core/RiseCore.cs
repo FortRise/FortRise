@@ -504,6 +504,7 @@ public static partial class RiseCore
 
     internal static void Initialize() 
     {
+        Lua.Initialize();
         foreach (var t in InternalFortModules) 
         {
             t.Initialize();
