@@ -127,55 +127,57 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             return false;
         }
 
-        StoredDirectory = levelDirectory;
+        IAdventureTowerLoader towerLoader = null;
+        if (System.MapResource.ContainsKey(directoryPrefix + "tower.xml")) 
+        {
+            towerLoader = new XmlAdventureTowerLoader(System, this);
+        }
+        else if (System.MapResource.ContainsKey(directoryPrefix + "tower.lua")) 
+        {
+            towerLoader = new LuaAdventureLoader();
+        }
+        else 
+        {
+            return false;
+        }
 
-        ID.X = id;
-        using var fs = System.MapResource[directoryPrefix + "tower.xml"].Stream;
-        var xmlElement =  patch_Calc.LoadXML(fs)["tower"];
-        Theme = xmlElement.HasChild("theme") ? new patch_TowerTheme(xmlElement["theme"]) : patch_TowerTheme.GetDefault();
-        Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
-        Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(Theme.Name, levelDirectory);
-        LoadExtraData(xmlElement);
+        using var fs = System.MapResource[directoryPrefix + "tower." + towerLoader.FileExtension].Stream;
+        var info = towerLoader.Load(id, fs, levelDirectory, directoryPrefix, customIcons);
+        var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();
 
-        var guid = (Theme as patch_TowerTheme).GenerateThemeID();
+        StoredDirectory = info.StoredDirectory;
+        ID.X = info.ID;
+        Theme = info.Theme;
+        Author = info.Author;
+        Stats = info.Stats;
+        StartingLives = info.Extras.StartingLives;        
+        MaxContinues[0] = info.Extras.NormalContinues; 
+        MaxContinues[1] = info.Extras.HardcoreContinues;
+        MaxContinues[2] = info.Extras.LegendaryContinues;
+        Procedural = info.Extras.Procedural;
+        RequiredMods = info.RequiredMods;
+
+        TimeBase = info.TimeBase;
+        TimeAdd = info.TimeAdd;
+        EnemySets = info.EnemySets;
+        Normal = info.Normal;
+        Hardcore = info.Hardcore;
+        Legendary = info.Legendary;
 
         var pathToIcon = Path.Combine(levelDirectory, "icon.json");
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
-        
-        LoadCustomElements(xmlElement["theme"], guid, directoryPrefix);
 
-        TimeBase = xmlElement["time"].ChildInt("base");
-        TimeAdd = xmlElement["time"].ChildInt("add");
-        EnemySets = new Dictionary<string, List<DarkWorldTowerData.EnemyData>>();
-        foreach (object obj in xmlElement["enemies"].GetElementsByTagName("set"))
-        {
-            var xmlElement2 = (XmlElement)obj;
-            string key = xmlElement2.Attr("id");
-            List<DarkWorldTowerData.EnemyData> list = new List<DarkWorldTowerData.EnemyData>();
-            foreach (object obj2 in xmlElement2.GetElementsByTagName("spawn"))
-            {
-                XmlElement xml = (XmlElement)obj2;
-                list.Add(new DarkWorldTowerData.EnemyData(xml));
-            }
-            this.EnemySets.Add(key, list);
-        }
-        Normal = LoadLevelSet(xmlElement["normal"]);
-        Hardcore = LoadLevelSet(xmlElement["hardcore"]);
-        Legendary = LoadLevelSet(xmlElement["legendary"]);
-        if (xmlElement.HasChild("required"))
-            RequiredMods = patch_Calc.ChildStringArray(xmlElement, "required");
-        else
-            RequiredMods = Array.Empty<string>();
+        LoadCustomElements(info, guid, directoryPrefix);
 
         return true;
     }
 
-    private void LoadCustomElements(XmlElement element, Guid guid, string prefix) 
+    private void LoadCustomElements(AdventureTowerInfo info, Guid guid, string prefix) 
     {
-        var fgTileset = element["Tileset"].InnerText.AsSpan();
-        var bgTileset = element["BGTileset"].InnerText.AsSpan();
-        var background = element["Background"].InnerText.AsSpan();
+        var fgTileset = info.Theme.Tileset.AsSpan();
+        var bgTileset = info.Theme.BGTileset.AsSpan();
+        var background = info.Theme.BackgroundID.AsSpan();
 
         if (fgTileset.StartsWith("custom:".AsSpan())) 
         {

@@ -4,6 +4,7 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
+using NLua;
 using TeuJson;
 
 namespace TowerFall;
@@ -12,12 +13,13 @@ public class patch_TowerTheme : TowerTheme
 {
     public Guid ThemeID;
     public patch_TowerTheme(XmlElement xml) {}
+    public patch_TowerTheme(LuaTable value) {}
 
 
     [MonoModConstructor]
     public void ctor(XmlElement xml) 
     {
-        Name = xml.ChildText("Name");
+        Name = xml.ChildText("Name").ToUpperInvariant();
         Icon = TFGame.MenuAtlas["towerIcons/" + xml.ChildText("Icon")];
         TowerType = xml.ChildEnum<MapButton.TowerType>("TowerType");
         MapPosition = xml["MapPosition"].Position();
@@ -77,6 +79,7 @@ public class patch_TowerTheme : TowerTheme
     public void ctor(JsonValue value) 
     {
         Name = value.GetJsonValueOrNull("Name") ?? "";
+        Name = Name.ToUpperInvariant();
         Icon = TFGame.MenuAtlas["towerIcons/" + value.GetJsonValueOrNull("Icon") ?? "sacredGround"];
         if (Enum.TryParse<MapButton.TowerType>(value.GetJsonValueOrNull("TowerType") ?? "Normal" , out var result)) 
         {
@@ -85,7 +88,7 @@ public class patch_TowerTheme : TowerTheme
         var jsonPosition = value.GetJsonValueOrNull("MapPosition");
         MapPosition = jsonPosition == null ? Vector2.Zero : jsonPosition.Position();
         Music = value.GetJsonValueOrNull("Music") ?? "SacredGround";
-        DarknessColor = Calc.HexToColor(value.GetJsonValueOrNull("DarknessColor") ?? "000000");
+        DarknessColor = Calc.HexToColor(value.GetJsonValueOrNull("DarknessColor") ?? "000000").Invert();
         DarknessOpacity = value.GetJsonValueOrNull("DarknessOpacity") ?? 0f;
         Wind = value.GetJsonValueOrNull("Wind") ?? 0;
         if (Enum.TryParse<TowerTheme.LanternTypes>(value.GetJsonValueOrNull("Lanterns") ?? "CathedralTorch", out var lanternResult)) 
@@ -98,8 +101,11 @@ public class patch_TowerTheme : TowerTheme
         }
         Raining = value.GetJsonValueOrNull("Raining") ?? false;
         BackgroundID = value["Background"];
-        BackgroundData = GameData.BGs[BackgroundID]["Background"];
-        ForegroundData = GameData.BGs[BackgroundID]["Foreground"];
+        if (GameData.BGs.ContainsKey(BackgroundID)) 
+        {
+            BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
+            ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
+        }
         if (value.Contains("PlayerInvisibility")) 
         {
             var playerInvisibility = value["PlayerInvisibility"];
@@ -129,6 +135,67 @@ public class patch_TowerTheme : TowerTheme
         Tileset = value["Tileset"];
         BGTileset = value["BGTileset"];
         Cataclysm = value["Tileset"] == "Cataclysm";
+    }
+
+    [MonoModConstructor]
+    public void ctor(LuaTable value) 
+    {
+        Name = (value.Get("name") ?? "").ToUpperInvariant();
+        Icon = TFGame.MenuAtlas["towerIcons/" + value.Get("icon") ?? "sacredGround"];
+        if (Enum.TryParse<MapButton.TowerType>(value.Get("towerType") ?? "Normal" , out var result)) 
+        {
+            TowerType = result;
+        }
+        var luaPos = value.GetTable("mapPosition");
+        MapPosition = luaPos == null ? Vector2.Zero : luaPos.Position();
+        Music = value.Get("music") ?? "SacredGround";
+        DarknessColor = Calc.HexToColor(value.Get("darknessColor") ?? "000000").Invert();
+        DarknessOpacity = value.GetFloat("darknessOpacity");
+        Wind = value.GetInt("wind");
+        if (Enum.TryParse<TowerTheme.LanternTypes>(value.Get("lanterns") ?? "CathedralTorch", out var lanternResult)) 
+        {
+            Lanterns = lanternResult;
+        }
+        if (Enum.TryParse<TowerTheme.Worlds>(value.Get("world") ?? "Normal", out var worldResult)) 
+        {
+            World = worldResult;
+        }
+        Raining = value.GetBool("raining");
+        BackgroundID = value.Get("background");
+        if (GameData.BGs.ContainsKey(BackgroundID)) 
+        {
+            BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
+            ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
+        }
+        if (value.Contains("playerInvisibility")) 
+        {
+            var playerInvisibility = value.GetTable("playerInvisibility");
+            InvisibleOpacities = new float[9]
+            {
+                0.2f + (float)(playerInvisibility.GetFloat("green")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("blue")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("pink")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("orange")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("white")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("yellow")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("cyan")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("purple")) * 0.1f,
+                0.2f + (float)(playerInvisibility.GetFloat("red")) * 0.1f,
+            };
+        }
+        else 
+        {
+            InvisibleOpacities = new float[9] 
+            {
+                0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f
+            };
+        }
+        DrillParticleColor = Calc.HexToColor(value.Get("drillParticleColor") ?? "ff0000");
+        Cold = value.GetBool("cold");
+        CrackedBlockColor = Calc.HexToColor(value.Get("crackedBlockColor") ?? "4EB1E9");
+        Tileset = value.Get("tileset");
+        BGTileset = value.Get("bgTileset");
+        Cataclysm = value.Get("tileset") == "Cataclysm";
     }
 
     public Guid GenerateThemeID() 
