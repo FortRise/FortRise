@@ -100,6 +100,18 @@ public abstract partial class FortModule
 
     internal void CreateSettings(List<OptionsButton> optionsList) 
     {
+        var enabledButton = new OptionsButton("ENABLED");
+        enabledButton.SetCallbacks(() => {
+            enabledButton.State = BoolToString(Enabled);
+        }, null, null, () => {
+            Enabled = !Enabled;
+            if (Enabled)
+                this.Register();
+            else
+                this.Unregister();
+            return Enabled;
+        });
+        optionsList.Add(enabledButton);
         CreateModSettings(optionsList);
 
         var type = SettingsType;

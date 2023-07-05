@@ -314,7 +314,7 @@ public static partial class RiseCore
                         continue;
                     if (ContainsComplexName(dep))
                         continue;
-                    Logger.Log($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
+                    Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
                 }
             }
             var dllPath = mod.IsZip ? metadata.DLL : Path.GetFileName(metadata.DLL);
@@ -499,7 +499,7 @@ public static partial class RiseCore
 
     internal static void LogAllTypes() 
     {
-        Logger.Info(InternalFortModules.Count + " total of mods loaded");
+        Logger.Info(InternalMods.Count + " total of mods loaded");
     }
 
     internal static void Initialize() 
@@ -524,11 +524,14 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module) 
     {
-        InternalFortModules.Add(module);
+        module.InternalLoad();
 
         if (module is NoModule)
             return;
-        module.InternalLoad();
+
+        // Everything is registered, so no need to register it again.
+        if (InternalFortModules.Contains(module))
+            return;
         module.LoadContent();
         module.Enabled = true;
         try 
@@ -654,7 +657,7 @@ public static partial class RiseCore
             {
                 const int offset = 11;
                 if (arrow is null)
-                    return;
+                    continue;
                 var name = arrow.Name;
                 var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
                 var stride = (ArrowTypes)offset + ArrowsID.Count;
@@ -695,7 +698,7 @@ public static partial class RiseCore
             foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
             {
                 if (pickup is null)
-                    return;
+                    continue;
                 var pickupName = pickup.Name;
                 var stride = PickupLoaderCount;
                 ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Vector2), typeof(Vector2) });
@@ -728,7 +731,7 @@ public static partial class RiseCore
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
             {
                 if (dwBoss is null)
-                    return;
+                    continue;
                 var bossName = dwBoss.BossName;
 
                 ConstructorInfo ctor;
@@ -749,7 +752,7 @@ public static partial class RiseCore
             foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
             {
                 if (clea is null)
-                    return;
+                    continue;
                 var name = clea.Name;
 
                 ConstructorInfo ctor;
@@ -783,13 +786,13 @@ public static partial class RiseCore
         {
             Logger.Log(e.ToString());
         }
+
+        InternalFortModules.Add(module);
     }
 
     internal static void Unregister(this FortModule module) 
     {
         module.InternalUnload();
-        InternalFortModules.Remove(module);
-        // InternalMods.Remove(module.Meta);
     }
 
 

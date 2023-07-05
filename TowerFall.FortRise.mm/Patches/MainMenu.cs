@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using MonoMod;
 
@@ -71,7 +72,7 @@ public partial class patch_MainMenu : MainMenu
             var setupName = mod.Meta.Name + " v" + version;
             string author = mod.Meta.Author ?? "";
             var modButton = new OptionsButton(setupName.ToUpperInvariant() + "\n\n   " + author.ToUpperInvariant());
-            if (mod.InternalSettings is null)
+            if (mod is AdventureModule)
             {
                 modButton.SetCallbacks(() => { /* Empty */ });
             }
@@ -101,6 +102,8 @@ public partial class patch_MainMenu : MainMenu
             SaveOnTransition = true;
             foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
+                if (mod.InternalSettings == null)
+                    continue;
                 mod.SaveSettings();
             }
         }
