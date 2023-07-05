@@ -193,7 +193,7 @@ public partial class patch_TFGame : TFGame
     [MonoModReplace]
     public static void Load()
     {
-        Task.Factory.StartNew(delegate
+        Task.Run(() =>
         {
             try
             {
@@ -269,7 +269,7 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        Task.Factory.StartNew(() => 
+        Task.Run(() => 
         {
             Calc.Log(new object[] { "...Music" });
             TFGame.WriteLineToLoadLog("Loading Music...");
