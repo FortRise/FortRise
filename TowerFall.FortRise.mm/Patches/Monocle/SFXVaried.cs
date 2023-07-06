@@ -14,6 +14,14 @@ public class patch_SFXVaried : patch_SFX
         [MonoModIgnore]
         private set => throw null;
     }
+
+    [MonoModIgnore]
+    public bool ObeysMasterPitch
+    {
+        [MonoModIgnore] get => throw null;
+        [MonoModIgnore] private set => throw null;
+    }
+
     internal patch_SFXVaried(bool obeysMasterPitch) : base(obeysMasterPitch)
     {
     }
@@ -22,9 +30,14 @@ public class patch_SFXVaried : patch_SFX
     {
     }
 
+    [MonoModLinkTo("Monocle.SFX", "System.Void .ctor(System.Boolean)")]
+    [MonoModIgnore]
+    public void thisctor(bool obeysMasterPitch) {}
+
     [MonoModConstructor]
     public void ctor(Stream[] stream, int amount, bool obeysMasterPitch) 
     {
+        this.thisctor(obeysMasterPitch);
         Datas = new SoundEffect[amount];
         for (int i = 0; i < amount; i++)
         {

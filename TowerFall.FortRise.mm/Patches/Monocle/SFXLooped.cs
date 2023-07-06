@@ -23,6 +23,7 @@ public class patch_SFXLooped : patch_SFX
     [MonoModConstructor]
     public void ctor(Stream stream, bool obeysMasterPitch = true) 
     {
+        base.ctor(stream, obeysMasterPitch);
         if (base.Data != null)
         {
             this.Instance = base.Data.CreateInstance();

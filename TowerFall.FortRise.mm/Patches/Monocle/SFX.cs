@@ -12,6 +12,11 @@ public class patch_SFX : SFX
         [MonoModIgnore] get => throw null;
         [MonoModIgnore] private set => throw null;
     }
+    public bool ObeysMasterPitch
+    {
+        [MonoModIgnore] get => throw null;
+        [MonoModIgnore] private set => throw null;
+    }
     internal patch_SFX(bool obeysMasterPitch) :base("", false) {}
     public patch_SFX(string filename, bool obeysMasterPitch = true) : base(filename, obeysMasterPitch)
     {
@@ -20,9 +25,14 @@ public class patch_SFX : SFX
     {
     }
 
+    [MonoModLinkTo("Monocle.SFX", "System.Void .ctor(System.Boolean)")]
+    [MonoModIgnore]
+    public void thisctor(bool obeysMasterPitch) {}
+
     [MonoModConstructor]
     public void ctor(Stream stream, bool obeysMasterPitch = true) 
     {
+        thisctor(obeysMasterPitch);
         try
         {
             Data = SoundEffect.FromStream(stream);
