@@ -1,0 +1,68 @@
+using System.IO;
+using FortRise;
+using Microsoft.Xna.Framework.Audio;
+using MonoMod;
+
+namespace Monocle;
+
+public class patch_SFX : SFX
+{
+    public SoundEffect Data
+    {
+        [MonoModIgnore] get => throw null;
+        [MonoModIgnore] private set => throw null;
+    }
+    internal patch_SFX(bool obeysMasterPitch) :base("", false) {}
+    public patch_SFX(string filename, bool obeysMasterPitch = true) : base(filename, obeysMasterPitch)
+    {
+    }
+    public patch_SFX(Stream filename, bool obeysMasterPitch = true) : base("", obeysMasterPitch)
+    {
+    }
+
+    [MonoModConstructor]
+    public void ctor(Stream stream, bool obeysMasterPitch = true) 
+    {
+        try
+        {
+            Data = SoundEffect.FromStream(stream);
+        }
+        catch (NoAudioHardwareException)
+        {
+            Data = null;
+        }
+    }
+}
+
+
+public static class SFXExt 
+{
+    public static SFX CreateSFX(this FortContent content, string filename, bool obeysMasterPitch = true, ContentAccess contentAccess = ContentAccess.Root) 
+    {
+        if (Path.GetExtension(filename) == string.Empty)
+            filename += ".wav";
+        switch (contentAccess) 
+        {
+        case ContentAccess.Content: 
+            filename = Calc.LOADPATH + filename;
+            break;
+        case ContentAccess.ModContent:
+            {
+                if (content == null) 
+                {
+                    Logger.Error("[Atlas] You cannot use SFXExt.CreateSFX while FortContent is null");
+                    return null;
+                }
+                using var stream = content[filename].Stream;
+                return CreateSFX(content, stream, obeysMasterPitch);
+            }
+        }
+        using var fileStream = new FileStream(filename, FileMode.Open);
+        return CreateSFX(content, fileStream, obeysMasterPitch);
+    }
+
+    public static SFX CreateSFX(this FortContent content, Stream stream, bool obeysMasterPitch = true) 
+    {
+        return new patch_SFX(stream, obeysMasterPitch);
+    }
+}

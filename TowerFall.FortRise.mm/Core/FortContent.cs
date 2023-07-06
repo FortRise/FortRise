@@ -225,6 +225,36 @@ public class FortContent
     {
         return new MusicHolder(this, fileName, ContentAccess.ModContent, musicType);
     }
+
+    public SFX LoadSFX(string fileName, bool obeysMasterPitch = true) 
+    {
+        using var stream = this[contentPath + "/" + fileName].Stream;
+        return SFXExt.CreateSFX(this, stream, obeysMasterPitch);
+    }
+
+    public patch_SFXInstanced LoadSFXInstance(string fileName, int instances = 2, bool obeysMasterPitch = true) 
+    {
+        using var stream = this[contentPath + "/" + fileName].Stream;
+        return SFXInstancedExt.CreateSFXInstanced(this, stream, instances, obeysMasterPitch);
+    }
+
+    public patch_SFXLooped LoadSFXLooped(string fileName, bool obeysMasterPitch = true) 
+    {
+        using var stream = this[contentPath + "/" + fileName].Stream;
+        return SFXLoopedExt.CreateSFXLooped(this, stream, obeysMasterPitch);
+    }
+
+    public patch_SFXVaried LoadSFXVaried(string fileName, int amount, bool obeysMasterPitch = true) 
+    {
+        var currentExtension = Path.GetExtension(".wav");
+        fileName = fileName.Replace(currentExtension, "");
+        var stream = new Stream[amount];
+        for (int i = 0; i < amount; i++) 
+        {
+            stream[i] = this[contentPath + "/" + fileName + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
+        }
+        return SFXVariedExt.CreateSFXVaried(this, stream, amount, obeysMasterPitch);
+    }
 }
 
 public class ModResource 
