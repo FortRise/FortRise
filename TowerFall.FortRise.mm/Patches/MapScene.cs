@@ -279,12 +279,23 @@ namespace TowerFall
                     CustomLevelCategory = -1;
                 }
 
-                if (MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
+                if (patch_SaveData.AdventureActive && MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
                 {
                     var id = Buttons.IndexOf(Selection);
-                    patch_GameData.ReloadCustomTowers();
-                    if (patch_SaveData.AdventureActive)
-                        GotoAdventure(id);
+                    var loading = new UILoader();
+                    loading.LayerIndex = 0;
+                    loading.WaitWith(() => {
+                        MapPaused = false;
+                    });
+                    Add(loading);
+                    TaskHelper.Run("RELOAD TOWERS", () => {
+                        patch_GameData.ReloadCustomTowers();
+                        if (patch_SaveData.AdventureActive)
+                            GotoAdventure(id);
+                        loading.Finished = true;
+                    });
+                    MapPaused = true;
+                    Selection = null;
                 }
             }
             orig_Update();
