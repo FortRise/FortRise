@@ -119,6 +119,14 @@ public static class LuaHelper
         return false;
     }
 
+    public static bool GetBool(this LuaTable table, string name, bool defaultValue) 
+    {
+        object val = table[name];
+        if (val is bool b)
+            return b;
+        return defaultValue;
+    }
+
     public static bool TryGetBool(this LuaTable table, string name, out bool result) 
     {
         var val = table[name];
