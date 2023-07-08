@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Ionic.Zip;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Mdb;
@@ -424,6 +425,33 @@ public static partial class RiseCore
 
         private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
         {
+            if (!string.IsNullOrEmpty(meta.PathZip)) 
+            {
+                return (mod, main, name, fullname) => 
+                {
+                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
+                    {
+                        return def;
+                    }
+
+                    string path = name + ".dll";
+                    if (!string.IsNullOrEmpty(meta.DLL))
+                        path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
+                    path = path.Replace('\\', '/');
+
+                    using var zip = new ZipFile(meta.PathZip);
+                    foreach (var entry in zip.Entries) 
+                    {
+                        if (entry.FileName != path)
+                            continue;
+                        using var memStream = entry.ExtractStream();
+                        return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
+                    }
+
+                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    return null;
+                };
+            }
             if (!string.IsNullOrEmpty(Path.GetDirectoryName(meta.DLL))) 
             {
                 return (mod, main, name, fullname) => 
