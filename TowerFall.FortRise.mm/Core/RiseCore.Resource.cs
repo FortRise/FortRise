@@ -62,13 +62,7 @@ public partial class RiseCore
 
         public override Stream Stream 
         {
-            get 
-            {
-                var memStream = new MemoryStream();
-                Entry.Extract(memStream);
-                memStream.Seek(0, SeekOrigin.Begin);
-                return memStream;
-            }
+            get => Entry.ExtractStream();
         }
     }
 
