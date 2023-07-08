@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using FortRise.Adventure;
 using Ionic.Zip;
@@ -18,13 +19,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public delegate Enemy EnemyLoader(Vector2 position, Facing facing);
+public delegate Enemy EnemyLoader(Vector2 position, Facing facing, Vector2[] nodes);
 public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
 public delegate ArrowInfo ArrowInfoLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
 
-public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position);
+public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position, Vector2[] nodes);
 /// <summary>
 /// A loader delegate for custom RoundLogic.
 /// </summary>
@@ -155,7 +156,6 @@ public static partial class RiseCore
             Version = FortRiseVersion
         }).Register();
 
-        var blackListed = ReadBlacklistedMods("Mods/blacklist.txt");
 
         new AdventureModule().Register();
 
@@ -195,6 +195,7 @@ public static partial class RiseCore
                 }
 
                 var depPath = Path.Combine(meta.PathDirectory, path);
+
                 if (!File.Exists(depPath))
                     continue;
                 using var fs = File.OpenRead(depPath);
@@ -204,138 +205,7 @@ public static partial class RiseCore
             }
             return null;
         };
-
-        var directory = Directory.EnumerateDirectories("Mods").ToList();
-
-        if (directory.Count > 0)  
-        {
-            // Get all mods metadata before loading the mod.
-            foreach (var dir in directory) 
-            {
-                var dirInfo = new DirectoryInfo(dir);
-                if (blackListed != null && blackListed.Contains(dirInfo.Name))  
-                {
-                    Logger.Verbose($"[Loader] Ignored {dir} as it's blacklisted");
-                    continue;
-                }
-                var metaPath = Path.Combine(dir, "meta.json");
-                ModuleMetadata moduleMetadata = null;
-                if (!File.Exists(metaPath)) 
-                    metaPath = Path.Combine(dir, "meta.xml");
-                if (!File.Exists(metaPath))
-                    continue;
-                
-                if (metaPath.EndsWith("json"))
-                    moduleMetadata = ParseMetadataWithJson(dir, metaPath);
-                else
-                    moduleMetadata = ParseMetadataWithXML(dir, metaPath);
-
-
-                // Assembly Mod Loading
-                var fortContent = new FortContent(moduleMetadata.PathDirectory);
-                var modResource = new ModResource(fortContent, moduleMetadata);
-                InternalMods.Add(modResource);
-            }
-        }
-
-        var files = Directory.GetFiles("Mods");
-        foreach (var file in files) 
-        {
-            if (blackListed != null && blackListed.Contains(Path.GetFileName(file))) 
-            {
-                Logger.Verbose($"[Loader] Ignored {file} as it's blacklisted");
-                continue;
-            }
-            if (!file.EndsWith("zip"))
-                continue;
-            using var zipFile = ZipFile.Read(file);
-
-            ModuleMetadata moduleMetadata = null;
-            string metaPath = null;
-            if (zipFile.ContainsEntry("meta.json")) 
-            {
-                metaPath = "meta.json";
-            }
-            else if (zipFile.ContainsEntry("meta.xml")) 
-            {
-                metaPath = "meta.xml";
-            }
-            else 
-                continue;
-            
-            var entry = zipFile[metaPath];
-            using var memStream = new MemoryStream();
-            entry.Extract(memStream);
-
-            memStream.Seek(0, SeekOrigin.Begin);
-            var fileDir = Path.GetDirectoryName(file);
-            
-            if (metaPath.EndsWith("json"))
-                moduleMetadata = ParseMetadataWithJson(fileDir, memStream, true);
-            else
-                moduleMetadata = ParseMetadataWithXML(fileDir, memStream, true);
-
-            var fortContent = new FortContent(file, true);
-            var modResource = new ModResource(fortContent, moduleMetadata, true);
-            InternalMods.Add(modResource);
-        }
-
-        foreach (var mod in InternalMods) 
-        {
-            var metadata = mod.Metadata;
-            if (metadata.DLL == string.Empty) 
-            {
-                // Generate custom guids for DLL-Less mods
-                string generatedGuid;
-                if (string.IsNullOrEmpty(metadata.Author)) 
-                {
-                    Logger.Warning($"[Loader] [{metadata.Name}] Author is empty. Guids might conflict with other DLL-Less mods.");
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}";
-                }
-                else 
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
-                if (ModuleGuids.Contains(generatedGuid)) 
-                {
-                    Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    continue;
-                }
-                Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
-                continue;
-            }
-
-            // Check dependencies
-            if (metadata.Dependencies != null) 
-            {
-                foreach (var dep in metadata.Dependencies) 
-                {
-                    if (ContainsGuidMod(dep))
-                        continue;
-                    if (ContainsMod(dep))
-                        continue;
-                    if (ContainsComplexName(dep))
-                        continue;
-                    Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
-                }
-            }
-            var dllPath = mod.IsZip ? metadata.DLL : Path.GetFileName(metadata.DLL);
-
-            using var fs = mod.Content[dllPath].Stream;
-            if (fs == null)
-                return;
-            var pathToAssembly = Path.Combine(metadata.PathDirectory, metadata.DLL);
-            // if (!File.Exists(pathToAssembly))
-            //     return;
-
-            // using var fs = File.OpenRead(pathToAssembly);
-
-            var asm = Relinker.GetRelinkedAssembly(metadata, pathToAssembly, fs);
-            if (asm == null) 
-            {
-                Logger.Error("[Loader] Failed to load assembly: " + asm.FullName);
-                return;
-            }
-            RegisterAssembly(metadata, mod, asm);
-        }
+        Loader.InitializeMods();
     }
 
     private static void RegisterAssembly(ModuleMetadata metadata, ModResource resource, Assembly asm) 
@@ -414,14 +284,14 @@ public static partial class RiseCore
         return ParseMetadataWithJson(dir, fs);
     }
 
-    private static ModuleMetadata ParseMetadataWithJson(string dir, Stream path, bool zip = false) 
+    private static ModuleMetadata ParseMetadataWithJson(string dirPath, Stream path, bool zip = false) 
     {
         var json = JsonTextReader.FromStream(path);
         var dll = json.GetJsonValueOrNull("dll");
         var name = json.GetJsonValueOrNull("name");
         if (name == null)
         {
-            Logger.Error($"{dir} does not have a name metadata.");
+            Logger.Error($"{dirPath} does not have a name metadata.");
             return null;
         }
         var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
@@ -441,8 +311,14 @@ public static partial class RiseCore
             Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
             return null;
         }
+        string zipPath = "";
         if (!zip)
-            dll = dll is not null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty;
+            dll = dll is not null ? Path.GetFullPath(Path.Combine(dirPath, dll)) : string.Empty;
+        else 
+        {
+            zipPath = dirPath;
+            dirPath = Path.GetDirectoryName(dirPath);
+        }
         return new ModuleMetadata() 
         {
             Name = name,
@@ -451,7 +327,8 @@ public static partial class RiseCore
             Author = author,
             FortRiseVersion = requiredVersion,
             DLL = dll ?? string.Empty,
-            PathDirectory = dir,
+            PathDirectory = dirPath,
+            PathZip = zipPath,
             Dependencies = dependencies,
             NativePath = nativePath,
             NativePathX86 = nativePathX86
@@ -522,17 +399,51 @@ public static partial class RiseCore
         }
     }
 
+    internal static void BlacklistMods(FortModule module, bool blacklist) 
+    {
+        var meta = module.Meta;
+        string text;
+        using (var sr = File.OpenText("Mods/blacklist.txt")) 
+        {
+            text = sr.ReadToEnd();
+        }
+        if (blacklist) 
+        {
+            var sb = new StringBuilder(text);
+            sb.Append("\n");
+            sb.AppendLine(meta.Name);
+            using var sc = File.CreateText("Mods/blacklist.txt");
+            sc.Write(sb.ToString());
+            return;
+        }
+        using var scNotBlackList = File.CreateText("Mods/blacklist.txt");
+        string[] read = text.Split('\n');
+        foreach (var line in read) 
+        {
+            if (line == meta.Name)
+                continue;
+            scNotBlackList.WriteLine(line);
+        }
+    }
+
     internal static void Register(this FortModule module) 
     {
-        module.InternalLoad();
-
         if (module is NoModule)
             return;
 
         // Everything is registered, so no need to register it again.
-        if (InternalFortModules.Contains(module))
+        if (InternalFortModules.Contains(module)) 
+        {
+            module.InternalLoad();
             return;
+        }
+
+        lock (InternalFortModules) 
+            InternalFortModules.Add(module);
+        
         module.LoadContent();
+        module.InternalLoad();
+
         module.Enabled = true;
         try 
         {
@@ -587,7 +498,7 @@ public static partial class RiseCore
                     CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.HeadHunters);
 
                 CustomVersusRoundLogic.VersusModes.Add(name);
-                RoundLogicLoader.Add(name, loader);
+                RoundLogicLoader[name] = loader;
                 
             }
             foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
@@ -620,11 +531,24 @@ public static partial class RiseCore
                     EnemyLoader loader = null;
 
                     info = type.GetMethod(methodName, new Type[] { typeof(Vector2), typeof(Facing) });
-                    if (methodName != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
                     {
-                        loader = (position, facing) => {
+                        loader = (position, facing, _) => {
                             var invoked = (patch_Enemy)info.Invoke(null, new object[] {
                                 position, facing
+                            });
+                            invoked.Load();
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+
+                    info = type.GetMethod(methodName, new Type[] { typeof(Vector2), typeof(Facing), typeof(Vector2[]) });
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
+                    {
+                        loader = (position, facing, nodes) => {
+                            var invoked = (patch_Enemy)info.Invoke(null, new object[] {
+                                position, facing, nodes
                             });
                             invoked.Load();
                             return invoked;
@@ -637,7 +561,7 @@ public static partial class RiseCore
                     );
                     if (ctor != null) 
                     {
-                        loader = (position, facing) => {
+                        loader = (position, facing, _) => {
                             var invoked = (patch_Enemy)ctor.Invoke(new object[] {
                                 position,
                                 facing
@@ -649,8 +573,126 @@ public static partial class RiseCore
                         };
                         goto Loaded;
                     }
+
+                    ctor = type.GetConstructor(
+                        new Type[] { typeof(Vector2), typeof(Facing), typeof(Vector2[]) }
+                    );
+                    if (ctor != null) 
+                    {
+                        loader = (position, facing, nodes) => {
+                            var invoked = (patch_Enemy)ctor.Invoke(new object[] {
+                                position,
+                                facing,
+                                nodes
+                            });
+                            invoked.Load();
+
+                            return invoked;
+
+                        };
+                        goto Loaded;
+                    }
                     Loaded:
-                    EnemyLoader.Add(id, loader);
+                    EnemyLoader[id] = loader;
+                }
+            }
+            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
+            {
+                if (clea is null)
+                    continue;
+                foreach (var name in clea.Names) 
+                {
+                    string id;
+                    string methodName = null;
+                    string[] split = name.Split('=');
+                    if (split.Length == 1) 
+                    {
+                        id = split[0];
+                    }
+                    else if (split.Length == 2) 
+                    {
+                        id = split[0];
+                        methodName = split[1];
+                    }
+                    else 
+                    {
+                        Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
+                        continue;
+                    }
+                    id = id.Trim();
+                    methodName = methodName?.Trim();
+
+                    ConstructorInfo ctor;
+                    MethodInfo info;
+                    LevelEntityLoader loader = null;
+                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement) });
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    {
+                        loader = (xml, _, _) => {
+                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                               xml 
+                            });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+
+                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2) });
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    {
+                        loader = (xml, pos, _) => {
+                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                                xml, pos
+                            });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+
+                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    {
+                        loader = (xml, pos, nodes) => {
+                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                                xml, pos, nodes
+                            });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+
+                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
+                    if (ctor != null) 
+                    {
+                        loader = (x, _, _) => 
+                        {
+                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
+                    if (ctor != null) 
+                    {
+                        loader = (x, pos, _) => 
+                        {
+                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos});
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
+                    if (ctor != null) 
+                    {
+                        loader = (x, pos, nodes) => 
+                        {
+                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos, nodes });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+                    Loaded:
+                    LevelEntityLoader[name] = loader;
                 }
             }
             foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
@@ -688,11 +730,11 @@ public static partial class RiseCore
                     });
                 }
 
-                ArrowsID.Add(name, stride);
-                Arrows.Add(stride, loader);
-                PickupID.Add(name, (Pickups)PickupLoaderCount);
-                PickupLoader.Add((Pickups)PickupLoaderCount, (pos, targetPos, _) => new ArrowTypePickup(
-                    pos, targetPos, stride));
+                ArrowsID[name] = stride;
+                Arrows[stride] = loader;
+                PickupID[name] = (Pickups)PickupLoaderCount;
+                PickupLoader[(Pickups)PickupLoaderCount] 
+                    = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride);
                 PickupLoaderCount++;
             }
             foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
@@ -724,8 +766,8 @@ public static partial class RiseCore
                     };
                 }
 
-                PickupID.Add(pickupName, (Pickups)stride);
-                PickupLoader.Add((Pickups)PickupLoaderCount, loader);
+                PickupID[pickupName] = (Pickups)stride;
+                PickupLoader[(Pickups)PickupLoaderCount] = loader;
                 PickupLoaderCount++;
             }
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
@@ -747,38 +789,7 @@ public static partial class RiseCore
                     goto Loaded;
                 }
                 Loaded:
-                DarkWorldBossLoader.Add(bossName, loader);
-            }
-            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
-            {
-                if (clea is null)
-                    continue;
-                var name = clea.Name;
-
-                ConstructorInfo ctor;
-                LevelEntityLoader loader = null;
-                ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
-                if (ctor != null) 
-                {
-                    loader = (x, _) => 
-                    {
-                        var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
-                        return invoked;
-                    };
-                    goto Loaded;
-                }
-                ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
-                if (ctor != null) 
-                {
-                    loader = (x, pos) => 
-                    {
-                        var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos});
-                        return invoked;
-                    };
-                    goto Loaded;
-                }
-                Loaded:
-                LevelEntityLoader.Add(name, loader);
+                DarkWorldBossLoader[bossName] = loader;
             }
         }
         }
@@ -786,8 +797,6 @@ public static partial class RiseCore
         {
             Logger.Log(e.ToString());
         }
-
-        InternalFortModules.Add(module);
     }
 
     internal static void Unregister(this FortModule module) 
