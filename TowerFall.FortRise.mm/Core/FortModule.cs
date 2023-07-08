@@ -25,6 +25,7 @@ public abstract partial class FortModule
     public string ID { get; internal set; }
     public ModuleMetadata Meta { get; internal set; }
     public bool SupportModDisabling { get; set; } = true;
+    public bool RequiredRestart { get; set; }
 
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
@@ -268,6 +269,7 @@ public class ModuleMetadata
     public string Author;
     public string DLL;
     public string PathDirectory;
+    public string PathZip;
     public string[] Dependencies;
     public string NativePath;
     public string NativePathX86;

@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -68,19 +70,36 @@ public partial class patch_MainMenu : MainMenu
             currentModule.Enabled = !currentModule.Enabled;
             modLoader = new UILoader();
             modLoader.WaitWith(() => {
-                enabledButton.Selected = true;
+                if (!currentModule.Enabled && currentModule.RequiredRestart) 
+                {
+                    var uiModal = new UIModal();
+                    uiModal.SetTitle("Required Restart");
+                    uiModal.AddFiller("This mod required restart to fully unload.");
+                    uiModal.AutoClose = true;
+                    uiModal.AddItem("Ok", () => enabledButton.Selected = true);
+                    Add(uiModal);
+                }
+                else
+                    enabledButton.Selected = true;
             });
             Add(modLoader);
-            if (currentModule.Enabled)
-                Task.Run(() => { 
+            if (currentModule.Enabled) 
+            {
+                RiseCore.BlacklistMods(currentModule, false);
+                TaskHelper.Run("mod_register", () => { 
                     currentModule.Register();
                     modLoader.Finished = true;
                 });
+            }
             else
-                Task.Run(() => { 
+            {
+                RiseCore.BlacklistMods(currentModule, true);
+                TaskHelper.Run("mod_unregister", () => { 
                     currentModule.Unregister();
                     modLoader.Finished = true;
                 });
+            }
+
             return currentModule.Enabled;
         });
         list.Add(enabledButton);
@@ -329,6 +348,24 @@ public partial class patch_MainMenu : MainMenu
         MainMenu.CurrentMatchSettings = null;
     }
 
+    public extern void orig_Render();
+    public override void Render()
+    {
+        orig_Render();
+        if (Loader.Message == "")
+            return;
+        var tasks = TaskHelper.Tasks;
+        float y = 0;
+
+        Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+        foreach (var task in tasks) 
+        {
+            Draw.OutlineTextJustify(TFGame.Font, task.ToUpperInvariant(), new Vector2(4, 225 - y), Color.Gray, Color.Black, 
+                new Vector2(0, 0.5f));
+            y += 10;
+        }
+        Draw.SpriteBatch.End();
+    }
 
     public enum patch_MenuState 
     {
