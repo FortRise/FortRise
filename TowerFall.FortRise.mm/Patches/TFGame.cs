@@ -193,7 +193,7 @@ public partial class patch_TFGame : TFGame
     [MonoModReplace]
     public static void Load()
     {
-        Task.Run(() =>
+        TaskHelper.Run("data_load", () =>
         {
             try
             {
@@ -268,7 +268,7 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        Task.Run(() => 
+        TaskHelper.Run("sfx_load", () => 
         {
             Calc.Log(new object[] { "...Music" });
             TFGame.WriteLineToLoadLog("Loading Music...");
@@ -287,7 +287,7 @@ public partial class patch_TFGame : TFGame
     [MonoModReplace]
     public static IEnumerator MainMenuLoadWait()
     {
-        while (!TFGame.GameLoaded || !patch_TFGame.SoundLoaded)
+        while (TaskHelper.WaitForAll())
         {
             yield return 0;
         }
