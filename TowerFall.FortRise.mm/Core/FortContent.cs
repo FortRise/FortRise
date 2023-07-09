@@ -15,7 +15,7 @@ namespace FortRise;
 /// This class is only use for getting a mod content inside of a module. 
 /// This will not interact the filesystem outside of the mod content.
 /// </remarks>
-public class FortContent : IDisposable
+public class FortContent 
 {
     /// <summary>
     /// A property where your default Content lookup is being used. Some methods are relying on this.
@@ -58,9 +58,9 @@ public class FortContent : IDisposable
         ResourceSystem.Open(dir);
     }
 
-    internal void Unload() 
+    internal void Unload(bool disposeTexture) 
     {
-        Dispose();
+        Dispose(disposeTexture);
     }
 
     public bool IsResourceExist(string path) 
@@ -272,14 +272,17 @@ public class FortContent : IDisposable
         return SFXVariedExt.CreateSFXVaried(this, stream, amount, obeysMasterPitch);
     }
 
-    public void Dispose()
+    public void Dispose(bool disposeTexture)
     {
         ResourceSystem.Dispose();
-        foreach (var atlas in atlases) 
+        if (disposeTexture) 
         {
-            atlas.Value.Texture2D.Dispose();
+            foreach (var atlas in atlases) 
+            {
+                atlas.Value.Texture2D.Dispose();
+            }
+            atlases.Clear();
         }
-        atlases.Clear();
     }
 }
 
@@ -287,13 +290,11 @@ public class ModResource
 {
     public ModuleMetadata Metadata;
     public FortContent Content;
-    public bool IsZip;
 
-    public ModResource(FortContent content, ModuleMetadata metadata, bool zip = false) 
+    public ModResource(FortContent content, ModuleMetadata metadata) 
     {
         Metadata = metadata;
         Content = content;
-        IsZip = zip;
     }
 }
 
