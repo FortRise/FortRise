@@ -16,9 +16,9 @@ public static class patch_GameData
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
     public static Dictionary<Guid, CustomBGStorage> CustomBGAtlas;
-    public static string AW_PATH = "AdventureWorldContent" + Path.DirectorySeparatorChar;
     public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static List<string> AdventureWorldCategories;
+    // TODO clean up
     public static Dictionary<string, int> AdventureWorldModTowersLookup;
     public static List<(bool contains, CustomMapRenderer renderer)> AdventureWorldMapRenderer;
     public static List<List<AdventureWorldTowerData>> AdventureWorldModTowers;
@@ -89,7 +89,7 @@ public static class patch_GameData
         if (Directory.Exists("AdventureWorldContent/Levels")) 
         {
             Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
-            contentModDirectories.AddRange(Directory.EnumerateDirectories(Path.Combine(AW_PATH, "Levels")));
+            contentModDirectories.AddRange(Directory.EnumerateDirectories("AdventureWorldContent/Levels"));
         }
 
         foreach (var adventurePath in contentModDirectories) 
@@ -136,7 +136,7 @@ public static class patch_GameData
     /// <returns>A boolean determines whether the load success or fails</returns>
     public static bool LoadAdventureModTowers(string directory, string prefix, ModuleMetadata mod, RiseCore.ResourceSystem system) 
     {
-        string modName = mod == null ? "::global::" : mod.Name;
+        string modName = mod is null ? "::global::" : mod.Name;
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {
             var tower = AdventureWorldModTowers[id];
