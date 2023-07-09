@@ -11,7 +11,6 @@ namespace TowerFall.Editor;
 
 public class patch_ActorData : ActorData 
 {
-    public static Dictionary<string, patch_Atlas> CachedAtlas;
     public static List<Dictionary<string, ActorData>> DataLayers;
     public extern static void orig_Init();
 
@@ -23,13 +22,11 @@ public class patch_ActorData : ActorData
         {
             return;
         }
-        CachedAtlas = new();
         DataLayers = new();
         orig_Init();
         DataLayers.Add(ActorData.Data);
         foreach (var mods in RiseCore.InternalMods)
         {
-            CachedAtlas.Clear();
             var content = mods.Content;
             if (!content.TryGetValue("Content/Editor", out var editorResource))
                 continue;
@@ -75,12 +72,7 @@ public class patch_ActorData : ActorData
         var weight = lua.GetInt("weight", 1);
         var darkWorldDLC = lua.GetBool("darkWorldDLC", true);
 
-        var xmlPath = atlasPath + ".xml";
-        if (!CachedAtlas.TryGetValue(xmlPath, out var atlas)) 
-        {
-            atlas = content.LoadAtlas(atlasPath + ".xml", atlasPath + ".png");
-            CachedAtlas.Add(xmlPath, atlas);
-        }
+        var atlas = content.LoadAtlas(atlasPath + ".xml", atlasPath + ".png");
 
         patch_ActorData.AddData(
             name, title, atlas[textureName], origin, width, height, 

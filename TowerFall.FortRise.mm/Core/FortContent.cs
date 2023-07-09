@@ -15,7 +15,7 @@ namespace FortRise;
 /// This class is only use for getting a mod content inside of a module. 
 /// This will not interact the filesystem outside of the mod content.
 /// </remarks>
-public class FortContent 
+public class FortContent : IDisposable
 {
     /// <summary>
     /// A property where your default Content lookup is being used. Some methods are relying on this.
@@ -32,6 +32,11 @@ public class FortContent
     internal string UseContent => contentPath + "/";
 
     public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.MapResource;
+    public IReadOnlyDictionary<string, patch_Atlas> Atlases => atlases;
+    private Dictionary<string, patch_Atlas> atlases = new();
+
+    public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
+    private Dictionary<string, patch_SpriteData> spriteDatas = new();
 
     public RiseCore.Resource this[string path] => ResourceSystem.MapResource[path];
 
@@ -55,7 +60,7 @@ public class FortContent
 
     internal void Unload() 
     {
-        ResourceSystem.Dispose();
+        Dispose();
     }
 
     public bool IsResourceExist(string path) 
@@ -161,9 +166,15 @@ public class FortContent
     /// <returns>An atlas of an image.</returns>
     public patch_Atlas LoadAtlas(string xmlPath, string imagePath) 
     {
+        var atlasID = xmlPath + imagePath;
+        if (atlases.TryGetValue(atlasID, out var atlasExisted)) 
+            return atlasExisted;
+        
         using var xml = this[contentPath + "/" + xmlPath].Stream;
         using var image = this[contentPath + "/" + imagePath].Stream;
-        return AtlasExt.CreateAtlas(this, xml, image);
+        var atlas = AtlasExt.CreateAtlas(this, xml, image);
+        atlases.Add(atlasID, atlas);
+        return atlas;
     }
 
     /// <summary>
@@ -175,8 +186,13 @@ public class FortContent
     /// <returns>A SpriteData instance to be use for sprite</returns>
     public patch_SpriteData LoadSpriteData(string filename, patch_Atlas atlas) 
     {
+        if (spriteDatas.TryGetValue(filename, out var spriteDataExist)) 
+            return spriteDataExist;
+        
         using var xml = this[contentPath + "/" + filename].Stream;
-        return SpriteDataExt.CreateSpriteData(this, xml, atlas);
+        var spriteData = SpriteDataExt.CreateSpriteData(this, xml, atlas);
+        spriteDatas.Add(filename, spriteData);
+        return spriteData;
     }
 
     /// <summary>
@@ -254,6 +270,16 @@ public class FortContent
             stream[i] = this[contentPath + "/" + fileName + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
         }
         return SFXVariedExt.CreateSFXVaried(this, stream, amount, obeysMasterPitch);
+    }
+
+    public void Dispose()
+    {
+        ResourceSystem.Dispose();
+        foreach (var atlas in atlases) 
+        {
+            atlas.Value.Texture2D.Dispose();
+        }
+        atlases.Clear();
     }
 }
 
