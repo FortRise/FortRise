@@ -260,7 +260,7 @@ public abstract partial class FortModule
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
 }
 
-public class ModuleMetadata 
+public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
     public string Name;
     public Version Version;
@@ -276,8 +276,53 @@ public class ModuleMetadata
 
     internal ModuleMetadata() {}
 
+
     public override string ToString()
     {
         return $"Metadata: {Name} by {Author} {Version}";
     }
+
+
+    public bool Equals(ModuleMetadata other)
+    {
+        if (other.Name != this.Name)
+            return false;
+        
+        if (other.Version != this.Version)
+            return false;
+        
+        if (!string.IsNullOrEmpty(other.Author) && other.Author != this.Author)
+            return false;
+
+        return true;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as ModuleMetadata);
+    
+
+    public override int GetHashCode()
+    {
+        var version = Version.GetHashCode();
+        var name = Name.GetHashCode();
+        var author = Author.GetHashCode();
+        return version + name + author;
+    }
+
+    public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)
+    {
+        if (lhs is null)
+        {
+            if (rhs is null)
+            {
+                return true;
+            }
+
+            // Only the left side is null.
+            return false;
+        }
+        // Equals handles case of null on right side.
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(ModuleMetadata lhs, ModuleMetadata rhs) => !(lhs == rhs);
 }
