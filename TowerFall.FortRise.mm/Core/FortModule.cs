@@ -26,6 +26,7 @@ public abstract partial class FortModule
     public ModuleMetadata Meta { get; internal set; }
     public bool SupportModDisabling { get; set; } = true;
     public bool RequiredRestart { get; set; }
+    public bool DisposeTextureAfterUnload { get; set; } = true;
 
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
@@ -46,7 +47,7 @@ public abstract partial class FortModule
 
     internal void InternalUnload() 
     {
-        Content?.Unload();
+        Content?.Unload(DisposeTextureAfterUnload);
         Unload();
     }
 
@@ -310,9 +311,9 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)
     {
-        if (lhs is null)
+        if (rhs is null)
         {
-            if (rhs is null)
+            if (lhs is null)
             {
                 return true;
             }
