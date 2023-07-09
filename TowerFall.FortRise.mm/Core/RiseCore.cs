@@ -130,17 +130,20 @@ public static partial class RiseCore
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
     {
-        using var fs = File.OpenRead(blackListPath);
-        if (fs == null)
-            return null;
-        using TextReader sr = new StreamReader(fs);
-        var blacklisted = new HashSet<string>();
-        string current;
-        while ((current = sr.ReadLine()) != null) 
+        try 
         {
-            blacklisted.Add(current.Trim());
+            var json = JsonTextReader.FromFile(blackListPath).ConvertToArrayString();
+            var blacklisted = new HashSet<string>();
+            foreach (var j in json) 
+            {
+                blacklisted.Add(j);
+            }
+            return blacklisted;
         }
-        return blacklisted;
+        catch 
+        {
+            return new HashSet<string>(0);
+        }
     }
 
     internal static void ModuleStart() 
@@ -208,31 +211,6 @@ public static partial class RiseCore
         Loader.InitializeMods();
     }
 
-    private static void RegisterAssembly(ModuleMetadata metadata, ModResource resource, Assembly asm) 
-    {
-        foreach (var t in asm.GetTypes()) 
-        {
-            var customAttribute = t.GetCustomAttribute<FortAttribute>();
-            if (customAttribute != null) 
-            {
-                FortModule obj = Activator.CreateInstance(t) as FortModule;
-                if (metadata.Name == string.Empty) 
-                {
-                    metadata.Name = customAttribute.Name;
-                }
-                obj.Meta = metadata;
-                obj.Name = customAttribute.Name;
-                obj.ID = customAttribute.GUID;
-                var content = resource.Content;
-                obj.Content = content;
-
-                ModuleGuids.Add(obj.ID);
-                obj.Register();
-
-                Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
-            }
-        }
-    }
     private static ModuleMetadata ParseMetadataWithXML(string dir, string path) 
     {
         using var fs = File.OpenRead(path);
@@ -401,29 +379,21 @@ public static partial class RiseCore
 
     internal static void BlacklistMods(FortModule module, bool blacklist) 
     {
-        var meta = module.Meta;
-        string text;
-        using (var sr = File.OpenText("Mods/blacklist.txt")) 
+        var meta = Path.GetFileName(string.IsNullOrEmpty(module.Meta.PathZip) ? module.Meta.PathDirectory : module.Meta.PathZip);
+        var json = JsonTextReader.FromFile("Mods/blacklist.txt").AsJsonArray;
+        if (blacklist)  
         {
-            text = sr.ReadToEnd();
-        }
-        if (blacklist) 
-        {
-            var sb = new StringBuilder(text);
-            sb.Append("\n");
-            sb.AppendLine(meta.Name);
-            using var sc = File.CreateText("Mods/blacklist.txt");
-            sc.Write(sb.ToString());
+            json.Add(meta);
+            JsonTextWriter.WriteToFile("Mods/blacklist.txt", json);
             return;
         }
-        using var scNotBlackList = File.CreateText("Mods/blacklist.txt");
-        string[] read = text.Split('\n');
-        foreach (var line in read) 
+        var newJson = new JsonArray();
+        foreach (var j in json.ConvertToArrayString()) 
         {
-            if (line == meta.Name)
-                continue;
-            scNotBlackList.WriteLine(line);
+            if (j != meta)
+                newJson.Add(j);
         }
+        JsonTextWriter.WriteToFile("Mods/blacklist.txt", newJson);
     }
 
     internal static void Register(this FortModule module) 
@@ -434,6 +404,7 @@ public static partial class RiseCore
         // Everything is registered, so no need to register it again.
         if (InternalFortModules.Contains(module)) 
         {
+            module.LoadContent();
             module.InternalLoad();
             return;
         }
