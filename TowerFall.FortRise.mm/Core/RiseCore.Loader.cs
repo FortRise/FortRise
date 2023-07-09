@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Reflection;
 using Ionic.Zip;
 
 namespace FortRise;
@@ -14,7 +16,6 @@ public static partial class RiseCore
             var directory = Directory.GetDirectories("Mods");
             foreach (var dir in directory) 
             {
-                Logger.Log(dir);
                 if (dir.Contains("_RelinkerCache"))
                     continue;    
                 var dirInfo = new DirectoryInfo(dir);
@@ -29,7 +30,6 @@ public static partial class RiseCore
             var files = Directory.GetFiles("Mods");
             foreach (var file in files) 
             {
-                Logger.Log(file);
                 if (!file.EndsWith("zip"))
                     continue;
 
@@ -39,59 +39,6 @@ public static partial class RiseCore
                     continue;
                 }
                 LoadZip(file);
-            }
-
-            foreach (var mod in InternalMods) 
-            {
-                var metadata = mod.Metadata;
-                if (metadata.DLL == string.Empty) 
-                {
-                    // Generate custom guids for DLL-Less mods
-                    string generatedGuid;
-                    if (string.IsNullOrEmpty(metadata.Author)) 
-                    {
-                        Logger.Warning($"[Loader] [{metadata.Name}] Author is empty. Guids might conflict with other DLL-Less mods.");
-                        generatedGuid = $"{metadata.Name}.{metadata.Version}";
-                    }
-                    else 
-                        generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
-                    if (ModuleGuids.Contains(generatedGuid)) 
-                    {
-                        Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                        continue;
-                    }
-                    Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
-                    continue;
-                }
-
-                // Check dependencies
-                if (metadata.Dependencies != null) 
-                {
-                    foreach (var dep in metadata.Dependencies) 
-                    {
-                        if (ContainsGuidMod(dep))
-                            continue;
-                        if (ContainsMod(dep))
-                            continue;
-                        if (ContainsComplexName(dep))
-                            continue;
-                        Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
-                    }
-                }
-                var dllPath = mod.IsZip ? metadata.DLL : Path.GetFileName(metadata.DLL);
-
-                using var fs = mod.Content[dllPath].Stream;
-                if (fs == null)
-                    return;
-                var pathToAssembly = Path.Combine(metadata.PathDirectory, metadata.DLL);
-
-                var asm = Relinker.GetRelinkedAssembly(metadata, pathToAssembly, fs);
-                if (asm == null) 
-                {
-                    Logger.Error("[Loader] Failed to load assembly: " + asm.FullName);
-                    return;
-                }
-                RegisterAssembly(metadata, mod, asm);
             }
         }
 
@@ -109,11 +56,7 @@ public static partial class RiseCore
             else
                 moduleMetadata = ParseMetadataWithXML(dir, metaPath);
 
-
-            // Assembly Mod Loading
-            var fortContent = new FortContent(moduleMetadata.PathDirectory);
-            var modResource = new ModResource(fortContent, moduleMetadata);
-            InternalMods.Add(modResource);
+            Loader.LoadMod(moduleMetadata);
         }
 
         public static void LoadZip(string file) 
@@ -141,9 +84,117 @@ public static partial class RiseCore
             else
                 moduleMetadata = ParseMetadataWithXML(file, memStream, true);
 
-            var fortContent = new FortContent(moduleMetadata.PathZip, true);
-            var modResource = new ModResource(fortContent, moduleMetadata, true);
+            // var fortContent = new FortContent(moduleMetadata.PathZip, true);
+            // var modResource = new ModResource(fortContent, moduleMetadata, true);
+            // InternalMods.Add(modResource);
+            Loader.LoadMod(moduleMetadata);
+        }
+
+        public static void LoadMod(ModuleMetadata metadata) 
+        {
+            if (metadata == null)
+                return;
+
+
+            // Check dependencies
+            if (metadata.Dependencies != null) 
+            {
+                foreach (var dep in metadata.Dependencies) 
+                {
+                    if (ContainsGuidMod(dep))
+                        continue;
+                    if (ContainsMod(dep))
+                        continue;
+                    if (ContainsComplexName(dep))
+                        continue;
+                    Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
+                }
+            }
+
+            Assembly asm = null;
+            FortContent fortContent;
+            ModResource modResource;
+            if (!string.IsNullOrEmpty(metadata.PathZip)) 
+            {
+                using var zip = new ZipFile(metadata.PathZip);
+                var dllPath = metadata.DLL.Replace('\\', '/');
+                if (zip.ContainsEntry(dllPath)) 
+                {
+                    using var dll = zip[dllPath].ExtractStream();
+                    asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, dll);
+                }
+                fortContent = new FortContent(metadata.PathZip, true);
+                modResource = new ModResource(fortContent, metadata);
+            }
+            else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
+            {
+                if (File.Exists(metadata.DLL)) 
+                {
+                    using var stream = File.OpenRead(metadata.DLL);
+                    asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, stream);
+                }
+                fortContent = new FortContent(metadata.PathDirectory);
+                modResource = new ModResource(fortContent, metadata);
+            }
+            else 
+            {
+                Logger.Error($"[Loader] Mod {metadata.Name} not found");
+                return;
+            }
+
+            if (asm != null) 
+            {
+                LoadAssembly(metadata, modResource, asm);
+            }
+
             InternalMods.Add(modResource);
+
+            if (metadata.DLL == string.Empty) 
+            {
+                // Generate custom guids for DLL-Less mods
+                string generatedGuid;
+                if (string.IsNullOrEmpty(metadata.Author)) 
+                {
+                    Logger.Warning($"[Loader] [{metadata.Name}] Author is empty. Guids might conflict with other DLL-Less mods.");
+                    generatedGuid = $"{metadata.Name}.{metadata.Version}";
+                }
+                else 
+                    generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
+                if (ModuleGuids.Contains(generatedGuid)) 
+                {
+                    Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
+                    return;
+                }
+                Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
+                return;
+            }
+        }
+
+        private static void LoadAssembly(ModuleMetadata metadata, ModResource resource, Assembly asm) 
+        {
+            foreach (var t in asm.GetTypes())
+            {
+                var customAttribute = t.GetCustomAttribute<FortAttribute>();
+                if (customAttribute == null)
+                    continue;
+                
+                FortModule obj = Activator.CreateInstance(t) as FortModule;
+                if (metadata.Name == string.Empty)
+                {
+                    metadata.Name = customAttribute.Name;
+                }
+                obj.Meta = metadata;
+                obj.Name = customAttribute.Name;
+                obj.ID = customAttribute.GUID;
+                var content = resource.Content;
+                obj.Content = content;
+
+                ModuleGuids.Add(obj.ID);
+                obj.Register();
+
+                Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
+                break;
+            }
         }
     }
 }
