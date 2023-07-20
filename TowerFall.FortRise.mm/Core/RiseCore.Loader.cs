@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Ionic.Zip;
@@ -9,9 +10,11 @@ public static partial class RiseCore
 {
     public static class Loader 
     {
+        internal static HashSet<string> BlacklistedMods;
+
         internal static void InitializeMods() 
         {
-            var blackListed = ReadBlacklistedMods("Mods/blacklist.txt");
+            BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
 
             var directory = Directory.GetDirectories("Mods");
             foreach (var dir in directory) 
@@ -19,7 +22,7 @@ public static partial class RiseCore
                 if (dir.Contains("_RelinkerCache"))
                     continue;    
                 var dirInfo = new DirectoryInfo(dir);
-                if (blackListed != null && blackListed.Contains(dirInfo.Name))  
+                if (BlacklistedMods != null && BlacklistedMods.Contains(dirInfo.Name))  
                 {
                     Logger.Verbose($"[Loader] Ignored {dir} as it's blacklisted");
                     continue;
@@ -32,8 +35,8 @@ public static partial class RiseCore
             {
                 if (!file.EndsWith("zip"))
                     continue;
-
-                if (blackListed != null && blackListed.Contains(Path.GetFileName(file))) 
+                var fileName = Path.GetFileName(file);
+                if (BlacklistedMods != null && BlacklistedMods.Contains(Path.GetFileName(fileName))) 
                 {
                     Logger.Verbose($"[Loader] Ignored {file} as it's blacklisted");
                     continue;
@@ -76,6 +79,7 @@ public static partial class RiseCore
             else 
                 return;
             
+            
             var entry = zipFile[metaPath];
             using var memStream = entry.ExtractStream();
             
@@ -84,18 +88,17 @@ public static partial class RiseCore
             else
                 moduleMetadata = ParseMetadataWithXML(file, memStream, true);
 
-            // var fortContent = new FortContent(moduleMetadata.PathZip, true);
-            // var modResource = new ModResource(fortContent, moduleMetadata, true);
-            // InternalMods.Add(modResource);
             Loader.LoadMod(moduleMetadata);
         }
 
-        public static void LoadMod(ModuleMetadata metadata) 
+        public static void LoadMod(ModuleMetadata metadata, bool shouldCheck = false) 
         {
             if (metadata == null)
                 return;
-
-
+            
+            if (shouldCheck && CheckModsLoaded(metadata))
+                return;
+            
             // Check dependencies
             if (metadata.Dependencies != null) 
             {
@@ -116,6 +119,9 @@ public static partial class RiseCore
             ModResource modResource;
             if (!string.IsNullOrEmpty(metadata.PathZip)) 
             {
+                fortContent = new FortContent(metadata.PathZip, true);
+                modResource = new ModResource(fortContent, metadata);
+
                 using var zip = new ZipFile(metadata.PathZip);
                 var dllPath = metadata.DLL.Replace('\\', '/');
                 if (zip.ContainsEntry(dllPath)) 
@@ -123,18 +129,17 @@ public static partial class RiseCore
                     using var dll = zip[dllPath].ExtractStream();
                     asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, dll);
                 }
-                fortContent = new FortContent(metadata.PathZip, true);
-                modResource = new ModResource(fortContent, metadata);
             }
             else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
             {
+                fortContent = new FortContent(metadata.PathDirectory);
+                modResource = new ModResource(fortContent, metadata);
+
                 if (File.Exists(metadata.DLL)) 
                 {
                     using var stream = File.OpenRead(metadata.DLL);
                     asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, stream);
                 }
-                fortContent = new FortContent(metadata.PathDirectory);
-                modResource = new ModResource(fortContent, metadata);
             }
             else 
             {
@@ -195,6 +200,16 @@ public static partial class RiseCore
                 Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
                 break;
             }
+        }
+
+        public static bool CheckModsLoaded(ModuleMetadata metadata) 
+        {
+            foreach (var mod in RiseCore.InternalMods) 
+            {
+                if (mod.Metadata == metadata)
+                    return true;
+            }
+            return false;
         }
     }
 }
