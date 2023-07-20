@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -45,9 +46,9 @@ public static partial class RiseCore
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
-    public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
 
-    // This is the way we could use to manipulate arrows from enums
+    // Extending enums this way. Please inform me if there's a better way to do this.
+    public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
     public static Dictionary<string, Pickups> PickupID = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
@@ -57,6 +58,7 @@ public static partial class RiseCore
     /// Contains a read-only access to all of the Fort Modules.
     /// </summary>
     public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
+
     /// <summary>
     /// Contains a read-only access to all of the Mods' metadata and resource.
     /// </summary>
@@ -256,13 +258,13 @@ public static partial class RiseCore
         };
     }
 
-    private static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
+    public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
     {
         using var fs = File.OpenRead(path);
         return ParseMetadataWithJson(dir, fs);
     }
 
-    private static ModuleMetadata ParseMetadataWithJson(string dirPath, Stream path, bool zip = false) 
+    public static ModuleMetadata ParseMetadataWithJson(string dirPath, Stream path, bool zip = false) 
     {
         var json = JsonTextReader.FromStream(path);
         var dll = json.GetJsonValueOrNull("dll");
@@ -313,11 +315,9 @@ public static partial class RiseCore
         };
     }
 
+    // Generated at patch-time
     [PatchFlags]
-    internal static void Flags() 
-    {
-
-    }
+    internal static void Flags() {}
 
     public static readonly HashAlgorithm ChecksumHasher = MD5.Create();
 
