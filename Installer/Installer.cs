@@ -109,7 +109,7 @@ public static class Installer
             ThrowError("[underline][red]Copying failed[/][/]");           
             return;
         }
-        var libPath = "";
+        var libPath = Path.GetFullPath("");
         Underline("Moving the mod into TowerFall directory");
 
         var fortRiseDll = Path.Combine(libPath, modFile);
