@@ -1,16 +1,12 @@
+using FortRise.Adventure;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 using System.Xml;
-using FortRise.Adventure;
-using Ionic.Zip;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -68,10 +64,23 @@ public static partial class RiseCore
     internal static List<ModResource> InternalMods = new();
 
     public static List<string> DetourLogs = new List<string>();
+
+    /// <summary>
+    /// A current version of FortRise.
+    /// <note>This should be not used to check for Latest Version and Current Version, 
+    /// this is an information for logging purposes.</note>
+    /// </summary>
     public static Version FortRiseVersion;
+    /// <summary>
+    /// Checks if the OS that is currently running is Windows. 
+    /// </summary>
+    /// <value>true if the OS is running on Windows, otherwise false.</value>
     public static bool IsWindows { get; internal set; }
 
-
+    /// <summary>
+    /// Checks if the FortRise is currently running on Debug Mode.
+    /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
+    /// </summary>
     public static bool DebugMode;
 
     public static bool ContainsGuidMod(string guid) 
