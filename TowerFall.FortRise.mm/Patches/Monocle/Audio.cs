@@ -5,5 +5,4 @@ namespace Monocle;
 public static class patch_Audio 
 {
     internal static List<SFX> loopList;
-    internal static List<SFX> pitchList;
 }
