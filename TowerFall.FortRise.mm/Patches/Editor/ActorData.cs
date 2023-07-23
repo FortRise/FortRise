@@ -12,6 +12,7 @@ namespace TowerFall.Editor;
 public class patch_ActorData : ActorData 
 {
     public static List<Dictionary<string, ActorData>> DataLayers;
+    public Dictionary<string, string> CustomData;
     public extern static void orig_Init();
 
 
@@ -74,13 +75,23 @@ public class patch_ActorData : ActorData
 
         var atlas = content.LoadAtlas(atlasPath + ".xml", atlasPath + ".png");
 
-        patch_ActorData.AddData(
+        var actorData = patch_ActorData.AddData(
             name, title, atlas[textureName], origin, width, height, 
             allowScreenWrap, hasNodes, resizableX, resizableY, minWidth, maxWidth, minHeight, maxHeight, 
             weight, darkWorldDLC);
+        actorData.CustomData = new();
+
+        if (!lua.TryGetTable("data", out var luaData) && luaData == null)
+            return;
+
+        var objDicts = RiseCore.Lua.Context.GetTableDict(luaData);
+        foreach (var obj in objDicts) 
+        {
+            actorData.CustomData.Add(obj.Key.ToString(), obj.Value.ToString());
+        }
     }
 
     // WTH, why?
     [MonoModIgnore]
-    private extern static ActorData AddData(string name, string title, Subtexture subtexture, Vector2 origin, int width, int height, bool allowScreenWrap, bool hasNode, bool resizeableX, bool resizeableY, int minWidth, int maxWidth, int minHeight, int maxHeight, int weight, bool darkWorldDLC, Action<Actor, Vector2, float> renderer = null);
+    private extern static patch_ActorData AddData(string name, string title, Subtexture subtexture, Vector2 origin, int width, int height, bool allowScreenWrap, bool hasNode, bool resizeableX, bool resizeableY, int minWidth, int maxWidth, int minHeight, int maxHeight, int weight, bool darkWorldDLC, Action<Actor, Vector2, float> renderer = null);
 }
