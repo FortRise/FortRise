@@ -2,14 +2,12 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
-using Steamworks;
 
 namespace TowerFall;
 
