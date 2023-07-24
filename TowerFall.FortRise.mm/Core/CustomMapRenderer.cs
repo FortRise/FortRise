@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework;
 using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using TowerFall;
-using MonoMod;
 using MonoMod.Utils;
 
 namespace FortRise;

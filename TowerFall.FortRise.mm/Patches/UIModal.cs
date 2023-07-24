@@ -14,13 +14,18 @@ public class UIModal : Entity
     public Color SelectionB = Calc.HexToColor("F7BB59");
     public Color NotSelection = Calc.HexToColor("F8F8F8");
 
-    private int itemCount;
+
+    protected internal MenuPanel panel;
+    protected internal int itemCount;
+
+    public IReadOnlyList<string> FillerNames => fillerNames;
+    public IReadOnlyList<string> OptionNames => optionNames;
+
     private List<string> optionNames = new();
     private List<string> fillerNames = new();
     private List<string> selectedOptionNames = new();
     private List<Action> optionActions = new();
     private Wiggler selectionWiggler;
-    private MenuPanel panel;
     private Counter confirmCounter;
     private int optionIndex;
     private Color fillerColor = Color.White;

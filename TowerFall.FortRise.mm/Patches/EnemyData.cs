@@ -51,10 +51,6 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
         [MonoModConstructor]
         public void ctor(LuaTable table, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets) 
         {
-            // if (xml.HasChild("variants")) 
-            // {
-            //     XmlToVariant(xml["variants"]);
-            // }
             LuaCtor(table, enemySets);
             if (table.TryGet("customboss", out var customBoss)) 
             {
