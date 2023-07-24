@@ -88,7 +88,7 @@ public class patch_MatchVariants : MatchVariants
     }
     public static Subtexture GetVariantIconFromName(string variantName, Atlas atlas)
     {
-        return atlas["variants/" + variantName[0].ToString().ToLower(CultureInfo.InvariantCulture) + variantName.Substring(1)];
+        return atlas["variants/" + variantName[0].ToString().ToLowerInvariant() + variantName.Substring(1)];
     }
 
     [Obsolete("Use `Calc.IncompatibleWith` extension method")]
