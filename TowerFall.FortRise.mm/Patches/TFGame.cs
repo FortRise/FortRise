@@ -196,33 +196,33 @@ public partial class patch_TFGame : TFGame
             try
             {
                 Loader.Message = "LOADING";
-                Calc.Log(new object[] { "=== LOADING DATA ===" });
-                Calc.Log(new object[] { "...Input" });
+                Logger.Log("[LOAD] === LOADING DATA ===");
+                Logger.Log("[LOAD] ...Input");
                 TFGame.WriteLineToLoadLog("Initializing Input...");
                 PlayerInput.AssignInputs();
                 for (int i = 0; i < 4; i++)
                 {
                     TFGame.Characters[i] = i;
                 }
-                Calc.Log(new object[] { "...Archer Data" });
+                Logger.Log("[LOAD] ...Archer Data");
                 ArcherData.Initialize();
-                Calc.Log(new object[] { "...Level Data" });
+                Logger.Log("[LOAD] ...Level Data");
                 GameData.Load();
                 TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
                 MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();
                 MainMenu.TrialsMatchSettings = MatchSettings.GetDefaultTrials();
                 MainMenu.QuestMatchSettings = MatchSettings.GetDefaultQuest();
                 MainMenu.DarkWorldMatchSettings = MatchSettings.GetDefaultDarkWorld();
-                Calc.Log(new object[] { "...Awards and Tips" });
+                Logger.Log("[LOAD] ...Awards and Tips");
                 TFGame.WriteLineToLoadLog("Loading Versus Awards...");
                 VersusAwards.Initialize();
                 TFGame.WriteLineToLoadLog("Loading Versus Tips...");
                 GameTips.Initialize();
-                Calc.Log(new object[] { "...Save Data" });
+                Logger.Log("[LOAD] ...Save Data");
                 TFGame.WriteLineToLoadLog("Verifying Save Data...");
                 SaveData.Instance.Verify();
                 SessionStats.Initialize();
-                Calc.Log(new object[] { "...Entity Caching" });
+                Logger.Log("[LOAD] ...Entity Caching");
                 TFGame.WriteLineToLoadLog("Initializing Entity Caching...");
                 Arrow.Initialize();
                 Cache.Init<CatchShine>();
@@ -242,19 +242,19 @@ public partial class patch_TFGame : TFGame
                 Cache.Init<CyclopsShot>();
                 Cache.Init<CataclysmBullet>();
                 Cache.Init<WorkshopPortal>();
-                Calc.Log(new object[] { "...Particles and Lighting" });
+                Logger.Log("[LOAD] ...Particles and Lighting");
                 TFGame.WriteLineToLoadLog("Initializing Particle Systems...");
                 Particles.Initialize();
                 TFGame.WriteLineToLoadLog("Initializing Lighting Systems...");
                 LightingLayer.Initialize();
 
-                Calc.Log(new object[] { "...Shaders (1/2)" });
+                Logger.Log("[LOAD] ...Shaders (1/2)");
                 TFGame.WriteLineToLoadLog("Initializing Shaders (1 of 2)...");
                 ScreenEffects.Initialize();
-                Calc.Log(new object[] { "...Shaders (2/2)" });
+                Logger.Log("[LOAD] ...Shaders (2/2)");
                 TFGame.WriteLineToLoadLog("Initializing Shaders (2 of 2)...");
                 TFGame.LoadLightingEffect();
-                Calc.Log(new object[] { "=== LOADING COMPLETE ===" });
+                Logger.Log("[LOAD] === LOADING COMPLETE ===");
                 TFGame.WriteLineToLoadLog("Loading Complete!");
                 TFGame.GameLoaded = true;
             }
@@ -268,17 +268,17 @@ public partial class patch_TFGame : TFGame
 
         TaskHelper.Run("sfx_load", () => 
         {
-            Calc.Log(new object[] { "...Music" });
+            Logger.Log("[LOAD] ...Music");
             TFGame.WriteLineToLoadLog("Loading Music...");
             patch_Music.Initialize();
             if (!Sounds.Loaded)
             {
-                Calc.Log("...SFX" );
+                Logger.Log("[LOAD] ...SFX" );
                 TFGame.WriteLineToLoadLog("Loading Sounds...");
                 Sounds.Load();
             }
             SoundLoaded = true;
-            Calc.Log("=== SOUND LOADING COMPLETE ===");
+            Logger.Log("[LOAD] === SOUND LOADING COMPLETE ===");
         });
     }
 
