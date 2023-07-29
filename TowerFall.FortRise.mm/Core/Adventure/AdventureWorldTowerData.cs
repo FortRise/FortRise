@@ -12,7 +12,7 @@ namespace FortRise.Adventure;
 
 public class AdventureWorldTowerData : DarkWorldTowerData 
 {
-    public RiseCore.ResourceSystem System;
+    public RiseCore.ModResource System;
     public string StoredDirectory;
     public string Author;
     public bool Procedural;
@@ -21,13 +21,13 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     public string[] RequiredMods;
     public AdventureWorldTowerStats Stats;
 
-    public AdventureWorldTowerData(RiseCore.ResourceSystem system, string path) 
+    public AdventureWorldTowerData(RiseCore.ModResource system, string path) 
     {
         System = system;
-        System.Open(path);
+        System.Lookup();
     }
 
-    public AdventureWorldTowerData(RiseCore.ResourceSystem system) 
+    public AdventureWorldTowerData(RiseCore.ModResource system) 
     {
         System = system;
     }
@@ -35,7 +35,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     private bool Lookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in System.ListResource) 
+        foreach (RiseCore.Resource resource in System.Resources.Values) 
         {
             var path = resource.Path;
 
@@ -53,7 +53,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     private bool ModLookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in System.MapResource[directory].Childrens) 
+        foreach (RiseCore.Resource resource in System.Resources[directory].Childrens) 
         {
             var path = resource.Path;
 
@@ -128,11 +128,11 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         }
 
         IAdventureTowerLoader towerLoader = null;
-        if (System.MapResource.ContainsKey(directoryPrefix + "tower.xml")) 
+        if (System.Resources.ContainsKey(directoryPrefix + "tower.xml")) 
         {
             towerLoader = new XmlAdventureTowerLoader(System, this);
         }
-        else if (System.MapResource.ContainsKey(directoryPrefix + "tower.lua")) 
+        else if (System.Resources.ContainsKey(directoryPrefix + "tower.lua")) 
         {
             towerLoader = new LuaAdventureLoader();
         }
@@ -141,7 +141,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             return false;
         }
 
-        using var fs = System.MapResource[directoryPrefix + "tower." + towerLoader.FileExtension].Stream;
+        using var fs = System.Resources[directoryPrefix + "tower." + towerLoader.FileExtension].Stream;
         var info = towerLoader.Load(id, fs, levelDirectory, directoryPrefix, customIcons);
         var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();
 
@@ -183,10 +183,10 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var sliced = fgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = System.MapResource[prefix + sliced];
+            var resource = System.Resources[prefix + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = System.MapResource[loadedXML.Attr("image")].Stream;
+            using var tilesetPath = System.Resources[loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.Tileset = id;
         }
@@ -194,10 +194,10 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var sliced = bgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = System.MapResource[prefix + sliced];
+            var resource = System.Resources[prefix + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = System.MapResource[prefix + loadedXML.Attr("image")].Stream;
+            using var tilesetPath = System.Resources[prefix + loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.BGTileset = id;
         }
@@ -210,7 +210,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
         void LoadBG(string background) 
         {
-            var path = System.MapResource[prefix + background].Stream;
+            var path = System.Resources[prefix + background].Stream;
             var loadedXML = patch_Calc.LoadXML(path)["BG"];
 
             // Old API
@@ -221,7 +221,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
                 if (!string.IsNullOrEmpty(oldAPIPath)) 
                 {
-                    using var fs = System.MapResource[prefix + oldAPIPath].Stream;
+                    using var fs = System.Resources[prefix + oldAPIPath].Stream;
                     var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
                     var old_api_atlas = new patch_Atlas();
                     old_api_atlas.SetSubTextures(new Dictionary<string, Subtexture>() {{oldAPIPath, new Subtexture(new Monocle.Texture(texture2D)) }});
@@ -239,14 +239,14 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             patch_SpriteData spriteData = null;
             if (customBGAtlas != null) 
             {
-                var xml = System.MapResource[prefix + customBGAtlas + ".xml"].Stream;
-                var png = System.MapResource[prefix + customBGAtlas + ".png"].Stream;
+                var xml = System.Resources[prefix + customBGAtlas + ".xml"].Stream;
+                var png = System.Resources[prefix + customBGAtlas + ".png"].Stream;
                 atlas = AtlasExt.CreateAtlas(null, xml, png);
             }
 
             if (customSpriteDataAtlas != null) 
             {
-                using var spriteTexture = System.MapResource[prefix + customSpriteDataAtlas + ".xml"].Stream;
+                using var spriteTexture = System.Resources[prefix + customSpriteDataAtlas + ".xml"].Stream;
                 spriteData = SpriteDataExt.CreateSpriteData(null, spriteTexture, atlas);
             }
 

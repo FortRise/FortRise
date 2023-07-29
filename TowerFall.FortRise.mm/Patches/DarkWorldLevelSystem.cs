@@ -58,12 +58,12 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             {
                 if (levelFile.EndsWith("json")) 
                 {
-                    using var level = data.System.MapResource[levelFile].Stream;
+                    using var level = data.System.Resources[levelFile].Stream;
                     return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
                 }
                 else 
                 {
-                    using var level = data.System.MapResource[levelFile].Stream;
+                    using var level = data.System.Resources[levelFile].Stream;
                     return patch_Calc.LoadXML(level)["level"];
                 }
             }

@@ -26,36 +26,38 @@ public class FortContent
         get => contentPath;
         set => contentPath = value;
     }
-    public readonly RiseCore.ResourceSystem ResourceSystem;
+    public readonly RiseCore.ModResource ResourceSystem;
     private string contentPath = "Content";
     private string modPath;
     internal string UseContent => contentPath + "/";
 
-    public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.MapResource;
+    public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.Resources;
     public IReadOnlyDictionary<string, patch_Atlas> Atlases => atlases;
     private Dictionary<string, patch_Atlas> atlases = new();
 
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
 
-    public RiseCore.Resource this[string path] => ResourceSystem.MapResource[path];
+    public RiseCore.Resource this[string path] => ResourceSystem.Resources[path];
 
     public FortContent(FortModule module) : base()
     {
         modPath = module.Meta.DLL;
     }
 
-    public FortContent(string dir, bool isZip = false) : base()
+    public FortContent(ModuleMetadata metadata, RiseCore.ModResource resource) : base()
     {
-        modPath = dir;
-        if (isZip) 
-        {
-            var zipFile = ZipFile.Read(dir);
-            ResourceSystem = new RiseCore.ZipResourceSystem(zipFile);
-        }
+        if (!string.IsNullOrEmpty(resource.Metadata.PathZip))
+            modPath = resource.Metadata.PathZip;
         else
-            ResourceSystem = new RiseCore.FolderResourceSystem(dir);
-        ResourceSystem.Open(dir);
+            modPath = resource.Metadata.PathDirectory;
+        ResourceSystem = resource;
+    }
+
+    public FortContent(string path, RiseCore.ModResource resource) : base()
+    {
+        modPath = path;
+        ResourceSystem = resource;
     }
 
     internal void Unload(bool disposeTexture) 
@@ -286,17 +288,6 @@ public class FortContent
     }
 }
 
-public class ModResource 
-{
-    public ModuleMetadata Metadata;
-    public FortContent Content;
-
-    public ModResource(FortContent content, ModuleMetadata metadata) 
-    {
-        Metadata = metadata;
-        Content = content;
-    }
-}
 
 public class MusicHolder
 {

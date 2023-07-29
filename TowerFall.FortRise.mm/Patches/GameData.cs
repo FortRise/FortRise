@@ -74,16 +74,6 @@ public static class patch_GameData
             Directory.CreateDirectory(AdventureModPath);
 
         var contentModDirectories = new List<string>(Directory.EnumerateDirectories(AdventureModPath));
-        var zipFiles = Directory.GetFiles(AdventureModPath);
-
-        foreach (var zip in zipFiles) 
-        {
-            if (!ZipFile.IsZipFile(zip))
-                continue;
-            var zipFile = ZipFile.Read(zip);
-            LoadAdventureTowers(zip, null, () => new RiseCore.ZipResourceSystem(zipFile));
-        }
-
         contentModDirectories.InsertRange(0, AdventureModule.SaveData.LevelLocations);
 
         if (Directory.Exists("AdventureWorldContent/Levels")) 
@@ -107,7 +97,7 @@ public static class patch_GameData
             {
                 foreach (RiseCore.Resource dir in resource.Childrens) 
                 {
-                    LoadAdventureModTowers(dir.FullPath, dir.Path + '/', mod.Metadata, mod.Content.ResourceSystem);
+                    LoadAdventureModTowers(dir.FullPath, dir.Path + '/', mod.Metadata, mod);
                 }
                 if (!mod.Content.TryGetValue("Content/Levels/map.xml", out var mapXml)) 
                 {
@@ -134,7 +124,7 @@ public static class patch_GameData
     /// <param name="prefix">A prefix which will add for lookup</param>
     /// <param name="system">A ResourceSystem which will be used to manage the files</param>
     /// <returns>A boolean determines whether the load success or fails</returns>
-    public static bool LoadAdventureModTowers(string directory, string prefix, ModuleMetadata mod, RiseCore.ResourceSystem system) 
+    public static bool LoadAdventureModTowers(string directory, string prefix, ModuleMetadata mod, RiseCore.ModResource system) 
     {
         string modName = mod is null ? "::global::" : mod.Name;
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
@@ -170,9 +160,9 @@ public static class patch_GameData
     /// <param name="mod">A mod metadata or null to categorize the level</param>
     /// <param name="system">A callback to initialize the ResourceSystem which will be used to manage the files</param>
     /// <returns>A boolean determines whether the load success or fails</returns>
-    public static bool LoadAdventureTowers(string directory, ModuleMetadata mod, Func<RiseCore.ResourceSystem> system = null) 
+    public static bool LoadAdventureTowers(string directory, ModuleMetadata mod, Func<RiseCore.ModResource> system = null) 
     {
-        system = system == null ? () => new RiseCore.FolderResourceSystem(directory) : system;
+        system = system == null ? () => new RiseCore.FolderModResource(directory) : system;
         string modName = mod == null ? "::global::" : mod.Name;
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {

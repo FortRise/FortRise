@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
 using Ionic.Zip;
-using Monocle;
 
 namespace FortRise;
 
@@ -66,37 +64,42 @@ public partial class RiseCore
         }
     }
 
-    public abstract class ResourceSystem : IDisposable
+    public abstract class ModResource : IDisposable
     {
+        public ModuleMetadata Metadata;
+        public FortContent Content;
+        public Dictionary<string, Resource> Resources = new();
         private bool disposedValue;
-        public Dictionary<string, RiseCore.Resource> MapResource = new();
-        public IReadOnlyCollection<RiseCore.Resource> ListResource => MapResource.Values; 
 
-        public abstract Dictionary<string, Resource> GetFilesystem(string path);
-
-        public virtual void Open(string path) 
+        public ModResource(ModuleMetadata metadata) 
         {
-            MapResource = GetFilesystem(path);
+            Metadata = metadata;
+            Content = new FortContent(Metadata, this);
         }
 
-        protected virtual void DisposeResource() 
+        public ModResource(string path) 
         {
-
+            Content = new FortContent(path, this);
         }
 
-        protected void Dispose(bool disposing)
+        public abstract void Lookup();
+
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
-                    DisposeResource();
+                    DisposeInternal();
                 }
+
                 disposedValue = true;
             }
         }
 
-        ~ResourceSystem()
+        internal virtual void DisposeInternal() {}
+
+        ~ModResource()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: false);
@@ -110,78 +113,24 @@ public partial class RiseCore
         }
     }
 
-    public class FolderResourceSystem : ResourceSystem
-    {
-        private string modDirectory;
-        public FolderResourceSystem(string modDirectory) 
-        {
-            this.modDirectory = modDirectory.Replace('\\', '/');
-        }
-
-        public override Dictionary<string, Resource> GetFilesystem(string path)
-        {
-            var resources = new Dictionary<string, Resource>();
-            var files = Directory.GetFiles(path);
-            for (int i = 0; i < files.Length; i++) 
-            {
-                var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
-                    continue;
-                var simplifiedPath = filePath.Replace(modDirectory + '/', "");
-                Logger.Verbose("[RESOURCE] " + filePath.Replace(modDirectory + '/', ""));
-                var fileResource = new FileResource(simplifiedPath, filePath);
-                resources.Add(simplifiedPath, fileResource);
-            }
-            var folders = Directory.EnumerateDirectories(path).ToList();
-            foreach (var folder in folders) 
-            {
-                var fixedFolder = folder.Replace('\\', '/');
-                var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
-                var newFolderResource = new FileResource(simpliPath, fixedFolder);
-                GetFilesystem(resources, folder, newFolderResource);
-                resources.Add(simpliPath, newFolderResource);
-            }
-            return resources;
-        }
-
-        public void GetFilesystem(Dictionary<string, Resource> resources, string path, FileResource folderResource) 
-        {
-            var files = Directory.GetFiles(path);
-            for (int i = 0; i < files.Length; i++) 
-            {
-                var filePath = files[i].Replace('\\', '/');
-                var simplifiedPath = filePath.Replace(modDirectory + '/', "");
-                Logger.Verbose("[RESOURCE] " + filePath.Replace(modDirectory + '/', ""));
-                var fileResource = new FileResource(simplifiedPath, filePath);
-                resources.Add(simplifiedPath, fileResource);
-                folderResource.Childrens.Add(fileResource);
-            }
-            var folders = Directory.EnumerateDirectories(path).ToList();
-            foreach (var folder in folders) 
-            {
-                var fixedFolder = folder.Replace('\\', '/');
-                var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
-                var newFolderResource = new FileResource(simpliPath, fixedFolder);
-                Logger.Verbose("[RESOURCE] " + simpliPath);
-                GetFilesystem(resources, folder, newFolderResource);
-                resources.Add(simpliPath, newFolderResource);
-                folderResource.Childrens.Add(newFolderResource);
-            }
-        }
-    }
-
-    public class ZipResourceSystem : ResourceSystem
+    public class ZipModResource : ModResource
     {
         private ZipFile zipFile;
-        public Dictionary<string, ZipResource> Folders = new();
-        public ZipResourceSystem(ZipFile zipFile) 
+
+
+        public ZipModResource(ModuleMetadata metadata) : base(metadata)
         {
-            this.zipFile = zipFile;
+            zipFile = new ZipFile(metadata.PathZip);
         }
 
-        public override Dictionary<string, Resource> GetFilesystem(string path)
+        internal override void DisposeInternal()
         {
-            var resources = new Dictionary<string, Resource>();
+            zipFile.Dispose();
+        }
+
+        public override void Lookup() 
+        {
+            var folders = new Dictionary<string, ZipResource>();
             foreach (var entry in zipFile.Entries) 
             {
                 var fileName = entry.FileName.Replace('\\', '/');
@@ -190,33 +139,31 @@ public partial class RiseCore
                 {
                     var file = fileName.Remove(fileName.Length - 1);
                     var zipResource = new ZipResource(file, entry);
-                    resources.Add(file, zipResource);
-                    Folders.Add(file, zipResource);
+                    Resources.Add(file, zipResource);
+                    folders.Add(file, zipResource);
                     Logger.Verbose("[RESOURCE] " + file);
 
                     var split = file.Split('/');
                     Array.Resize(ref split, split.Length - 1);
                     var newPath = CombineAllPath(split);
-                    if (Folders.TryGetValue(newPath, out var resource)) 
+                    if (folders.TryGetValue(newPath, out var resource)) 
                     {
                         resource.Childrens.Add(zipResource);
                     }
                 }
-
                 else 
                 {
                     if (BlacklistedExtension.Contains(Path.GetExtension(fileName))) 
                         continue;
                     var zipResource = new ZipResource(fileName, entry);
-                    resources.Add(fileName, zipResource);
+                    Resources.Add(fileName, zipResource);
                     Logger.Verbose("[RESOURCE] " + fileName);
-                    if (Folders.TryGetValue(Path.GetDirectoryName(fileName).Replace('\\', '/'), out var resource)) 
+                    if (folders.TryGetValue(Path.GetDirectoryName(fileName).Replace('\\', '/'), out var resource)) 
                     {
                         resource.Childrens.Add(zipResource);
                     }
                 }
             }
-            return resources;
         }
 
         private static string CombineAllPath(string[] paths) 
@@ -231,10 +178,87 @@ public partial class RiseCore
             }
             return sb.ToString();
         }
+    }
 
-        protected override void DisposeResource()
+    public class FolderModResource : ModResource
+    {
+        private string modDirectory;
+        public FolderModResource(ModuleMetadata metadata) : base(metadata)
         {
-            zipFile.Dispose();
+            modDirectory = metadata.PathDirectory.Replace('\\', '/');
+        }
+
+        public FolderModResource(string path) : base(path)
+        {
+            modDirectory = path.Replace('\\', '/');
+        }
+
+        public override void Lookup()
+        {
+            var files = Directory.GetFiles(modDirectory);
+            for (int i = 0; i < files.Length; i++) 
+            {
+                var filePath = files[i].Replace('\\', '/');
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                    continue;
+                var simplifiedPath = filePath.Replace(modDirectory + '/', "");
+                Logger.Verbose("[RESOURCE] " + filePath.Replace(modDirectory + '/', ""));
+                var fileResource = new FileResource(simplifiedPath, filePath);
+                Resources.Add(simplifiedPath, fileResource);
+            }
+            var folders = Directory.EnumerateDirectories(modDirectory).ToList();
+            foreach (var folder in folders) 
+            {
+                var fixedFolder = folder.Replace('\\', '/');
+                var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
+                var newFolderResource = new FileResource(simpliPath, fixedFolder);
+                Lookup(folder, modDirectory, newFolderResource);
+                Resources.Add(simpliPath, newFolderResource);
+            }
+        }
+
+        public void Lookup(string path, string modDirectory, FileResource folderResource) 
+        {
+            var files = Directory.GetFiles(path);
+            for (int i = 0; i < files.Length; i++) 
+            {
+                var filePath = files[i].Replace('\\', '/');
+                var simplifiedPath = filePath.Replace(modDirectory + '/', "");
+                Logger.Verbose("[RESOURCE] " + filePath.Replace(modDirectory + '/', ""));
+                var fileResource = new FileResource(simplifiedPath, filePath);
+                Resources.Add(simplifiedPath, fileResource);
+                folderResource.Childrens.Add(fileResource);
+            }
+            var folders = Directory.EnumerateDirectories(path).ToList();
+            foreach (var folder in folders) 
+            {
+                var fixedFolder = folder.Replace('\\', '/');
+                var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
+                var newFolderResource = new FileResource(simpliPath, fixedFolder);
+                Logger.Verbose("[RESOURCE] " + simpliPath);
+                Lookup(folder, modDirectory, newFolderResource);
+                Resources.Add(simpliPath, newFolderResource);
+                folderResource.Childrens.Add(newFolderResource);
+            }
+        }
+    }
+
+    public static class Resources 
+    {
+        public static Dictionary<string, Resource> GlobalResources = new();
+
+
+        public static void AddMod(ModuleMetadata metadata, ModResource resource) 
+        {
+            var name = metadata.Name;
+            var prefixPath = $"mod:{name}/";
+
+            if (GlobalResources.ContainsKey(prefixPath)) 
+            {
+                Logger.Warning($"[RESOURCE] Conflicting mod asset name found: {prefixPath}");
+                return;
+            }
+            resource.Lookup();
         }
     }
 }

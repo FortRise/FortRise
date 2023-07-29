@@ -12,10 +12,10 @@ namespace FortRise.Adventure;
 public sealed class XmlAdventureTowerLoader : IAdventureTowerLoader<XmlElement>
 {
     public string FileExtension => "xml";
-    public ResourceSystem System;
+    public ModResource System;
     public AdventureWorldTowerData Tower;
 
-    public XmlAdventureTowerLoader(ResourceSystem system, AdventureWorldTowerData towerData) 
+    public XmlAdventureTowerLoader(ModResource system, AdventureWorldTowerData towerData) 
     {
         System = system;
         Tower = towerData;

@@ -115,12 +115,12 @@ public static partial class RiseCore
             }
 
             Assembly asm = null;
-            FortContent fortContent;
             ModResource modResource;
             if (!string.IsNullOrEmpty(metadata.PathZip)) 
             {
-                fortContent = new FortContent(metadata.PathZip, true);
-                modResource = new ModResource(fortContent, metadata);
+                modResource = new ZipModResource(metadata);
+
+                RiseCore.Resources.AddMod(metadata, modResource);
 
                 using var zip = new ZipFile(metadata.PathZip);
                 var dllPath = metadata.DLL.Replace('\\', '/');
@@ -132,8 +132,9 @@ public static partial class RiseCore
             }
             else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
             {
-                fortContent = new FortContent(metadata.PathDirectory);
-                modResource = new ModResource(fortContent, metadata);
+                modResource = new FolderModResource(metadata);
+
+                RiseCore.Resources.AddMod(metadata, modResource);
 
                 if (File.Exists(metadata.DLL)) 
                 {
