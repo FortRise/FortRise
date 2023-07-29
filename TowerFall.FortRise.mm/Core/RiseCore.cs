@@ -62,6 +62,7 @@ public static partial class RiseCore
     internal static List<FortModule> InternalFortModules = new();
     internal static HashSet<string> ModuleGuids = new();
     internal static List<ModResource> InternalMods = new();
+    internal static FortModule AdventureModule;
 
     public static List<string> DetourLogs = new List<string>();
 
@@ -170,8 +171,8 @@ public static partial class RiseCore
             Version = FortRiseVersion
         }).Register();
 
-
-        new AdventureModule().Register();
+        AdventureModule = new AdventureModule();
+        AdventureModule.Register();
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
             AssemblyName asmName = new AssemblyName(asmArgs.Name);
