@@ -28,12 +28,28 @@ public static partial class patch_TFCommands
                 commands.Log("Command only available in Debug Mode");
                 return;
             }
-            if (Engine.Instance.Scene is not patch_Level level) 
+            if (Engine.Instance.Scene is not Level) 
             {
 				commands.Log("Command can only be used during gameplay!");
                 return;
             }
             patch_Level.DebugMode = !patch_Level.DebugMode;
+        });
+        commands.RegisterCommand("summon", args => 
+        {
+            if (!RiseCore.DebugMode) 
+            {
+                commands.Log("Command only available in Debug Mode");
+                return;
+            }
+            if (Engine.Instance.Scene is not patch_Level level) 
+            {
+				commands.Log("Command can only be used during gameplay!");
+                return;
+            }
+            var portals = level.Layers[0].GetList<QuestSpawnPortal>();
+            portals.Shuffle<QuestSpawnPortal>(); 
+            portals[0].AppearAndSpawn(args[0]);
         });
 
         foreach (var module in FortRise.RiseCore.InternalFortModules) 
