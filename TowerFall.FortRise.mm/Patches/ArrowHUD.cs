@@ -14,11 +14,11 @@ public class patch_ArrowHUD : ArrowHUD
     public void ctor() 
     {
         orig_ctor();
-        Array.Resize(ref images, Arrow.ARROW_TYPES + RiseCore.ArrowsID.Count);
-        foreach (var arrow in RiseCore.ArrowsID.Values) 
+        Array.Resize(ref images, Arrow.ARROW_TYPES + RiseCore.ArrowsRegistry.Count);
+        foreach (var arrowObj in RiseCore.ArrowsRegistry.Values) 
         {
-            var loader = RiseCore.PickupGraphicArrows[arrow];
-            var info = loader?.Invoke();
+            var arrow = arrowObj.Types;
+            var info = arrowObj.InfoLoader?.Invoke();
             if (info == null)
                 return;
             var value = info.Value;
