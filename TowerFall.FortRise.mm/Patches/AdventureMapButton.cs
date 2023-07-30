@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using FortRise;
@@ -5,6 +6,7 @@ using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
+using TeuJson;
 
 namespace TowerFall;
 
@@ -18,7 +20,7 @@ public sealed class AdventureMapButton : MapButton
     private float lockedMessageLerp;
     private string lockedTextA;
     private string lockedTextB;
-    private string[] requiredMods;
+    private ModuleMetadata[] requiredMods;
     private SineWave lockedSine;
     private bool wasSelected;
 
@@ -26,37 +28,44 @@ public sealed class AdventureMapButton : MapButton
     public AdventureMapButton(AdventureWorldTowerData data) : base(new TowerMapData(data))
     {
         author = data.Author.ToUpperInvariant();
-        requiredMods = data.RequiredMods;
-        string currentRequired = null;
-        int more = 0;
-        foreach (var mod in requiredMods) 
+        if (string.IsNullOrEmpty(data.RequiredMods))   
+            return;
+        try 
         {
-            var modSplit = mod.Split(':');
-            var trimmed = modSplit[0].Trim();
-            if (string.IsNullOrEmpty(trimmed))
-                continue;
-            if (FortRise.RiseCore.ContainsGuidMod(trimmed)) 
-                continue;
-            if (modSplit.Length > 1) 
-                currentRequired = modSplit[1].Trim();
-            else
-                currentRequired = trimmed;
-            more++;
-        }
-        var sb = new StringBuilder();
-
-        if (!string.IsNullOrEmpty(currentRequired)) 
-        {
-            lockedTextA = "REQUIRED MODS"; 
-            Locked = true;
-            sb.Append(currentRequired);
-            if (more > 1) 
+            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+            string currentRequired = null;
+            int more = 0;
+            foreach (var mod in requiredMods) 
             {
-                sb.Append(" ");
-                sb.Append($"and {more - 1} more..");
+                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+                    continue;
+                
+                currentRequired = mod.Name;
+                more++;
             }
+            var sb = new StringBuilder();
 
-            lockedTextB = sb.ToString().ToUpperInvariant();
+            if (!string.IsNullOrEmpty(currentRequired)) 
+            {
+                lockedTextA = "REQUIRED MODS"; 
+                Locked = true;
+                sb.Append(currentRequired);
+                if (more > 1) 
+                {
+                    sb.Append(" ");
+                    sb.Append($"and {more - 1} more..");
+                }
+
+                lockedTextB = sb.ToString().ToUpperInvariant();
+            }
+        }
+        catch (Exception e)
+        {
+            lockedTextA = "ERROR PARSING";
+            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+            Locked = true;
+            Logger.Error("Something went wrong parsing the required Metadata");
+            Logger.Error(e.ToString());
         }
     }
     public override void Added()

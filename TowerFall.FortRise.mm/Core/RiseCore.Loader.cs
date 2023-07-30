@@ -49,44 +49,26 @@ public static partial class RiseCore
         {
             var metaPath = Path.Combine(dir, "meta.json");
             ModuleMetadata moduleMetadata = null;
-            if (!File.Exists(metaPath)) 
-                metaPath = Path.Combine(dir, "meta.xml");
             if (!File.Exists(metaPath))
                 return;
             
-            if (metaPath.EndsWith("json"))
-                moduleMetadata = ParseMetadataWithJson(dir, metaPath);
-            else
-                moduleMetadata = ParseMetadataWithXML(dir, metaPath);
+            moduleMetadata = ParseMetadataWithJson(dir, metaPath);
 
             Loader.LoadMod(moduleMetadata);
         }
 
-        public static void LoadZip(string file) 
+        public static void LoadZip(string file)
         {
             using var zipFile = ZipFile.Read(file);
 
             ModuleMetadata moduleMetadata = null;
-            string metaPath = null;
-            if (zipFile.ContainsEntry("meta.json")) 
-            {
-                metaPath = "meta.json";
-            }
-            else if (zipFile.ContainsEntry("meta.xml")) 
-            {
-                metaPath = "meta.xml";
-            }
-            else 
+            if (!zipFile.ContainsEntry("meta.json"))
                 return;
             
-            
-            var entry = zipFile[metaPath];
+            var entry = zipFile["meta.json"];
             using var memStream = entry.ExtractStream();
-            
-            if (metaPath.EndsWith("json"))
-                moduleMetadata = ParseMetadataWithJson(file, memStream, true);
-            else
-                moduleMetadata = ParseMetadataWithXML(file, memStream, true);
+
+            moduleMetadata = ParseMetadataWithJson(file, memStream, true);
 
             Loader.LoadMod(moduleMetadata);
         }
@@ -104,12 +86,9 @@ public static partial class RiseCore
             {
                 foreach (var dep in metadata.Dependencies) 
                 {
-                    if (ContainsGuidMod(dep))
+                    if (RiseCore.InternalModuleMetadatas.Contains(dep))
                         continue;
-                    if (ContainsMod(dep))
-                        continue;
-                    if (ContainsComplexName(dep))
-                        continue;
+
                     Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
                 }
             }
@@ -154,6 +133,7 @@ public static partial class RiseCore
             }
 
             InternalMods.Add(modResource);
+            RiseCore.InternalModuleMetadatas.Add(metadata);
 
             if (metadata.DLL == string.Empty) 
             {

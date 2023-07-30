@@ -1,3 +1,4 @@
+#pragma warning disable CS0618
 using FortRise.Adventure;
 using System;
 using System.Collections.Generic;
@@ -45,10 +46,12 @@ public static partial class RiseCore
 
     // Extending enums this way. Please inform me if there's a better way to do this.
     public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
+    [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
+    public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
     public static Dictionary<string, Pickups> PickupID = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
-    public static Dictionary<ArrowTypes, ArrowInfoLoader> PickupGraphicArrows = new();
+    public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
 
     /// <summary>
     /// Contains a read-only access to all of the Fort Modules.
@@ -61,6 +64,7 @@ public static partial class RiseCore
     public static ReadOnlyCollection<ModResource> Mods => InternalMods.AsReadOnly();
     internal static List<FortModule> InternalFortModules = new();
     internal static HashSet<string> ModuleGuids = new();
+    internal static HashSet<ModuleMetadata> InternalModuleMetadatas = new();
     internal static List<ModResource> InternalMods = new();
     internal static FortModule AdventureModule;
 
@@ -83,62 +87,6 @@ public static partial class RiseCore
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
     public static bool DebugMode;
-
-    public static bool ContainsGuidMod(string guid) 
-    {
-        var trimmed = guid.AsSpan().Trim();
-        if (ModuleGuids.Contains(trimmed.ToString())) 
-        {
-            return true;
-        }
-        return false;
-    }
-
-    public static bool ContainsComplexName(string name) 
-    {
-        var splitName = name.Split('-');
-        return splitName.Length switch 
-        {
-            1 => ContainsMod(splitName[0].Trim()),
-            2 => ContainsMod(splitName[0].Trim(), splitName[1].Trim()),
-            3 => ContainsMod(splitName[0].Trim(), splitName[1].Trim(), splitName[2].Trim()),
-            _ => Invalid()
-        };
-
-        bool Invalid() 
-        {
-            Logger.Log("[Loader] Invalid syntax");
-            return false;
-        }
-    }
-
-    public static bool ContainsMod(string name, string version = null, string author = null) 
-    {
-        var versionNull = version == null;
-        var authorNull = author == null;
-        foreach (var mods in InternalMods)
-        {
-            if (mods.Metadata.Name != name)
-            {
-                continue;
-            }
-
-            bool authorPassed = false;
-            bool versionPassed = false;
-
-            if ((!authorNull && mods.Metadata.Author == author) || authorNull)
-            {
-                authorPassed = true;
-            }
-            
-            if ((!versionNull && mods.Metadata.Version == new Version(version)) || versionNull) 
-            {
-                versionPassed = true;
-            }
-            return authorPassed && versionPassed;
-        }
-        return false;
-    }
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
     {
@@ -223,51 +171,6 @@ public static partial class RiseCore
         Loader.InitializeMods();
     }
 
-    private static ModuleMetadata ParseMetadataWithXML(string dir, string path) 
-    {
-        using var fs = File.OpenRead(path);
-        return ParseMetadataWithXML(dir, fs);
-    }
-
-    private static ModuleMetadata ParseMetadataWithXML(string dir, Stream path, bool zip = false) 
-    {
-        var xml = patch_Calc.LoadXML(path)["meta"];
-        var dll = xml.ChildText("dll", null);
-        var name = xml.ChildText("name", null);
-        if (name == null)
-        {
-            Logger.Error($"{dir} does not have a name metadata.");
-            return null;
-        }
-        var version = xml.ChildText("version", "1.0.0");
-        var requiredVersion = new Version(xml.ChildText("required", "4.0.0"));
-        var description = xml.ChildText("description", string.Empty);
-        var author = xml.ChildText("author", string.Empty);
-        var xmlDependencies = xml.ChildStringArray("dependencies"); 
-        var nativePath = xml.ChildText("nativePath", string.Empty);
-        var nativePathX86 = xml.ChildText("nativePathX86", string.Empty);
-        string[] dependencies = xmlDependencies;
-        
-        if (FortRiseVersion < requiredVersion) 
-        {
-            Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
-            return null;
-        }
-        return new ModuleMetadata() 
-        {
-            Name = name,
-            Version = new Version(version),
-            Description = description,
-            Author = author,
-            FortRiseVersion = requiredVersion,
-            DLL = dll != null ? Path.GetFullPath(Path.Combine(dir, dll)) : string.Empty,
-            PathDirectory = dir,
-            Dependencies = dependencies,
-            NativePath = nativePath,
-            NativePathX86 = nativePathX86
-        };
-    }
-
     public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
     {
         using var fs = File.OpenRead(path);
@@ -277,52 +180,27 @@ public static partial class RiseCore
     public static ModuleMetadata ParseMetadataWithJson(string dirPath, Stream path, bool zip = false) 
     {
         var json = JsonTextReader.FromStream(path);
-        var dll = json.GetJsonValueOrNull("dll");
-        var name = json.GetJsonValueOrNull("name");
-        if (name == null)
+        var metadata = json.Convert<ModuleMetadata>();
+        if (FortRiseVersion < metadata.FortRiseVersion) 
         {
-            Logger.Error($"{dirPath} does not have a name metadata.");
-            return null;
-        }
-        var version = json.Contains("version") ? json["version"].AsString : "1.0.0";
-        var requiredVersion = new Version(json.Contains("required") ? json["required"].AsString : "2.3.1");
-        var description = json.GetJsonValueOrNull("description") ?? "";
-        var author = json.GetJsonValueOrNull("author") ?? "";
-        var jsonDependencies = json.GetJsonValueOrNull("dependencies");
-        var nativePath = json.GetJsonValueOrNull("nativePath") ?? "";
-        var nativePathX86 = json.GetJsonValueOrNull("nativePathX86") ?? "";
-        string[] dependencies = null;
-        if (jsonDependencies != null) 
-        {
-            dependencies = jsonDependencies.ConvertToArrayString();
-        }
-        if (FortRiseVersion < requiredVersion) 
-        {
-            Logger.Error($"Mod Name: {name} has a higher version of FortRise required {requiredVersion}. Your FortRise version: {FortRiseVersion}");
+            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {FortRiseVersion}");
             return null;
         }
         string zipPath = "";
-        if (!zip)
-            dll = dll is not null ? Path.GetFullPath(Path.Combine(dirPath, dll)) : string.Empty;
+        var dll = metadata.DLL;
+        if (!zip) 
+        {
+            metadata.DLL = dll is not null ? Path.GetFullPath(Path.Combine(dirPath, dll)) : string.Empty;
+            metadata.PathDirectory = dirPath;
+        }
         else 
         {
             zipPath = dirPath;
             dirPath = Path.GetDirectoryName(dirPath);
+            metadata.PathZip = zipPath;
         }
-        return new ModuleMetadata() 
-        {
-            Name = name,
-            Version = new Version(version),
-            Description = description,
-            Author = author,
-            FortRiseVersion = requiredVersion,
-            DLL = dll ?? string.Empty,
-            PathDirectory = dirPath,
-            PathZip = zipPath,
-            Dependencies = dependencies,
-            NativePath = nativePath,
-            NativePathX86 = nativePathX86
-        };
+
+        return metadata; 
     }
 
     // Generated at patch-time
@@ -683,7 +561,7 @@ public static partial class RiseCore
                     continue;
                 var name = arrow.Name;
                 var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
-                var stride = (ArrowTypes)offset + ArrowsID.Count;
+                var stride = (ArrowTypes)offset + ArrowsRegistry.Count;
                 MethodInfo graphic = type.GetMethod(graphicFn);
 
                 ConstructorInfo ctor = type.GetConstructor(Array.Empty<Type>());
@@ -697,21 +575,33 @@ public static partial class RiseCore
                         return invoked;
                     };
                 }
+                ArrowInfoLoader infoLoader = null;
                 if (graphic == null || !graphic.IsStatic)
                 {
                     Logger.Log($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                    infoLoader = () => {
+                        return ArrowInfo.Create(new Image(TFGame.Atlas["arrows/arrow"]));
+                    };
                 }
                 else 
                 {
-                    PickupGraphicArrows.Add(stride, () => {
+                    infoLoader = () => {
                         var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
                         if (string.IsNullOrEmpty(identifier.Name))
                             identifier.Name = name;
                         return identifier;
-                    });
+                    };
                 }
 
                 ArrowsID[name] = stride;
+                ArrowsRegistry[name] = new ArrowObject() 
+                {
+                    Types = stride,
+                    SpawnType = TreasureChest.Types.Normal,
+                    InfoLoader = infoLoader,
+                    PickupType = (Pickups)PickupLoaderCount
+                };
+                ArrowNameMap[stride] = name;
                 Arrows[stride] = loader;
                 PickupID[name] = (Pickups)PickupLoaderCount;
                 PickupLoader[(Pickups)PickupLoaderCount] 
