@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using TeuJson;
 using TowerFall;
 
 namespace FortRise;
@@ -261,7 +262,7 @@ public abstract partial class FortModule
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
 }
 
-public class ModuleMetadata : IEquatable<ModuleMetadata>
+public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
 {
     public string Name;
     public Version Version;
@@ -269,13 +270,13 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     public string Description;
     public string Author;
     public string DLL;
-    public string PathDirectory;
-    public string PathZip;
-    public string[] Dependencies;
+    public string PathDirectory = string.Empty;
+    public string PathZip = string.Empty;
+    public ModuleMetadata[] Dependencies;
     public string NativePath;
     public string NativePathX86;
 
-    internal ModuleMetadata() {}
+    public ModuleMetadata() {}
 
 
     public override string ToString()
@@ -291,9 +292,6 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         
         if (other.Version != this.Version)
             return false;
-        
-        if (!string.IsNullOrEmpty(other.Author) && other.Author != this.Author)
-            return false;
 
         return true;
     }
@@ -303,10 +301,25 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public override int GetHashCode()
     {
-        var version = Version.GetHashCode();
+        var version = Version.Major.GetHashCode() + Version.Minor.GetHashCode();
         var name = Name.GetHashCode();
-        var author = Author.GetHashCode();
-        return version + name + author;
+        return version + name;
+    }
+
+    public void Deserialize(JsonObject value)
+    {
+        Name = value["name"];
+        Version = new Version(value.GetJsonValueOrNull("version") ?? "1.0.0");
+        FortRiseVersion = new Version(value.GetJsonValueOrNull("required") ?? "4.0.0");
+        Description = value.GetJsonValueOrNull("description") ?? string.Empty;
+        Author = value.GetJsonValueOrNull("author") ?? string.Empty;
+        DLL = value.GetJsonValueOrNull("dll") ?? string.Empty;
+        NativePath = value.GetJsonValueOrNull("nativePath") ?? string.Empty;
+        NativePathX86 = value.GetJsonValueOrNull("nativePathX86") ?? string.Empty;
+        var dep = value.GetJsonValueOrNull("dependencies");
+        if (dep is null)
+            return;
+        Dependencies = dep.ConvertToArray<ModuleMetadata>();
     }
 
     public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)
