@@ -62,9 +62,9 @@ public sealed class XmlAdventureTowerLoader : IAdventureTowerLoader<XmlElement>
         info.Hardcore = LoadLevelSet(xmlElement["hardcore"], info.EnemySets);
         info.Legendary = LoadLevelSet(xmlElement["legendary"], info.EnemySets);
         if (xmlElement.HasChild("required"))
-            info.RequiredMods = patch_Calc.ChildStringArray(xmlElement, "required");
+            info.RequiredMods = xmlElement["required"].InnerText;
         else
-            info.RequiredMods = Array.Empty<string>();
+            info.RequiredMods = string.Empty;
 
         return info;
     }

@@ -45,5 +45,5 @@ public struct AdventureTowerInfo
     public List<DarkWorldTowerData.LevelData> Normal;
     public List<DarkWorldTowerData.LevelData> Hardcore;
     public List<DarkWorldTowerData.LevelData> Legendary;
-    public string[] RequiredMods;
+    public string RequiredMods;
 }

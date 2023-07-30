@@ -18,7 +18,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     public bool Procedural;
     public int StartingLives = -1;
     public int[] MaxContinues = new int[3] { -1, -1, -1 };
-    public string[] RequiredMods;
+    public string RequiredMods;
     public AdventureWorldTowerStats Stats;
 
     public AdventureWorldTowerData(RiseCore.ModResource system, string path) 

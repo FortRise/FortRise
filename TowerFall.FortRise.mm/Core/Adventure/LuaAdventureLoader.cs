@@ -47,9 +47,9 @@ public sealed class LuaAdventureLoader : IAdventureTowerLoader<NLua.LuaTable>
         info.Hardcore = LoadLevelSet(luaTable.GetTable("hardcore"), info.EnemySets);
         info.Legendary = LoadLevelSet(luaTable.GetTable("legendary"), info.EnemySets);
         if (luaTable.Contains("required"))
-            info.RequiredMods = luaTable.GetStringArray("required");
+            info.RequiredMods = luaTable.Get("required");
         else
-            info.RequiredMods = Array.Empty<string>();
+            info.RequiredMods = string.Empty;
 
         return info;
     }
