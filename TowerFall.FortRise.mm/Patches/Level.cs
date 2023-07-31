@@ -48,12 +48,6 @@ public class patch_Level : Level
 
     public void DebugModeRender() 
     {
-        if (patch_TFCommands.CheatMode) 
-        {
-			Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
-            Draw.OutlineTextJustify(TFGame.Font, "CHEAT ACTIVATED", new Vector2(0, 0), Color.White, Color.Black, new Vector2(0, 0), 1f);
-			Draw.SpriteBatch.End();
-        }
         if (DebugMode) 
         {
 			Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
