@@ -76,6 +76,4 @@ public static partial class patch_TFCommands
             }
         }
     }
-
-    public static partial void CheatMethod(Commands command);
 }
