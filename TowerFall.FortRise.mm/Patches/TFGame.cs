@@ -157,7 +157,6 @@ public partial class patch_TFGame : TFGame
         FortRise.RiseCore.Events.Invoke_OnPreInitialize();
         FortRise.RiseCore.Initialize();
         orig_Initialize();
-        FortRise.RiseCore.Events.Invoke_OnPostInitialize();
         patch_Arrow.ExtendArrows();
         FortRise.RiseCore.LogAllTypes();
     }
@@ -289,6 +288,8 @@ public partial class patch_TFGame : TFGame
         {
             yield return 0;
         }
+
+        FortRise.RiseCore.Events.Invoke_OnPostInitialize();
         Loader.Message = "";
         if (SaveData.NewDataCreated && MainMenu.LoadError == null)
         {
