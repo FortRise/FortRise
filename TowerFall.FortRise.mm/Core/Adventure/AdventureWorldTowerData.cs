@@ -10,9 +10,9 @@ using TowerFall;
 
 namespace FortRise.Adventure;
 
-public class AdventureWorldTowerData : DarkWorldTowerData 
+public class AdventureWorldTowerData : patch_DarkWorldTowerData 
 {
-    public RiseCore.ModResource System;
+    public RiseCore.Resource TempSystem;
     public string StoredDirectory;
     public string Author;
     public bool Procedural;
@@ -23,19 +23,19 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
     public AdventureWorldTowerData(RiseCore.ModResource system, string path) 
     {
-        System = system;
-        System.Lookup();
+        // System = system;
+        // System.Lookup("global:/");
     }
 
-    public AdventureWorldTowerData(RiseCore.ModResource system) 
+    public AdventureWorldTowerData(RiseCore.Resource system) 
     {
-        System = system;
+        TempSystem = system;
     }
 
     private bool Lookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in System.Resources.Values) 
+        foreach (RiseCore.Resource resource in RiseCore.Resources.GlobalResources[TempSystem.Root].Childrens) 
         {
             var path = resource.Path;
 
@@ -53,7 +53,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     private bool ModLookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in System.Resources[directory].Childrens) 
+        foreach (RiseCore.Resource resource in RiseCore.Resources.GlobalResources[TempSystem.Root + directory].Childrens) 
         {
             var path = resource.Path;
 
@@ -89,17 +89,17 @@ public class AdventureWorldTowerData : DarkWorldTowerData
     {
         Levels = new List<string>();
         var customIcon = Lookup(levelDirectory);
-        return InternalAdventureLoad(id, levelDirectory, string.Empty, customIcon);
+        return InternalAdventureLoad(id, levelDirectory, customIcon);
     }
 
-    internal bool ModAdventureLoad(int id, string levelDirectory, string levelPrefix) 
+    internal bool ModAdventureLoad(int id, string levelDirectory) 
     {
         Levels = new List<string>();
-        var customIcon = ModLookup(levelPrefix.Remove(levelPrefix.Length - 1));
-        return InternalAdventureLoad(id, levelDirectory, levelPrefix, customIcon);
+        var customIcon = ModLookup(levelDirectory);
+        return InternalAdventureLoad(id, levelDirectory, customIcon);
     }
 
-    private void LoadExtraData(XmlElement xmlElement) 
+    public void LoadExtraData(XmlElement xmlElement) 
     {
         if (xmlElement.HasChild("lives")) 
         {
@@ -119,20 +119,22 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         }
     }
 
-    internal bool InternalAdventureLoad(int id, string levelDirectory, string directoryPrefix, bool customIcons) 
+    internal bool InternalAdventureLoad(int id, string levelDirectory, bool customIcons) 
     {
         if (this.Levels.Count <= 0) 
         {
             Logger.Error($"[Adventure] {levelDirectory} failed to load as there is no levels found.");
             return false;
         }
+        var path = TempSystem.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
 
         IAdventureTowerLoader towerLoader = null;
-        if (System.Resources.ContainsKey(directoryPrefix + "tower.xml")) 
+        var prefixedPath = TempSystem.Root + levelDirectory;
+        if (RiseCore.Resources.GlobalResources.ContainsKey(prefixedPath + "/tower.xml")) 
         {
-            towerLoader = new XmlAdventureTowerLoader(System, this);
+            towerLoader = new XmlAdventureTowerLoader(this);
         }
-        else if (System.Resources.ContainsKey(directoryPrefix + "tower.lua")) 
+        else if (RiseCore.Resources.GlobalResources.ContainsKey(prefixedPath + "/tower.lua")) 
         {
             towerLoader = new LuaAdventureLoader();
         }
@@ -141,8 +143,8 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             return false;
         }
 
-        using var fs = System.Resources[directoryPrefix + "tower." + towerLoader.FileExtension].Stream;
-        var info = towerLoader.Load(id, fs, levelDirectory, directoryPrefix, customIcons);
+        using var fs = RiseCore.Resources.GlobalResources[prefixedPath + "/tower." + towerLoader.FileExtension].Stream;
+        var info = towerLoader.Load(id, fs, levelDirectory, customIcons);
         var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();
 
         StoredDirectory = info.StoredDirectory;
@@ -168,12 +170,12 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         if (!string.IsNullOrEmpty(pathToIcon) && customIcons)
             BuildIcon(pathToIcon);
 
-        LoadCustomElements(info, guid, directoryPrefix);
+        LoadCustomElements(info, guid);
 
         return true;
     }
 
-    private void LoadCustomElements(AdventureTowerInfo info, Guid guid, string prefix) 
+    private void LoadCustomElements(AdventureTowerInfo info, Guid guid) 
     {
         var fgTileset = info.Theme.Tileset.AsSpan();
         var bgTileset = info.Theme.BGTileset.AsSpan();
@@ -183,10 +185,10 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var sliced = fgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = System.Resources[prefix + sliced];
+            var resource = RiseCore.Resources.GlobalResources[TempSystem.Root + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = System.Resources[loadedXML.Attr("image")].Stream;
+            using var tilesetPath = RiseCore.Resources.GlobalResources[TempSystem.Root + loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.Tileset = id;
         }
@@ -194,10 +196,10 @@ public class AdventureWorldTowerData : DarkWorldTowerData
         {
             var sliced = bgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = System.Resources[prefix + sliced];
+            var resource = RiseCore.Resources.GlobalResources[TempSystem.Root + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = System.Resources[prefix + loadedXML.Attr("image")].Stream;
+            using var tilesetPath = RiseCore.Resources.GlobalResources[TempSystem.Root + loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.BGTileset = id;
         }
@@ -210,7 +212,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
         void LoadBG(string background) 
         {
-            var path = System.Resources[prefix + background].Stream;
+            var path = RiseCore.Resources.GlobalResources[TempSystem.Root + background].Stream;
             var loadedXML = patch_Calc.LoadXML(path)["BG"];
 
             // Old API
@@ -221,7 +223,7 @@ public class AdventureWorldTowerData : DarkWorldTowerData
 
                 if (!string.IsNullOrEmpty(oldAPIPath)) 
                 {
-                    using var fs = System.Resources[prefix + oldAPIPath].Stream;
+                    using var fs = RiseCore.Resources.GlobalResources[TempSystem.Root + oldAPIPath].Stream;
                     var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
                     var old_api_atlas = new patch_Atlas();
                     old_api_atlas.SetSubTextures(new Dictionary<string, Subtexture>() {{oldAPIPath, new Subtexture(new Monocle.Texture(texture2D)) }});
@@ -239,14 +241,14 @@ public class AdventureWorldTowerData : DarkWorldTowerData
             patch_SpriteData spriteData = null;
             if (customBGAtlas != null) 
             {
-                var xml = System.Resources[prefix + customBGAtlas + ".xml"].Stream;
-                var png = System.Resources[prefix + customBGAtlas + ".png"].Stream;
+                var xml = RiseCore.Resources.GlobalResources[TempSystem.Root + customBGAtlas + ".xml"].Stream;
+                var png = RiseCore.Resources.GlobalResources[TempSystem.Root + customBGAtlas + ".png"].Stream;
                 atlas = AtlasExt.CreateAtlas(null, xml, png);
             }
 
             if (customSpriteDataAtlas != null) 
             {
-                using var spriteTexture = System.Resources[prefix + customSpriteDataAtlas + ".xml"].Stream;
+                using var spriteTexture = RiseCore.Resources.GlobalResources[TempSystem.Root + customSpriteDataAtlas + ".xml"].Stream;
                 spriteData = SpriteDataExt.CreateSpriteData(null, spriteTexture, atlas);
             }
 

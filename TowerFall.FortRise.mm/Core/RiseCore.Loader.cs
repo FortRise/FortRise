@@ -100,6 +100,7 @@ public static partial class RiseCore
                 modResource = new ZipModResource(metadata);
 
                 RiseCore.Resources.AddMod(metadata, modResource);
+                modResource.Content.LoadResources();
 
                 using var zip = new ZipFile(metadata.PathZip);
                 var dllPath = metadata.DLL.Replace('\\', '/');
@@ -114,6 +115,7 @@ public static partial class RiseCore
                 modResource = new FolderModResource(metadata);
 
                 RiseCore.Resources.AddMod(metadata, modResource);
+                modResource.Content.LoadResources();
 
                 if (File.Exists(metadata.DLL)) 
                 {

@@ -26,15 +26,13 @@ public class patch_MapButton : MapButton
     [MonoModIgnore]
     protected extern override List<Image> InitImages();
 
-    public extern static Image[] orig_InitDarkWorldStartLevelGraphics(int levelID);
-
-    public static Image[] InitDarkWorldStartLevelGraphics(int levelID)
+    public static Image[] InitDarkWorldStartLevelGraphics(int levelID, string levelSet)
     {
-        if (!patch_SaveData.AdventureActive) 
+        if (levelSet == "TowerFall") 
         {
-            return orig_InitDarkWorldStartLevelGraphics(levelID);
+            return InitDarkWorldStartLevelGraphics(levelID);
         }
-        TowerTheme theme = patch_GameData.AdventureWorldTowers[levelID].Theme;
+        TowerTheme theme = TowerRegistry.DarkWorldTowerSets[levelSet][levelID].Theme;
         List<Image> list = new List<Image>();
         Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
         image.CenterOrigin();
@@ -48,7 +46,11 @@ public class patch_MapButton : MapButton
 
     public static List<Image> InitAdventureWorldGraphics(int levelID)
     {
-        AdventureWorldTowerData worldData = patch_GameData.AdventureWorldTowers[levelID];
+        // We don't have access to the MapScene from MapButton yet.
+        var scene = Engine.Instance.Scene as MapScene;
+        if (scene == null)
+            return new List<Image>();
+        AdventureWorldTowerData worldData = TowerRegistry.DarkWorldTowerSets[scene.GetLevelSet()][levelID];
         AdventureWorldTowerStats stats = worldData.Stats;
         TowerTheme theme = worldData.Theme;
         List<Image> list = new List<Image>();

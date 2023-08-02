@@ -35,14 +35,20 @@ public class FortContent
     public IReadOnlyDictionary<string, patch_Atlas> Atlases => atlases;
     private Dictionary<string, patch_Atlas> atlases = new();
 
+    public IReadOnlyDictionary<string, patch_SFX> SFX => sfxes;
+    private Dictionary<string, patch_SFX> sfxes = new();
+
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
 
-    public RiseCore.Resource this[string path] => ResourceSystem.Resources[path];
 
-    public FortContent(FortModule module) : base()
+    public RiseCore.Resource this[string path] 
     {
-        modPath = module.Meta.DLL;
+        get 
+        {
+            var root = $"mod:{ResourceSystem.Metadata.Name}/";
+            return RiseCore.Resources.GlobalResources[root + path];
+        }
     }
 
     public FortContent(ModuleMetadata metadata, RiseCore.ModResource resource) : base()
@@ -65,6 +71,47 @@ public class FortContent
         Dispose(disposeTexture);
     }
 
+    internal void LoadResources() 
+    {
+        foreach (var atlasRes in ResourceSystem.Resources.Where(x => x.Value.Path.StartsWith("Content/Atlas"))) 
+        {
+            var resource = atlasRes.Value;
+            foreach (var child in resource.Childrens) 
+            {
+                var png = child.FullPath;
+                if (Path.GetExtension(png) != ".png")
+                    return;
+                var xml = png.Replace(".png", ".xml");
+                if (!RiseCore.Resources.GlobalResources.ContainsKey(xml)) 
+                    return;
+                int indexOfSlash = png.IndexOf('/');
+
+                png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
+                xml = xml.Substring(indexOfSlash + 1).Replace("Content/", "");
+
+                LoadAtlas(xml, png);
+            }
+        }
+
+        // foreach (var spriteDataRes in ResourceSystem.Resources.Where(x => x.Value.Path.StartsWith("Content/SpriteData"))) 
+        // {
+        //     var resource = spriteDataRes.Value;
+        //     foreach (var child in resource.Childrens) 
+        //     {
+        //         var spriteData = resource.FullPath;
+        //         if (Path.GetExtension(spriteData) != ".xml")
+        //             return;
+        //         if (!RiseCore.Resources.GlobalResources.ContainsKey(spriteData)) 
+        //             return;
+        //         int indexOfSlash = spriteData.IndexOf('/');
+
+        //         spriteData = spriteData.Substring(indexOfSlash + 1).Replace("Content/", "");
+
+        //         LoadSpriteData(spriteData, );
+        //     }
+        // }
+    }
+
     public bool IsResourceExist(string path) 
     {
         if (MapResource.ContainsKey(path))
@@ -77,19 +124,19 @@ public class FortContent
         return MapResource.TryGetValue(path, out value);
     }
 
-    public RiseCore.Resource GetResource(string path) 
+    public RiseCore.Resource GetValue(string path) 
     {
         return MapResource[path];
     }
 
-    [Obsolete("Use Content.MapResources to look for resources")]
+    [Obsolete("Use Content.MapResources or Content[\"resourcePath\"] to look for resources")]
     public string GetContentPath(string content) 
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
-    [Obsolete("Use Content.MapResources to look for resources")]
+    [Obsolete("Use Content.MapResources or Content[\"resourcePath\"] to look for resources")]
     public string GetContentPath() 
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
@@ -169,6 +216,10 @@ public class FortContent
     public patch_Atlas LoadAtlas(string xmlPath, string imagePath) 
     {
         var atlasID = xmlPath + imagePath;
+        if (xmlPath.Replace(".xml", "") == imagePath.Replace(".png", "")) 
+        {
+            atlasID = xmlPath.Replace(".xml", "");
+        }
         if (atlases.TryGetValue(atlasID, out var atlasExisted)) 
             return atlasExisted;
         
@@ -176,6 +227,7 @@ public class FortContent
         using var image = this[contentPath + "/" + imagePath].Stream;
         var atlas = AtlasExt.CreateAtlas(this, xml, image);
         atlases.Add(atlasID, atlas);
+        Logger.Verbose("[ATLAS] Loaded: " + atlasID);
         return atlas;
     }
 
@@ -246,24 +298,32 @@ public class FortContent
 
     public SFX LoadSFX(string fileName, bool obeysMasterPitch = true) 
     {
+        if (sfxes.TryGetValue(fileName, out var val))
+            return val;
         using var stream = this[contentPath + "/" + fileName].Stream;
         return SFXExt.CreateSFX(this, stream, obeysMasterPitch);
     }
 
     public patch_SFXInstanced LoadSFXInstance(string fileName, int instances = 2, bool obeysMasterPitch = true) 
     {
+        if (sfxes.TryGetValue(fileName, out var val))
+            return (patch_SFXInstanced)val;
         using var stream = this[contentPath + "/" + fileName].Stream;
         return SFXInstancedExt.CreateSFXInstanced(this, stream, instances, obeysMasterPitch);
     }
 
     public patch_SFXLooped LoadSFXLooped(string fileName, bool obeysMasterPitch = true) 
     {
+        if (sfxes.TryGetValue(fileName, out var val))
+            return (patch_SFXLooped)val;
         using var stream = this[contentPath + "/" + fileName].Stream;
         return SFXLoopedExt.CreateSFXLooped(this, stream, obeysMasterPitch);
     }
 
     public patch_SFXVaried LoadSFXVaried(string fileName, int amount, bool obeysMasterPitch = true) 
     {
+        if (sfxes.TryGetValue(fileName, out var val))
+            return (patch_SFXVaried)val;
         var currentExtension = Path.GetExtension(".wav");
         fileName = fileName.Replace(currentExtension, "");
         var stream = new Stream[amount];

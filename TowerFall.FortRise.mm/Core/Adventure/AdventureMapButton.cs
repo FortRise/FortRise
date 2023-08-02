@@ -7,8 +7,17 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using TeuJson;
+using TowerFall;
 
-namespace TowerFall;
+namespace FortRise.Adventure;
+
+public enum AdventureType 
+{
+    Quest,
+    DarkWorld,
+    Trials,
+    Versus
+}
 
 public sealed class AdventureMapButton : MapButton
 {
@@ -23,10 +32,12 @@ public sealed class AdventureMapButton : MapButton
     private ModuleMetadata[] requiredMods;
     private SineWave lockedSine;
     private bool wasSelected;
+    private AdventureType type;
 
 
-    public AdventureMapButton(AdventureWorldTowerData data) : base(new TowerMapData(data))
+    public AdventureMapButton(AdventureWorldTowerData data, AdventureType type) : base(new TowerMapData(data))
     {
+        this.type = type;
         author = data.Author.ToUpperInvariant();
         if (string.IsNullOrEmpty(data.RequiredMods))   
             return;

@@ -39,7 +39,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         ID = tower.ID;
         Theme = tower.Theme;
         ShowControls = false;
-        ShowTriggerControls = (!patch_SaveData.AdventureActive && ID.X == 2);
+        ShowTriggerControls = (tower.GetLevelSet() == "TowerFall" && ID.X == 2);
     }
 
     [MonoModReplace]
@@ -56,17 +56,17 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             var levelFile = DarkWorldTowerData.Levels[file];
             if (DarkWorldTowerData is AdventureWorldTowerData data) 
             {
+                using var level = RiseCore.Resources.GlobalResources[levelFile].Stream;
                 if (levelFile.EndsWith("json")) 
                 {
-                    using var level = data.System.Resources[levelFile].Stream;
                     return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
                 }
                 else 
                 {
-                    using var level = data.System.Resources[levelFile].Stream;
                     return patch_Calc.LoadXML(level)["level"];
                 }
             }
+            
             using Stream stream = File.OpenRead(levelFile);
             return patch_Calc.LoadXML(stream)["level"];
         }
@@ -84,21 +84,22 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
 
     public override TilesetData GetBGTileset()
     {
-        if (patch_SaveData.AdventureActive) 
-        {
-            if (patch_GameData.CustomTilesets.TryGetValue(Theme.BGTileset, out var val))
-                return val;
-        }
+        // TODO CustomBGTileset
+        // if (patch_SaveData.AdventureActive) 
+        // {
+        //     if (patch_GameData.CustomTilesets.TryGetValue(Theme.BGTileset, out var val))
+        //         return val;
+        // }
         return base.GetBGTileset();
     }
 
     public override TilesetData GetTileset()
     {
-        if (patch_SaveData.AdventureActive) 
-        {
-            if (patch_GameData.CustomTilesets.TryGetValue(Theme.Tileset, out var val))
-                return val;
-        }
+        // if (patch_SaveData.AdventureActive) 
+        // {
+        //     if (patch_GameData.CustomTilesets.TryGetValue(Theme.Tileset, out var val))
+        //         return val;
+        // }
         return base.GetTileset();
     }
 }

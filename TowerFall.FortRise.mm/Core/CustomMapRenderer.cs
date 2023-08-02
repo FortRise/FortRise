@@ -87,31 +87,34 @@ public class XmlMapRenderer : CustomMapRenderer
 {
     public Dictionary<string, ICustomMapElement> ElementMap = new();
 
-    public XmlMapRenderer(string path, FortContent content) 
+    public XmlMapRenderer(string path, RiseCore.Resource content) 
     {
         using var fsPath = File.OpenRead(path);
         CreateMapInternal(fsPath, content);
     }
 
-    public XmlMapRenderer(Stream path, FortContent content) 
+    public XmlMapRenderer(Stream path, RiseCore.Resource content) 
     {
         CreateMapInternal(path, content);
     }
 
-    internal void CreateMapInternal(Stream path, FortContent content) 
+    internal void CreateMapInternal(Stream path, RiseCore.Resource content) 
     {
+        var getPath = (string path) => {
+            return RiseCore.Resources.GlobalResources[content.Root + path];
+        };
         var map = patch_Calc.LoadXML(path)["map"];
         var containSpriteData = map.HasAttr("spriteData");
         var mapAtlasAttr = map.Attr("atlas");
-        using var xmlStream = content["Content/" + mapAtlasAttr + ".xml"].Stream;
-        using var pngStream = content["Content/" + mapAtlasAttr + ".png"].Stream;
+        using var xmlStream = getPath("Content/" + mapAtlasAttr + ".xml").Stream;
+        using var pngStream = getPath("Content/" + mapAtlasAttr + ".png").Stream;
         var atlas = AtlasExt.CreateAtlas(null, xmlStream, pngStream);
 
         patch_SpriteData spriteData = null;
         if (containSpriteData) 
         {
             var spriteDataAttr = map.Attr("spriteData");
-            using var spriteDataStream = content["Content/" + spriteDataAttr + ".xml"].Stream;
+            using var spriteDataStream = getPath("Content/" + spriteDataAttr + ".xml").Stream;
             spriteData = SpriteDataExt.CreateSpriteData(null, spriteDataStream, atlas);
         }
 

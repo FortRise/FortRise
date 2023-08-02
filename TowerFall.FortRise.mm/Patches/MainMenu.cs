@@ -173,7 +173,7 @@ namespace TowerFall
         [PatchInitOptions]
         [MonoModIgnore]
         private extern void InitOptions(List<OptionsButton> buttons);
-        
+
 
         private void InitMods(List<OptionsButton> buttons)
         {

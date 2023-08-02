@@ -8,7 +8,7 @@ namespace FortRise.Adventure;
 public interface IAdventureTowerLoader 
 {
     string FileExtension { get; }
-    AdventureTowerInfo Load(int id, Stream stream, string levelDirectory, string directoryPrefix, bool customIcons);
+    AdventureTowerInfo Load(int id, Stream stream, string levelDirectory, bool customIcons);
 }
 
 public interface IAdventureTowerLoader<T> : IAdventureTowerLoader

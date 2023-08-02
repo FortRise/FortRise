@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using FortRise;
 using FortRise.Adventure;
@@ -16,7 +17,6 @@ public static class patch_GameData
 {
     public static Dictionary<string, TilesetData> CustomTilesets;
     public static Dictionary<Guid, CustomBGStorage> CustomBGAtlas;
-    public static List<AdventureWorldTowerData> AdventureWorldTowers;
     public static List<string> AdventureWorldCategories;
     // TODO clean up
     public static Dictionary<string, int> AdventureWorldModTowersLookup;
@@ -29,11 +29,38 @@ public static class patch_GameData
     {
         RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
+
+        // Assign its LevelID
+        foreach (var darkWorldTowers in GameData.DarkWorldTowers) 
+        {
+            darkWorldTowers.SetLevelID("TowerFall");
+        }
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
-        ReloadCustomTowers();
-        TFGame.WriteLineToLoadLog("  " + AdventureWorldTowers.Count + " loaded");
+        TowerRegistry.LoadDarkWorld();
+
+        // patch_DarkWorldTowerData.Load();
+        // ReloadCustomTowers();
+        TFGame.WriteLineToLoadLog("  " + TowerRegistry.DarkWorldTowerSets.Count + " loaded");
         patch_MapScene.FixedStatic();
         RiseCore.Events.Invoke_OnAfterDataLoad();
+
+        CustomBGAtlas ??= new();
+        CustomTilesets ??= new();
+
+        CustomBGAtlas.Clear();
+        CustomTilesets.Clear();
+
+        AdventureWorldModTowersLookup ??= new();
+        AdventureWorldModTowersLookup.Clear();
+
+        AdventureWorldModTowers ??= new();
+        AdventureWorldModTowers.Clear();
+
+        AdventureWorldMapRenderer ??= new();
+        AdventureWorldMapRenderer.Clear();
+
+        AdventureWorldCategories ??= new();
+        AdventureWorldCategories.Clear();
     }
 
     /// <summary>
@@ -54,8 +81,8 @@ public static class patch_GameData
 
         CustomBGAtlas.Clear();
         CustomTilesets.Clear();
-        AdventureWorldTowers ??= new();
-        AdventureWorldTowers.Clear();
+        // AdventureWorldTowers ??= new();
+        // AdventureWorldTowers.Clear();
 
         AdventureWorldModTowersLookup ??= new();
         AdventureWorldModTowersLookup.Clear();
@@ -76,62 +103,65 @@ public static class patch_GameData
         var contentModDirectories = new List<string>(Directory.EnumerateDirectories(AdventureModPath));
         contentModDirectories.InsertRange(0, AdventureModule.SaveData.LevelLocations);
 
-        if (Directory.Exists("AdventureWorldContent/Levels")) 
-        {
-            Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
-            contentModDirectories.AddRange(Directory.EnumerateDirectories("AdventureWorldContent/Levels"));
-        }
+        // if (Directory.Exists("AdventureWorldContent/Levels")) 
+        // {
+        //     Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
+        //     contentModDirectories.AddRange(Directory.EnumerateDirectories("AdventureWorldContent/Levels"));
+        // }
+        RiseCore.Resources.AddMod(null, new RiseCore.AdventureGlobalLevelResource());
 
-        foreach (var adventurePath in contentModDirectories) 
-        {
-            LoadAdventureTowers(adventurePath, null);
-        }
+        // foreach (var adventurePath in contentModDirectories) 
+        // {
+        //     var file = adventurePath.Replace('\\', '/');
+        //     var globalResource = new RiseCore.GlobalLevelResource(file, "::global::/" + file);
+        //     RiseCore.Resources.GlobalResources.Add("::global/::" + file, globalResource);
+        //     // LoadAdventureModTowers(globalResource);
+        // }
 
 
-        AdventureWorldMapRenderer.Add((false, null));
+        // AdventureWorldMapRenderer.Add((false, null));
 
         // Load mods that contains Levels/DarkWorld folder
-        foreach (var mod in RiseCore.InternalMods) 
+        foreach (var levelMod in RiseCore.Resources.GlobalResources.Where(
+            level => level.Value.Path is "Content/Levels/DarkWorld" or "Content/Mod/DarkWorld"))
         {
-            if (mod.Content.TryGetValue("Content/Levels/DarkWorld", out var resource)) 
+            var resource = levelMod.Value;
+            
+            foreach (var dir in resource.Childrens)
             {
-                foreach (RiseCore.Resource dir in resource.Childrens) 
-                {
-                    LoadAdventureModTowers(dir.FullPath, dir.Path + '/', mod.Metadata, mod);
-                }
-                if (!mod.Content.TryGetValue("Content/Levels/map.xml", out var mapXml)) 
-                {
-                    AdventureWorldMapRenderer.Add((false, null));
-                    continue;
-                }
-
-                using var mapXmlStream = mapXml.Stream;
-                
-                var xmlMapRenderer = new XmlMapRenderer(mapXmlStream, mod.Content);
-                AdventureWorldMapRenderer.Add((true, xmlMapRenderer));
+                LoadAdventureModTowers(dir);
             }
-        }
-        if (AdventureWorldModTowers.Count > 0)
-            AdventureWorldTowers = AdventureWorldModTowers[0];
-    }
+            if (!RiseCore.Resources.GlobalResources.TryGetValue(resource.Root + "Content/Levels/map.xml", out var mapXml)) 
+            {
+                AdventureWorldMapRenderer.Add((false, null));
+                continue;
+            }
 
+            using var mapXmlStream = mapXml.Stream;
+
+            var xmlMapRenderer = new XmlMapRenderer(mapXmlStream, resource);
+            AdventureWorldMapRenderer.Add((true, xmlMapRenderer));
+        }
+
+        // if (AdventureWorldModTowers.Count > 0)
+        //     AdventureWorldTowers = AdventureWorldModTowers[0];
+    }
 
     /// <summary>
     /// Load Adventure towers by directory, and specify its metadata or null if it's global.
     /// </summary>
-    /// <param name="directory">A directory path to the levels</param>
-    /// <param name="mod">A mod metadata or null to categorize the level</param>
-    /// <param name="prefix">A prefix which will add for lookup</param>
-    /// <param name="system">A ResourceSystem which will be used to manage the files</param>
+    /// <param name="resource">A resource to find and locate level</param>
     /// <returns>A boolean determines whether the load success or fails</returns>
-    public static bool LoadAdventureModTowers(string directory, string prefix, ModuleMetadata mod, RiseCore.ModResource system) 
+    public static bool LoadAdventureModTowers(RiseCore.Resource resource) 
     {
-        string modName = mod is null ? "::global::" : mod.Name;
+        string modName = resource.Root;
+        var directory = resource.Path;
+
         if (AdventureWorldModTowersLookup.TryGetValue(modName, out int id))
         {
             var tower = AdventureWorldModTowers[id];
-            var adventureTowerDataOnCache = new AdventureWorldTowerData(system);
-            if (adventureTowerDataOnCache.ModAdventureLoad(tower.Count, directory, prefix)) 
+            var adventureTowerDataOnCache = new AdventureWorldTowerData(resource);
+            if (adventureTowerDataOnCache.ModAdventureLoad(tower.Count, directory)) 
             {
                 AdventureWorldModTowers[id].Add(adventureTowerDataOnCache);
                 Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
@@ -143,13 +173,13 @@ public static class patch_GameData
         AdventureWorldCategories.Add(modName);
         AdventureWorldModTowersLookup.Add(modName, lookup);
 
-        var adventureTowerData = new AdventureWorldTowerData(system);
-        if (adventureTowerData.ModAdventureLoad(AdventureWorldTowers.Count, directory, prefix)) 
-        {
-            AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
-            Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
-            return true;
-        }
+        var adventureTowerData = new AdventureWorldTowerData(resource);
+        // if (adventureTowerData.ModAdventureLoad(AdventureWorldTowers.Count, directory)) 
+        // {
+        //     AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
+        //     Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
+        //     return true;
+        // }
         return false;
     }
 
@@ -176,17 +206,18 @@ public static class patch_GameData
             }
             return false;
         }
-        var lookup = AdventureWorldModTowers.Count;
-        AdventureWorldCategories.Add(modName);
-        AdventureWorldModTowersLookup.Add(modName, lookup);
+
 
         var adventureTowerData = new AdventureWorldTowerData(system(), directory);
-        if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory)) 
-        {
-            AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
-            Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
-            return true;
-        }
+        // if (adventureTowerData.AdventureLoad(AdventureWorldTowers.Count, directory)) 
+        // {
+        //     var lookup = AdventureWorldModTowers.Count;
+        //     AdventureWorldCategories.Add(modName);
+        //     AdventureWorldModTowersLookup.Add(modName, lookup);
+        //     AdventureWorldModTowers.Add(new List<AdventureWorldTowerData>() { adventureTowerData });
+        //     Logger.Verbose($"[Adventure] Added {directory} tower to {modName}.");
+        //     return true;
+        // }
         return false;
     }
 }

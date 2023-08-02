@@ -10,7 +10,7 @@ public sealed class LuaAdventureLoader : IAdventureTowerLoader<NLua.LuaTable>
 {
     public string FileExtension => "lua";
 
-    public AdventureTowerInfo Load(int id, Stream stream, string levelDirectory, string directoryPrefix, bool customIcons)
+    public AdventureTowerInfo Load(int id, Stream stream, string levelDirectory, bool customIcons)
     {
         var info = new AdventureTowerInfo();
 

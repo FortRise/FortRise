@@ -20,17 +20,12 @@ public sealed class AdventureCategoryButton : patch_MapButton
         var uiModal = new UIModal(0);
         uiModal.SetTitle("SELECT CATEGORY");
         uiModal.AutoClose = true;
-        for (int i = 0; i < patch_GameData.AdventureWorldCategories.Count; i++) 
-        {
-            var item = patch_GameData.AdventureWorldCategories[i];
+        uiModal.AddItem("TowerFall", () => ChangeLevelSet(null));
 
-            int IamParticularlyHateCapturedValuesWithoutMyConsent = i;
-            if (item == "::global::")
-            {
-                uiModal.AddItem("GLOBAL LEVELS", () => ChangeCategory(IamParticularlyHateCapturedValuesWithoutMyConsent));
-                continue;
-            }
-            uiModal.AddItem(item, () => ChangeCategory(IamParticularlyHateCapturedValuesWithoutMyConsent));
+        for (int i = 0; i < TowerRegistry.DarkWorldLevelSets.Count; i++) 
+        {
+            var item = TowerRegistry.DarkWorldLevelSets[i];
+            uiModal.AddItem(item, () => ChangeLevelSet(item));
         }
 
         uiModal.SetStartIndex(Map.CustomLevelCategory);
@@ -42,10 +37,24 @@ public sealed class AdventureCategoryButton : patch_MapButton
         Map.Add(uiModal);
     }
 
+    private void ChangeLevelSet(string levelSet) 
+    {
+        if (levelSet == null)  
+        {
+            Map.ExitAdventure();
+            Map.SetLevelSet("TowerFall");
+            Map.MapPaused = false;
+            return;
+        }
+        Map.SetLevelSet(levelSet);
+        Map.GotoAdventure(Map.CurrentAdventureType);
+        Map.MapPaused = false;
+    }
+
     private void ChangeCategory(int category) 
     {
         Map.CustomLevelCategory = category;
-        Map.GotoAdventure();
+        Map.GotoAdventure(Map.CurrentAdventureType);
         Map.MapPaused = false;
         var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[Map.CustomLevelCategory];
         if (customMapRenderer.contains) 

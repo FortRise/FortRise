@@ -43,7 +43,6 @@ public class patch_LevelLoaderXML : LevelLoaderXML
         if (loader == null && !errorShown) 
         {
             errorShown = true;
-            patch_SaveData.AdventureActive = false;
             this.ShowError("Missing Level");
         }
         if (errorShown) 

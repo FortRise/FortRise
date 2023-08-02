@@ -13,14 +13,22 @@ public class patch_TowerTheme : TowerTheme
 {
     public Guid ThemeID;
     public patch_TowerTheme(XmlElement xml) {}
+    public patch_TowerTheme(XmlElement xml, RiseCore.Resource resource) {}
     public patch_TowerTheme(LuaTable value) {}
 
 
     [MonoModConstructor]
-    public void ctor(XmlElement xml) 
+    public void ctor(XmlElement xml, RiseCore.Resource resource) 
     {
         Name = xml.ChildText("Name").ToUpperInvariant();
-        Icon = TFGame.MenuAtlas["towerIcons/" + xml.ChildText("Icon")];
+
+        var icon = xml.ChildText("Icon", "sacredGround");
+        if (resource.Source.Content.Atlases.TryGetValue("Atlas/atlas", out var atlas) && atlas.Contains(icon)) 
+            Icon = atlas[icon];
+        
+        else 
+            Icon = TFGame.MenuAtlas["towerIcons/" + icon];
+
         TowerType = xml.ChildEnum<MapButton.TowerType>("TowerType");
         MapPosition = xml["MapPosition"].Position();
         Music = xml.ChildText("Music", "");

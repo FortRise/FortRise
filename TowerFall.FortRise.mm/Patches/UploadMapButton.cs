@@ -17,7 +17,7 @@ public sealed class UploadMapButton : patch_MapButton
         LoadTower();
         Map.Selection = null;
         OnDeselect();
-        Map.GotoAdventure();
+        Map.GotoAdventure(Map.CurrentAdventureType);
         Map.MatchStarting = false;
     }
 

@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using Monocle;
+using MonoMod;
 
 namespace TowerFall;
 
@@ -12,22 +14,37 @@ public class patch_PauseMenu : PauseMenu
     {
     }
 
-    private extern void orig_DarkWorldMap();
+    [MonoModReplace]
+    private void DarkWorldRestart() 
+    {
+        Sounds.ui_click.Play(160f, 1f);
+        var oldLevelSet = this.level.Session.GetLevelSet();
+        var session = new Session(this.level.Session.MatchSettings);
+        session.SetLevelSet(oldLevelSet); 
+        session.StartGame();
+    }
 
+    [MonoModReplace]
     private void DarkWorldMap() 
     {
         patch_DarkWorldControl.DisableTempVariants(level);
-        patch_SaveData.AdventureActive = false;
-        orig_DarkWorldMap();       
+        Sounds.ui_click.Play(160f, 1f);
+        var mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
+        Engine.Instance.Scene = mapScene;
+        mapScene.SetLevelSet(level.Session.GetLevelSet());
+        this.level.Session.MatchSettings.LevelSystem.Dispose();
     }
 
-    private extern void orig_DarkWorldMapAndSave();
-
+    [MonoModReplace]
     private void DarkWorldMapAndSave() 
     {
         patch_DarkWorldControl.DisableTempVariants(level);
-        patch_SaveData.AdventureActive = false;
-        orig_DarkWorldMapAndSave();       
+        Sounds.ui_click.Play(160f, 1f);
+        MapScene mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
+        mapScene.ShouldSave = true;
+        Engine.Instance.Scene = mapScene;
+        mapScene.SetLevelSet(level.Session.GetLevelSet());
+        this.level.Session.MatchSettings.LevelSystem.Dispose();
     }
 
     private extern void orig_Quit();
@@ -35,12 +52,6 @@ public class patch_PauseMenu : PauseMenu
     private void Quit() 
     {
         patch_DarkWorldControl.DisableTempVariants(level);
-        if (menuType == MenuType.DarkWorldPause || 
-        menuType == MenuType.DarkWorldComplete || 
-        menuType == MenuType.DarkWorldGameOver)
-        {
-            patch_SaveData.AdventureActive = false;
-        }
         orig_Quit();
     }
 
@@ -49,12 +60,6 @@ public class patch_PauseMenu : PauseMenu
     public void QuitAndSave() 
     {
         patch_DarkWorldControl.DisableTempVariants(level);
-        if (menuType == MenuType.DarkWorldPause || 
-        menuType == MenuType.DarkWorldComplete || 
-        menuType == MenuType.DarkWorldGameOver) 
-        {
-            patch_SaveData.AdventureActive = false;
-        }
         orig_QuitAndSave();
     }
 }

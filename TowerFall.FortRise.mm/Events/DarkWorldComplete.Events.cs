@@ -1,3 +1,4 @@
+using FortRise.Adventure;
 using TowerFall;
 
 namespace FortRise;
@@ -14,11 +15,11 @@ public static partial class RiseCore
 
         internal static void InvokeDarkWorldComplete_Result(
             int levelID, DarkWorldDifficulties difficulties,
-            int playerAmount, long time, int continues, int deaths, int curses) 
+            int playerAmount, long time, int continues, int deaths, int curses, string levelSet) 
         {
-            if (patch_SaveData.AdventureActive)
+            if (levelSet != "TowerFall") 
             {
-                patch_GameData.AdventureWorldTowers[levelID].Stats.Complete(
+                TowerRegistry.DarkWorldGet(levelSet, levelID).Stats.Complete(
                     difficulties, playerAmount, time,
                     continues, deaths, curses);
                 return;

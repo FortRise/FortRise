@@ -39,9 +39,12 @@ public sealed class AdventureListLoader : Entity
         introTween = Tween.Create(Tween.TweenMode.Persist, Ease.CubeOut, 4, true);
 
         var lockedLevels = new List<MapButton>();
-        for (int j = 0; j < patch_GameData.AdventureWorldTowers.Count; j++)
+        var set = map.GetLevelSet() ?? TowerRegistry.DarkWorldLevelSets[0];
+        var currentLevel = TowerRegistry.DarkWorldTowerSets[set];
+        map.SetLevelSet(set);
+        for (int j = 0; j < currentLevel.Count; j++)
         {
-            var mapButton = new AdventureMapButton(patch_GameData.AdventureWorldTowers[j]);
+            var mapButton = new AdventureMapButton(currentLevel[j], AdventureType.DarkWorld);
             if (mapButton.Locked)
             {
                 lockedLevels.Add(mapButton);

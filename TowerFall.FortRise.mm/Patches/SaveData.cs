@@ -1,13 +1,9 @@
-using System.IO;
 using FortRise;
-using TeuJson;
 
 namespace TowerFall;
 
 public class patch_SaveData : SaveData
 {
-    public static bool AdventureActive;
-
     public extern string orig_Save();
 
     public string Save() 

@@ -1,6 +1,8 @@
 using System;
+using FortRise.Adventure;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
@@ -10,26 +12,50 @@ namespace TowerFall
     public class patch_Session : Session
     {
         private patch_DarkWorldSessionState DarkWorldState;
+        public string LevelSet;
+        [MonoModIgnore]
+        public TreasureSpawner TreasureSpawner { get; private set; }
+
         public patch_Session(MatchSettings settings) : base(settings)
         {
         }
 
         public patch_MatchSettings MatchSettings;
 
-        [PatchSessionStartGame]
-        public extern void orig_StartGame();
 
-
+        [MonoModReplace]
         public void StartGame() 
         {
-            orig_StartGame();
-            if (patch_SaveData.AdventureActive) 
-            {
-                var worldTower = patch_GameData.AdventureWorldTowers[MatchSettings.LevelSystem.ID.X];
-                worldTower.Stats.Attempts += 1;
-                if (worldTower.StartingLives >= 0)
-                    DarkWorldState.ExtraLives = worldTower.StartingLives;
-            }
+			if (!MatchSettings.SoloMode)
+			{
+                // TODO SaveData for other level set
+				GameStats stats = SaveData.Instance.Stats;
+				int num = stats.MatchesPlayed;
+				stats.MatchesPlayed = num + 1;
+				stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
+				if (MatchSettings.RandomVersusTower)
+				{
+					num = stats.VersusRandomPlays;
+					stats.VersusRandomPlays = num + 1;
+				}
+				else if (this.IsOfficialLevelSet())
+				{
+					stats.RegisterVersusTowerSelection(MatchSettings.LevelSystem.ID.X);
+				}
+				SessionStats.MatchesPlayed++;
+			}
+			if (MatchSettings.Mode == patch_Modes.DarkWorld)
+			{
+				DarkWorldState = new patch_DarkWorldSessionState(this);
+                if (this.IsOfficialLevelSet())
+                    SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
+                else 
+                {
+                    TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X).Stats.Attempts += 1;
+                }
+			}
+			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
+			Engine.Instance.Scene = new LevelLoaderXML(this);
         }
 
         // TODO Use these
@@ -38,7 +64,7 @@ namespace TowerFall
             switch (MatchSettings.Mode) 
             {
             case patch_Modes.Custom:
-                patch_GameData.AdventureWorldTowers[id].Stats.Deaths += 1;
+                // patch_GameData.AdventureWorldTowers[id].Stats.Deaths += 1;
                 break;
             case patch_Modes.DarkWorld:
                 SaveData.Instance.DarkWorld.Towers[id].Deaths += 1;
@@ -54,7 +80,7 @@ namespace TowerFall
             switch (MatchSettings.Mode) 
             {
             case patch_Modes.Custom:
-                patch_GameData.AdventureWorldTowers[id].Stats.Attempts += 1;
+                // patch_GameData.AdventureWorldTowers[id].Stats.Attempts += 1;
                 break;
             case patch_Modes.DarkWorld:
                 SaveData.Instance.DarkWorld.Towers[id].Attempts += 1;
@@ -86,6 +112,24 @@ namespace TowerFall
             //     };
             //     DarkWorldState.defaultInventory.Arrows = new ArrowList(originalCount, matchArrow);
             // }
+    }
+
+    public static class SessionExt 
+    {
+        public static void SetLevelSet(this Session session, string levelSet) 
+        {
+            ((patch_Session)session).LevelSet = levelSet;
+        }
+
+        public static string GetLevelSet(this Session session) 
+        {
+            return ((patch_Session)session).LevelSet;
+        }
+
+        public static bool IsOfficialLevelSet(this Session session) 
+        {
+            return ((patch_Session)session).LevelSet == "TowerFall";
+        }
     }
 }
 
