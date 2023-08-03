@@ -1,3 +1,4 @@
+using System;
 using MonoMod;
 
 namespace TowerFall;
@@ -12,14 +13,19 @@ public class patch_LevelData : LevelData
         {
             if (string.IsNullOrEmpty(InternalLevelSet))
                 return "TowerFall";
+            ReadOnlySpan<char> setSpan = LevelID.AsSpan();
+            if (setSpan[0] == 'm' && setSpan[1] == 'o' && setSpan[2] == 'd' && setSpan[3] == ':') 
+            {
+                setSpan = setSpan.Slice(0, 4);
+            }
+            int indexOfSlash = setSpan.IndexOf('/');
             
-            var levelSet = LevelID.Replace("mod:", "");
-            int indexOfSlash = levelSet.IndexOf('/');
             if (indexOfSlash == -1)
-                return InternalLevelSet = string.Empty;
-
+                return InternalLevelSet = "UNCATEGORIZED";
             
-            return InternalLevelSet = levelSet.Substring(0, indexOfSlash);
+            var levelSet = setSpan.Slice(0, indexOfSlash);
+            
+            return InternalLevelSet = levelSet.ToString();
         }
     }
 
