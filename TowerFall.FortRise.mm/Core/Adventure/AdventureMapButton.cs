@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using FortRise;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -79,6 +77,52 @@ public sealed class AdventureMapButton : MapButton
             Logger.Error(e.ToString());
         }
     }
+
+    public AdventureMapButton(QuestLevelData data, AdventureType type) : base(new TowerMapData(data))
+    {
+        this.type = type;
+        // author = data.Author.ToUpperInvariant();
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
+                
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
+
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
+
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
+    }
+
     public override void Added()
     {
         Author = author;
@@ -134,13 +178,23 @@ public sealed class AdventureMapButton : MapButton
 
     public override void OnConfirm()
     {
-        MainMenu.DarkWorldMatchSettings.LevelSystem = base.Data.GetLevelSystem();
-        base.Map.TweenOutButtons();
-        base.Map.Add<DarkWorldDifficultySelect>(new DarkWorldDifficultySelect());
+        switch (type) 
+        {
+        case AdventureType.DarkWorld:
+            MainMenu.DarkWorldMatchSettings.LevelSystem = base.Data.GetLevelSystem();
+            base.Map.TweenOutButtons();
+            base.Map.Add<DarkWorldDifficultySelect>(new DarkWorldDifficultySelect());
+            break;
+        case AdventureType.Quest:
+            MainMenu.QuestMatchSettings.LevelSystem = base.Data.GetLevelSystem();
+            base.Map.TweenOutButtons();
+            base.Map.Add<QuestDifficultySelect>(new QuestDifficultySelect());
+            break;
+        }
     }
 
     protected override List<Image> InitImages()
     {
-        return patch_MapButton.InitAdventureWorldGraphics(Data.ID.X);
+        return patch_MapButton.InitAdventureMapButtonGraphics(Data.ID.X);
     }
 }

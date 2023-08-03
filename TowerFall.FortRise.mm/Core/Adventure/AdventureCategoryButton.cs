@@ -6,8 +6,10 @@ namespace FortRise.Adventure;
 
 public sealed class AdventureCategoryButton : patch_MapButton
 {
-    public AdventureCategoryButton() : base("TOWER CATEGORY")
+    public AdventureType Type;
+    public AdventureCategoryButton(AdventureType type) : base("TOWER CATEGORY")
     {
+        Type = type;
     }
 
     public override void OnConfirm()
@@ -22,9 +24,19 @@ public sealed class AdventureCategoryButton : patch_MapButton
         uiModal.AutoClose = true;
         uiModal.AddItem("TowerFall", () => ChangeLevelSet(null));
 
-        for (int i = 0; i < TowerRegistry.DarkWorldLevelSets.Count; i++) 
+        List<string> sets = null;
+        switch (Type) 
         {
-            var item = TowerRegistry.DarkWorldLevelSets[i];
+        case AdventureType.Quest:
+            sets = TowerRegistry.QuestLevelSets;
+            break;
+        case AdventureType.DarkWorld:
+            sets = TowerRegistry.DarkWorldLevelSets;
+            break;
+        }
+        for (int i = 0; i < sets.Count; i++) 
+        {
+            var item = sets[i];
             uiModal.AddItem(item, () => ChangeLevelSet(item));
         }
 

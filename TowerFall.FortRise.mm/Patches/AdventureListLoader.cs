@@ -24,7 +24,7 @@ public sealed class AdventureListLoader : Entity
         Depth = -100000;
         Visible = false;
         buttons = new List<MapButton>();
-        buttons.Add(new AdventureCategoryButton());
+        buttons.Add(new AdventureCategoryButton(map.CurrentAdventureType));
         if (map.CustomLevelCategory == 0) 
             buttons.Add(new UploadMapButton());
         
@@ -39,19 +39,44 @@ public sealed class AdventureListLoader : Entity
         introTween = Tween.Create(Tween.TweenMode.Persist, Ease.CubeOut, 4, true);
 
         var lockedLevels = new List<MapButton>();
-        var set = map.GetLevelSet() ?? TowerRegistry.DarkWorldLevelSets[0];
-        var currentLevel = TowerRegistry.DarkWorldTowerSets[set];
-        map.SetLevelSet(set);
-        for (int j = 0; j < currentLevel.Count; j++)
+        switch (map.GetCurrentAdventureType()) 
         {
-            var mapButton = new AdventureMapButton(currentLevel[j], AdventureType.DarkWorld);
-            if (mapButton.Locked)
+        case AdventureType.DarkWorld: 
+        {
+            var set = map.GetLevelSet() ?? TowerRegistry.DarkWorldLevelSets[0];
+            var currentLevel = TowerRegistry.DarkWorldTowerSets[set];
+            map.SetLevelSet(set);
+            for (int j = 0; j < currentLevel.Count; j++)
             {
-                lockedLevels.Add(mapButton);
-                continue;
-            }    
-            buttons.Add(mapButton);
+                var mapButton = new AdventureMapButton(currentLevel[j], map.CurrentAdventureType);
+                if (mapButton.Locked)
+                {
+                    lockedLevels.Add(mapButton);
+                    continue;
+                }    
+                buttons.Add(mapButton);
+            }
         }
+            break;
+        case AdventureType.Quest: 
+        {
+            var set = map.GetLevelSet() ?? TowerRegistry.QuestLevelSets[0];
+            var currentLevel = TowerRegistry.QuestTowerSets[set];
+            map.SetLevelSet(set);
+            for (int j = 0; j < currentLevel.Count; j++)
+            {
+                var mapButton = new AdventureMapButton(currentLevel[j], map.CurrentAdventureType);
+                if (mapButton.Locked)
+                {
+                    lockedLevels.Add(mapButton);
+                    continue;
+                }    
+                buttons.Add(mapButton);
+            }
+        }
+            break;
+        }
+
 
         foreach (MapButton lockedLevel in lockedLevels) 
         {

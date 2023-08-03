@@ -94,12 +94,31 @@ namespace TowerFall
             }
             yield break;
         }
+
+        [MonoModReplace]
+        private IEnumerator QuestIntroSequence()
+        {
+            int num = 0;
+            for (int i = 0; i < this.Buttons.Count; i = num + 1)
+            {
+                if (Buttons[i] is not QuestMapButton)
+                   continue;
+                if (SaveData.Instance.Quest.ShouldRevealTower(this.Buttons[i].Data.ID.X))
+                {
+                    Music.Stop();
+                    yield return this.Buttons[i].UnlockSequence(true);
+                }
+                num = i;
+            }
+            yield break;
+        }
+
         
 
         private void InitAdventureMap(AdventureType adventureType) 
         {
             CurrentAdventureType = adventureType;
-            Buttons.Add(new AdventureCategoryButton());
+            Buttons.Add(new AdventureCategoryButton(adventureType));
         }
 
         private void InitAdventureMap(List<MapButton[]> list) 
@@ -140,14 +159,29 @@ namespace TowerFall
             WorkshopLevels = false;
             TweenOutAllButtonsAndRemove();
             Buttons.Clear();
-            Buttons.Add(new AdventureCategoryButton());
-            for (int j = 0; j < GameData.DarkWorldTowers.Count; j++)
+            Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
+            switch (CurrentAdventureType) 
             {
-                if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(j))
+            case AdventureType.Quest:
+                for (int i = 0; i < GameData.QuestLevels.Length; i++)
                 {
-                    Buttons.Add(new DarkWorldMapButton(GameData.DarkWorldTowers[j]));
+                    if (SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                    {
+                        this.Buttons.Add(new QuestMapButton(GameData.QuestLevels[i]));
+                    }
                 }
+                break;
+            case AdventureType.DarkWorld:
+                for (int j = 0; j < GameData.DarkWorldTowers.Count; j++)
+                {
+                    if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(j))
+                    {
+                        Buttons.Add(new DarkWorldMapButton(GameData.DarkWorldTowers[j]));
+                    }
+                }
+                break;
             }
+
             this.LinkButtonsList();
             if (id >= Buttons.Count)
                 id = Buttons.Count - 1;
@@ -354,6 +388,11 @@ namespace TowerFall
         {
             return ((patch_MapScene)mapScene).LevelSet == "TowerFall";
         }
+
+        public static AdventureType GetCurrentAdventureType(this MapScene mapScene) 
+        {
+            return ((patch_MapScene)mapScene).CurrentAdventureType;
+        }
     }
 }
 
@@ -375,7 +414,11 @@ namespace MonoMod
             ILCursor cursor = new ILCursor(ctx);
 
             cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
-            cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
+            cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldc_I4_0);
+            cursor.Emit(OpCodes.Call, method);
+            cursor.GotoNext();
             cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
 
             cursor.Emit(OpCodes.Ldarg_0);

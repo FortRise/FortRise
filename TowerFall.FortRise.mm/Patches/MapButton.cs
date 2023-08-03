@@ -44,6 +44,22 @@ public class patch_MapButton : MapButton
         return list.ToArray();
     }
 
+    public static List<Image> InitAdventureMapButtonGraphics(int levelID) 
+    {
+        var scene = Engine.Instance.Scene as MapScene;
+        if (scene == null)
+            return new List<Image>();
+        switch (scene.GetCurrentAdventureType()) 
+        {
+        case AdventureType.DarkWorld:
+            return InitAdventureWorldGraphics(levelID);
+        case AdventureType.Quest:
+            return InitAdventureQuestGraphics(levelID);
+        default:
+            return new List<Image>();
+        }
+    }
+
     public static List<Image> InitAdventureWorldGraphics(int levelID)
     {
         // We don't have access to the MapScene from MapButton yet.
@@ -72,6 +88,42 @@ public class patch_MapButton : MapButton
             _ => string.Empty
         };
 
+        if (path != string.Empty) 
+        {
+            var skull = new Image(TFGame.MenuAtlas[path]) ;
+            skull.CenterOrigin();
+            skull.Origin += new Vector2(10f, 10f);
+            list.Add(skull);
+        }
+
+        return list;
+    }
+
+    public static List<Image> InitAdventureQuestGraphics(int levelID)
+    {
+        // We don't have access to the MapScene from MapButton yet.
+        var scene = Engine.Instance.Scene as MapScene;
+        if (scene == null)
+            return new List<Image>();
+
+        var tower = ((patch_QuestLevelData)TowerRegistry.QuestGet(scene.GetLevelSet(), levelID));
+        var theme = tower.Theme;
+        var stats = tower.Stats;
+        var list = new List<Image>();
+        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+        image.CenterOrigin();
+        list.Add(image);
+        Image image2 = new Image(theme.Icon, null);
+        image2.CenterOrigin();
+        list.Add(image2);
+        image2.Color = MapButton.GetTint(theme.TowerType);
+        var path = stats switch 
+        {
+            { CompletedNoDeaths: true } => "questResults/goldSkull",
+            { CompletedHardcore: true } => "questResults/redSkull",
+            { CompletedNormal: true } => "questResults/whiteSkull",
+            _ => string.Empty
+        };
         if (path != string.Empty) 
         {
             var skull = new Image(TFGame.MenuAtlas[path]) ;

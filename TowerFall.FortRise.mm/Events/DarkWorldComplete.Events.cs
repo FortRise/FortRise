@@ -22,6 +22,7 @@ public static partial class RiseCore
                 TowerRegistry.DarkWorldGet(levelSet, levelID).Stats.Complete(
                     difficulties, playerAmount, time,
                     continues, deaths, curses);
+                OnDarkWorldComplete_Result?.Invoke(levelID, difficulties, playerAmount, time, continues, deaths, curses);
                 return;
             }
             SaveData.Instance.DarkWorld.Towers[levelID].Complete(

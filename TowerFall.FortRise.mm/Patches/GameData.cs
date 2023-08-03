@@ -36,6 +36,8 @@ public static class patch_GameData
             darkWorldTowers.SetLevelID("TowerFall");
         }
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
+
+        TowerRegistry.LoadQuest();
         TowerRegistry.LoadDarkWorld();
 
         // patch_DarkWorldTowerData.Load();
