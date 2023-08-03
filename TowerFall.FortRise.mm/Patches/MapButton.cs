@@ -60,6 +60,20 @@ public class patch_MapButton : MapButton
         }
     }
 
+    public static Image[] InitQuestStartLevelGraphics(int levelID, string levelSet)
+    {
+        var theme = levelSet == "TowerFall" ? GameData.QuestLevels[levelID].Theme : TowerRegistry.QuestGet(levelSet, levelID).Theme;
+        List<Image> list = new List<Image>();
+        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+        image.CenterOrigin();
+        list.Add(image);
+        Image image2 = new Image(theme.Icon, null);
+        image2.CenterOrigin();
+        image2.Color = MapButton.GetTint(theme.TowerType);
+        list.Add(image2);
+        return list.ToArray();
+    }
+
     public static List<Image> InitAdventureWorldGraphics(int levelID)
     {
         // We don't have access to the MapScene from MapButton yet.
