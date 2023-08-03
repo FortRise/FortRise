@@ -27,6 +27,17 @@ public static class TaskHelper
         return (Task)task;
     }
 
+    public static Task RunAsync(string id, Func<Task> func) 
+    {
+        var task = taskMap.GetOrAdd(id, id => {
+            return Task.Run(async () => {
+                await func?.Invoke();
+                Erase(id);
+            });
+        });
+        return (Task)task;
+    }
+
     public static bool Wait(string id) 
     {
         return !taskMap.ContainsKey(id);
