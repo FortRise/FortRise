@@ -155,7 +155,6 @@ public partial class patch_TFGame : TFGame
     {
         FortRise.RiseCore.ModuleStart();
         FortRise.RiseCore.Events.Invoke_OnPreInitialize();
-        FortRise.RiseCore.Initialize();
         orig_Initialize();
         patch_Arrow.ExtendArrows();
         FortRise.RiseCore.LogAllTypes();
@@ -190,12 +189,13 @@ public partial class patch_TFGame : TFGame
     [MonoModReplace]
     public static void Load()
     {
-        TaskHelper.Run("data_load", () =>
+        TaskHelper.Run("loading data", () =>
         {
             try
             {
                 Loader.Message = "LOADING";
                 Logger.Log("[LOAD] === LOADING DATA ===");
+                Loader.Message = "INITIALIZING INPUT";
                 Logger.Log("[LOAD] ...Input");
                 TFGame.WriteLineToLoadLog("Initializing Input...");
                 PlayerInput.AssignInputs();
@@ -203,24 +203,30 @@ public partial class patch_TFGame : TFGame
                 {
                     TFGame.Characters[i] = i;
                 }
+                Loader.Message = "INITIALIZING ARCHER DATA";
                 Logger.Log("[LOAD] ...Archer Data");
                 ArcherData.Initialize();
+                Loader.Message = "INITIALIZING LEVEL DATA";
                 Logger.Log("[LOAD] ...Level Data");
                 GameData.Load();
+                Loader.Message = "INITIALIZING DEFAULT SESSION";
                 TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
                 MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();
                 MainMenu.TrialsMatchSettings = MatchSettings.GetDefaultTrials();
                 MainMenu.QuestMatchSettings = MatchSettings.GetDefaultQuest();
                 MainMenu.DarkWorldMatchSettings = MatchSettings.GetDefaultDarkWorld();
+                Loader.Message = "LOADING VERSUS AWARDS AND TIPS";
                 Logger.Log("[LOAD] ...Awards and Tips");
                 TFGame.WriteLineToLoadLog("Loading Versus Awards...");
                 VersusAwards.Initialize();
                 TFGame.WriteLineToLoadLog("Loading Versus Tips...");
                 GameTips.Initialize();
+                Loader.Message = "VERIFYING SAVE DATA";
                 Logger.Log("[LOAD] ...Save Data");
                 TFGame.WriteLineToLoadLog("Verifying Save Data...");
                 SaveData.Instance.Verify();
                 SessionStats.Initialize();
+                Loader.Message = "CACHING ENTITIES";
                 Logger.Log("[LOAD] ...Entity Caching");
                 TFGame.WriteLineToLoadLog("Initializing Entity Caching...");
                 Arrow.Initialize();
@@ -241,12 +247,14 @@ public partial class patch_TFGame : TFGame
                 Cache.Init<CyclopsShot>();
                 Cache.Init<CataclysmBullet>();
                 Cache.Init<WorkshopPortal>();
+                Loader.Message = "LOADING PARTICLES AND LIGHTING";
                 Logger.Log("[LOAD] ...Particles and Lighting");
                 TFGame.WriteLineToLoadLog("Initializing Particle Systems...");
                 Particles.Initialize();
                 TFGame.WriteLineToLoadLog("Initializing Lighting Systems...");
                 LightingLayer.Initialize();
 
+                Loader.Message = "LOADING SHADERS";
                 Logger.Log("[LOAD] ...Shaders (1/2)");
                 TFGame.WriteLineToLoadLog("Initializing Shaders (1 of 2)...");
                 ScreenEffects.Initialize();
@@ -255,7 +263,15 @@ public partial class patch_TFGame : TFGame
                 TFGame.LoadLightingEffect();
                 Logger.Log("[LOAD] === LOADING COMPLETE ===");
                 TFGame.WriteLineToLoadLog("Loading Complete!");
+
+                Loader.Message = "INITIALIZING MODS";
+                FortRise.RiseCore.Initialize();
+
                 TFGame.GameLoaded = true;
+                if (TaskHelper.WaitForAll()) 
+                {
+                    Loader.Message = "WAITING FOR OTHER TASK TO COMPLETE";
+                }
             }
             catch (Exception ex)
             {
@@ -265,7 +281,7 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        TaskHelper.Run("sfx_load", () => 
+        TaskHelper.Run("loading sfx", () => 
         {
             Logger.Log("[LOAD] ...Music");
             TFGame.WriteLineToLoadLog("Loading Music...");
