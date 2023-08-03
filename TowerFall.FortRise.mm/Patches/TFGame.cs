@@ -281,6 +281,8 @@ public partial class patch_TFGame : TFGame
             }
         });
 
+        //TaskHelper.RunAsync("dumping assets", RiseCore.Resources.DumpAll);
+
         TaskHelper.Run("loading sfx", () => 
         {
             Logger.Log("[LOAD] ...Music");

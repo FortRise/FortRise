@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Ionic.Zip;
 
 namespace FortRise;
@@ -332,6 +333,51 @@ public partial class RiseCore
                 return;
             }
             resource.Lookup(prefixPath);
+        }
+
+        public static async Task DumpAll() 
+        {
+            try 
+            {
+                if (!Directory.Exists("DUMP"))
+                    Directory.CreateDirectory("DUMP");
+                using var file = File.Create("DUMP/resourcedump.txt");
+                using TextWriter tw = new StreamWriter(file);
+
+                tw.WriteLine("FORTRISE RESOURCE DUMP");
+                tw.WriteLine("VERSION 4.1.0.0");
+                tw.WriteLine("==============================");
+                foreach (var globalResource in GlobalResources) 
+                {
+                    await tw.WriteLineAsync("Global File Path: " + globalResource.Key);
+                    await tw.WriteLineAsync("Source: ");
+                    await tw.WriteLineAsync("\t FullPath: " + globalResource.Value.FullPath);
+                    await tw.WriteLineAsync("\t Path: " + globalResource.Value.Path);
+                    await tw.WriteLineAsync("\t Root: " + globalResource.Value.Root);
+                    await tw.WriteLineAsync("\t Childrens: ");
+                    foreach (var child in globalResource.Value.Childrens) 
+                    {
+                        await DumpResource(child, "\t");
+                    }
+                }
+
+                async Task DumpResource(Resource childResource, string line) 
+                {
+                    await tw.WriteLineAsync(line + "\t FullPath: " + childResource.FullPath);
+                    await tw.WriteLineAsync(line + "\t Path: " + childResource.Path);
+                    await tw.WriteLineAsync(line + "\t Root: " + childResource.Root);
+                    await tw.WriteLineAsync(line + "\t Childrens: ");
+                    foreach (var resource in childResource.Childrens) 
+                    {
+                        await DumpResource(resource, line + "\t");
+                    }
+                }
+            }
+            catch (Exception e) 
+            {
+                Logger.Error("[DUMPRESOURCE]" + e.ToString());
+                throw;
+            }
         }
     }
 }
