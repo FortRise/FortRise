@@ -11,16 +11,14 @@ public sealed partial class AdventureWorldStats : IDeserialize, ISerialize
     [TeuObject]
     public Dictionary<string, AdventureWorldTowerStats> Towers = new Dictionary<string, AdventureWorldTowerStats>();
 
-    public AdventureWorldTowerStats AddOrGet(string name, string directory) 
+    public AdventureWorldTowerStats AddOrGet(string name) 
     {
-        var plainBytes = Encoding.UTF8.GetBytes(directory);
-        var base64 = Convert.ToBase64String(plainBytes);
-        if (Towers.TryGetValue(name + base64, out AdventureWorldTowerStats stats)) 
+        if (Towers.TryGetValue(name, out AdventureWorldTowerStats stats)) 
         {
             return stats;
         }
         var newStats = new AdventureWorldTowerStats();
-        Towers.Add(name + base64, newStats);
+        Towers.Add(name, newStats);
         return newStats;
     }
 }

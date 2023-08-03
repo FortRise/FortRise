@@ -28,7 +28,7 @@ public sealed class XmlAdventureTowerLoader : IAdventureTowerLoader<XmlElement>
         var xmlElement =  patch_Calc.LoadXML(stream)["tower"];
         info.Theme = xmlElement.HasChild("theme") ? new patch_TowerTheme(xmlElement["theme"]) : patch_TowerTheme.GetDefault();
         info.Author = xmlElement.HasChild("author") ? xmlElement["author"].InnerText : string.Empty;
-        info.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(info.Theme.Name, levelDirectory);
+        info.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(info.Theme.Name);
         info.Extras = LoadExtraData(xmlElement);
 
         var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();

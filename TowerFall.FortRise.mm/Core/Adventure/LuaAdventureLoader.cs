@@ -19,7 +19,7 @@ public sealed class LuaAdventureLoader : IAdventureTowerLoader<NLua.LuaTable>
         var luaTable = (LuaTable)RiseCore.Lua.LoadScript(stream, "tower").Call()[0];
         info.Theme = luaTable.Contains("theme") ? new patch_TowerTheme(luaTable.GetTable("theme")) : patch_TowerTheme.GetDefault();
         info.Author = luaTable.Contains("author") ? luaTable.Get("author") : string.Empty;
-        info.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(info.Theme.Name, levelDirectory);
+        info.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(info.Theme.Name);
         info.Extras = LoadExtraData(luaTable);
 
         var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();

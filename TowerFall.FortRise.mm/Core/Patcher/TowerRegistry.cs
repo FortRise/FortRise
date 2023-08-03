@@ -16,6 +16,8 @@ public static class TowerRegistry
 
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
     {
+        if (levelSet == string.Empty)
+            levelSet = "UNCATEGORIZED";
         if (DarkWorldTowerSets.TryGetValue(levelSet, out var val)) 
         {
             data.ID.X = val.Count;
@@ -158,7 +160,6 @@ public static class TowerRegistry
             var levelData = new patch_QuestLevelData();
             levelData.SetLevelID(path);
             levelData.SetLevelSet(path);
-            levelData.Stats = AdventureModule.SaveData.AdventureQuest.AddOrGet(levelData.GetLevelID());
             levelData.Path = fullPath + "/" + "00.oel";
             levelData.DataPath = fullPath + "/" + "tower.xml";
 
@@ -172,6 +173,8 @@ public static class TowerRegistry
             }
             if (xmlResource == null)
                 continue;
+
+            levelData.Stats = AdventureModule.SaveData.AdventureQuest.AddOrGet(levelData.GetLevelID());
 
             using var xmlStream = xmlResource.Stream;
             var xml = patch_Calc.LoadXML(xmlStream)["data"];
@@ -212,7 +215,6 @@ public static class TowerRegistry
             levelData.SetLevelID(path);
             levelData.SetLevelSet(path);
             levelData.Levels = new();
-            levelData.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(levelData.GetLevelID(), path);
 
             RiseCore.Resource xmlResource = null;
             foreach (var child in map.Childrens) 
@@ -230,6 +232,8 @@ public static class TowerRegistry
             }
             if (xmlResource == null)
                 continue;
+
+            levelData.Stats = AdventureModule.SaveData.AdventureWorld.AddOrGet(levelData.GetLevelID());
 
             using var xmlStream = xmlResource.Stream;
             var xml = patch_Calc.LoadXML(xmlStream)["tower"];
