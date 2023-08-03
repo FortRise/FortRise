@@ -308,7 +308,7 @@ public partial class RiseCore
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
-                var newFolderResource = new FileResource(this, simpliPath, prefix + fixedFolder);
+                var newFolderResource = new FileResource(this, simpliPath, prefix + simpliPath);
                 Lookup(prefix, folder, modDirectory, newFolderResource);
                 Add(simpliPath, newFolderResource);
                 folderResource.Childrens.Add(newFolderResource);
