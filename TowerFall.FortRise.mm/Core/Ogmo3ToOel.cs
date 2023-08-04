@@ -22,9 +22,14 @@ public static class Ogmo3ToOel
         return JsonConvert.DeserializeFromFile<OgmoLevelData>(path);
     }
 
-    public static OgmoLevelData LoadOgmo(Stream path) 
+    /// <summary>
+    /// Loads a Ogmo Editor 3 *.json level file.
+    /// </summary>
+    /// <param name="stream">A stream containing the *.json file</param>
+    /// <returns>An Ogmo Editor 3 level data</returns>
+    public static OgmoLevelData LoadOgmo(Stream stream) 
     {
-        return JsonConvert.DeserializeFromStream<OgmoLevelData>(path);
+        return JsonConvert.DeserializeFromStream<OgmoLevelData>(stream);
     }
 
     /// <summary>
@@ -127,7 +132,7 @@ public static class Ogmo3ToOel
     /// <summary>
     /// Convert an Array2D to bit string format.
     /// </summary>
-    /// <param name="array2D">An Array2D to be converted as CSV format</param>
+    /// <param name="array2D">An Array2D to be converted as bitstring format</param>
     /// <returns>Bit string</returns>
     public static string Array2DToBitString(string[,] array2D) 
     {
@@ -143,14 +148,19 @@ public static class Ogmo3ToOel
         return sb.ToString();
     }
 
-    public static string Array2DToStraightBitString(string[,] levels) 
+    /// <summary>
+    /// Convert an Array2D to bit string format without a line break.
+    /// </summary>
+    /// <param name="array2D">An Array2D to be converted as bitstring format</param>
+    /// <returns>Bit string</returns>
+    public static string Array2DToStraightBitString(string[,] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < levels.GetLength(0); x++) 
+        for (int x = 0; x < array2D.GetLength(0); x++) 
         {
-            for (int y = 0; y < levels.GetLength(1); y++) 
+            for (int y = 0; y < array2D.GetLength(1); y++) 
             {
-                sb.Append(levels[x, y]);
+                sb.Append(array2D[x, y]);
             }
         }
         return sb.ToString();
@@ -212,7 +222,7 @@ public sealed partial class OgmoLevelData : IDeserialize
     }
 
     public T GetValueEnum<T>(string val) 
-    where T : struct 
+    where T : struct, System.Enum
     {
         if (Values == null)
             return default;
@@ -379,7 +389,7 @@ public sealed partial class OgmoEntity : IDeserialize
     }
 
     public T Enum<T>(string val) 
-    where T : struct 
+    where T : struct, System.Enum
     {
         if (Values == null)
             return default;
