@@ -123,12 +123,12 @@ namespace TowerFall
 
         public static string GetLevelSet(this Session session) 
         {
-            return ((patch_Session)session).LevelSet;
+            return ((patch_Session)session).LevelSet ?? "TowerFall";
         }
 
         public static bool IsOfficialLevelSet(this Session session) 
         {
-            return ((patch_Session)session).LevelSet == "TowerFall";
+            return ((patch_Session)session).GetLevelSet() == "TowerFall";
         }
     }
 }
