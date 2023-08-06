@@ -47,6 +47,28 @@ public class patch_PauseMenu : PauseMenu
         this.level.Session.MatchSettings.LevelSystem.Dispose();
     }
 
+    [MonoModReplace]
+    private void QuestMap()
+    {
+        Sounds.ui_click.Play(160f, 1f);
+        MapScene mapScene = new MapScene(MainMenu.RollcallModes.Quest);
+        Engine.Instance.Scene = mapScene;
+        mapScene.SetLevelSet(level.Session.GetLevelSet());
+        this.level.Session.MatchSettings.LevelSystem.Dispose();
+    }
+
+    
+    [MonoModReplace]
+    private void QuestMapAndSave()
+    {
+        Sounds.ui_click.Play(160f, 1f);
+        MapScene mapScene = new MapScene(MainMenu.RollcallModes.Quest);
+        mapScene.ShouldSave = true;
+        Engine.Instance.Scene = mapScene;
+        mapScene.SetLevelSet(level.Session.GetLevelSet());
+        this.level.Session.MatchSettings.LevelSystem.Dispose();
+    }
+
     private extern void orig_Quit();
 
     private void Quit() 
