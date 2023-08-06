@@ -29,6 +29,7 @@ public static class patch_GameData
     {
         RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
+        RiseCore.GameData.Load();
 
         // Assign its LevelID
         foreach (var darkWorldTowers in GameData.DarkWorldTowers) 
@@ -110,7 +111,7 @@ public static class patch_GameData
         //     Logger.Warning("AdventureWorldContent path is obsolete! Use DLL-Less Mods using Mods folder or Load it inside of Content/Mod/Adventure/DarkWorld instead");
         //     contentModDirectories.AddRange(Directory.EnumerateDirectories("AdventureWorldContent/Levels"));
         // }
-        RiseCore.Resources.AddMod(null, new RiseCore.AdventureGlobalLevelResource());
+        RiseCore.ResourceTree.AddMod(null, new RiseCore.AdventureGlobalLevelResource());
 
         // foreach (var adventurePath in contentModDirectories) 
         // {
@@ -124,7 +125,7 @@ public static class patch_GameData
         // AdventureWorldMapRenderer.Add((false, null));
 
         // Load mods that contains Levels/DarkWorld folder
-        foreach (var levelMod in RiseCore.Resources.GlobalResources.Where(
+        foreach (var levelMod in RiseCore.ResourceTree.TreeMap.Where(
             level => level.Value.Path is "Content/Levels/DarkWorld" or "Content/Mod/DarkWorld"))
         {
             var resource = levelMod.Value;
@@ -133,7 +134,7 @@ public static class patch_GameData
             {
                 LoadAdventureModTowers(dir);
             }
-            if (!RiseCore.Resources.GlobalResources.TryGetValue(resource.Root + "Content/Levels/map.xml", out var mapXml)) 
+            if (!RiseCore.ResourceTree.TreeMap.TryGetValue(resource.Root + "Content/Levels/map.xml", out var mapXml)) 
             {
                 AdventureWorldMapRenderer.Add((false, null));
                 continue;

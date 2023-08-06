@@ -56,7 +56,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             var levelFile = DarkWorldTowerData.Levels[file];
             if (DarkWorldTowerData is AdventureWorldTowerData data) 
             {
-                using var level = RiseCore.Resources.GlobalResources[levelFile].Stream;
+                using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
                 if (levelFile.EndsWith("json")) 
                 {
                     return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];

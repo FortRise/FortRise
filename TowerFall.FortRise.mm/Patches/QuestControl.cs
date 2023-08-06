@@ -31,7 +31,7 @@ namespace TowerFall
             else 
             {
                 var path = (base.Level.Session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.DataPath;
-                using var xmlStream = RiseCore.Resources.GlobalResources[path].Stream;
+                using var xmlStream = RiseCore.ResourceTree.TreeMap[path].Stream;
                 xmlDocument = patch_Calc.LoadXML(xmlStream);
             }
             Gauntlet = xmlDocument["data"].AttrBool("gauntlet", false);
@@ -78,7 +78,7 @@ namespace MonoMod
                 var Level = ctx.Module.GetType("TowerFall.Level");
                 var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
                 var Session = ctx.Module.GetType("TowerFall.Session");
-                var LevelSet = Session.FindField("LevelSet");
+                var GetLevelSet = ctx.Module.GetType("TowerFall.SessionExt").FindMethod("System.String GetLevelSet(TowerFall.Session)");
 
                 var MapButton = ctx.Module.GetType("TowerFall.MapButton");
                 var InitQuestStartLevelGraphics = MapButton.FindMethod("Monocle.Image[] InitQuestStartLevelGraphics(System.Int32,System.String)");
@@ -94,7 +94,7 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldfld, f__4this);
                 cursor.Emit(OpCodes.Callvirt, get_Level);
                 cursor.Emit(OpCodes.Callvirt, get_Session);
-                cursor.Emit(OpCodes.Ldfld, LevelSet);
+                cursor.Emit(OpCodes.Call, GetLevelSet);
                 cursor.Emit(OpCodes.Ldstr, "TowerFall");
                 cursor.Emit(OpCodes.Call, op_Equality);
                 cursor.Emit(OpCodes.Brfalse_S, label);
@@ -106,7 +106,7 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldfld, f__4this);
                 cursor.Emit(OpCodes.Callvirt, get_Level);
                 cursor.Emit(OpCodes.Callvirt, get_Session);
-                cursor.Emit(OpCodes.Ldfld, LevelSet);
+                cursor.Emit(OpCodes.Call, GetLevelSet);
             });
         }
     }

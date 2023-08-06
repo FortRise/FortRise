@@ -1,6 +1,7 @@
 using System;
 using System.Xml;
 using FortRise;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -13,19 +14,19 @@ public class patch_TowerTheme : TowerTheme
 {
     public Guid ThemeID;
     public patch_TowerTheme(XmlElement xml) {}
-    public patch_TowerTheme(XmlElement xml, RiseCore.Resource resource) {}
+    public patch_TowerTheme(XmlElement xml, ThemeResource resource) {}
     public patch_TowerTheme(LuaTable value) {}
 
 
     [MonoModConstructor]
-    public void ctor(XmlElement xml, RiseCore.Resource resource) 
+    public void ctor(XmlElement xml, ThemeResource resource) 
     {
+        var atlas = resource.Atlas != null ? resource.Atlas : TFGame.MenuAtlas;
         Name = xml.ChildText("Name").ToUpperInvariant();
 
         var icon = xml.ChildText("Icon", "sacredGround");
-        if (resource.Source.Content.Atlases.TryGetValue("Atlas/atlas", out var atlas) && atlas.Contains(icon)) 
+        if (atlas.Contains(icon)) 
             Icon = atlas[icon];
-        
         else 
             Icon = TFGame.MenuAtlas["towerIcons/" + icon];
 
@@ -180,15 +181,15 @@ public class patch_TowerTheme : TowerTheme
             var playerInvisibility = value.GetTable("playerInvisibility");
             InvisibleOpacities = new float[9]
             {
-                0.2f + (float)(playerInvisibility.GetFloat("green")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("blue")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("pink")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("orange")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("white")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("yellow")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("cyan")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("purple")) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetFloat("red")) * 0.1f,
+                0.2f + playerInvisibility.GetFloat("green") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("blue") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("pink") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("orange") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("white") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("yellow") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("cyan") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("purple") * 0.1f,
+                0.2f + playerInvisibility.GetFloat("red") * 0.1f,
             };
         }
         else 

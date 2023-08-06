@@ -10,7 +10,8 @@ namespace Monocle;
 public static class patch_Music 
 {
     private static SoundBank soundBank;
-    private static AudioEngine audioEngine;
+    private static WaveBank waveBank;
+    internal static AudioEngine audioEngine;
     private static AudioCategory audioCategory;
     private static string currentSong;
     private static string currentCustomSong;
@@ -43,6 +44,8 @@ public static class patch_Music
     {
         if (currentSong == filepath)
             return;
+
+        Stop();
         SoundHelper.StopMusic();
         if (filepath.Contains("custom:")) 
         {
@@ -56,96 +59,29 @@ public static class patch_Music
                 SoundHelper.StoredInstance.Add(filepath, instance);
                 SoundHelper.PlayMusic(instance);
             }
+            currentSong = filepath;
+            return;
         }
-        else if (audioEngine != null)
+
+        if (audioEngine == null)
+            return;
+
+        var indexOfSlash = filepath.IndexOf('/');
+        if (indexOfSlash != -1) 
         {
-            soundBank.PlayCue(filepath);
+            var path = filepath.Substring(0, indexOfSlash);
+            if (patch_Audio.TryAccessModAudio(path, out var audioBank)) 
+            {
+                Stop();
+                path = filepath.Substring(path.Length + 1).Trim();
+                audioBank.Play(path);
+            }
+            currentSong = filepath;
+            return;
         }
+
+        soundBank.PlayCue(filepath);
         currentSong = filepath;
-    }
-
-    [Obsolete("Use MusicExt.PlayCustom instead")]
-    public static void PlayCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
-    {
-        PlayCustom(filepath, musicType);
-    }
-
-    [Obsolete("Use MusicExt.PlayCustom instead")]
-    public static void PlayCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
-    {
-        switch (access) 
-        {
-        case ContentAccess.Content:
-            filepath = Calc.LOADPATH + filepath;
-            break;
-        case ContentAccess.ModContent:
-            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
-            filepath = Path.Combine(modDirectory, "Content", filepath).Replace("\\", "/");
-            break;
-        }
-        if (musicType == CustomMusicType.AsVanilla) 
-        {
-            currentSong = filepath;
-            Music.Stop();
-        }
-        else
-            currentCustomSong = filepath;
-        SoundHelper.StopMusic();
-        if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-        {
-            SoundHelper.PlayMusic(storedInstance);
-        }
-        else 
-        {
-            SoundHelper.PathToSound(filepath, out SoundEffectInstance instance);
-            SoundHelper.StoredInstance.Add(filepath, instance);
-            SoundHelper.PlayMusic(instance);
-        }
-    }
-
-    [Obsolete("Use MusicExt.PlayImmediateCustom instead")]
-    public static void PlayImmediateCustom(string filepath, CustomMusicType musicType = CustomMusicType.FullCustom) 
-    {
-        PlayImmediateCustom(filepath, ContentAccess.ModContent, CustomMusicType.FullCustom);
-    }
-
-    [Obsolete("Use MusicExt.PlayImmediateCustom instead")]
-    public static void PlayImmediateCustom(string filepath, ContentAccess access, CustomMusicType musicType = CustomMusicType.FullCustom) 
-    {
-        switch (access) 
-        {
-        case ContentAccess.Content:
-            filepath = Calc.LOADPATH + filepath;
-            break;
-        case ContentAccess.ModContent:
-            var modDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
-            filepath = Path.Combine(modDirectory, "Content", filepath).Replace("\\", "/");
-            break;
-        }
-
-        if (musicType == CustomMusicType.AsVanilla) 
-        {
-            Music.Stop();
-            audioCategory.Stop(AudioStopOptions.Immediate);
-            currentSong = filepath;
-        }
-        else
-            currentCustomSong = filepath;
-        SoundHelper.StopMusicImmediate();
-        if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-        {
-            SoundHelper.PlayMusic(storedInstance);
-        }
-        else 
-        {
-            SoundHelper.PathToSound(filepath, out SoundEffectInstance instance);
-            SoundHelper.StoredInstance.Add(filepath, instance);
-            SoundHelper.PlayMusic(instance);
-        }
-        if (musicType == CustomMusicType.AsVanilla)
-            currentSong = filepath;
-        else
-            currentCustomSong = filepath;
     }
 
     [MonoModReplace]
@@ -155,6 +91,7 @@ public static class patch_Music
             return;
         
         audioCategory.Stop(AudioStopOptions.Immediate);
+        patch_Audio.StopAudio(AudioStopOptions.Immediate);
         SoundHelper.StopMusicImmediate();
         if (filepath.Contains("custom:")) 
         {
@@ -171,22 +108,20 @@ public static class patch_Music
             currentSong = filepath;
             return;
         }
+        var indexOfSlash = filepath.IndexOf('/');
+        if (indexOfSlash != -1) 
+        {
+            var path = filepath.Substring(0, indexOfSlash);
+            if (patch_Audio.TryAccessModAudio(path, out var audioBank)) 
+            {
+                path = filepath.Substring(path.Length + 1).Trim();
+                audioBank.Play(path);
+            }
+            currentSong = filepath;
+            return;
+        }
         currentSong = filepath;
         soundBank.PlayCue(filepath);
-    }
-
-    [Obsolete("Use MusicExt.StopCustom instead")]
-    public static void StopCustom(CustomMusicType musicType = CustomMusicType.FullCustom) 
-    {
-        if (currentSong != null && SoundHelper.StoredInstance.TryGetValue(currentSong, out var instance) 
-            && instance.State == SoundState.Playing)
-        {
-            if (musicType == CustomMusicType.AsVanilla)
-                currentSong = null;
-            else
-                currentCustomSong = null;
-            instance.Stop();
-        }
     }
 
     [MonoModReplace]
@@ -199,17 +134,39 @@ public static class patch_Music
             instance.Stop();
             return;
         }
+
+        patch_Audio.StopAudio(AudioStopOptions.AsAuthored);
         if (audioEngine != null)
         {
             currentSong = null;
             audioCategory.Stop(AudioStopOptions.AsAuthored);
         }
     }
+
+    internal static AudioEngine InternalAccessAudioEngine() 
+    {
+        return audioEngine;
+    }
+
+    internal static AudioCategory InternalAccessAudioCategory() 
+    {
+        return audioCategory;
+    }
 }
 
 
 public static class MusicExt 
 {
+    public static AudioEngine GetAudioEngine() 
+    {
+        return patch_Music.InternalAccessAudioEngine();
+    }
+
+    public static AudioCategory GetAudioCategory() 
+    {
+        return patch_Music.InternalAccessAudioCategory(); 
+    }
+
     public static void PlayCustom(this MusicHolder content) 
     {
         string filepath = content.FilePath;

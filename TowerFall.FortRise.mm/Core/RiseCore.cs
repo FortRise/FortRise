@@ -169,6 +169,8 @@ public static partial class RiseCore
             return null;
         };
         Loader.InitializeMods();
+        Logger.Info("[RESOURCE] Initializng resources...");
+        RiseCore.ResourceTree.Initialize();
     }
 
     public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  

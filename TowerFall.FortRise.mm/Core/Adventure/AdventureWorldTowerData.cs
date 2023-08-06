@@ -35,7 +35,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     private bool Lookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in RiseCore.Resources.GlobalResources[TempSystem.Root].Childrens) 
+        foreach (RiseCore.Resource resource in RiseCore.ResourceTree.TreeMap[TempSystem.Root].Childrens) 
         {
             var path = resource.Path;
 
@@ -53,7 +53,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     private bool ModLookup(string directory) 
     {
         bool customIcon = false;
-        foreach (RiseCore.Resource resource in RiseCore.Resources.GlobalResources[TempSystem.Root + directory].Childrens) 
+        foreach (RiseCore.Resource resource in RiseCore.ResourceTree.TreeMap[TempSystem.Root + directory].Childrens) 
         {
             var path = resource.Path;
 
@@ -130,11 +130,11 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
 
         IAdventureTowerLoader towerLoader = null;
         var prefixedPath = TempSystem.Root + levelDirectory;
-        if (RiseCore.Resources.GlobalResources.ContainsKey(prefixedPath + "/tower.xml")) 
+        if (RiseCore.ResourceTree.TreeMap.ContainsKey(prefixedPath + "/tower.xml")) 
         {
             towerLoader = new XmlAdventureTowerLoader(this);
         }
-        else if (RiseCore.Resources.GlobalResources.ContainsKey(prefixedPath + "/tower.lua")) 
+        else if (RiseCore.ResourceTree.TreeMap.ContainsKey(prefixedPath + "/tower.lua")) 
         {
             towerLoader = new LuaAdventureLoader();
         }
@@ -143,7 +143,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
             return false;
         }
 
-        using var fs = RiseCore.Resources.GlobalResources[prefixedPath + "/tower." + towerLoader.FileExtension].Stream;
+        using var fs = RiseCore.ResourceTree.TreeMap[prefixedPath + "/tower." + towerLoader.FileExtension].Stream;
         var info = towerLoader.Load(id, fs, levelDirectory, customIcons);
         var guid = (info.Theme as patch_TowerTheme).GenerateThemeID();
 
@@ -185,10 +185,10 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
         {
             var sliced = fgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = RiseCore.Resources.GlobalResources[TempSystem.Root + sliced];
+            var resource = RiseCore.ResourceTree.TreeMap[TempSystem.Root + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = RiseCore.Resources.GlobalResources[TempSystem.Root + loadedXML.Attr("image")].Stream;
+            using var tilesetPath = RiseCore.ResourceTree.TreeMap[TempSystem.Root + loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.Tileset = id;
         }
@@ -196,10 +196,10 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
         {
             var sliced = bgTileset.Slice(7).ToString();
             var id = Path.Combine(StoredDirectory, sliced);
-            var resource = RiseCore.Resources.GlobalResources[TempSystem.Root + sliced];
+            var resource = RiseCore.ResourceTree.TreeMap[TempSystem.Root + sliced];
             using var path = resource.Stream;
             var loadedXML = patch_Calc.LoadXML(path)["Tileset"];
-            using var tilesetPath = RiseCore.Resources.GlobalResources[TempSystem.Root + loadedXML.Attr("image")].Stream;
+            using var tilesetPath = RiseCore.ResourceTree.TreeMap[TempSystem.Root + loadedXML.Attr("image")].Stream;
             patch_GameData.CustomTilesets.Add(id, patch_TilesetData.Create(loadedXML, tilesetPath));
             Theme.BGTileset = id;
         }
@@ -212,7 +212,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
 
         void LoadBG(string background) 
         {
-            var path = RiseCore.Resources.GlobalResources[TempSystem.Root + background].Stream;
+            var path = RiseCore.ResourceTree.TreeMap[TempSystem.Root + background].Stream;
             var loadedXML = patch_Calc.LoadXML(path)["BG"];
 
             // Old API
@@ -223,7 +223,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
 
                 if (!string.IsNullOrEmpty(oldAPIPath)) 
                 {
-                    using var fs = RiseCore.Resources.GlobalResources[TempSystem.Root + oldAPIPath].Stream;
+                    using var fs = RiseCore.ResourceTree.TreeMap[TempSystem.Root + oldAPIPath].Stream;
                     var texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
                     var old_api_atlas = new patch_Atlas();
                     old_api_atlas.SetSubTextures(new Dictionary<string, Subtexture>() {{oldAPIPath, new Subtexture(new Monocle.Texture(texture2D)) }});
@@ -241,14 +241,14 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
             patch_SpriteData spriteData = null;
             if (customBGAtlas != null) 
             {
-                var xml = RiseCore.Resources.GlobalResources[TempSystem.Root + customBGAtlas + ".xml"].Stream;
-                var png = RiseCore.Resources.GlobalResources[TempSystem.Root + customBGAtlas + ".png"].Stream;
+                var xml = RiseCore.ResourceTree.TreeMap[TempSystem.Root + customBGAtlas + ".xml"].Stream;
+                var png = RiseCore.ResourceTree.TreeMap[TempSystem.Root + customBGAtlas + ".png"].Stream;
                 atlas = AtlasExt.CreateAtlas(null, xml, png);
             }
 
             if (customSpriteDataAtlas != null) 
             {
-                using var spriteTexture = RiseCore.Resources.GlobalResources[TempSystem.Root + customSpriteDataAtlas + ".xml"].Stream;
+                using var spriteTexture = RiseCore.ResourceTree.TreeMap[TempSystem.Root + customSpriteDataAtlas + ".xml"].Stream;
                 spriteData = SpriteDataExt.CreateSpriteData(null, spriteTexture, atlas);
             }
 

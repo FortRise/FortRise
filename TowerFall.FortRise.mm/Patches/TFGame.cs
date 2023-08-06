@@ -150,7 +150,7 @@ public partial class patch_TFGame : TFGame
         foreach (var mods in RiseCore.InternalMods) 
         {
             mods.Content.LoadResources();
-    }
+        }
     }
 
     protected extern void orig_Initialize();
@@ -285,21 +285,34 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        //TaskHelper.RunAsync("dumping assets", RiseCore.Resources.DumpAll);
+        //TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
 
         TaskHelper.Run("loading sfx", () => 
         {
-            Logger.Log("[LOAD] ...Music");
-            TFGame.WriteLineToLoadLog("Loading Music...");
-            patch_Music.Initialize();
-            if (!Sounds.Loaded)
+            try 
             {
-                Logger.Log("[LOAD] ...SFX" );
-                TFGame.WriteLineToLoadLog("Loading Sounds...");
-                Sounds.Load();
+                Logger.Log("[LOAD] ...Music");
+                TFGame.WriteLineToLoadLog("Loading Music...");
+                patch_Music.Initialize();
+                foreach (var mods in RiseCore.InternalMods) 
+                {
+                    mods.Content.LoadAudio();
+                }
+                if (!Sounds.Loaded)
+                {
+                    Logger.Log("[LOAD] ...SFX" );
+                    TFGame.WriteLineToLoadLog("Loading Sounds...");
+                    Sounds.Load();
+                }
+                SoundLoaded = true;
+                Logger.Log("[LOAD] === SOUND LOADING COMPLETE ===");
             }
-            SoundLoaded = true;
-            Logger.Log("[LOAD] === SOUND LOADING COMPLETE ===");
+            catch (Exception ex)
+            {
+                TFGame.Log(ex, true);
+                TFGame.OpenLog();
+                Engine.Instance.Exit();
+            }
         });
     }
 

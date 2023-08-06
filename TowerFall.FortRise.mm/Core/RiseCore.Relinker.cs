@@ -164,12 +164,6 @@ public static partial class RiseCore
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
-            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
-            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
-
-            var checksums = new string[2];
-            checksums[0] = GameChecksum;
-            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
 
             if (Environment.Is64BitProcess) 
             {
@@ -186,6 +180,12 @@ public static partial class RiseCore
                 }
             }
 
+            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
+            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+
+            var checksums = new string[2];
+            checksums[0] = GameChecksum;
+            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
             
 
             if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 

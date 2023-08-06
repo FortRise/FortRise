@@ -5,6 +5,10 @@ using Monocle;
 using System.Collections.Generic;
 using Ionic.Zip;
 using System.Linq;
+using TowerFall;
+using FortRise.Adventure;
+using System.Xml;
+using Microsoft.Xna.Framework.Audio;
 
 namespace FortRise;
 
@@ -47,7 +51,7 @@ public class FortContent
         get 
         {
             var root = $"mod:{ResourceSystem.Metadata.Name}/";
-            return RiseCore.Resources.GlobalResources[root + path];
+            return RiseCore.ResourceTree.TreeMap[root + path];
         }
     }
 
@@ -71,45 +75,151 @@ public class FortContent
         Dispose(disposeTexture);
     }
 
-    internal void LoadResources() 
+    internal string LoadBank(RiseCore.Resource child) 
     {
-        foreach (var atlasRes in ResourceSystem.Resources.Where(x => x.Value.Path.StartsWith("Content/Atlas"))) 
+        var modDirectory = child.Root.Substring(4);
+        var cachePath = "Mods/_RelinkerCache/";
+        var bankDirectory = cachePath + modDirectory;
+        var bankPath = bankDirectory + Path.GetFileName(child.Path);
+
+        if (!Directory.Exists(bankDirectory))
+            Directory.CreateDirectory(bankDirectory);
+
+        var cachedChecksumPath = bankPath + ".sum";
+
+        var stream = child.Stream;
+        
+        var checksums = new string[2];
+        checksums[0] = RiseCore.GameChecksum;
+        checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
+
+        if (File.Exists(bankPath) && File.Exists(cachedChecksumPath) && RiseCore.Relinker.ChecksumsEqual(
+            checksums, File.ReadAllLines(cachedChecksumPath))) 
         {
-            var resource = atlasRes.Value;
-            foreach (var child in resource.Childrens) 
-            {
-                var png = child.FullPath;
-                if (Path.GetExtension(png) != ".png")
-                    return;
-                var xml = png.Replace(".png", ".xml");
-                if (!RiseCore.Resources.GlobalResources.ContainsKey(xml)) 
-                    return;
-                int indexOfSlash = png.IndexOf('/');
-
-                png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
-                xml = xml.Substring(indexOfSlash + 1).Replace("Content/", "");
-
-                LoadAtlas(xml, png);
-            }
+            Logger.Info($"[BANK] Loading Cached Bank file to {bankPath}");
+            goto LoadBankImmediately;
         }
 
-        // foreach (var spriteDataRes in ResourceSystem.Resources.Where(x => x.Value.Path.StartsWith("Content/SpriteData"))) 
-        // {
-        //     var resource = spriteDataRes.Value;
-        //     foreach (var child in resource.Childrens) 
-        //     {
-        //         var spriteData = resource.FullPath;
-        //         if (Path.GetExtension(spriteData) != ".xml")
-        //             return;
-        //         if (!RiseCore.Resources.GlobalResources.ContainsKey(spriteData)) 
-        //             return;
-        //         int indexOfSlash = spriteData.IndexOf('/');
+        Logger.Info($"[BANK] Creating Bank file to {bankPath}");
 
-        //         spriteData = spriteData.Substring(indexOfSlash + 1).Replace("Content/", "");
+        if (File.Exists(cachedChecksumPath))
+            File.Delete(cachedChecksumPath);
+        
+        File.WriteAllLines(cachedChecksumPath, checksums);
 
-        //         LoadSpriteData(spriteData, );
-        //     }
-        // }
+        using (var fs = File.Create(bankPath)) 
+        {
+            stream.CopyTo(fs);
+        }
+
+        LoadBankImmediately:
+        stream.Dispose();
+        stream = null;
+        return bankPath;
+    }
+
+    internal void LoadAudio() 
+    {
+        foreach (var audioEngineRes in ResourceSystem.Resources.Where(x => 
+            x.Value.Path.StartsWith("Content/Music/Win"))) 
+        {
+            XactAudioSystem audioBank = null;
+            foreach (var child in audioEngineRes.Value.Childrens) 
+            {
+                if (child.Path.EndsWith(".xwb")) 
+                {
+                    var bankPath = LoadBank(child);
+
+                    audioBank ??= new XactAudioSystem();
+                    var waveBank = new WaveBank(audioBank.Engine, bankPath);
+                    audioBank.Wave = waveBank;
+                }
+                else if (child.Path.EndsWith(".xsb")) 
+                {
+                    var bankPath = LoadBank(child);
+
+                    audioBank ??= new XactAudioSystem();
+                    var soundBank = new SoundBank(audioBank.Engine, bankPath);
+                    audioBank.Sound = soundBank;
+                }
+            }
+
+            if (audioBank == null)
+                continue;
+
+            var modDirectory = audioEngineRes.Value.Root.Substring(4).Replace("/", "");
+            patch_Audio.ModAudios.Add(modDirectory, audioBank);
+        }
+    }
+
+    internal void LoadResources() 
+    {
+        foreach (var atlasRes in ResourceSystem.Resources.Where(x => 
+            x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas))) 
+        {
+            var child = atlasRes.Value;
+            var png = child.FullPath;
+            if (Path.GetExtension(png) != ".png")
+                continue;
+            var xml = png.Replace(".png", ".xml");
+            if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xml)) 
+                continue;
+            int indexOfSlash = png.IndexOf('/');
+
+            png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
+            xml = xml.Substring(indexOfSlash + 1).Replace("Content/", "");
+
+            LoadAtlas(xml, png);
+        }
+
+        foreach (var spriteDataRes in ResourceSystem.Resources
+            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData))) 
+        {
+            var child = spriteDataRes.Value;
+            var spriteData = child.FullPath;
+            if (Path.GetExtension(spriteData) != ".xml")
+                continue;
+
+            int indexOfSlash = spriteData.IndexOf('/');
+
+            spriteData = spriteData.Substring(indexOfSlash + 1).Replace("Content/", "");
+
+            // Will just try to load the spriteData, some spriteData might not have a neeeded attribute.
+            TryLoadSpriteData(spriteData, out var result);
+        }
+
+        foreach (var gameDataRes in ResourceSystem.Resources
+            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData))) 
+        {
+            var child = gameDataRes.Value;
+            var gameData = child.FullPath;
+            if (Path.GetExtension(gameData) != ".xml")
+                continue;
+            
+            var filename = Path.GetFileName(gameData);
+
+            switch (filename) 
+            {
+            case "themeData.xml": 
+            {
+                using var xmlStream = child.Stream;
+                var xmlThemes = patch_Calc.LoadXML(xmlStream)["ThemeData"];
+                foreach (XmlElement xmlTheme in xmlThemes) 
+                {
+                    var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
+                    var themeResource = ThemeResource.Create(atlas, child);
+                    var themeID = xmlTheme.Attr("id");
+                    RiseCore.GameData.Defer(() => 
+                    {
+                        var towerTheme = new patch_TowerTheme(xmlTheme, themeResource);
+                        RiseCore.GameData.Themes.Add(child.Root.Substring(4) + themeID, towerTheme);
+                        Logger.Verbose("[TOWER THEME] Loaded: " + child.Root.Substring(4) + themeID);
+                    });
+                }
+            }
+                break;
+            }
+        }
     }
 
     public bool IsResourceExist(string path) 
@@ -247,6 +357,34 @@ public class FortContent
         var spriteData = SpriteDataExt.CreateSpriteData(this, xml, atlas);
         spriteDatas.Add(filename, spriteData);
         return spriteData;
+    }
+
+    /// <summary>
+    /// Try to load SpriteData from a mod Content path. If it succeed, it returns true if it succeed, else false.
+    /// The SpriteData must have an attribute called "atlas" referencing the atlas path that exists to use to succeed.
+    /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
+    /// </summary>
+    /// <param name="filename">A path to the SpriteData xml.</param>
+    /// <param name="result">A SpriteData instance to be use for sprite if it succeed, else null</param>
+    /// <returns>true if it succeed, else false</returns>
+    public bool TryLoadSpriteData(string filename, out patch_SpriteData result)
+    {
+        if (spriteDatas.TryGetValue(filename, out var spriteDataExist))
+        {
+            result = spriteDataExist;
+            return true;
+        }
+
+        using var xml = this[contentPath + "/" + filename].Stream;
+        if (!SpriteDataExt.TryCreateSpriteData(this, xml, out var data))
+        {
+            result = null;
+            return false;
+        }
+        var spriteData = data;
+        spriteDatas.Add(filename, spriteData);
+        result = spriteData;
+        return true;
     }
 
     /// <summary>

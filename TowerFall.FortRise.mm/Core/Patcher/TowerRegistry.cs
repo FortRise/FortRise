@@ -147,12 +147,8 @@ public static class TowerRegistry
 
     internal static void LoadQuest() 
     {
-        foreach (var map in RiseCore.Resources.GlobalResources.Values
-            .Where(folder => folder.Path.StartsWith("Content/Levels/Quest") && (
-                !folder.Path.Contains(".oel") &&
-                !folder.Path.Contains(".xml") &&
-                !folder.Path.Contains(".json"))
-            ))
+        foreach (var map in RiseCore.ResourceTree.TreeMap.Values
+            .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeQuestTowerFolder)))
         {
             var fullPath = map.FullPath;
             var path = fullPath.Substring(4).Replace("Content/Levels/Quest/", string.Empty);
@@ -160,41 +156,26 @@ public static class TowerRegistry
             var levelData = new patch_QuestLevelData();
             levelData.SetLevelID(path);
             levelData.SetLevelSet(path);
-            levelData.Path = fullPath + "/" + "00.oel";
-            levelData.DataPath = fullPath + "/" + "tower.xml";
+            levelData.Path = fullPath + "/" + "level.oel";
+            levelData.DataPath = fullPath + "/" + "data.xml";
 
-            RiseCore.Resource xmlResource = null;
+            RiseCore.Resource towerXmlResource = null;
             foreach (var child in map.Childrens) 
             {
                 if (!child.Path.Contains("tower.xml")) 
                     continue;
-                xmlResource = child;
+                towerXmlResource = child;
                 break;
             }
-            if (xmlResource == null)
+            if (towerXmlResource == null)
                 continue;
 
             levelData.Stats = AdventureModule.SaveData.AdventureQuest.AddOrGet(levelData.GetLevelID());
 
-            using var xmlStream = xmlResource.Stream;
-            var xml = patch_Calc.LoadXML(xmlStream)["data"];
+            using var xmlStream = towerXmlResource.Stream;
+            var xml = patch_Calc.LoadXML(xmlStream)["tower"];
 
-            if (xml.HasChild("theme")) 
-            {
-                var xmlTheme = xml["theme"];
-                if (xmlTheme.NodeType == XmlNodeType.Element) 
-                {
-                    levelData.Theme = new patch_TowerTheme(xml["theme"]);
-                }
-                else 
-                {
-                    levelData.Theme = GameData.Themes[xml.ChildText("theme")];
-                }
-            }
-            else 
-            {
-                levelData.Theme = TowerTheme.GetDefault();
-            }
+            levelData.Theme = LoadTheme(xml, map);
 
             TowerRegistry.QuestAdd(levelData.GetLevelSet(), levelData);
         }
@@ -202,12 +183,8 @@ public static class TowerRegistry
 
     internal static void LoadDarkWorld() 
     {
-        foreach (var map in RiseCore.Resources.GlobalResources.Values
-            .Where(folder => folder.Path.StartsWith("Content/Levels/DarkWorld") && (
-                !folder.Path.Contains(".oel") &&
-                !folder.Path.Contains(".xml") &&
-                !folder.Path.Contains(".json"))
-            )) 
+        foreach (var map in RiseCore.ResourceTree.TreeMap.Values
+            .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeDarkWorldTowerFolder)))
         {
             var path = map.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
 
@@ -219,9 +196,11 @@ public static class TowerRegistry
             RiseCore.Resource xmlResource = null;
             foreach (var child in map.Childrens) 
             {
-                if ((child.Path.EndsWith(".oel") || child.Path.EndsWith(".json")) && !child.Path.StartsWith("icon")) 
+                if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) || 
+                child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
+                !child.Path.StartsWith("icon"))
                 {
-                    levelData.Levels.Add(child.FullPath);
+                    levelData.Levels.Add(child.Root + child.Path);
                     continue;
                 }
 
@@ -239,22 +218,7 @@ public static class TowerRegistry
             var xml = patch_Calc.LoadXML(xmlStream)["tower"];
             levelData.LoadExtraData(xml);
             levelData.Author = xml.ChildText("author", string.Empty);
-            if (xml.HasChild("theme")) 
-            {
-                var xmlTheme = xml["theme"];
-                if (xmlTheme.NodeType == XmlNodeType.Element) 
-                {
-                    levelData.Theme = new patch_TowerTheme(xml["theme"], map);
-                }
-                else 
-                {
-                    levelData.Theme = GameData.Themes[xml.ChildText("theme")];
-                }
-            }
-            else 
-            {
-                levelData.Theme = TowerTheme.GetDefault();
-            }
+            levelData.Theme = LoadTheme(xml, map);
 			
 			levelData.TimeBase = xml["time"].ChildInt("base", 300);
 			levelData.TimeAdd = xml["time"].ChildInt("add", 40);
@@ -282,5 +246,46 @@ public static class TowerRegistry
 
             TowerRegistry.DarkWorldAdd(levelData.GetLevelSet(), levelData);
         }
+    }
+
+    private static TowerTheme LoadTheme(XmlElement xml, RiseCore.Resource map) 
+    {
+        if (xml.HasChild("theme")) 
+        {
+            var xmlTheme = xml["theme"];
+            if (xmlTheme.HasChild("Name")) 
+            {
+                var atlas = xml.Attr("atlas", "Atlas/atlas");
+                var theme = ThemeResource.Create(atlas, map);
+                return new patch_TowerTheme(xml["theme"], theme);
+            }
+            else if (RiseCore.GameData.Themes.TryGetValue(xml.ChildText("theme").Trim(), out var theme)) 
+            {
+                return theme;
+            }
+            else 
+            {
+                return GameData.Themes[xml.ChildText("theme")];
+            }
+        }
+        return TowerTheme.GetDefault();
+    }
+}
+
+public struct ThemeResource 
+{
+    public patch_Atlas Atlas;
+
+    public static ThemeResource Create(string atlas, RiseCore.Resource map) 
+    {
+        ThemeResource theme = default;
+        if (map.Source.Content.Atlases.TryGetValue(atlas, out var at)) 
+        {
+            theme = new ThemeResource() 
+            {
+                Atlas = at
+            };
+        }
+        return theme;
     }
 }

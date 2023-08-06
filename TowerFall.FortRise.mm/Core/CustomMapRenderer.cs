@@ -101,7 +101,7 @@ public class XmlMapRenderer : CustomMapRenderer
     internal void CreateMapInternal(Stream path, RiseCore.Resource content) 
     {
         var getPath = (string path) => {
-            return RiseCore.Resources.GlobalResources[content.Root + path];
+            return RiseCore.ResourceTree.TreeMap[content.Root + path];
         };
         var map = patch_Calc.LoadXML(path)["map"];
         var containSpriteData = map.HasAttr("spriteData");

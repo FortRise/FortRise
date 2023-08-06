@@ -10,8 +10,24 @@ namespace FortRise;
 
 public partial class RiseCore 
 {
+    public sealed class ResourceTypeFile {}
+    public sealed class ResourceTypeFolder {}
+
+    public sealed class ResourceTypeXml {}
+    public sealed class ResourceTypeJson {}
+    public sealed class ResourceTypeOel {}
+    public sealed class ResourceTypeQuestTowerFolder {}
+    public sealed class ResourceTypeDarkWorldTowerFolder {}
+    public sealed class ResourceTypeVersusTowerFolder {}
+    public sealed class ResourceTypeAtlas {}
+    public sealed class ResourceTypeSpriteData {}
+    public sealed class ResourceTypeGameData {}
+    public sealed class ResourceTypeWaveBank {}
+    public sealed class ResourceTypeSoundBank {}
+    public sealed class ResourceTypeAudioEngine {}
+
     internal static HashSet<string> BlacklistedExtension = new() {
-        ".csproj", ".cs", ".md", ".toml", ".aseprite", ".ase"
+        ".csproj", ".cs", ".md", ".toml", ".aseprite", ".ase", ".xap"
     };
 
     internal static HashSet<string> BlacklistedRootFolders = new() {
@@ -25,6 +41,7 @@ public partial class RiseCore
         public string Root;
         public List<Resource> Childrens = new();
         public ModResource Source;
+        public Type ResourceType;
 
         public abstract Stream Stream { get; }
 
@@ -103,10 +120,12 @@ public partial class RiseCore
             Logger.Verbose("[RESOURCE] Loaded:" + path);
             if (Resources.ContainsKey(path)) 
                 return;
+
             
             Resources.Add(path, resource);
-            RiseCore.Resources.GlobalResources.Add($"{rootPath}{path}", resource);
+            RiseCore.ResourceTree.TreeMap.Add($"{rootPath}{path}", resource);
         }
+
 
         public abstract void Lookup(string prefix);
 
@@ -299,6 +318,8 @@ public partial class RiseCore
             for (int i = 0; i < files.Length; i++) 
             {
                 var filePath = files[i].Replace('\\', '/');
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                    continue;
                 var simplifiedPath = filePath.Replace(modDirectory + '/', "");
                 var fileResource = new FileResource(this, simplifiedPath, filePath);
                 Add(simplifiedPath, fileResource);
@@ -317,9 +338,9 @@ public partial class RiseCore
         }
     }
 
-    public static class Resources 
+    public static class ResourceTree 
     {
-        public static Dictionary<string, Resource> GlobalResources = new();
+        public static Dictionary<string, Resource> TreeMap = new();
 
 
         public static void AddMod(ModuleMetadata metadata, ModResource resource) 
@@ -327,12 +348,121 @@ public partial class RiseCore
             var name = (metadata is not null ? metadata.Name : "::global::");
             var prefixPath = $"mod:{name}/";
 
-            if (GlobalResources.ContainsKey(prefixPath)) 
+            if (TreeMap.ContainsKey(prefixPath)) 
             {
                 Logger.Warning($"[RESOURCE] Conflicting mod asset name found: {prefixPath}");
                 return;
             }
             resource.Lookup(prefixPath);
+        }
+
+        internal static void Initialize() 
+        {
+            foreach (var res in TreeMap.Values) 
+            {
+                AssignType(res);
+            }
+        }
+
+        public static bool IsExist(string path) 
+        {
+            return TreeMap.ContainsKey(path);
+        }
+
+        public static bool IsExist(Resource resource, string path) 
+        {
+            return TreeMap.ContainsKey(resource.Root + path);
+        }
+
+
+        public static void AssignType(Resource resource) 
+        {
+            var path = resource.Path;
+            var filename = Path.GetFileName(path);
+
+            if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png")) 
+            {
+                if (IsExist(resource, path.Replace(".png", ".xml"))) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeAtlas);
+                }
+            }
+            else if (path.StartsWith("Content/Atlas/GameData") && filename.EndsWith(".xml")) 
+            {
+                resource.ResourceType = typeof(ResourceTypeGameData);
+            }
+            else if (path.StartsWith("Content/Atlas/SpriteData") && filename.EndsWith(".xml")) 
+            {
+                resource.ResourceType = typeof(ResourceTypeSpriteData);
+            }
+            else if (path.StartsWith("Content/Levels/DarkWorld")) 
+            {
+                if (IsExist(resource, path + "/tower.xml")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeDarkWorldTowerFolder);
+                }
+                else AssignLevelFile();
+            }
+            else if (path.StartsWith("Content/Levels/Versus")) 
+            {
+                if (IsExist(resource, path + "/tower.xml")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeVersusTowerFolder);
+                }
+                else AssignLevelFile();
+            }
+            else if (path.StartsWith("Content/Levels/Quest")) 
+            {
+                if (IsExist(resource, path + "/tower.xml")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeQuestTowerFolder);
+                }
+                else AssignLevelFile();
+            }
+            else if (path.StartsWith("Content/Music")) 
+            {
+                if (path.EndsWith(".xgs")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeAudioEngine);
+                }
+                else if (path.EndsWith(".xsb")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeSoundBank);
+                }
+                else if (path.EndsWith("xwb")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeWaveBank);
+                }
+                // FIXME fix normal file
+                else 
+                {
+                    resource.ResourceType = typeof(ResourceTypeFile);
+                }
+            }
+            else if (path.EndsWith(".xml")) 
+            {
+                resource.ResourceType = typeof(ResourceTypeXml);
+            }
+            else if (resource.Childrens.Count != 0) 
+            {
+                resource.ResourceType = typeof(ResourceTypeFolder);
+            }
+            else 
+            {
+                resource.ResourceType = typeof(ResourceTypeFile);
+            }
+
+            void AssignLevelFile() 
+            {
+                if (path.EndsWith(".json")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeJson);
+                }
+                else if (path.EndsWith(".oel")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeOel);
+                }
+            }
         }
 
         public static async Task DumpAll() 
@@ -347,13 +477,14 @@ public partial class RiseCore
                 tw.WriteLine("FORTRISE RESOURCE DUMP");
                 tw.WriteLine("VERSION 4.1.0.0");
                 tw.WriteLine("==============================");
-                foreach (var globalResource in GlobalResources) 
+                foreach (var globalResource in TreeMap) 
                 {
                     await tw.WriteLineAsync("Global File Path: " + globalResource.Key);
                     await tw.WriteLineAsync("Source: ");
                     await tw.WriteLineAsync("\t FullPath: " + globalResource.Value.FullPath);
                     await tw.WriteLineAsync("\t Path: " + globalResource.Value.Path);
                     await tw.WriteLineAsync("\t Root: " + globalResource.Value.Root);
+                    await tw.WriteLineAsync("\t Type: " + globalResource.Value.ResourceType?.Name ?? "EmptyType");
                     await tw.WriteLineAsync("\t Childrens: ");
                     foreach (var child in globalResource.Value.Childrens) 
                     {
@@ -366,6 +497,7 @@ public partial class RiseCore
                     await tw.WriteLineAsync(line + "\t FullPath: " + childResource.FullPath);
                     await tw.WriteLineAsync(line + "\t Path: " + childResource.Path);
                     await tw.WriteLineAsync(line + "\t Root: " + childResource.Root);
+                    await tw.WriteLineAsync(line + "\t Type: " + childResource.ResourceType?.Name ?? "EmptyType");
                     await tw.WriteLineAsync(line + "\t Childrens: ");
                     foreach (var resource in childResource.Childrens) 
                     {

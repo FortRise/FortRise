@@ -18,7 +18,7 @@ public class patch_QuestLevelSystem : QuestLevelSystem
         if (QuestTowerData.GetLevelSet() != "TowerFall") 
         {
             Logger.Log(QuestTowerData.Path);
-            using var xmlStream = RiseCore.Resources.GlobalResources[this.QuestTowerData.Path].Stream;
+            using var xmlStream = RiseCore.ResourceTree.TreeMap[this.QuestTowerData.Path].Stream;
             return patch_Calc.LoadXML(xmlStream)["level"];
         }
         return Calc.LoadXML(this.QuestTowerData.Path)["level"];
