@@ -137,14 +137,14 @@ public class patch_Background : Background
         public Image Image;
         public CustomBackdrop(Level level, XmlElement xml) : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var atlasText = xml.Attr("atlas", "Atlas/atlas");
+            if (!mod.Source.Content.Atlases.TryGetValue(atlasText, out var atlas)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have an atlas!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid Atlas path: {atlasText}.");
                 return;
             }
-            this.Image = new Image(storage.Atlas[xml.InnerText], null);
+            this.Image = new Image(atlas[xml.InnerText], null);
             this.Image.Position = xml.Position(Vector2.Zero);
             this.Image.Color = Color.White * xml.AttrFloat("opacity", 1f);
         }
