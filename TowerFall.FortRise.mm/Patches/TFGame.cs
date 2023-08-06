@@ -147,6 +147,10 @@ public partial class patch_TFGame : TFGame
     {
         orig_LoadContent();
         FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content\\Atlas\\menuatlas.xml", "Content\\Atlas\\menuatlas.png");
+        foreach (var mods in RiseCore.InternalMods) 
+        {
+            mods.Content.LoadResources();
+    }
     }
 
     protected extern void orig_Initialize();
