@@ -257,7 +257,7 @@ public static class TowerRegistry
             {
                 var atlas = xml.Attr("atlas", "Atlas/atlas");
                 var theme = ThemeResource.Create(atlas, map);
-                return new patch_TowerTheme(xml["theme"], theme);
+                return new patch_TowerTheme(xml["theme"], map, theme);
             }
             else if (RiseCore.GameData.Themes.TryGetValue(xml.ChildText("theme").Trim(), out var theme)) 
             {

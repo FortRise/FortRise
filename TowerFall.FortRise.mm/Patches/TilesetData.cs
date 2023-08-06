@@ -1,5 +1,7 @@
 using System.IO;
 using System.Xml;
+using FortRise;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
@@ -27,6 +29,19 @@ public class patch_TilesetData : TilesetData
     internal void ctor() {}
 
     internal patch_TilesetData() : base(null) {}
+
+    public patch_TilesetData(XmlElement xml, ThemeResource resource) : base(null) {}
+
+    [MonoModConstructor]
+    public void ctor(XmlElement xml, ThemeResource resource) 
+    {
+        var image = xml.Attr("image");
+        if (resource.Atlas.Contains(image))
+        {
+            Texture = resource.Atlas[image];
+        }
+        AutotileData = new AutotileData(xml);
+    }
 
     public static patch_TilesetData Create(XmlElement xml, string pathToImage) 
     {

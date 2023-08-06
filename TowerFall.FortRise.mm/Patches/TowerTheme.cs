@@ -12,15 +12,17 @@ namespace TowerFall;
 
 public class patch_TowerTheme : TowerTheme 
 {
+    public RiseCore.Resource Mod;
     public Guid ThemeID;
     public patch_TowerTheme(XmlElement xml) {}
-    public patch_TowerTheme(XmlElement xml, ThemeResource resource) {}
+    public patch_TowerTheme(XmlElement xml, RiseCore.Resource mod, ThemeResource resource) {}
     public patch_TowerTheme(LuaTable value) {}
 
 
     [MonoModConstructor]
-    public void ctor(XmlElement xml, ThemeResource resource) 
+    public void ctor(XmlElement xml, RiseCore.Resource mod, ThemeResource resource) 
     {
+        Mod = mod;
         var atlas = resource.Atlas != null ? resource.Atlas : TFGame.MenuAtlas;
         Name = xml.ChildText("Name").ToUpperInvariant();
 
@@ -40,7 +42,12 @@ public class patch_TowerTheme : TowerTheme
         World = xml.ChildEnum("World", TowerTheme.Worlds.Normal);
         Raining = xml.ChildBool("Raining", false);
         BackgroundID = xml.ChildText("Background");
-        if (GameData.BGs.ContainsKey(BackgroundID)) 
+        if (RiseCore.GameData.BGs.ContainsKey(BackgroundID))
+        {
+            BackgroundData = RiseCore.GameData.BGs[this.BackgroundID]["Background"];
+            ForegroundData = RiseCore.GameData.BGs[this.BackgroundID]["Foreground"];
+        }
+        else if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
             BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
             ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
@@ -210,5 +217,20 @@ public class patch_TowerTheme : TowerTheme
     public Guid GenerateThemeID() 
     {
         return ThemeID = Guid.NewGuid();
+    }
+}
+
+public static class TowerThemeExt 
+{
+    public static bool TryGetMod(this TowerTheme theme, out RiseCore.Resource mod) 
+    {
+        var moddedTheme = ((patch_TowerTheme)theme);
+        if (moddedTheme.Mod != null) 
+        {
+            mod = moddedTheme.Mod;
+            return true;
+        }
+        mod = null;
+        return false;
     }
 }

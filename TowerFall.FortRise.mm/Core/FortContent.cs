@@ -158,7 +158,7 @@ public class FortContent
             x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas))) 
         {
             var child = atlasRes.Value;
-            var png = child.FullPath;
+            var png = child.Root + child.Path;
             if (Path.GetExtension(png) != ".png")
                 continue;
             var xml = png.Replace(".png", ".xml");
@@ -176,7 +176,7 @@ public class FortContent
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData))) 
         {
             var child = spriteDataRes.Value;
-            var spriteData = child.FullPath;
+            var spriteData = child.Root + child.Path;
             if (Path.GetExtension(spriteData) != ".xml")
                 continue;
 
@@ -192,7 +192,7 @@ public class FortContent
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData))) 
         {
             var child = gameDataRes.Value;
-            var gameData = child.FullPath;
+            var gameData = child.Root + child.Path;
             if (Path.GetExtension(gameData) != ".xml")
                 continue;
             
@@ -208,14 +208,45 @@ public class FortContent
                 {
                     var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
-                    var themeID = xmlTheme.Attr("id");
+                    var themeID = xmlTheme.Attr("id", xmlTheme.Name);
                     RiseCore.GameData.Defer(() => 
                     {
-                        var towerTheme = new patch_TowerTheme(xmlTheme, themeResource);
+                        var towerTheme = new patch_TowerTheme(xmlTheme, child, themeResource);
                         RiseCore.GameData.Themes.Add(child.Root.Substring(4) + themeID, towerTheme);
                         Logger.Verbose("[TOWER THEME] Loaded: " + child.Root.Substring(4) + themeID);
-                    });
+                    }, 0);
                 }
+            }
+                break;
+            case "bgData.xml":
+            {
+                using var xmlStream = child.Stream;
+                var xmlBGs = patch_Calc.LoadXML(xmlStream)["backgrounds"];
+                foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG")) 
+                {
+                    var bgID = bgs.Attr("id");
+                    RiseCore.GameData.BGs.Add(child.Root.Substring(4) + bgID, bgs);
+                }
+
+                Logger.Verbose("[BG] Loaded: " + child.Root.Substring(4) + child.Path);
+            }
+                break;
+            case "tilesetData.xml":
+            {
+                using var xmlStream = child.Stream;
+                var xmlTilesets = patch_Calc.LoadXML(xmlStream)["TilesetData"];
+                foreach (XmlElement tilesets in xmlTilesets.GetElementsByTagName("Tileset")) 
+                {
+                    var atlas = tilesets.Attr("atlas", "Atlas/atlas");
+                    var themeResource = ThemeResource.Create(atlas, child);
+                    RiseCore.GameData.Defer(() => 
+                    {
+                        var tilesetID = tilesets.Attr("id", tilesets.Name);
+                        RiseCore.GameData.Tilesets.Add(child.Root.Substring(4) + tilesetID, new patch_TilesetData(tilesets, themeResource));
+                    }, 1);
+                }
+
+                Logger.Verbose("[Tileset] Loaded: " + child.Root.Substring(4) + child.Path);
             }
                 break;
             }
@@ -369,7 +400,8 @@ public class FortContent
     /// <returns>true if it succeed, else false</returns>
     public bool TryLoadSpriteData(string filename, out patch_SpriteData result)
     {
-        if (spriteDatas.TryGetValue(filename, out var spriteDataExist))
+        var id = filename.Replace(".xml", "");
+        if (spriteDatas.TryGetValue(id, out var spriteDataExist))
         {
             result = spriteDataExist;
             return true;
@@ -382,7 +414,7 @@ public class FortContent
             return false;
         }
         var spriteData = data;
-        spriteDatas.Add(filename, spriteData);
+        spriteDatas.Add(id, spriteData);
         result = spriteData;
         return true;
     }

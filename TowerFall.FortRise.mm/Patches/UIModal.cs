@@ -15,7 +15,7 @@ public class UIModal : Entity
     public Color NotSelection = Calc.HexToColor("F8F8F8");
 
 
-    protected internal MenuPanel panel;
+    protected internal patch_MenuPanel panel;
     protected internal int itemCount;
 
     public IReadOnlyList<string> FillerNames => fillerNames;
@@ -31,6 +31,20 @@ public class UIModal : Entity
     private Color fillerColor = Color.White;
     private bool noTitle;
 
+    public int Width 
+    {
+        get => width;
+        set 
+        {
+            width = value;
+            if (panel == null) 
+                return;
+            
+            panel.Width = width;
+        }
+    }
+
+    private int width = 120;
     public bool SelectionFlash;
     public bool AutoClose = true;
     public string Title;
@@ -48,6 +62,11 @@ public class UIModal : Entity
         Add(selectionWiggler);
     }
 
+    public UIModal SetPanelWidth(int width) 
+    {
+        Width = width;
+        return this;
+    }
 
     public override void Added()
     {
@@ -57,7 +76,7 @@ public class UIModal : Entity
         else if (optionIndex >= optionNames.Count - 1)
             optionIndex = optionNames.Count - 1;
         Sounds.ui_pause.Play(160f);
-        panel = new MenuPanel(120, itemCount * 10 + 30);
+        panel = new patch_MenuPanel(width, itemCount * 10 + 30);
         Add(panel);
     }
 
