@@ -66,7 +66,30 @@ namespace TowerFall
         [MonoModIgnore]
         [PatchMapSceneBegin]
         [PreFixing("TowerFall.MapScene", "System.Void InitializeCustoms()")]
-        public extern override void Begin();
+        public extern void orig_Begin();
+
+        public override void Begin() 
+        {
+            orig_Begin();
+            if (!this.IsOfficialLevelSet()) 
+            {
+                var entity = new Entity();
+                var tween = Tween.Create(Tween.TweenMode.Oneshot, null, 10);
+                entity.Add(tween);
+                tween.OnComplete = t => {
+                    var startingID = CurrentAdventureType switch 
+                    {
+                        AdventureType.Quest => MainMenu.QuestMatchSettings.LevelSystem.ID.X,
+                        AdventureType.DarkWorld => MainMenu.DarkWorldMatchSettings.LevelSystem.ID.X,
+                        _ => 0
+                    };
+                    GotoAdventure(CurrentAdventureType, startingID + 1);
+                    entity.RemoveSelf();
+                };
+                Add(entity);
+                tween.Start();
+            }
+        }
 
 
         [MonoModReplace]
@@ -386,7 +409,7 @@ namespace TowerFall
 
         public static bool IsOfficialLevelSet(this MapScene mapScene) 
         {
-            return ((patch_MapScene)mapScene).LevelSet == "TowerFall";
+            return ((patch_MapScene)mapScene).GetLevelSet() == "TowerFall";
         }
 
         public static AdventureType GetCurrentAdventureType(this MapScene mapScene) 
