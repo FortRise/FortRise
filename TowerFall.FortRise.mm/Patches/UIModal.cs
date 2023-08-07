@@ -186,6 +186,18 @@ public class UIModal : Entity
     }
 
     /// <summary>
+    /// Set the start index of a modal based on the option name. It will automatically adjust if the index is out of bounds.
+    /// </summary>
+    /// <param name="optionName">An option name</param>
+    /// <returns>A UIModal context</returns>
+    public UIModal SetStartIndex(string optionName) 
+    {
+        var optIndex = optionNames.IndexOf(optionName.ToUpperInvariant());
+        optionIndex = optIndex;
+        return this;
+    }
+
+    /// <summary>
     /// Set the title of a modal.
     /// </summary>
     /// <param name="title">A title of the modal you want to set</param>
