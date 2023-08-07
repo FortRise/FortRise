@@ -40,7 +40,7 @@ public sealed class AdventureCategoryButton : patch_MapButton
             uiModal.AddItem(item, () => ChangeLevelSet(item));
         }
 
-        uiModal.SetStartIndex(Map.CustomLevelCategory);
+        uiModal.SetStartIndex(Map.GetLevelSet());
         uiModal.OnBack = () => 
         {
             Map.Selection = this;
@@ -54,50 +54,14 @@ public sealed class AdventureCategoryButton : patch_MapButton
         if (levelSet == null)  
         {
             Map.ExitAdventure();
-            Map.SetLevelSet("TowerFall");
             Map.MapPaused = false;
             return;
         }
+
+        Map.Renderer.ChangeLevelSet(levelSet);
         Map.SetLevelSet(levelSet);
         Map.GotoAdventure(Map.CurrentAdventureType);
         Map.MapPaused = false;
-    }
-
-    private void ChangeCategory(int category) 
-    {
-        Map.CustomLevelCategory = category;
-        Map.GotoAdventure(Map.CurrentAdventureType);
-        Map.MapPaused = false;
-        var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[Map.CustomLevelCategory];
-        if (customMapRenderer.contains) 
-        {
-            if (Map.CurrentMapRender != null)
-                Map.CurrentMapRender.Visible = false;
-            Map.CurrentMapRender = customMapRenderer.renderer;
-            Map.Renderer.Visible = false;
-            Map.CurrentMapRender.Visible = true;
-
-            if (Map.Selection == null || Map.Selection.Data == null) 
-            {
-                Map.CurrentMapRender.OnSelectionChange("");
-                return;
-            }
-            Map.CurrentMapRender.OnSelectionChange(Map.Selection.Data.Title);
-        }
-        else 
-        {
-            if (Map.CurrentMapRender != null)
-                Map.CurrentMapRender.Visible = false;
-            Map.Renderer.Visible = true;
-            Map.CurrentMapRender = null;
-
-            if (Map.Selection == null || Map.Selection.Data == null)
-            {
-                Map.Renderer.OnSelectionChange("");
-                return;
-            }
-            Map.Renderer.OnSelectionChange(Map.Selection.Data.Title);
-        }
     }
 
     protected override List<Image> InitImages()

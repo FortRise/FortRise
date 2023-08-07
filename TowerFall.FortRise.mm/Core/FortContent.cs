@@ -249,6 +249,15 @@ public class FortContent
                 Logger.Verbose("[Tileset] Loaded: " + child.Root.Substring(4) + child.Path);
             }
                 break;
+            case "mapData.xml":
+            {
+                using var xmlStream = child.Stream;
+                var xmlMap = patch_Calc.LoadXML(xmlStream)["map"];
+                var map = new MapRendererNode(xmlMap, child);
+                RiseCore.GameData.Defer(() => RiseCore.GameData.MapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
+                Logger.Verbose("[MapData] Loaded: " + child.Root.Substring(4) + child.Path);
+            }
+                break;
             }
         }
     }

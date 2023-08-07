@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using FortRise.Adventure;
 using TowerFall;
 
 namespace FortRise;
@@ -12,6 +13,7 @@ public partial class RiseCore
         public static Dictionary<string, TowerTheme> Themes = new();
         public static Dictionary<string, TilesetData> Tilesets = new();
         public static Dictionary<string, XmlElement> BGs = new();
+        public static Dictionary<string, MapRendererNode> MapRenderers = new();
 
         private static Queue<Action> themesActions = new();
         private static Queue<Action> tilesetActions = new();

@@ -25,8 +25,6 @@ public sealed class AdventureListLoader : Entity
         Visible = false;
         buttons = new List<MapButton>();
         buttons.Add(new AdventureCategoryButton(map.CurrentAdventureType));
-        if (map.CustomLevelCategory == 0) 
-            buttons.Add(new UploadMapButton());
         
         spinTween = Tween.Create(Tween.TweenMode.Persist, Ease.BackOut, 18, false);
         spinTween.OnUpdate = t => spin = MathHelper.Lerp(tweenStart, tweenEnd, t.Eased);

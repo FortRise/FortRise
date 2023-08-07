@@ -19,17 +19,11 @@ namespace TowerFall
         private bool adventureLevels;
         private float crashDelay;
         private Counter counterDelay;
-        private CustomMapRenderer currentCustomMapRenderer;
         public AdventureType CurrentAdventureType;
         public bool MapPaused;
-        public int CustomLevelCategory;
         public string LevelSet;
+        public patch_MapRenderer Renderer;
 
-        public CustomMapRenderer CurrentMapRender 
-        {
-            get => currentCustomMapRenderer;
-            set => currentCustomMapRenderer = value;
-        }
         public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
         {
         }
@@ -40,17 +34,16 @@ namespace TowerFall
             counterDelay = new Counter();
             counterHolder.Add(counterDelay);
             Add(counterHolder);
-            CustomLevelCategory = -1;
             crashDelay = 10;
-            foreach (var (contaning, mapRenderer) in patch_GameData.AdventureWorldMapRenderer) 
-            {
-                var entity = new Entity(-1);
-                if (!contaning) 
-                    continue;
-                entity.Add(mapRenderer);
-                Add(entity);
-                mapRenderer.Visible = false;
-            }
+            // foreach (var (contaning, mapRenderer) in patch_GameData.AdventureWorldMapRenderer) 
+            // {
+            //     var entity = new Entity(-1);
+            //     if (!contaning) 
+            //         continue;
+            //     entity.Add(mapRenderer);
+            //     Add(entity);
+            //     mapRenderer.Visible = false;
+            // }
         }
 
         [MonoModConstructor]
@@ -181,6 +174,8 @@ namespace TowerFall
             adventureLevels = false;
             WorkshopLevels = false;
             TweenOutAllButtonsAndRemove();
+            LevelSet = "TowerFall";
+            Renderer.ChangeLevelSet(LevelSet);
             Buttons.Clear();
             Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
             switch (CurrentAdventureType) 
@@ -207,8 +202,8 @@ namespace TowerFall
 
             this.LinkButtonsList();
             if (id >= Buttons.Count)
-                id = Buttons.Count - 1;
-            InitButtons(Buttons[id]);
+                id = Buttons.Count;
+            InitButtons(Buttons[0]);
             foreach (var button in Buttons)
                 Add(button);
             ScrollToButton(Selection);
@@ -336,14 +331,6 @@ namespace TowerFall
                 //     }
                 //     Renderer.OnSelectionChange(Selection.Data.Title);
                 // }
-                if (MenuInput.Back) 
-                {
-                    if (currentCustomMapRenderer != null)
-                        currentCustomMapRenderer.Visible = false;
-                    Renderer.Visible = true;
-                    currentCustomMapRenderer = null;
-                    CustomLevelCategory = -1;
-                }
 
                 // if (patch_SaveData.AdventureActive && MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
                 // {
@@ -367,23 +354,6 @@ namespace TowerFall
             orig_Update();
             if (crashDelay > 0)
                 crashDelay--;
-        }
-
-        [PostFixing("TowerFall.MapScene", "System.Void SelectLevelPostfix()")]
-        [MonoModIgnore]
-        public extern void SelectLevel(MapButton button, bool scrollTo = true);
-
-        public void SelectLevelPostfix()
-        {
-            if (currentCustomMapRenderer == null)
-                return;
-            
-            if (Selection.Data == null)
-            {
-                currentCustomMapRenderer.OnSelectionChange("");
-                return;
-            }
-            currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
         }
 
         public void TweenOutAllButtonsAndRemove() 
