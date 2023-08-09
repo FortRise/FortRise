@@ -12,8 +12,6 @@ namespace FortRise.Adventure;
 
 public class AdventureWorldTowerData : patch_DarkWorldTowerData 
 {
-    public RiseCore.Resource TempSystem;
-    public string StoredDirectory;
     public string Author;
     public bool Procedural;
     public int StartingLives = -1;
@@ -21,16 +19,6 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     public string RequiredMods;
     public AdventureWorldTowerStats Stats;
 
-    public AdventureWorldTowerData(RiseCore.ModResource system, string path) 
-    {
-        // System = system;
-        // System.Lookup("global:/");
-    }
-
-    public AdventureWorldTowerData(RiseCore.Resource system) 
-    {
-        TempSystem = system;
-    }
 
     private void BuildIcon(string path) 
     {

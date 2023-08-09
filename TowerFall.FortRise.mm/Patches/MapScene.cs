@@ -67,9 +67,7 @@ namespace TowerFall
             if (!this.IsOfficialLevelSet()) 
             {
                 var entity = new Entity();
-                var tween = Tween.Create(Tween.TweenMode.Oneshot, null, 10);
-                entity.Add(tween);
-                tween.OnComplete = t => {
+                Alarm.Set(entity, 10, () => {
                     var startingID = CurrentAdventureType switch 
                     {
                         AdventureType.Quest => MainMenu.QuestMatchSettings.LevelSystem.ID.X,
@@ -78,9 +76,8 @@ namespace TowerFall
                     };
                     GotoAdventure(CurrentAdventureType, startingID + 1);
                     entity.RemoveSelf();
-                };
+                });
                 Add(entity);
-                tween.Start();
             }
         }
 
@@ -135,6 +132,10 @@ namespace TowerFall
         {
             CurrentAdventureType = adventureType;
             Buttons.Add(new AdventureCategoryButton(adventureType));
+            if (adventureType == AdventureType.Versus) 
+            {
+                Buttons.Add(new AdventureChaoticRandomSelect());
+            }
         }
 
         private void InitAdventureMap(List<MapButton[]> list) 
@@ -198,6 +199,10 @@ namespace TowerFall
                     }
                 }
                 break;
+            case AdventureType.Versus:
+                Buttons.Add(new AdventureChaoticRandomSelect());
+                InitVersusButtons();
+                break;
             }
 
             this.LinkButtonsList();
@@ -208,6 +213,10 @@ namespace TowerFall
                 Add(button);
             ScrollToButton(Selection);
         }
+
+        [MonoModIgnore]
+        private extern void InitVersusButtons();
+
 
         [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
         [MonoModIgnore]
@@ -227,129 +236,7 @@ namespace TowerFall
             }
             if (!ScrollMode && !MatchStarting && Mode == MainMenu.RollcallModes.DarkWorld && crashDelay <= 0) 
             {
-                // if (MenuInput.Alt2 && Selection is AdventureMapButton button)
-                // {
-                //     var id = Selection.Data.ID.X;
-                //     var level = patch_GameData.AdventureWorldTowers[id];
-                //     if (AdventureModule.SaveData.LevelLocations.Contains(level.StoredDirectory)) 
-                //     {
-                //         Add(new DeleteMenu(this, id));
-                //         MapPaused = true;
-                //         return;
-                //     }
-                //     button.Shake();
-                //     MenuInput.RumblePlayers(1f, 20);
-                // }
-                // if (MenuInput.Up && !counterDelay) 
-                // {
-                //     if (CustomLevelCategory != patch_GameData.AdventureWorldModTowers.Count - 1) 
-                //     {
-                //         CustomLevelCategory++;
-                //         var id = Buttons.IndexOf(Selection);
-                //         GotoAdventure(CurrentAdventureType, id);
-                //         var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[CustomLevelCategory];
-                //         if (customMapRenderer.contains) 
-                //         {
-                //             if (currentCustomMapRenderer != null)
-                //                 currentCustomMapRenderer.Visible = false;
-                //             currentCustomMapRenderer = customMapRenderer.renderer;
-                //             Renderer.Visible = false;
-                //             currentCustomMapRenderer.Visible = true;
-                //             if (Selection.Data == null) 
-                //             {
-                //                 currentCustomMapRenderer.OnSelectionChange("");
-                //                 return;
-                //             }
-                //             currentCustomMapRenderer.OnSelectionChange(Selection.Data.Title);
-                //         }
-                //         else 
-                //         {
-                //             if (currentCustomMapRenderer != null)
-                //                 currentCustomMapRenderer.Visible = false;
-                //             Renderer.Visible = true;
-                //             currentCustomMapRenderer = null;
-                //             if (Selection.Data == null)
-                //             {
-                //                 Renderer.OnSelectionChange("");
-                //                 return;
-                //             }
-                //             Renderer.OnSelectionChange(Selection.Data.Title);
-                //         }
-                //     }
-                // }
-                // else if (MenuInput.Down && !counterDelay && patch_SaveData.AdventureActive) 
-                // {
-                //     if (CustomLevelCategory != -1)
-                //         CustomLevelCategory--;
 
-                //     var id = Buttons.IndexOf(Selection);
-                //     if (CustomLevelCategory == -1) 
-                //     {
-                //         if (currentCustomMapRenderer != null)
-                //             currentCustomMapRenderer.Visible = false;
-                //         ExitAdventure(id);
-                //         Renderer.Visible = true;
-                //         currentCustomMapRenderer = null;
-
-                //         if (Selection.Data == null)
-                //         {
-                //             Renderer.OnSelectionChange("");
-                //             return;
-                //         }
-                //     }
-                //     else 
-                //     {
-                //         GotoAdventure(CurrentAdventureType, id);
-                //         var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[CustomLevelCategory];
-                //         if (customMapRenderer.contains) 
-                //         {
-                //             if (currentCustomMapRenderer != null)
-                //                 currentCustomMapRenderer.Visible = false;
-                //             currentCustomMapRenderer = customMapRenderer.renderer;
-                //             Renderer.Visible = false;
-                //             currentCustomMapRenderer.Visible = true;
-                //             if (Selection.Data == null) 
-                //             {
-                //                 customMapRenderer.renderer.OnSelectionChange("");
-                //             }
-                //             else
-                //                 customMapRenderer.renderer.OnSelectionChange(Selection.Data.Title);
-                //             return;
-                //         }
-                //         else 
-                //         {
-                //             if (currentCustomMapRenderer != null)
-                //                 currentCustomMapRenderer.Visible = false;
-                //             Renderer.Visible = true;
-                //             currentCustomMapRenderer = null;
-                //             if (Selection.Data == null)
-                //             {
-                //                 Renderer.OnSelectionChange("");
-                //                 return;
-                //             }
-                //         }
-                //     }
-                //     Renderer.OnSelectionChange(Selection.Data.Title);
-                // }
-
-                // if (patch_SaveData.AdventureActive && MInput.Keyboard.Pressed(Keys.F5) && !counterDelay) 
-                // {
-                //     var id = Buttons.IndexOf(Selection);
-                //     var loading = new UILoader();
-                //     loading.LayerIndex = 0;
-                //     loading.WaitWith(() => {
-                //         MapPaused = false;
-                //     });
-                //     Add(loading);
-                //     TaskHelper.Run("RELOAD TOWERS", () => {
-                //         patch_GameData.ReloadCustomTowers();
-                //         if (patch_SaveData.AdventureActive)
-                //             GotoAdventure(CurrentAdventureType, id);
-                //         loading.Finished = true;
-                //     });
-                //     MapPaused = true;
-                //     Selection = null;
-                // }
             }
             orig_Update();
             if (crashDelay > 0)
@@ -361,6 +248,43 @@ namespace TowerFall
             foreach (var mapButton in Buttons) 
             {
                 (mapButton as patch_MapButton).TweenOutAndRemoved();
+            }
+        }
+
+        public void TweenOutAllButtonsAndRemoveExcept(MapButton button) 
+        {
+            foreach (var mapButton in Buttons) 
+            {
+                if (button == mapButton)
+                    continue;    
+                (mapButton as patch_MapButton).TweenOutAndRemoved();
+            }
+        }
+
+        [MonoModPatch("<>c")]
+        public class GetRandomVersusTower_c 
+        {
+            [MonoModPatch("<GetRandomVersusTower>b__39_0")]
+            [MonoModReplace]
+            internal bool GetRandomVersusTowerb__39_0(MapButton b)
+            {
+                return !(b is VersusMapButton or AdventureMapButton);
+            }
+
+            [MonoModPatch("<GetRandomVersusTower>b__39_1")]
+            [MonoModReplace]
+            internal bool GetRandomVersusTowerb__39_1(MapButton b)
+            {
+                return b is VersusMapButton && !(b as VersusMapButton).NoRandom;
+            }
+
+            [MonoModPatch("<GetRandomVersusTower>b__39_2")]
+            [MonoModReplace]
+            internal bool GetRandomVersusTowerb__39_2(MapButton b)
+            {
+                if (b is not VersusMapButton)
+                    return false;
+                return (b as VersusMapButton).NoRandom;
             }
         }
     }
@@ -405,8 +329,11 @@ namespace MonoMod
             //         "System.Void InitAdventureMap(System.Collections.Generic.List`1<TowerFall.MapButton[]>)");
 
             ILCursor cursor = new ILCursor(ctx);
+            cursor.GotoNext(instr => instr.MatchCallOrCallvirt("TowerFall.MapScene", "System.Void InitVersusButtons()"));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldc_I4_3);
+            cursor.Emit(OpCodes.Call, method);
 
-            cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
             cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldc_I4_0);

@@ -14,6 +14,9 @@ public static class TowerRegistry
     public static Dictionary<string, List<AdventureQuestTowerData>> QuestTowerSets = new();
     public static List<string> QuestLevelSets = new();
 
+    public static Dictionary<string, List<AdventureVersusTowerData>> VersusTowerSets = new();
+    public static List<string> VersusLevelSets = new();
+
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
     {
         if (levelSet == string.Empty)
@@ -79,8 +82,39 @@ public static class TowerRegistry
         }
         return null;
     }
+    public static bool TryDarkWorldGet(string levelSet, int levelID, out AdventureQuestTowerData data) 
+    {
+        if (QuestTowerSets.TryGetValue(levelSet, out var arr)) 
+        {
+            if (levelID < arr.Count && levelID > -1)
+            {
+                data = arr[levelID];
+                return true;
+            }
+        }
+        data = null;
+        return false;
+    }
 
-    public static void QuestAdd(string levelSet, QuestLevelData data) 
+    public static bool TryDarkWorldGet(string levelSet, string levelID, out AdventureQuestTowerData data) 
+    {
+        if (QuestTowerSets.TryGetValue(levelSet, out var arr)) 
+        {
+            foreach (var level in arr) 
+            {
+                if (level.GetLevelID() == levelID) 
+                {
+                    data = level;
+                    return true;
+                }
+            }
+        }
+        data = null;
+        return false;
+    }
+
+
+    public static void QuestAdd(string levelSet, AdventureQuestTowerData data) 
     {
         if (QuestTowerSets.TryGetValue(levelSet, out var val)) 
         {
@@ -114,27 +148,31 @@ public static class TowerRegistry
         return null;
     }
 
-    public static bool TryDarkWorldGet(string levelSet, string levelID, out QuestLevelData data) 
+    public static void VersusAdd(string levelSet, AdventureVersusTowerData data) 
     {
-        if (QuestTowerSets.TryGetValue(levelSet, out var arr)) 
+        if (VersusTowerSets.TryGetValue(levelSet, out var val)) 
         {
-            foreach (var level in arr) 
-            {
-                if (level.GetLevelID() == levelID) 
-                {
-                    data = level;
-                    return true;
-                }
-            }
+            data.ID.X = val.Count;
+            val.Add(data);
+            return;
         }
-        data = null;
-        return false;
+        VersusLevelSets.Add(levelSet);
+        var list = new List<AdventureVersusTowerData>();
+        data.ID.X = 0;
+        list.Add(data);
+        VersusTowerSets[levelSet] = list; 
     }
 
-    public static QuestLevelData QuestGet(string levelSet, string levelID) 
+
+    public static AdventureVersusTowerData VersusGet(string levelSet, int levelID) 
     {
-        var darkWorldLevel = QuestTowerSets[levelSet];
-        foreach (var level in darkWorldLevel) 
+        return VersusTowerSets[levelSet][levelID];
+    }
+
+    public static AdventureVersusTowerData VersusGet(string levelSet, string levelID) 
+    {
+        var versusLevel = VersusTowerSets[levelSet];
+        foreach (var level in versusLevel) 
         {
             if (level.GetLevelID() == levelID) 
             {
@@ -186,6 +224,72 @@ public static class TowerRegistry
         }
     }
 
+    internal static void LoadVersus() 
+    {
+        foreach (var map in RiseCore.ResourceTree.TreeMap.Values
+            .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeVersusTowerFolder))) 
+        {
+            var path = map.FullPath.Substring(4).Replace("Content/Levels/Versus/", string.Empty);
+
+            var levelData = new AdventureVersusTowerData();
+            levelData.SetLevelID(path);
+            levelData.SetLevelSet(path);
+            levelData.Levels = new();
+
+            RiseCore.Resource xmlResource = null;
+            foreach (var child in map.Childrens) 
+            {
+                if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) || 
+                child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
+                !child.Path.StartsWith("icon"))
+                {
+                    levelData.Levels.Add(AdventureVersusLevelData.CreateFromAdventure(child.Root + child.Path));
+                    continue;
+                }
+
+                if (child.Path.Contains("tower.xml")) 
+                {
+                    xmlResource = child;
+                }
+            }
+            if (xmlResource == null)
+                continue;
+
+            using var xmlStream = xmlResource.Stream;
+            var xml = patch_Calc.LoadXML(xmlStream)["tower"];
+            levelData.Author = xml.ChildText("author", string.Empty);
+            levelData.Theme = LoadTheme(xml, map);
+            levelData.FixedFirst = xml.HasChild("fixedFirst");
+            levelData.Procedural = xml.HasChild("procedural");
+            if (!xml.HasChild("treasure")) 
+            {
+                levelData.TreasureMask = TreasureSpawner.FullTreasureMask;
+                levelData.ArrowShuffle = false;
+                levelData.SpecialArrowRate = 0.6f;
+            }
+            else 
+            {
+                var array = xml.ChildText("treasure").Split(',');
+                levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length];
+                for (int i = 0; i < array.Length; i++) 
+                {
+                    var pickups = Calc.StringToEnum<Pickups>(array[i].Trim());
+                    levelData.TreasureMask[(int)pickups]++;
+                }
+
+                levelData.ArrowShuffle = xml["treasure"].AttrBool("arrowShuffle", false);
+                levelData.SpecialArrowRate = xml["treasure"].AttrFloat("arrows", 0.6f);
+            }
+
+            if (xml.HasChild("required"))
+                levelData.RequiredMods = xml["required"].InnerText;
+            else
+                levelData.RequiredMods = string.Empty;
+            
+            TowerRegistry.VersusAdd(levelData.GetLevelSet(), levelData);
+        }
+    }
+
     internal static void LoadDarkWorld() 
     {
         foreach (var map in RiseCore.ResourceTree.TreeMap.Values
@@ -193,7 +297,7 @@ public static class TowerRegistry
         {
             var path = map.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
 
-            var levelData = new AdventureWorldTowerData(map);
+            var levelData = new AdventureWorldTowerData();
             levelData.SetLevelID(path);
             levelData.SetLevelSet(path);
             levelData.Levels = new();

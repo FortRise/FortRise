@@ -33,6 +33,9 @@ public sealed class AdventureCategoryButton : patch_MapButton
         case AdventureType.DarkWorld:
             sets = TowerRegistry.DarkWorldLevelSets;
             break;
+        case AdventureType.Versus:
+            sets = TowerRegistry.VersusLevelSets;
+            break;
         }
         for (int i = 0; i < sets.Count; i++) 
         {

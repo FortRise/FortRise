@@ -73,6 +73,23 @@ public sealed class AdventureListLoader : Entity
             }
         }
             break;
+        case AdventureType.Versus:
+        {
+            var set = map.GetLevelSet() ?? TowerRegistry.VersusLevelSets[0];
+            var currentLevel = TowerRegistry.VersusTowerSets[set];
+            map.SetLevelSet(set);
+            for (int j = 0; j < currentLevel.Count; j++)
+            {
+                var mapButton = new AdventureMapButton(currentLevel[j], set, map.CurrentAdventureType);
+                if (mapButton.Locked)
+                {
+                    lockedLevels.Add(mapButton);
+                    continue;
+                }    
+                buttons.Add(mapButton);
+            }
+        }
+            break;
         }
 
 

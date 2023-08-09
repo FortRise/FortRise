@@ -27,10 +27,13 @@ public sealed class AdventureMapButton : MapButton
     private float lockedMessageLerp;
     private string lockedTextA;
     private string lockedTextB;
+    public string LevelSet;
     private ModuleMetadata[] requiredMods;
     private SineWave lockedSine;
     private bool wasSelected;
     private AdventureType type;
+    private MapSeedSelect seedSelect;
+    private bool canSetSeed;
 
 
     public AdventureMapButton(AdventureWorldTowerData data, AdventureType type) : base(new TowerMapData(data))
@@ -122,34 +125,61 @@ public sealed class AdventureMapButton : MapButton
             Logger.Error(e.ToString());
         }
     }
+
+    public AdventureMapButton(AdventureVersusTowerData data, string levelset, AdventureType type) : base(new TowerMapData(data))
+    {
+        this.LevelSet = levelset;
+        this.type = type;
+        canSetSeed = data.Procedural;
+        author = data.Author.ToUpperInvariant();
+        if (string.IsNullOrEmpty(data.RequiredMods))   
+            return;
+        try 
+        {
+            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+            string currentRequired = null;
+            int more = 0;
+            foreach (var mod in requiredMods) 
+            {
+                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+                    continue;
                 
-        //         currentRequired = mod.Name;
-        //         more++;
-        //     }
-        //     var sb = new StringBuilder();
+                currentRequired = mod.Name;
+                more++;
+            }
+            var sb = new StringBuilder();
 
-        //     if (!string.IsNullOrEmpty(currentRequired)) 
-        //     {
-        //         lockedTextA = "REQUIRED MODS"; 
-        //         Locked = true;
-        //         sb.Append(currentRequired);
-        //         if (more > 1) 
-        //         {
-        //             sb.Append(" ");
-        //             sb.Append($"and {more - 1} more..");
-        //         }
+            if (!string.IsNullOrEmpty(currentRequired)) 
+            {
+                lockedTextA = "REQUIRED MODS"; 
+                Locked = true;
+                sb.Append(currentRequired);
+                if (more > 1) 
+                {
+                    sb.Append(" ");
+                    sb.Append($"and {more - 1} more..");
+                }
 
-        //         lockedTextB = sb.ToString().ToUpperInvariant();
-        //     }
-        // }
-        // catch (Exception e)
-        // {
-        //     lockedTextA = "ERROR PARSING";
-        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
-        //     Locked = true;
-        //     Logger.Error("Something went wrong parsing the required Metadata");
-        //     Logger.Error(e.ToString());
-        // }
+                lockedTextB = sb.ToString().ToUpperInvariant();
+            }
+        }
+        catch (Exception e)
+        {
+            lockedTextA = "ERROR PARSING";
+            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+            Locked = true;
+            Logger.Error("Something went wrong parsing the required Metadata");
+            Logger.Error(e.ToString());
+        }
+    }
+
+    public override bool HasDownAction => canSetSeed;
+
+    public override void DownAction()
+    {
+        Sounds.ui_click.Play(160f, 1f);
+        seedSelect = (Map.SeedSelector = new MapSeedSelect(this));
+        Map.Add(seedSelect);
     }
 
     public override void Added()
@@ -211,13 +241,24 @@ public sealed class AdventureMapButton : MapButton
         {
         case AdventureType.DarkWorld:
             MainMenu.DarkWorldMatchSettings.LevelSystem = base.Data.GetLevelSystem();
-            base.Map.TweenOutButtons();
-            base.Map.Add<DarkWorldDifficultySelect>(new DarkWorldDifficultySelect());
+            Map.TweenOutButtons();
+            Map.Add<DarkWorldDifficultySelect>(new DarkWorldDifficultySelect());
             break;
         case AdventureType.Quest:
             MainMenu.QuestMatchSettings.LevelSystem = base.Data.GetLevelSystem();
-            base.Map.TweenOutButtons();
-            base.Map.Add<QuestDifficultySelect>(new QuestDifficultySelect());
+            Map.TweenOutButtons();
+            Map.Add<QuestDifficultySelect>(new QuestDifficultySelect());
+            break;
+        case AdventureType.Versus:
+            MainMenu.VersusMatchSettings.LevelSystem = base.Data.GetLevelSystem();
+            MainMenu.VersusMatchSettings.RandomVersusTower = false;
+            Map.TweenOutButtons();
+            Music.Stop();
+            Map.DoEnterAreaZoom(Data.Position);
+            if (MainMenu.VersusMatchSettings.LevelSystem.Procedural) 
+            {
+                Map.SetSeed(seedSelect != null && seedSelect.Finished);
+            }
             break;
         }
     }

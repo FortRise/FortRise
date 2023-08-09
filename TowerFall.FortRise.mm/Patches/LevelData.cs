@@ -55,7 +55,7 @@ public static class LevelDataExt
 
     public static string GetLevelID(this LevelData data) 
     {
-        return ((patch_LevelData)data).LevelID;
+        return ((patch_LevelData)data).LevelID ?? "::UNKNOWN::";
     }
 
     public static string GetLevelSet(this LevelData data) 

@@ -84,4 +84,14 @@ public class patch_PauseMenu : PauseMenu
         patch_DarkWorldControl.DisableTempVariants(level);
         orig_QuitAndSave();
     }
+
+    [MonoModReplace]
+    private void VersusRematch() 
+    {
+        Sounds.ui_click.Play(160f, 1f);
+        MapScene mapScene = new MapScene(MainMenu.RollcallModes.Versus);
+        Engine.Instance.Scene = mapScene;
+        mapScene.SetLevelSet(level.Session.GetLevelSet());
+        this.level.Session.MatchSettings.LevelSystem.Dispose();
+    }
 }

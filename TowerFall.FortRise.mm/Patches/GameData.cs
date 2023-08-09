@@ -1,15 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml;
 using FortRise;
 using FortRise.Adventure;
-using Ionic.Zip;
-using Microsoft.Xna.Framework.Graphics;
-using Monocle;
-using MonoMod;
-using TeuJson;
 
 namespace TowerFall;
 
@@ -32,6 +22,7 @@ public static class patch_GameData
 
         TowerRegistry.LoadQuest();
         TowerRegistry.LoadDarkWorld();
+        TowerRegistry.LoadVersus();
 
         TFGame.WriteLineToLoadLog("  " + TowerRegistry.DarkWorldTowerSets.Count + " loaded");
         patch_MapScene.FixedStatic();

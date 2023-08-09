@@ -12,6 +12,9 @@ public class patch_MapButton : MapButton
     public patch_MapScene Map { get; set; } 
     public string Author { get; set; }
     public float TweenAt { get; private set; }
+
+
+    public string Title { [MonoModIgnore] get => null; [MonoModIgnore] [MonoModPublic] set => value = null; }
     
 
 
@@ -55,6 +58,8 @@ public class patch_MapButton : MapButton
             return InitAdventureWorldGraphics(levelID);
         case AdventureType.Quest:
             return InitAdventureQuestGraphics(levelID);
+        case AdventureType.Versus:
+            return InitAdventureVersusGraphics(levelID);
         default:
             return new List<Image>();
         }
@@ -73,6 +78,23 @@ public class patch_MapButton : MapButton
         list.Add(image2);
         return list.ToArray();
     }
+
+    public static List<Image> InitAdventureVersusGraphics(int levelID)
+    {
+        // We don't have access to the MapScene from MapButton yet.
+        var scene = Engine.Instance.Scene as MapScene;
+        if (scene == null)
+            return new List<Image>();
+
+        TowerTheme theme = TowerRegistry.VersusTowerSets[scene.GetLevelSet()][levelID].Theme;
+        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+        image.CenterOrigin();
+        Image image2 = new Image(theme.Icon, null);
+        image2.CenterOrigin();
+        image2.Color = MapButton.GetTint(theme.TowerType);
+        return new List<Image> { image, image2 };
+    }
+
 
     public static List<Image> InitAdventureWorldGraphics(int levelID)
     {
@@ -167,5 +189,13 @@ public class patch_MapButton : MapButton
             RemoveSelf();
         };
         Add(tween);
+    }
+}
+
+public static class MapButtonExt
+{
+    public static void SetTitle(this MapButton button, string title) 
+    {
+        ((patch_MapButton)button).Title = title;
     }
 }
