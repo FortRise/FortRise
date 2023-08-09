@@ -11,7 +11,7 @@ public static class TowerRegistry
     public static Dictionary<string, List<AdventureWorldTowerData>> DarkWorldTowerSets = new();
     public static List<string> DarkWorldLevelSets = new();
 
-    public static Dictionary<string, List<QuestLevelData>> QuestTowerSets = new();
+    public static Dictionary<string, List<AdventureQuestTowerData>> QuestTowerSets = new();
     public static List<string> QuestLevelSets = new();
 
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
@@ -89,30 +89,29 @@ public static class TowerRegistry
             return;
         }
         QuestLevelSets.Add(levelSet);
-        var list = new List<QuestLevelData>();
+        var list = new List<AdventureQuestTowerData>();
         data.ID.X = 0;
         list.Add(data);
         QuestTowerSets[levelSet] = list; 
     }
 
 
-    public static QuestLevelData QuestGet(string levelSet, int levelID) 
+    public static AdventureQuestTowerData QuestGet(string levelSet, int levelID) 
     {
         return QuestTowerSets[levelSet][levelID];
     }
 
-    public static bool TryDarkWorldGet(string levelSet, int levelID, out QuestLevelData data) 
+    public static AdventureQuestTowerData QuestGet(string levelSet, string levelID) 
     {
-        if (QuestTowerSets.TryGetValue(levelSet, out var arr)) 
+        var questLevel = QuestTowerSets[levelSet];
+        foreach (var level in questLevel) 
         {
-            if (levelID < arr.Count && levelID > -1)
+            if (level.GetLevelID() == levelID) 
             {
-                data = arr[levelID];
-                return true;
+                return level;
             }
         }
-        data = null;
-        return false;
+        return null;
     }
 
     public static bool TryDarkWorldGet(string levelSet, string levelID, out QuestLevelData data) 
@@ -153,7 +152,7 @@ public static class TowerRegistry
             var fullPath = map.FullPath;
             var path = fullPath.Substring(4).Replace("Content/Levels/Quest/", string.Empty);
 
-            var levelData = new patch_QuestLevelData();
+            var levelData = new AdventureQuestTowerData();
             levelData.SetLevelID(path);
             levelData.SetLevelSet(path);
             levelData.Path = fullPath + "/" + "level.oel";
@@ -175,7 +174,13 @@ public static class TowerRegistry
             using var xmlStream = towerXmlResource.Stream;
             var xml = patch_Calc.LoadXML(xmlStream)["tower"];
 
+            levelData.Author = xml.ChildText("author", string.Empty);
             levelData.Theme = LoadTheme(xml, map);
+
+            if (xml.HasChild("required"))
+                levelData.RequiredMods = xml["required"].InnerText;
+            else
+                levelData.RequiredMods = string.Empty;
 
             TowerRegistry.QuestAdd(levelData.GetLevelSet(), levelData);
         }

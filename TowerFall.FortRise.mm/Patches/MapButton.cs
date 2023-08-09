@@ -120,7 +120,7 @@ public class patch_MapButton : MapButton
         if (scene == null)
             return new List<Image>();
 
-        var tower = ((patch_QuestLevelData)TowerRegistry.QuestGet(scene.GetLevelSet(), levelID));
+        var tower = ((AdventureQuestTowerData)TowerRegistry.QuestGet(scene.GetLevelSet(), levelID));
         var theme = tower.Theme;
         var stats = tower.Stats;
         var list = new List<Image>();

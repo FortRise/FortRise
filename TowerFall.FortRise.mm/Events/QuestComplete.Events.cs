@@ -17,7 +17,7 @@ public static partial class RiseCore
             var hardcoreMode = quest.Session.MatchSettings.QuestHardcoreMode;
             if (levelSet != "TowerFall")
             {
-                var customTower = ((patch_QuestLevelData)TowerRegistry.QuestGet(levelSet, levelID)).Stats;
+                var customTower = ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, levelID)).Stats;
                 if (hardcoreMode)
                     customTower.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
                 else

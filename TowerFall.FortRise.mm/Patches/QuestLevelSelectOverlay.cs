@@ -55,7 +55,7 @@ namespace TowerFall
                 orig_RefreshLevelStats();
                 return;
             }
-            var questTowerStats = ((patch_QuestLevelData)TowerRegistry.QuestGet(levelSet, statsID)).Stats;
+            var questTowerStats = ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, statsID)).Stats;
             if (questTowerStats.TotalDeaths == 0UL)
             {
                 levelDeathsString = "";

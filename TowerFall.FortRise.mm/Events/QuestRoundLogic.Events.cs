@@ -21,7 +21,7 @@ public static partial class RiseCore
                 SaveData.Instance.Quest.Towers[levelID].TotalAttempts += 1;
                 return;
             }
-            ((patch_QuestLevelData)TowerRegistry.QuestGet(levelSet, levelID)).Stats.TotalAttempts += 1;
+            ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, levelID)).Stats.TotalAttempts += 1;
         }
 
         public delegate void QuestRoundLogic_PlayerDeathsHandler(QuestRoundLogic quest);
@@ -38,7 +38,7 @@ public static partial class RiseCore
                 SaveData.Instance.Quest.Towers[levelID].TotalDeaths += 1;
                 return;
             }
-            ((patch_QuestLevelData)TowerRegistry.QuestGet(levelSet, levelID)).Stats.TotalDeaths += 1;
+            ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, levelID)).Stats.TotalDeaths += 1;
         }
     }
 }
