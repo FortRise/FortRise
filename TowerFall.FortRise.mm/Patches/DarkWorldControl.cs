@@ -13,6 +13,11 @@ namespace TowerFall
 {
     public class patch_DarkWorldControl : DarkWorldControl 
     {
+        private List<QuestSpawnPortal> allPortals;
+		private List<QuestSpawnPortal> groundPortals;
+		private List<QuestSpawnPortal> airPortals;
+		private List<QuestSpawnPortal> nodePortals;
+
         private List<Pickups> midwayTreasure;
         private bool bossMode;
         [PostPatchEnableTempVariant]
@@ -65,6 +70,7 @@ namespace TowerFall
         // Doing this will prevent the instruction jumping on a void
         private static void JumpLanding() {}
 
+        [PatchDarkWorldControlLevelSequence]
         private extern IEnumerator orig_LevelSequence();
 
         [MonoModReplace]
@@ -139,6 +145,25 @@ namespace TowerFall
         [PatchDarkWorldControlStartMatchSequence]
         [MonoModIgnore]
         private extern IEnumerator StartMatchSequence();
+
+        private void FixedEmptyPortal() 
+        {
+            // allPortals isn't required, as it will not be empty anyway..
+            FillIfNeeded(groundPortals, nameof(groundPortals));
+            FillIfNeeded(nodePortals, nameof(nodePortals));
+            FillIfNeeded(airPortals, nameof(airPortals));
+
+            void FillIfNeeded(List<QuestSpawnPortal> portals, string portalName) 
+            {
+                if (portals.Count != 0)
+                    return;
+                
+                var towerData = (Level.Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData;
+                var id = towerData.GetLevelID();
+                Logger.Warning($"[DARK WORLD][{id}] does not have {portalName}.");
+                portals.AddRange(allPortals);
+            }
+        }
     }
 }
 
@@ -147,8 +172,32 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlStartMatchSequence))]
     public class PatchDarkWorldControlStartMatchSequence : Attribute {}
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
+    public class PatchDarkWorldControlLevelSequence : Attribute {}
+
     internal static partial class MonoModRules 
     {
+        public static void PatchDarkWorldControlLevelSequence(MethodDefinition method, CustomAttribute attrib) 
+        {
+            MethodDefinition complete = method.GetEnumeratorMoveNext();
+            new ILContext(complete).Invoke(ctx => {
+                var f__4this = ctx.Method.DeclaringType.FindField("<>4__this");
+                var FixedEmptyPortal = f__4this.FieldType.Resolve().FindMethod("System.Void FixedEmptyPortal()");
+                var cursor = new ILCursor(ctx);
+                ILLabel val = null;
+
+                cursor.GotoNext(MoveType.After, 
+                    instr => instr.MatchBrfalse(out val),
+                    instr => instr.MatchLdstr("DarkBoss"),
+                    instr => instr.MatchCall("Monocle.Music", "System.Void Play(System.String)"));
+
+                cursor.MarkLabel(val);
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.Emit(OpCodes.Ldfld, f__4this);
+                cursor.Emit(OpCodes.Call, FixedEmptyPortal);
+            });
+        }
+
         public static void PatchDarkWorldControlStartMatchSequence(MethodDefinition method, CustomAttribute attrib) 
         {
             MethodDefinition complete = method.GetEnumeratorMoveNext();
