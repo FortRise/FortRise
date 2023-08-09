@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using TeuJson;
 using TeuJson.Attributes;
+using TowerFall;
 
-namespace TowerFall;
+namespace FortRise.Adventure;
 
 public sealed partial class AdventureWorldStats : IDeserialize, ISerialize 
 {

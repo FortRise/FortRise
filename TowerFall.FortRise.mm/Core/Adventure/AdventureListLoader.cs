@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
+using TowerFall;
 
-namespace TowerFall;
+namespace FortRise.Adventure;
 
 public sealed class AdventureListLoader : Entity 
 {
