@@ -26,7 +26,7 @@ namespace TowerFall
 
         [MonoModIgnore]
         [MonoModConstructor]
-        [PatchPauseMenuQuestRestart]
+        [PatchPauseMenuCtor]
         public extern void ctor(Level level, Vector2 position, MenuType menuType, int controllerDisconnected = -1);
 
 
@@ -236,12 +236,12 @@ namespace TowerFall
 
 namespace MonoMod 
 {
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPauseMenuQuestRestart))]
-    internal class PatchPauseMenuQuestRestart : Attribute {}
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPauseMenuCtor))]
+    internal class PatchPauseMenuCtor : Attribute {}
 
     internal static partial class MonoModRules 
     { 
-        public static void PatchPauseMenuQuestRestart(ILContext ctx, CustomAttribute attrib) 
+        public static void PatchPauseMenuCtor(ILContext ctx, CustomAttribute attrib) 
         {
             var addSettings = ctx.Module.GetType("TowerFall.PauseMenu").FindMethod("System.Void addSettings()");
             var cursor = new ILCursor(ctx);
