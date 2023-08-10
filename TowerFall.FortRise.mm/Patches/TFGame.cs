@@ -125,6 +125,10 @@ public partial class patch_TFGame : TFGame
             {
                 RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
             };
+            detourModManager.OnDetour += (assembly, source, dest) => 
+            {
+                RiseCore.DetourLogs.Add($"Detour from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}");
+            };
             try 
             {
                 Logger.AttachConsole(RiseCore.ConsoleAttachment());
