@@ -126,32 +126,65 @@ namespace TowerFall
 
         public void CreateMods() 
         {
-            var list = new List<OptionsButton>();
+            var textContainer = new TextContainer(160);
             foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
                 var version = mod.Meta.Version.ToString();
                 var setupName = mod.Meta.Name + " v" + version;
                 string author = mod.Meta.Author ?? "";
-                var modButton = new ModButton(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
-                if (mod is AdventureModule)
+                // var modButton = new ModButton(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
+                // if (mod is AdventureModule)
+                // {
+                //     modButton.SetCallbacks(() => { /* Empty */ });
+                // }
+                // else
+                // {
+                //     modButton.SetCallbacks(() => {
+                //         State = patch_MenuState.ModOptions;
+                //         currentModule = mod;
+                //     });
+                // }
+                var modButton = new TextContainer.ButtonText(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
+                if (mod is not AdventureModule) 
                 {
-                    modButton.SetCallbacks(() => { /* Empty */ });
-                }
-                else
-                {
-                    modButton.SetCallbacks(() => {
+                    modButton.Pressed(() => {
                         State = patch_MenuState.ModOptions;
                         currentModule = mod;
                     });
                 }
 
-                list.Add(modButton);
+                textContainer.Add(modButton);
+                // list.Add(modButton);
             }
-            if (list.Count > 0) 
-            {
-                InitMods(list);
-                ToStartSelected = list[0];
-            }
+            textContainer.Selected = true;
+            Add(textContainer);
+
+            // var list = new List<OptionsButton>();
+            // foreach (var mod in FortRise.RiseCore.InternalFortModules) 
+            // {
+            //     var version = mod.Meta.Version.ToString();
+            //     var setupName = mod.Meta.Name + " v" + version;
+            //     string author = mod.Meta.Author ?? "";
+            //     var modButton = new ModButton(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
+            //     if (mod is AdventureModule)
+            //     {
+            //         modButton.SetCallbacks(() => { /* Empty */ });
+            //     }
+            //     else
+            //     {
+            //         modButton.SetCallbacks(() => {
+            //             State = patch_MenuState.ModOptions;
+            //             currentModule = mod;
+            //         });
+            //     }
+
+            //     list.Add(modButton);
+            // }
+            // if (list.Count > 0) 
+            // {
+            //     InitMods(list);
+            //     ToStartSelected = list[0];
+            // }
             BackState = patch_MenuState.Main;
             TweenUICameraToY(1);
         }
