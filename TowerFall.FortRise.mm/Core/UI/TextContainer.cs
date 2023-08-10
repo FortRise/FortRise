@@ -13,6 +13,7 @@ public class TextContainer : MenuItem
     public float Height;
     public float CurrentPositionY;
     public int ToX;
+    public bool FadeBlack;
 
     public TextContainer(int x) : base(new Vector2(x - 320, 0))
     {
@@ -152,6 +153,8 @@ public class TextContainer : MenuItem
 
     public override void Render()
     {
+        if (FadeBlack)
+            Draw.Rect(0f, 0f, 320f, 240f, Color.Black * 0.5f);
         base.Render();
         
         var position = Position - new Vector2(0, Height);
@@ -199,7 +202,6 @@ public class TextContainer : MenuItem
 
     protected override void OnConfirm()
     {
-        Current.ConfirmPressed();
     }
 
     public abstract class Item 
@@ -252,28 +254,33 @@ public class TextContainer : MenuItem
         public virtual void ConfirmPressed() {}
     }
 
-    public class Toggleable : Item 
+    public abstract class Option<T> : Item 
     {
         public string Text;
-        public Action<bool> OnValueChanged;
-        public bool Value;
-        private int wiggleDir;
+        public Action<T> OnValueChanged;
+        public T Value;
         private SineWave sine;
 
-        private Image leftArrow;
-        private Image rightArrow;
+        protected Image LeftArrow;
+        protected Image RightArrow;
 
-        public Toggleable(string text, bool start) 
+
+        public int WiggleDir;
+
+        public abstract bool CanLeft { get; }
+        public abstract bool CanRight { get; }
+
+        public Option(string text) 
         {
-            Text = text;
-            rightArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
-            rightArrow.CenterOrigin();
-            rightArrow.Visible = false;
+            Text = text.ToUpperInvariant();
+            RightArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
+            RightArrow.CenterOrigin();
+            RightArrow.Visible = false;
 
-            leftArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
-            leftArrow.CenterOrigin();
-            leftArrow.FlipX = true;
-            leftArrow.Visible = false;
+            LeftArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
+            LeftArrow.CenterOrigin();
+            LeftArrow.FlipX = true;
+            LeftArrow.Visible = false;
         }
 
         public override void Added(TextContainer container)
@@ -281,34 +288,107 @@ public class TextContainer : MenuItem
             container.Add(sine = new SineWave(120));
         }
 
-        public Toggleable Change(Action<bool> onChanged) 
+        public Option<T> Change(Action<T> onChanged) 
         {
             OnValueChanged = onChanged;
             return this;
         }
 
-        public override void LeftPressed()
+        public override sealed void LeftPressed()
         {
-            wiggleDir = -1;
-            Value = false;
-            OnValueChanged?.Invoke(false);
-            ValueWiggler.Start();
-            Sounds.ui_subclickOff.Play();
+            if (!CanLeft)
+                return;
+            
+            OptionLeft();
         }
 
-        public override void RightPressed()
+        public override sealed void RightPressed()
         {
-            wiggleDir = 1;
-            Value = true;
-            OnValueChanged?.Invoke(true);
-            ValueWiggler.Start();
-            Sounds.ui_subclickOn.Play();
+            if (!CanRight)
+                return;
+            
+            OptionRight();
+        }
+
+        public abstract void OptionLeft();
+        public abstract void OptionRight();
+
+        public override void ConfirmPressed()
+        {
+
+        }
+
+        public override void Render(Vector2 position, bool selected)
+        {
+            Vector2 vector = new Vector2(30f + 2f * this.ValueWiggler.Value * (float)this.WiggleDir, 0f);
+            Color color = (base.Selected ? OptionsButton.SelectedColor : OptionsButton.NotSelectedColor);
+            Draw.OutlineTextJustify(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * this.SelectedWiggler.Value, 0f), color, Color.Black, new Vector2(1f, 0.5f), 1f);
+
+            if (Selected) 
+            {
+                LeftArrow.Position = position + vector + Vector2.UnitX * (-20f + -3f * sine.Value + ((WiggleDir == -1) ? ValueWiggler.Value * -2f : 0f));
+                RightArrow.Position = position + vector + Vector2.UnitX * (20f + 3f * sine.Value + ((WiggleDir == 1) ? ValueWiggler.Value * 2f : 0f));
+                LeftArrow.Render();
+                RightArrow.Render();
+            }
+
+            RenderValue(ref position, ref vector, ref color);
+        }
+
+        public virtual void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color) {}
+    }
+
+    public class Number : Option<int>
+    {
+        public int Min;
+        public int Max;
+        public Number(string text, int start, int min = 0, int max = 10) : base(text)
+        {
+            Value = start;
+            Min = min;
+            Max = max;
+        }
+
+        public override bool CanLeft => Value > Min;
+
+        public override bool CanRight => Value < Max;
+
+        public override void OptionLeft()
+        {
+            Value--;
+            OnValueChanged?.Invoke(Value);
+            Sounds.ui_move1.Play();
+        }
+
+        public override void OptionRight()
+        {
+            Value++;
+            OnValueChanged?.Invoke(Value);
+            Sounds.ui_move1.Play();
+        }
+
+        public override void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color)
+        {
+            Draw.OutlineTextJustify(TFGame.Font, Value.ToString(), position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+        }
+    }
+
+    public class Toggleable : Option<bool>
+    {
+        public string Text;
+
+        public override bool CanLeft => Value; 
+        public override bool CanRight => !Value;
+
+        public Toggleable(string text, bool start) : base(text)
+        {
+            Value = start;
         }
 
         public override void ConfirmPressed()
         {
             Value = !Value;
-            wiggleDir = Value ? 1 : -1;
+            WiggleDir = Value ? 1 : -1;
             OnValueChanged?.Invoke(Value);
             ValueWiggler.Start();
             if (Value)
@@ -317,31 +397,38 @@ public class TextContainer : MenuItem
                 Sounds.ui_subclickOff.Play();
         }
 
-        public override void Render(Vector2 position, bool selected)
+        public override void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color)
         {
-            Vector2 vector = new Vector2(30f + 2f * this.ValueWiggler.Value * (float)this.wiggleDir, 0f);
-            Color color = (base.Selected ? OptionsButton.SelectedColor : OptionsButton.NotSelectedColor);
-            Draw.OutlineTextJustify(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * this.SelectedWiggler.Value, 0f), color, Color.Black, new Vector2(1f, 0.5f), 1f);
             if (Value)
             {
                 Draw.OutlineTextureCentered(TFGame.MenuAtlas["optionOn"], position + vector, color);
-                leftArrow.Color = Color.White * 1f;
-                rightArrow.Color = Color.White * 0.3f;
+                LeftArrow.Color = Color.White * 1f;
+                RightArrow.Color = Color.White * 0.3f;
             }
             else 
             {
                 Draw.OutlineTextureCentered(TFGame.MenuAtlas["optionOff"], position + vector, color);
-                rightArrow.Color = Color.White * 1f;
-                leftArrow.Color = Color.White * 0.3f;
+                RightArrow.Color = Color.White * 1f;
+                LeftArrow.Color = Color.White * 0.3f;
             }
+        }
 
-            if (Selected) 
-            {
-                leftArrow.Position = position + vector + Vector2.UnitX * (-20f + -3f * sine.Value + ((wiggleDir == -1) ? ValueWiggler.Value * -2f : 0f));
-                rightArrow.Position = position + vector + Vector2.UnitX * (20f + 3f * sine.Value + ((wiggleDir == 1) ? ValueWiggler.Value * 2f : 0f));
-                leftArrow.Render();
-                rightArrow.Render();
-            }
+        public override void OptionLeft()
+        {
+            WiggleDir = -1;
+            Value = false;
+            OnValueChanged?.Invoke(false);
+            ValueWiggler.Start();
+            Sounds.ui_subclickOff.Play();
+        }
+
+        public override void OptionRight()
+        {
+            WiggleDir = 1;
+            Value = true;
+            OnValueChanged?.Invoke(true);
+            ValueWiggler.Start();
+            Sounds.ui_subclickOn.Play();
         }
     }
 
