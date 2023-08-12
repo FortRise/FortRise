@@ -56,11 +56,9 @@ namespace TowerFall
 
         public void CreateModOptions() 
         {
-            var list = new List<OptionsButton>();
-            var enabledButton = new OptionsButton("ENABLED");
-            enabledButton.SetCallbacks(() => {
-                enabledButton.State = currentModule.Enabled ? "YES" : "NO";
-            }, null, null, () => {
+            var textContainer = new TextContainer(180);
+            var enabledButton = new TextContainer.Toggleable("ENABLED", currentModule.Enabled);
+            enabledButton.Change(x => {
                 enabledButton.Selected = false;
                 if (!currentModule.SupportModDisabling) 
                 {
@@ -70,9 +68,10 @@ namespace TowerFall
                     uiModal.AutoClose = true;
                     uiModal.AddItem("Ok", () => enabledButton.Selected = true);
                     Add(uiModal);
-                    return currentModule.Enabled;
+                    enabledButton.Value = true;
+                    return;
                 }
-                currentModule.Enabled = !currentModule.Enabled;
+                currentModule.Enabled = x;
                 modLoader = new UILoader();
                 modLoader.WaitWith(() => {
                     if (!currentModule.Enabled && currentModule.RequiredRestart) 
@@ -104,16 +103,13 @@ namespace TowerFall
                         modLoader.Finished = true;
                     });
                 }
-
-                return currentModule.Enabled;
             });
-            list.Add(enabledButton);
-            currentModule.CreateSettings(list);
-            if (list.Count > 0) 
-            {
-                InitOptions(list);
-                ToStartSelected = list[0];
-            }
+            textContainer.Add(enabledButton);
+
+            textContainer.Selected = true;
+            currentModule.CreateSettings(textContainer);
+            Add(textContainer);
+
             BackState = patch_MenuState.Mods;
             TweenUICameraToY(2);
         }
@@ -132,18 +128,6 @@ namespace TowerFall
                 var version = mod.Meta.Version.ToString();
                 var setupName = mod.Meta.Name + " v" + version;
                 string author = mod.Meta.Author ?? "";
-                // var modButton = new ModButton(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
-                // if (mod is AdventureModule)
-                // {
-                //     modButton.SetCallbacks(() => { /* Empty */ });
-                // }
-                // else
-                // {
-                //     modButton.SetCallbacks(() => {
-                //         State = patch_MenuState.ModOptions;
-                //         currentModule = mod;
-                //     });
-                // }
                 var modButton = new TextContainer.ButtonText(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
                 if (mod is not AdventureModule) 
                 {
@@ -154,37 +138,10 @@ namespace TowerFall
                 }
 
                 textContainer.Add(modButton);
-                // list.Add(modButton);
             }
             textContainer.Selected = true;
             Add(textContainer);
 
-            // var list = new List<OptionsButton>();
-            // foreach (var mod in FortRise.RiseCore.InternalFortModules) 
-            // {
-            //     var version = mod.Meta.Version.ToString();
-            //     var setupName = mod.Meta.Name + " v" + version;
-            //     string author = mod.Meta.Author ?? "";
-            //     var modButton = new ModButton(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
-            //     if (mod is AdventureModule)
-            //     {
-            //         modButton.SetCallbacks(() => { /* Empty */ });
-            //     }
-            //     else
-            //     {
-            //         modButton.SetCallbacks(() => {
-            //             State = patch_MenuState.ModOptions;
-            //             currentModule = mod;
-            //         });
-            //     }
-
-            //     list.Add(modButton);
-            // }
-            // if (list.Count > 0) 
-            // {
-            //     InitMods(list);
-            //     ToStartSelected = list[0];
-            // }
             BackState = patch_MenuState.Main;
             TweenUICameraToY(1);
         }

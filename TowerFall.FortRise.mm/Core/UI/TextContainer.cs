@@ -432,6 +432,44 @@ public class TextContainer : MenuItem
         }
     }
 
+    public class SelectionOption : Option<(string, int)>
+    {
+        public string[] Options;
+        public SelectionOption(string text, string[] options) : base(text)
+        {
+            Options = options;
+        }
+
+        public override bool CanLeft => Value.Item2 > 0;
+
+        public override bool CanRight => Value.Item2 < Options.Length;
+
+        public override void OptionLeft()
+        {
+            WiggleDir = -1;
+            Value.Item2--;
+            Value.Item1 = Options[Value.Item2]; 
+            OnValueChanged?.Invoke(Value);
+            ValueWiggler.Start();
+            Sounds.ui_subclickOff.Play();
+        }
+
+        public override void OptionRight()
+        {
+            WiggleDir = -1;
+            Value.Item2++;
+            Value.Item1 = Options[Value.Item2]; 
+            OnValueChanged?.Invoke(Value);
+            ValueWiggler.Start();
+            Sounds.ui_subclickOff.Play();
+        }
+
+        public override void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color)
+        {
+            Draw.OutlineTextJustify(TFGame.Font, Options[Value.Item2], position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+        }
+    }
+
     public class ButtonText : Item 
     {
         public string Text;

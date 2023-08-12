@@ -101,11 +101,14 @@ public abstract partial class FortModule
         InternalSettings.Save(path);
     }
 
+    [Obsolete("Use CreateModSettings(FortRise.TextContainer) instead")]
     public virtual void CreateModSettings(List<OptionsButton> optionList) {}
 
-    internal void CreateSettings(List<OptionsButton> optionsList) 
+    public virtual void CreateModSettings(TextContainer textContainer) {}
+
+    internal void CreateSettings(TextContainer textContainer) 
     {
-        CreateModSettings(optionsList);
+        CreateModSettings(textContainer);
 
         var type = SettingsType;
         var settings = InternalSettings;
@@ -131,128 +134,51 @@ public abstract partial class FortModule
 
             if (fieldType == typeof(bool)) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    optionButton.State = BoolToString((bool)field.GetValue(settings));
-                }, null, null, () => {
-                    var val = !(bool)field.GetValue(settings);
-                    field.SetValue(settings, val);
-                    return val;
+                var defaultVal = (bool)field.GetValue(settings);
+                var toggleable = new TextContainer.Toggleable(fullName, defaultVal);
+                toggleable.Change(x => {
+                    field.SetValue(settings, x);
                 });
-                optionsList.Add(optionButton);
+                textContainer.Add(toggleable);
             }
             else if (fieldType == typeof(Action)) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
+                var actionButton = new TextContainer.ButtonText(fullName);
+                actionButton.OnConfirm = () => {
                     var action = (Action)field.GetValue(settings);
-                    action();
-                });
-                optionsList.Add(optionButton);
+                    action?.Invoke();
+                };
+                textContainer.Add(actionButton);
             }
             else if ((fieldType == typeof(int)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    var value = (int)field.GetValue(settings);
-                    optionButton.State = optAttrib.Options[value].ToUpperInvariant();
-                    optionButton.CanLeft = (value > 0);
-                    optionButton.CanRight = (value < optAttrib.Options.Length - 1);
-                }, () => {
-                    var value = (int)field.GetValue(settings);
-                    value -= 1;
-                    field.SetValue(settings, value);
-                }, () => {
-                    var value = (int)field.GetValue(settings);
-                    value += 1;
-                    field.SetValue(settings, value);
-                }, null);
-                optionsList.Add(optionButton);
+                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                selectionOption.Change(x => {
+                    field.SetValue(settings, x.Item2);
+                });
+                textContainer.Add(selectionOption);
             }
             else if ((fieldType == typeof(string)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    optionButton.State = optAttrib.Options[index].ToUpperInvariant();
-                    optionButton.CanLeft = (index > 0);
-                    optionButton.CanRight = (index < optAttrib.Options.Length - 1);
-                }, () => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    index -= 1;
-                    value = optAttrib.Options[index];
-                    field.SetValue(settings, value);
-                }, () => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    index += 1;
-                    value = optAttrib.Options[index];
-                    field.SetValue(settings, value);
-                }, null);
-                optionsList.Add(optionButton);
+                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                selectionOption.Change(x => {
+                    field.SetValue(settings, x.Item1);
+                });
+                textContainer.Add(selectionOption);
             }
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) && 
                 (attrib = field.GetCustomAttribute<SettingsNumberAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)field.GetValue(settings);
-                        optionButton.State = value.ToString();
-                        optionButton.CanLeft = (value > attrib.Min);
-                        optionButton.CanRight = (value < attrib.Max);
-                    }
-                    else 
-                    {
-                        var value = (int)field.GetValue(settings);
-                        optionButton.State = value.ToString();
-                        optionButton.CanLeft = (value > attrib.Min);
-                        optionButton.CanRight = (value < attrib.Max);
-                    }
+                var numberButton = new TextContainer.Number(fullName, attrib.Min, attrib.Max);
+                numberButton.Change(x => {
+                    if (field.FieldType == typeof(float))
+                        field.SetValue(settings, (float)x);
+                    else
+                        field.SetValue(settings, x);
+                });
 
-                }, () => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)(field.GetValue(settings));
-                        value -= attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                    else 
-                    {
-                        var value = (int)(field.GetValue(settings));
-                        value -= attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                }, () => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)(field.GetValue(settings));
-                        value += attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                    else 
-                    {
-                        var value = (int)(field.GetValue(settings));
-                        value += attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                }, null);
-                optionsList.Add(optionButton);
+                textContainer.Add(numberButton);
             }
-        }
-        
-
-        
-        string BoolToString(bool value)
-        {
-            if (!value)
-            {
-                return "OFF";
-            }
-            return "ON";
         }
     }
 

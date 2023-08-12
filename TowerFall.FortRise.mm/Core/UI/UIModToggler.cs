@@ -120,6 +120,7 @@ public class UIModToggler : FortRiseUI
         modsMetadata = null;
         onOffs = null;
         blacklistedMods = null;
+        oldBlacklistedMods = null;
 
         if (shouldRestart) 
             return;
