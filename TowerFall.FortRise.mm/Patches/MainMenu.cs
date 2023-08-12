@@ -17,10 +17,7 @@ namespace TowerFall
     public partial class patch_MainMenu : MainMenu
     {
         private FortRise.FortModule currentModule;
-        private float scrolling;
-        private int totalScroll;
-        private int count;
-        private int scrollAmount = 12;
+
         private UILoader modLoader;
         private patch_MenuState state;
         private patch_MenuState switchTo;
@@ -116,7 +113,6 @@ namespace TowerFall
 
         public void DestroyModOptions() 
         {
-            // scrollAmount = 24;
             currentModule = null;
         }
 
@@ -165,27 +161,6 @@ namespace TowerFall
         private extern void InitOptions(List<OptionsButton> buttons);
 
 
-        private void InitMods(List<OptionsButton> buttons)
-        {
-            this.scrollAmount = 12;
-            this.count = buttons.Count;
-            for (int i = 0; i < buttons.Count; i++)
-            {
-                OptionsButton optionsButton = buttons[i];
-                optionsButton.TweenTo = new Vector2(320f/2, (float)(45 + i * 12));
-                optionsButton.Position = (optionsButton.TweenFrom = new Vector2((float)((i % 2 == 0) ? (-160) : 480), (float)(45 + i * 12)));
-                if (i > 0)
-                {
-                    optionsButton.UpItem = buttons[i - 1];
-                }
-                if (i < buttons.Count - 1)
-                {
-                    optionsButton.DownItem = buttons[i + 1];
-                }
-            }
-            base.Add<OptionsButton>(buttons);
-        }
-
         public extern void orig_Update();
 
         [MonoModReplace]
@@ -202,32 +177,7 @@ namespace TowerFall
                 base_Update();
                 return;
             }
-            if (state is patch_MenuState.Mods or patch_MenuState.ModOptions) 
-            {
-                if (MenuInput.Up && totalScroll > 0) 
-                {
-                    scrolling += scrollAmount;
-                    totalScroll--;
-                }
-                if (MenuInput.Down && totalScroll < count) 
-                {
-                    scrolling -= scrollAmount; 
-                    totalScroll++;
-                }
-                if (totalScroll > 9 && totalScroll < count - 5) 
-                {
-                    foreach (var menuItem in Layers[-1].GetList<MenuItem>()) 
-                    {
-                        menuItem.Position.Y += scrolling;
-                    }
-                }
-                scrolling = 0;
-            }
-            else 
-            {
-                scrolling = 0;
-                totalScroll = 0;
-            }
+
             orig_Update();
         }
 
