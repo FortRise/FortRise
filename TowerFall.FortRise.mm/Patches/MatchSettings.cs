@@ -10,7 +10,7 @@ public class patch_MatchSettings : MatchSettings
     public patch_Modes Mode;
     public patch_MatchSettings.patch_MatchLengths MatchLength;
     private static readonly float[] GoalMultiplier;
-    public static int CustomGoal { get; set; }
+    public static int CustomGoal { get; set; } = 1;
 
     public extern int orig_get_GoalScore();
 
