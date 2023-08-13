@@ -173,6 +173,22 @@ public static partial class RiseCore
         RiseCore.ResourceTree.Initialize();
     }
 
+    public static void ParseArgs(string[] args) 
+    {
+        foreach (var arg in args) 
+        {
+            switch (arg) 
+            {
+            case "--debug":
+                DebugMode = true;
+                break;
+            case "--verbose":
+                Logger.Verbosity = Logger.LogLevel.Assert;
+                break;
+            }
+        }
+    }
+
     public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
     {
         using var fs = File.OpenRead(path);

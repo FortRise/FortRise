@@ -1,15 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
 
-namespace TowerFall 
+namespace TowerFall
 {
     public class patch_AmaranthBoss : AmaranthBoss
     {
@@ -26,7 +24,7 @@ namespace TowerFall
 }
 
 
-namespace MonoMod 
+namespace MonoMod
 {
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchAmaranthBossDeadCoroutine))]
     public class PatchAmaranthBossDeadCoroutine : Attribute {}

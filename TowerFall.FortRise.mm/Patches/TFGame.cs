@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -58,6 +59,34 @@ public partial class patch_TFGame : TFGame
     public extern static void orig_Main(string[] args);
     public static void Main(string[] args) 
     {
+        bool vanillaLaunch = false;
+        foreach (var arg in args) 
+        {
+            if (arg == "--vanilla")
+            {
+                vanillaLaunch = true;
+                break;
+            }
+        }
+
+        if (vanillaLaunch) 
+        {
+            ThreadStart start = () => {
+                try 
+                {
+                    AppDomain.CurrentDomain.ExecuteAssembly("fortOrig/TowerFall.exe");
+                }
+                catch (Exception e) 
+                {
+                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(e.StackTrace);
+                }
+            };
+            Thread thread = new Thread(start);
+            thread.Start();
+            thread.Join();
+            goto Exit;
+        }
         if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
         {
             try 
@@ -76,6 +105,8 @@ public partial class patch_TFGame : TFGame
                 ));
             }
         }
+
+        RiseCore.ParseArgs(args);
         var patchFile = "PatchVersion.txt";
         if (File.Exists(patchFile)) 
         {
@@ -86,19 +117,6 @@ public partial class patch_TFGame : TFGame
                 string readed;
                 while ((readed = reader.ReadLine()) != null) 
                 {
-                    if (readed.Contains("Debug")) 
-                    {
-                        var debugMode = readed.Split(':')[1].Trim();
-                        RiseCore.DebugMode = bool.Parse(debugMode);
-                        if (RiseCore.DebugMode && Logger.Verbosity < Logger.LogLevel.Error)
-                            Logger.Verbosity = Logger.LogLevel.Error;
-                    }
-                    if (readed.Contains("Verbose")) 
-                    {
-                        var verbose = readed.Split(':')[1].Trim();
-                        if (bool.Parse(verbose))
-                            Logger.Verbosity = Logger.LogLevel.Assert;
-                    }
                     if (readed.Contains("Installer")) 
                     {
                         var version = readed.Split(':')[1].Trim();
@@ -108,7 +126,7 @@ public partial class patch_TFGame : TFGame
             }
             catch 
             {
-                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
+                Logger.Log("Unable to load PatchVersion.txt, Unknown FortRise version will be sent.", Logger.LogLevel.Warning);
                 Logger.Log("Please report this bug", Logger.LogLevel.Warning);
                 RiseCore.DebugMode = true;
             }
@@ -141,6 +159,7 @@ public partial class patch_TFGame : TFGame
         }
 
         orig_Main(args);
+        Exit:
         Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
     }
