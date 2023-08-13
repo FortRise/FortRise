@@ -21,15 +21,15 @@ namespace TowerFall
         {
         }
 
-        [PatchTreasureChestCtor_Arr]
-        [MonoModConstructor]
-        [MonoModIgnore]
-        public extern void ctor(Vector2 position, Types graphic, AppearModes mode, Pickups[] pickups, int timer = 0);
+        // [PatchTreasureChestCtor_Arr]
+        // [MonoModConstructor]
+        // [MonoModIgnore]
+        // public extern void ctor(Vector2 position, Types graphic, AppearModes mode, Pickups[] pickups, int timer = 0);
 
-        [PatchTreasureChestCtor]
-        [MonoModConstructor]
-        [MonoModIgnore]
-        public extern void ctor(Vector2 position, Types graphic, AppearModes mode, Pickups pickups, int timer = 0);
+        // [PatchTreasureChestCtor]
+        // [MonoModConstructor]
+        // [MonoModIgnore]
+        // public extern void ctor(Vector2 position, Types graphic, AppearModes mode, Pickups pickups, int timer = 0);
 
         public static Pickups[] ChangePickup(Pickups[] pickups, Types types) 
         {
@@ -60,32 +60,32 @@ namespace TowerFall
 
 namespace MonoMod 
 {
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTreasureChestCtor))]
-    public class PatchTreasureChestCtor : Attribute {}
+    // [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTreasureChestCtor))]
+    // public class PatchTreasureChestCtor : Attribute {}
 
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTreasureChestCtor_Arr))]
-    public class PatchTreasureChestCtor_Arr : Attribute {}
+    // [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTreasureChestCtor_Arr))]
+    // public class PatchTreasureChestCtor_Arr : Attribute {}
 
     internal static partial class MonoModRules 
     {
-        public static void PatchTreasureChestCtor_Arr(ILContext ctx, CustomAttribute attrib) 
-        {
-            var TreasureChest = ctx.Module.GetType("TowerFall.TreasureChest");
-            var m_ChangePickup = TreasureChest.FindMethod("TowerFall.Pickups[] ChangePickup(TowerFall.Pickups[],TowerFall.TreasureChest/Types)");
-            var cursor = new ILCursor(ctx);
-            cursor.GotoNext(instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.Pickups>"));
-            cursor.Emit(OpCodes.Ldarg_2);
-            cursor.Emit(OpCodes.Call, m_ChangePickup);
-        }
+        // public static void PatchTreasureChestCtor_Arr(ILContext ctx, CustomAttribute attrib) 
+        // {
+        //     var TreasureChest = ctx.Module.GetType("TowerFall.TreasureChest");
+        //     var m_ChangePickup = TreasureChest.FindMethod("TowerFall.Pickups[] ChangePickup(TowerFall.Pickups[],TowerFall.TreasureChest/Types)");
+        //     var cursor = new ILCursor(ctx);
+        //     cursor.GotoNext(instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.Pickups>"));
+        //     cursor.Emit(OpCodes.Ldarg_2);
+        //     cursor.Emit(OpCodes.Call, m_ChangePickup);
+        // }
 
-        public static void PatchTreasureChestCtor(ILContext ctx, CustomAttribute attrib) 
-        {
-            var TreasureChest = ctx.Module.GetType("TowerFall.TreasureChest");
-            var m_ChangePickup = TreasureChest.FindMethod("TowerFall.Pickups[] ChangePickup(TowerFall.Pickups[],TowerFall.TreasureChest/Types)");
-            var cursor = new ILCursor(ctx);
-            cursor.GotoNext(MoveType.After, instr => instr.MatchStelemI4());
-            cursor.Emit(OpCodes.Ldarg_2);
-            cursor.Emit(OpCodes.Call, m_ChangePickup);
-        }
+        // public static void PatchTreasureChestCtor(ILContext ctx, CustomAttribute attrib) 
+        // {
+        //     var TreasureChest = ctx.Module.GetType("TowerFall.TreasureChest");
+        //     var m_ChangePickup = TreasureChest.FindMethod("TowerFall.Pickups[] ChangePickup(TowerFall.Pickups[],TowerFall.TreasureChest/Types)");
+        //     var cursor = new ILCursor(ctx);
+        //     cursor.GotoNext(MoveType.After, instr => instr.MatchStelemI4());
+        //     cursor.Emit(OpCodes.Ldarg_2);
+        //     cursor.Emit(OpCodes.Call, m_ChangePickup);
+        // }
     }
 }
