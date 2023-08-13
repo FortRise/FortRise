@@ -14,6 +14,8 @@ using MonoMod;
 using MonoMod.Utils;
 using TeuJson;
 using TowerFall;
+using System.Diagnostics;
+using System.Text;
 
 namespace FortRise;
 
@@ -87,6 +89,8 @@ public static partial class RiseCore
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
     public static bool DebugMode;
+
+    internal static bool Restart;
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
     {
@@ -219,6 +223,33 @@ public static partial class RiseCore
         }
 
         return metadata; 
+    }
+
+    public static void AskForRestart() 
+    {
+        Restart = true;
+        Engine.Instance.Exit();
+    }
+
+    public static void RunTowerFallProcess(string towerFallPath, string[] args) 
+    {
+        bool noIntroFound = false;
+        var sb = new StringBuilder();
+        foreach (var arg in args) 
+        {
+            sb.Append(arg + " ");
+            if (arg is "-nointro" or "nointro") 
+            {
+                noIntroFound = true;
+            }
+        }
+        if (!noIntroFound)
+            sb.Append("-nointro");    
+        var process = new Process();
+        process.StartInfo.FileName = towerFallPath;
+        process.StartInfo.Arguments = sb.ToString();
+
+        process.Start();
     }
 
     // Generated at patch-time

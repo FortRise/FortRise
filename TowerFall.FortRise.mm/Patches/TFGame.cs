@@ -53,12 +53,14 @@ public partial class patch_TFGame : TFGame
     public void ctor(bool noIntro) 
     {
         orig_ctor(noIntro);
-        this.noIntro = RiseCore.DebugMode;
+        if (!noIntro)
+            this.noIntro = RiseCore.DebugMode;
     }
 
     public extern static void orig_Main(string[] args);
     public static void Main(string[] args) 
     {
+        var towerFallPath = typeof(TFGame).Assembly.Location;
         bool vanillaLaunch = false;
         foreach (var arg in args) 
         {
@@ -159,9 +161,15 @@ public partial class patch_TFGame : TFGame
         }
 
         orig_Main(args);
+
+        if (RiseCore.Restart) 
+        {
+            RiseCore.RunTowerFallProcess(towerFallPath, args);
+        }
         Exit:
         Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
+        Environment.Exit(0);
     }
 
     protected extern void orig_LoadContent();

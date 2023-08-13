@@ -15,6 +15,8 @@ public class TextContainer : MenuItem
     public int ToX;
     public bool FadeBlack;
 
+    public IReadOnlyList<Item> Items => items;
+
     public TextContainer(int x) : base(new Vector2(x - 320, 0))
     {
         ToX = x;
@@ -143,12 +145,12 @@ public class TextContainer : MenuItem
             item.Update();
         }
 
-        if (Height > (240 - 50)) 
-        {
-            Position.Y = Position.Y + (ScrollTargetY - Position.Y) * (1f - (float)Math.Pow(0.009999999776482582, (double)Engine.TimeMult));
-            return;
-        }
-        Position.Y = 160;
+        // if (Height > (240 - 50)) 
+        // {
+        Position.Y = Position.Y + (ScrollTargetY - Position.Y) * (1f - (float)Math.Pow(0.009999999776482582, (double)Engine.TimeMult));
+        //     return;
+        // }
+        // Position.Y = 160;
     }
 
     public override void Render()
@@ -477,7 +479,7 @@ public class TextContainer : MenuItem
 
         public ButtonText(string text) 
         {
-            Text = text;
+            Text = text.ToUpperInvariant();
         }
 
         public void Pressed(Action onPressed) 

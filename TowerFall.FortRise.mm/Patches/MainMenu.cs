@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
@@ -13,6 +14,7 @@ namespace TowerFall
         private FortRise.FortModule currentModule;
 
         private UILoader modLoader;
+        private FortRiseUI currentUI;
         private patch_MenuState state;
         private patch_MenuState switchTo;
         public patch_MenuState BackState;
@@ -45,8 +47,21 @@ namespace TowerFall
         {
         }
 
+        private void CreateModToggle() 
+        {
+            currentUI = new UIModToggler(this);
+            currentUI.OnEnter();
+        }
+
         public void CreateModOptions() 
         {
+            if (currentModule == null) 
+            {
+                CreateModToggle();
+                BackState = patch_MenuState.Mods;
+                TweenUICameraToY(2);
+                return;
+            }
             var textContainer = new TextContainer(180);
             var enabledButton = new TextContainer.Toggleable("ENABLED", currentModule.Enabled);
             enabledButton.Change(x => {
@@ -108,11 +123,18 @@ namespace TowerFall
         public void DestroyModOptions() 
         {
             currentModule = null;
+            currentUI?.OnLeave();
+            currentUI = null;
         }
 
         public void CreateMods() 
         {
             var textContainer = new TextContainer(160);
+            var toggleButton = new TextContainer.ButtonText("Toggle Mods");
+            toggleButton.Pressed(() => {
+                State = patch_MenuState.ModOptions;
+            });
+            textContainer.Add(toggleButton);
             foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
                 var version = mod.Meta.Version.ToString();
