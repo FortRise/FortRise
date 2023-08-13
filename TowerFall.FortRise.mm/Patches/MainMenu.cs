@@ -1,18 +1,12 @@
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod;
-using MonoMod.Cil;
-using MonoMod.Utils;
 
-namespace TowerFall 
+namespace TowerFall
 {
     public partial class patch_MainMenu : MainMenu
     {
@@ -156,7 +150,6 @@ namespace TowerFall
             }
         }
 
-        [PatchInitOptions]
         [MonoModIgnore]
         private extern void InitOptions(List<OptionsButton> buttons);
 
@@ -334,35 +327,6 @@ namespace TowerFall
             KeyboardConfig,
             Mods,
             ModOptions
-        }
-    }
-}
-
-namespace MonoMod 
-{
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchInitOptions))]
-    internal class PatchInitOptions: Attribute {}
-
-
-    internal static partial class MonoModRules 
-    {
-        public static void PatchInitOptions(ILContext ctx, CustomAttribute attrib) 
-        {
-            var MainMenu = ctx.Module.GetType("TowerFall.MainMenu");
-            var scrollAmount = MainMenu.FindField("scrollAmount");
-            var count = MainMenu.FindField("count");
-            var buttonCount = MainMenu.FindMethod("System.Int32 buttonCount(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
-
-            var cursor = new ILCursor(ctx);
-
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldc_I4_S, (sbyte)12);
-            cursor.Emit(OpCodes.Stfld, scrollAmount);
-
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldarg_1);
-            cursor.Emit(OpCodes.Call, buttonCount);
-            cursor.Emit(OpCodes.Stfld, count);
         }
     }
 }
