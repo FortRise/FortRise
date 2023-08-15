@@ -66,13 +66,13 @@ public abstract class CustomOrbPickup : Pickup
         base.Render();
     }
 
-    public abstract void Collect();
+    public abstract void Collect(Player player);
 
-    public override void OnPlayerCollide(Player player)
+    public sealed override void OnPlayerCollide(Player player)
     {
         Level.Add<LightFade>(Cache.Create<LightFade>().Init(this, null));
         DoCollectStats(player.PlayerIndex);
-        Collect();
+        Collect(player);
         RemoveSelf();
     }
 
