@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Generic;
-using System.IO;
 using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Mono.Cecil;
 using Monocle;
 using MonoMod;
+using MonoMod.Cil;
 
 namespace TowerFall
 {
@@ -13,7 +15,6 @@ namespace TowerFall
     {
         private FortRise.FortModule currentModule;
 
-        private UILoader modLoader;
         private FortRiseUI currentUI;
         private patch_MenuState state;
         private patch_MenuState switchTo;
@@ -47,6 +48,11 @@ namespace TowerFall
         {
         }
 
+        [MonoModIgnore]
+        [MonoModConstructor]
+        [PatchMainMenuCtor]
+        public extern void ctor(MenuState state);
+
         private void CreateModToggle() 
         {
             currentUI = new UIModToggler(this);
@@ -63,54 +69,6 @@ namespace TowerFall
                 return;
             }
             var textContainer = new TextContainer(180);
-            var enabledButton = new TextContainer.Toggleable("ENABLED", currentModule.Enabled);
-            enabledButton.Change(x => {
-                enabledButton.Selected = false;
-                if (!currentModule.SupportModDisabling) 
-                {
-                    var uiModal = new UIModal();
-                    uiModal.SetTitle("Error");
-                    uiModal.AddFiller("Does not support disabling mod");
-                    uiModal.AutoClose = true;
-                    uiModal.AddItem("Ok", () => enabledButton.Selected = true);
-                    Add(uiModal);
-                    enabledButton.Value = true;
-                    return;
-                }
-                currentModule.Enabled = x;
-                modLoader = new UILoader();
-                modLoader.WaitWith(() => {
-                    if (!currentModule.Enabled && currentModule.RequiredRestart) 
-                    {
-                        var uiModal = new UIModal();
-                        uiModal.SetTitle("Required Restart");
-                        uiModal.AddFiller("This mod required restart to fully unload.");
-                        uiModal.AutoClose = true;
-                        uiModal.AddItem("Ok", () => enabledButton.Selected = true);
-                        Add(uiModal);
-                    }
-                    else
-                        enabledButton.Selected = true;
-                });
-                Add(modLoader);
-                if (currentModule.Enabled) 
-                {
-                    RiseCore.BlacklistMods(currentModule, false);
-                    TaskHelper.Run("mod_register", () => { 
-                        currentModule.Register();
-                        modLoader.Finished = true;
-                    });
-                }
-                else
-                {
-                    RiseCore.BlacklistMods(currentModule, true);
-                    TaskHelper.Run("mod_unregister", () => { 
-                        currentModule.Unregister();
-                        modLoader.Finished = true;
-                    });
-                }
-            });
-            textContainer.Add(enabledButton);
 
             textContainer.Selected = true;
             currentModule.CreateSettings(textContainer);
@@ -175,26 +133,6 @@ namespace TowerFall
         [MonoModIgnore]
         private extern void InitOptions(List<OptionsButton> buttons);
 
-
-        public extern void orig_Update();
-
-        [MonoModReplace]
-        [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
-        public void base_Update() 
-        {
-            base.Update();
-        }
-
-        public override void Update()
-        {
-            if (modLoader != null && !modLoader.Finished)
-            {
-                base_Update();
-                return;
-            }
-
-            orig_Update();
-        }
 
         [MonoModIgnore]
         private extern void MainOptions();
@@ -323,12 +261,6 @@ namespace TowerFall
             Draw.SpriteBatch.End();
         }
 
-        // TODO better way to do this
-        internal static int buttonCount(List<OptionsButton> buttons) 
-        {
-            return buttons.Count;
-        }
-
         public enum patch_MenuState 
         {
             None,
@@ -350,5 +282,22 @@ namespace TowerFall
             Mods,
             ModOptions
         }
+    }
+}
+
+namespace MonoMod 
+{
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCtor))]
+    public class PatchMainMenuCtor : Attribute {}
+
+    internal static partial class MonoModRules 
+    {
+        public static void PatchMainMenuCtor(ILContext ctx, CustomAttribute attrib) 
+        {
+            var cursor = new ILCursor(ctx);
+
+            cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("TowerFall.TFGame", "GameLoaded"));
+            cursor.RemoveRange(4);
+        } 
     }
 }
