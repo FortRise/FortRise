@@ -216,7 +216,10 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
         if (other.Name != this.Name)
             return false;
         
-        if (other.Version != this.Version)
+        if (other.Version.Major != this.Version.Major)
+            return false;
+        
+        if (this.Version.Minor < other.Version.Minor)
             return false;
 
         return true;
