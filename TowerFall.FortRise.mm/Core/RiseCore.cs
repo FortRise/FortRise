@@ -314,23 +314,9 @@ public static partial class RiseCore
         }
     }
 
-    internal static void BlacklistMods(FortModule module, bool blacklist) 
+    internal static void WriteBlacklist(JsonValue ctx, string path) 
     {
-        var meta = Path.GetFileName(string.IsNullOrEmpty(module.Meta.PathZip) ? module.Meta.PathDirectory : module.Meta.PathZip);
-        var json = JsonTextReader.FromFile("Mods/blacklist.txt").AsJsonArray;
-        if (blacklist)  
-        {
-            json.Add(meta);
-            JsonTextWriter.WriteToFile("Mods/blacklist.txt", json);
-            return;
-        }
-        var newJson = new JsonArray();
-        foreach (var j in json.ConvertToArrayString()) 
-        {
-            if (j != meta)
-                newJson.Add(j);
-        }
-        JsonTextWriter.WriteToFile("Mods/blacklist.txt", newJson);
+        JsonTextWriter.WriteToFile(path, ctx);
     }
 
     internal static void Register(this FortModule module) 
