@@ -4,6 +4,7 @@ using System.Linq;
 using Ionic.Zip;
 using Microsoft.Xna.Framework;
 using Monocle;
+using TeuJson;
 using TowerFall;
 
 namespace FortRise;
@@ -124,7 +125,39 @@ public class UIModToggler : FortRiseUI
 
         blacklistedMods.Add(modName);
 
-        // TODO disable mods that depend on this mod
+        var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
+            .FirstOrDefault();
+        if (modmeta == null)
+            modmeta = modsMetadata.Select(x => x.Value).Where(x => x.PathDirectory.Replace("Mods\\", "") == modName).FirstOrDefault();
+
+        
+        if (modmeta == null)
+            return;
+
+        foreach (var mod in modsMetadata.Values) 
+        {
+            if (mod.Dependencies == null)
+                continue;
+            foreach (var dep in mod.Dependencies) 
+            {
+                if (modmeta == dep) 
+                {
+                    string depName;
+                    if (!string.IsNullOrEmpty(mod.PathZip)) 
+                    {
+                        depName = Path.GetFileName(mod.PathZip);
+                    }
+                    else 
+                    {
+                        var folderName = Path.GetFileName(mod.PathDirectory);
+                        depName = folderName;
+                    }
+                    AddToBlacklist(depName);
+                    var item = container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    item.Value = false;
+                }
+            }
+        }
     }
 
     private void RemoveToBlacklist(string modName) 
@@ -133,11 +166,51 @@ public class UIModToggler : FortRiseUI
             return;
         
         blacklistedMods.Remove(modName);
+
+        var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
+            .FirstOrDefault();
+        if (modmeta == null)
+            modmeta = modsMetadata.Select(x => x.Value).Where(x => x.PathDirectory.Replace("Mods\\", "") == modName).FirstOrDefault();
+
+        
+        if (modmeta is null || modmeta.Dependencies is null)
+            return;
+        
+        foreach (var mod in modsMetadata.Values) 
+        {
+            foreach (var dep in modmeta.Dependencies)
+            {
+                if (mod == dep) 
+                {
+                    string depName;
+                    if (!string.IsNullOrEmpty(mod.PathZip)) 
+                    {
+                        depName = Path.GetFileName(mod.PathZip);
+                    }
+                    else 
+                    {
+                        var folderName = Path.GetFileName(mod.PathDirectory);
+                        depName = folderName;
+                    }
+                    RemoveToBlacklist(depName);
+                    var item = container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    item.Value = true;
+                }
+            }
+        }
     }
 
     public override void OnLeave()
     {
         bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
+
+        var jsonArray = new JsonArray();
+
+        foreach (var blacklisted in blacklistedMods) 
+        {
+            jsonArray.Add(blacklisted);
+        }
+        RiseCore.WriteBlacklist(jsonArray, "Mods/blacklist.txt");
         
         // cleanup
         modsMetadata = null;
@@ -146,6 +219,7 @@ public class UIModToggler : FortRiseUI
         oldBlacklistedMods = null;
         container = null;
         scene = null;
+        
 
         if (shouldRestart) 
         {
