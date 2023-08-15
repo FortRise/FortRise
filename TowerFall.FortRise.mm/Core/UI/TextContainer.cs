@@ -377,8 +377,6 @@ public class TextContainer : MenuItem
 
     public class Toggleable : Option<bool>
     {
-        public string Text;
-
         public override bool CanLeft => Value; 
         public override bool CanRight => !Value;
 
