@@ -12,7 +12,8 @@ Installer/lib/**/*.so
 Installer/lib/**/*.so.0
 Installer/lib/**/*.dylib
 Installer/lib-old/
-Installer/lib-mac/
+Installer/lib-native/
+Installer/lib-kick/
 artifacts/
 lib-stripped/TestDep
 PatchVersion.txt

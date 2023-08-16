@@ -71,27 +71,11 @@ public class Installer : MarshalByRefObject
         }
         
         var patchVersion = Path.Combine(path, "PatchVersion.txt");
-        bool shouldProceed = true;
-        if (File.Exists(patchVersion)) 
-        {
-            using var fs = File.OpenRead(patchVersion);
-            using var sr = new StreamReader(fs);
-            var tfVersion = sr.ReadLine()?.Split(':')[1].Trim();
-            var pVersion = sr.ReadLine()?.Split(':')[1].Trim();
-            if (pVersion == Program.Version) 
-            {
-                shouldProceed = false;
-            }
-        }
-        if (!shouldProceed) 
-        {
-            Console.WriteLine("TowerFall has already been patched, but you decided to patch again.");
-        }
 
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + Program.Version);
+        sb.AppendLine("Installer Version: " + "4.1.0");
 
         var text = sb.ToString();
 

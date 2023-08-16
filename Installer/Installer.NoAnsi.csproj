@@ -12,8 +12,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="lib-mac/**/*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <Content Include="lib-native/x86/**/*">
+      <Link>x86/%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

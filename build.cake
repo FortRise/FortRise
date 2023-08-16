@@ -1,11 +1,12 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "4.1.0";
+var version = "4.1.0-pre1";
 
 Task("CleanInstaller")
     .Does(() => 
 {
     CleanDirectory($"./artifacts/FortRise.Installer.v{version}-NoANSI");
+    CleanDirectory($"./artifacts/FortRise.Installer.v{version}-OSXLinux");
 });
 
 
@@ -15,11 +16,11 @@ Task("BuildInstaller")
 {
     DotNetBuild("./Installer/Installer.NoAnsi.csproj", new DotNetBuildSettings 
     {
-        Configuration = configuration,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        }
+        Configuration = configuration
+    });
+    DotNetBuild("./Installer/Installer.Kick.csproj", new DotNetBuildSettings 
+    {
+        Configuration = configuration
     });
 });
 
@@ -31,10 +32,12 @@ Task("PublishInstaller")
     {
         Configuration = configuration,
         OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        },
+        NoBuild = true
+    });
+    DotNetPublish("./Installer/Installer.Kick.csproj", new DotNetPublishSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-OSXLinux",
         NoBuild = true
     });
 });
