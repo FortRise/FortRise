@@ -191,6 +191,7 @@ public static partial class RiseCore
             {
             case "--debug":
                 DebugMode = true;
+                Logger.Verbosity = Logger.LogLevel.Error;
                 break;
             case "--verbose":
                 Logger.Verbosity = Logger.LogLevel.Assert;
