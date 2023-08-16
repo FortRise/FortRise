@@ -9,6 +9,8 @@ public static class patch_GameData
 
     public static void Load() 
     {
+        // Should be safe to restart here
+        RiseCore.CantRestart = false;
         RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
         RiseCore.GameData.Load();

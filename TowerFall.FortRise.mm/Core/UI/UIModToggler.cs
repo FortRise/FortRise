@@ -223,7 +223,7 @@ public class UIModToggler : FortRiseUI
 
         if (shouldRestart) 
         {
-            RiseCore.AskForRestart();
+            RiseCore.InternalRestart();
             return;
         }
     }

@@ -90,7 +90,12 @@ public static partial class RiseCore
     /// </summary>
     public static bool DebugMode;
 
-    internal static bool Restart;
+    internal static bool CantRestart = true;
+
+    /// <summary>
+    /// Check if the game is about to restart.
+    /// </summary>
+    public static bool WillRestart => CantRestart;
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
     {
@@ -115,6 +120,7 @@ public static partial class RiseCore
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
+        Logger.Log(GameRootPath);
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 
@@ -225,13 +231,30 @@ public static partial class RiseCore
         return metadata; 
     }
 
-    public static void AskForRestart() 
+    /// <summary>
+    /// Ask the mod loader to restart the game. If it isn't possible to restart, the call will be ignored.
+    /// </summary>
+    public static void AskForRestart(FortModule module) 
     {
-        Restart = true;
+        if (CantRestart) 
+        {
+            Logger.Warning($"[RESTART] {module.Name} asked for restart. But it was rejected as the game is not ready yet.");
+            return;
+        }
+        
+        var moduleName = module.Name;
+        Logger.Info($"[RESTART] {module.Name} asked for restart. Restarting the game...");
+        CantRestart = true;
+        Engine.Instance.Exit();
+    } 
+
+    internal static void InternalRestart() 
+    {
+        CantRestart = true;
         Engine.Instance.Exit();
     }
 
-    public static void RunTowerFallProcess(string towerFallPath, string[] args) 
+    internal static void RunTowerFallProcess(string towerFallPath, string[] args) 
     {
         bool noIntroFound = false;
         var sb = new StringBuilder();

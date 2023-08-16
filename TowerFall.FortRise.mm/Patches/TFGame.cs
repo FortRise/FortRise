@@ -162,7 +162,7 @@ public partial class patch_TFGame : TFGame
 
         orig_Main(args);
 
-        if (RiseCore.Restart) 
+        if (RiseCore.WillRestart) 
         {
             RiseCore.RunTowerFallProcess(towerFallPath, args);
         }
