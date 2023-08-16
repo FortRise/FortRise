@@ -239,7 +239,11 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
     {
         Name = value["name"];
         Version = new Version(value.GetJsonValueOrNull("version") ?? "1.0.0");
-        FortRiseVersion = new Version(value.GetJsonValueOrNull("required") ?? "4.0.0");
+        var fVersion = value.GetJsonValueOrNull("required");
+        if (fVersion == null)
+            FortRiseVersion = RiseCore.FortRiseVersion;
+        else
+            FortRiseVersion = new Version(fVersion);
         Description = value.GetJsonValueOrNull("description") ?? string.Empty;
         Author = value.GetJsonValueOrNull("author") ?? string.Empty;
         DLL = value.GetJsonValueOrNull("dll") ?? string.Empty;
