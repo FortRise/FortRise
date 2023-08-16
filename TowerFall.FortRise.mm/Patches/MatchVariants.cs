@@ -138,6 +138,15 @@ public struct VariantInfo
         Exclusions = null;
         NewInVersion = null;
     }
+
+    public VariantInfo(string header, Atlas variantAtlas)
+    {
+        VariantAtlas = variantAtlas;
+        Header = header;
+        Description = "";
+        Exclusions = null;
+        NewInVersion = null;
+    }
 }
 
 [Flags]
