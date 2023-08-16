@@ -186,8 +186,15 @@ namespace MonoMod
                 var cursor = new ILCursor(ctx);
                 ILLabel val = null;
 
+                // It's BrFalse in Windows while BrTrue in Linux or MacOS
+                Func<Instruction, bool> brFalseOrTrue;
+                if (IsWindows)
+                    brFalseOrTrue = instr => instr.MatchBrfalse(out val);
+                else
+                    brFalseOrTrue = instr => instr.MatchBrtrue(out val);
+
                 cursor.GotoNext(MoveType.After, 
-                    instr => instr.MatchBrfalse(out val),
+                    brFalseOrTrue,
                     instr => instr.MatchLdstr("DarkBoss"),
                     instr => instr.MatchCall("Monocle.Music", "System.Void Play(System.String)"));
 

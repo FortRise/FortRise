@@ -86,9 +86,25 @@ namespace MonoMod
                 var cursor = new ILCursor(ctx);
                 ILLabel label = null;
 
-                cursor.GotoNext(MoveType.After, 
-                    instr => instr.MatchLdfld("TowerFall.MatchSettings", "QuestHardcoreMode"),
-                    instr => instr.MatchBrtrue(out label));
+                // It's BrTrue in Windows while Br in Linux or MacOS
+                Func<Instruction, bool>[] brFalseOrTrue;
+                if (IsWindows)
+                    brFalseOrTrue = new Func<Instruction, bool>[]{ 
+                        instr => instr.MatchLdfld("TowerFall.MatchSettings", "QuestHardcoreMode"),
+                        instr => instr.MatchBrtrue(out label),
+                    };
+                else
+                    brFalseOrTrue = new Func<Instruction, bool>[]{ 
+                        instr => instr.MatchLdfld("TowerFall.MatchSettings", "QuestHardcoreMode"),
+                        instr => instr.MatchBr(out _),
+                        instr => instr.MatchLdcI4(1),
+                        instr => instr.MatchNop(),
+                        instr => instr.MatchStloc(2),
+                        instr => instr.MatchLdloc(2),
+                        instr => instr.MatchBrtrue(out label),
+                    };
+
+                cursor.GotoNext(MoveType.After, brFalseOrTrue);
 
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.Emit(OpCodes.Ldfld, f__4this);

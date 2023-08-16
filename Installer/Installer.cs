@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
@@ -6,32 +5,18 @@ using System;
 using System.Reflection;
 using System.Xml;
 
-// #if PLATFORM_OSX
-// using MonoMod;
-// using MonoMod.RuntimeDetour.HookGen;
-// using Mono.Cecil;
-// #endif
-
-#if ANSI
-using Spectre.Console;
-#endif
-
 namespace FortRise.Installer;
 
-public static class Installer
+public class Installer : MarshalByRefObject
 {
-#if PLATFORM_OSX
-    public static Assembly? AsmMonoMod;
-    public static Assembly? AsmHookGen;
-#endif
-    public const string TowerFallVersion = "1.3.3.3";
+    public static Assembly AsmMonoMod;
+    public static Assembly AsmHookGen;
+
 
     private static readonly string[] fileDependencies = {
-#if !PLATFORM_OSX
         "FNA.dll", "FNA.dll.config",
-#endif
-        "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe",
+        "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
+        "MonoMod.exe", 
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
@@ -44,15 +29,47 @@ public static class Installer
         "gamecontrollerdb.txt", "lua53.dll", "liblua53.dylib", "liblua53.so"
     };
 
-    private static readonly string[] fnaLibs = {
-        "FAudio.dll", "FNA3D.dll", "libtheorafile.dll", "MojoShader.dll",
-        "SDL2_image.dll", "SDL2.dll"
+    private static readonly string[] windowsSpecificFiles = {
+        "gamecontrollerdb.txt"
     };
 
+    private static string[] fnaLibs; 
     private static readonly string modFile = "TowerFall.FortRise.mm.dll";
 
-    public static async Task Install(string path) 
+    public void Install(string path) 
     {
+        // Let's try to not do it at compile-time.. It's really hard to maintain that way
+        string FNAPath;
+        Action<string> FNACopy;
+        switch (Environment.OSVersion.Platform) 
+        {
+        case PlatformID.Unix:
+            FNAPath = "lib64";
+            FNACopy = CopyFNAFiles_Linux;
+            fnaLibs = new string[] {
+                "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
+                "libSDL2-2.0.so.0", "libtheorafile.so"
+            };
+            break;
+        case PlatformID.MacOSX:
+            FNAPath = "MacOS/osx";
+            FNACopy = CopyFNAFiles_MacOS;
+            fnaLibs = new string[] {
+                "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
+                "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
+                "libvulkan.1.dylib"
+            };
+            break;
+        default:
+            FNAPath = "x86";
+            FNACopy = CopyFNAFiles_Windows;
+            fnaLibs = new string[] {
+                "FAudio.dll", "FNA3D.dll", "lua53.dll",
+                "SDL2.dll", "libtheorafile.dll"
+            };
+            break;
+        }
+        
         var patchVersion = Path.Combine(path, "PatchVersion.txt");
         bool shouldProceed = true;
         if (File.Exists(patchVersion)) 
@@ -68,28 +85,17 @@ public static class Installer
         }
         if (!shouldProceed) 
         {
-#if ANSI
-            if (!AnsiConsole.Confirm("[green]TowerFall has already been patched[/], [underline]do you want to patch again?[/]", false))
-                return;
-#else
             Console.WriteLine("TowerFall has already been patched, but you decided to patch again.");
-#endif
         }
 
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("TF Version: " + TowerFallVersion);
         sb.AppendLine("Installer Version: " + Program.Version);
-        sb.AppendLine("Debug Mode: " + Program.DebugMode);
-        sb.AppendLine("FNA: " + Program.FNA);
+
         var text = sb.ToString();
-#if PLATFORM_OSX
+
         File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
-#else
-        await File.WriteAllTextAsync(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
-        await File.WriteAllTextAsync("PatchVersion.txt", sb.ToString());
-#endif
 
         var fortOrigPath = Path.Combine(path, "fortOrig");
 
@@ -107,16 +113,34 @@ public static class Installer
 
         if (!File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe")))
         {
-            ThrowError("[underline][red]Copying failed[/][/]");           
+            ThrowError("Copying failed");           
             return;
         }
+        Underline("Moving original FNA.dll and FNA.dll.config into fortOrig folder if have one");
+        if (File.Exists(Path.Combine(path, "FNA.dll")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll")))
+        {
+            File.Copy(Path.Combine(path, "FNA.dll"), Path.Combine(fortOrigPath, "FNA.dll"));
+        }
+        if (File.Exists(Path.Combine(path, "FNA.dll.config")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll.config")))
+        {
+            File.Copy(Path.Combine(path, "FNA.dll.config"), Path.Combine(fortOrigPath, "FNA.dll.config"));
+        }
+
         var libPath = "";
+
+        Underline("Supporting DInput and other SDL controllers");
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
+        {
+            if (!File.Exists(Path.Combine(path, "gamecontrollerdb.txt")))
+                File.Copy(Path.Combine(libPath, "gamecontrollerdb.txt"), Path.Combine(path, "gamecontrollerdb.txt"), true);
+        }
+
         Underline("Moving the mod into TowerFall directory");
 
         var fortRiseDll = Path.Combine(libPath, modFile);
         if (!File.Exists(fortRiseDll)) 
         {
-            ThrowError("[underline][red]TowerFall.FortRise.mm.dll mod file not found![/][/]");
+            ThrowError("TowerFall.FortRise.mm.dll mod file not found!");
             return;
         }
         File.Copy(fortRiseDll, Path.Combine(path, "TowerFall.FortRise.mm.dll"), true);
@@ -127,60 +151,28 @@ public static class Installer
             var lib = Path.Combine(libPath, file);
             if (!File.Exists(lib)) 
             {
-                ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
+                ThrowErrorContinous($"{lib} file not found!");
                 continue;
             }
 
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 
+        Underline($"Moving all of the FNA files on {FNAPath}");
+        FNACopy(path);
+
+
         Underline("Generating XML Document");
         GenerateDOC(Path.Combine(libPath, "TowerFall.FortRise.mm.xml"), Path.Combine(path, "TowerFall.xml"));
 
-#if !PLATFORM_OSX
-        if (Program.FNA) 
-        {
-            Underline("Copying needed FNA libs");
-            if (!Directory.Exists(Path.Combine(path, "x86")))
-                Directory.CreateDirectory(Path.Combine(path, "x86"));
-            foreach (var file in fnaLibs) 
-            {
-                var lib = Path.Combine(libPath, "x86", file);
-                if (!File.Exists(lib)) 
-                {
-                    ThrowErrorContinous($"[underline][red]{lib} file not found![/][/]");
-                    continue;
-                }
-
-                File.Copy(lib, Path.Combine(path, "x86", Path.GetFileName(lib)), true);
-            }
-        }
-#endif
 
         Underline("Patching TowerFall");
-
-#if !PLATFORM_OSX
-        var monoModPath = Path.Combine(libPath, "MonoMod.exe");
-        if (!File.Exists(monoModPath))
-        {
-            ThrowError("No MonoMod executable found in the lib path");
-            return;
-        }
-        var process = Process.Start(monoModPath, $"\"{Path.Combine(path, "TowerFall.exe")}\"");
-        await process.WaitForExitAsync();
-        if (process.ExitCode != 0) 
-        {
-            ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
-            UnderlineInfo("Note that the TowerFall might be patched from other modloader");
-            await Task.Delay(1000);
-            return;
-        }
-#else
         LoadAssembly(Path.Combine(path, "Mono.Cecil.dll"));
         LoadAssembly(Path.Combine(path, "Mono.Cecil.Pdb.dll"));
         LoadAssembly(Path.Combine(path, "Mono.Cecil.Mdb.dll"));
         LoadAssembly(Path.Combine(path, "MonoMod.Utils.dll"));
         LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.dll"));
+
         AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.exe"));
         AsmHookGen = LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.HookGen.exe"));
 
@@ -189,12 +181,10 @@ public static class Installer
             new string[] { Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MONOMODDED_TowerFall.exe") } });
         if (returnCode != 0) 
         {
-            ThrowError("[underline][red]MonoMod failed to patch the assembly[/][/]");
+            ThrowError("MonoMod failed to patch the assembly");
             UnderlineInfo("Note that the TowerFall might be patched from other modloader");
-            await Task.Delay(1000);   
             return;
         }
-#endif
 
         Underline("Renaming the output");
         var towerFallExe = Path.Combine(path, "TowerFall.exe");
@@ -213,32 +203,18 @@ public static class Installer
         File.Move(moddedOutputExe, towerFallExe);
         File.Move(moddedOutputPdb, towerFallPdb);
 
-        Yellow("Finalizing");
+        Yellow("Generating HookGen");
 
-#if !PLATFORM_OSX
-        Underline("Running HookGen");
-        var hookGenPath = Path.Combine(libPath, "MonoMod.RuntimeDetour.HookGen.exe");
-        if (!File.Exists(hookGenPath))
-        {
-            ThrowError("No MonoMod.RuntimeDetour.HookGen executable found in the lib path");
-            return;
-        }
-        process = Process.Start(hookGenPath, $"--private \"{Path.Combine(path, "TowerFall.exe")}\"");
-        await process.WaitForExitAsync();
-        if (process.ExitCode != 0) 
-        {
-            ThrowError("[underline][red]HookGen failed to generate hooks[/][/]");
-        }
-#else
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
         AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { "--private", Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MMHOOK_TowerFall.dll") } });
-#endif
 
+        Yellow("Cleaning up");
+        Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "");
 
         Succeed("Installed");
     }
 
-    public static async Task Uninstall(string path) 
+    public void Uninstall(string path) 
     {
         var patchVersion = Path.Combine(path, "PatchVersion.txt");
         bool shouldProceed = false;
@@ -287,7 +263,6 @@ public static class Installer
         Underline("Deleting the PatchVersion text file");
         
         File.Delete(Path.Combine(path, "PatchVersion.txt"));
-        await Task.Delay(1000);
 
         Succeed("Unpatched");
     }
@@ -314,63 +289,101 @@ public static class Installer
         xmlDocument.Save(toPath);
     }
 
+    private static void CopyFNAFiles_Windows(string path) 
+    {
+        foreach (var fnaLib in fnaLibs) 
+        {
+            var lib = Path.Combine("x86", fnaLib);
+            if (!File.Exists(lib)) 
+            {
+                ThrowErrorContinous($"{lib} file not found!");
+                continue;
+            }   
+            var x86Path = Path.Combine(path, "x86");
+            if (!Directory.Exists(x86Path)) 
+                Directory.CreateDirectory(x86Path);
+            File.Copy(lib, Path.Combine(x86Path, Path.GetFileName(lib)), true);
+        }
+    }
+
+    private static void CopyFNAFiles_Linux(string path) 
+    {
+        foreach (var fnaLib in fnaLibs) 
+        {
+            var origPath = Path.Combine(path, "lib64/orig");
+
+            var lib64Path = Path.Combine(path, "lib64");
+            if (!Directory.Exists(origPath)) 
+                Directory.CreateDirectory(origPath);
+            
+            if (File.Exists(Path.Combine(lib64Path, Path.GetFileName(fnaLib))))
+                File.Copy(Path.Combine(lib64Path, Path.GetFileName(fnaLib)), origPath, true);
+            
+            var lib = Path.Combine("lib64", fnaLib);
+            if (!File.Exists(lib)) 
+            {
+                ThrowErrorContinous($"{lib} file not found!");
+                continue;
+            }   
+            File.Copy(lib, Path.Combine(lib64Path, Path.GetFileName(lib)), true);
+        }
+    }
+
+    private static void CopyFNAFiles_MacOS(string path) 
+    {
+        var macOSPath = new DirectoryInfo(path).Parent.FullName;
+        foreach (var fnaLib in fnaLibs) 
+        {
+            var osxPath = Path.Combine(macOSPath, "MacOS/Resources/osx");
+            var origPath = Path.Combine(osxPath, "orig");
+            if (!Directory.Exists(origPath)) 
+                Directory.CreateDirectory(origPath);
+
+            if (File.Exists(Path.Combine(osxPath, Path.GetFileName(fnaLib))))
+                File.Copy(Path.Combine(osxPath, Path.GetFileName(fnaLib)), origPath, true);
+            
+            var lib = Path.Combine("osx", fnaLib);
+            if (!File.Exists(lib)) 
+            {
+                ThrowErrorContinous($"{lib} file not found!");
+                continue;
+            }   
+            File.Copy(lib, Path.Combine(osxPath, Path.GetFileName(lib)), true);
+        }
+    }
+
 
     private static void Yellow(string text) 
     {
-#if ANSI
-        AnsiConsole.MarkupLine("[yellow]Finalizing[/]");
-#else
-        Console.WriteLine("Finalizing");
-#endif
+        Console.WriteLine(text);
     }
 
     private static void UnderlineInfo(string text) 
     {
-#if ANSI
-        AnsiConsole.MarkupLine($"[underline][gray]{text}[/][/]");
-#else
         Console.WriteLine(text);
-#endif
     }
 
     private static void Underline(string text) 
     {
-#if ANSI
-        AnsiConsole.MarkupLine($"[underline]{text}[/]");
-#else
         Console.WriteLine(text);
-#endif
     }
 
     private static void Succeed(string text) 
     {
-#if ANSI
-        AnsiConsole.MarkupLine($"[underline][green]{text}[/][/]");
-#else
         Console.WriteLine(text);
-#endif
     }
 
 
     private static void ThrowErrorContinous(string error) 
     {
-#if ANSI
-        AnsiConsole.MarkupLine(error);
-#else
         Console.WriteLine(error);
-#endif
     }
 
     private static void ThrowError(string error) 
     {
-#if ANSI
-        AnsiConsole.Prompt(new TextPrompt<string>(error).AllowEmpty());
-#else
         Console.WriteLine(error);
-#endif
     }
 
-#if PLATFORM_OSX
     private static Assembly LoadAssembly(string path) 
     {
         ResolveEventHandler tmpResolver = (s, e) => {
@@ -381,7 +394,7 @@ public static class Installer
         };
         AppDomain.CurrentDomain.AssemblyResolve += tmpResolver;
         // Assembly asm = Assembly.Load(Path.GetFileNameWithoutExtension(path));
-        Assembly asm = Assembly.LoadFrom(path);
+        Assembly asm = Assembly.Load(Path.GetFileNameWithoutExtension(path));
         AppDomain.CurrentDomain.AssemblyResolve -= tmpResolver;
         AppDomain.CurrentDomain.TypeResolve += (s, e) => {
             return asm.GetType(e.Name) != null ? asm : null;
@@ -391,5 +404,4 @@ public static class Installer
         };
         return asm;
     }
-#endif
 }
