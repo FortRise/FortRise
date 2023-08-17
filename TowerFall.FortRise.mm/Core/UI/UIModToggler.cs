@@ -15,19 +15,19 @@ public class UIModToggler : FortRiseUI
     private Dictionary<string, bool> onOffs = new();
     private HashSet<string> blacklistedMods = new();
     private HashSet<string> oldBlacklistedMods = new();
-    private TextContainer container;
+    public TextContainer Container;
 
     private Scene scene;
 
     public UIModToggler(Scene scene) 
     {
         this.scene = scene;
-        scene.Add(container = new TextContainer(180));
+        scene.Add(Container = new TextContainer(180));
     }
 
     private void ModifyAllButtons(bool enable) 
     {
-        foreach (var item in container.Items) 
+        foreach (var item in Container.Items) 
         {
             if (item is TextContainer.Toggleable toggleable) 
             {
@@ -54,8 +54,8 @@ public class UIModToggler : FortRiseUI
         enableAll.Pressed(() => ModifyAllButtons(true));
         var disableAll = new TextContainer.ButtonText("Disable All");
         disableAll.Pressed(() => ModifyAllButtons(false));
-        container.Add(enableAll);
-        container.Add(disableAll);
+        Container.Add(enableAll);
+        Container.Add(disableAll);
         string[] files = Directory.GetFiles("Mods");
         foreach (var file in files) 
         {
@@ -82,7 +82,7 @@ public class UIModToggler : FortRiseUI
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);
             modsMetadata.Add(filename, metadata);
             onOffs.Add(filename, isBlacklisted);
-            container.Add(CreateButton(filename, onOffs));
+            Container.Add(CreateButton(filename, onOffs));
         }
 
         files = Directory.GetDirectories("Mods");
@@ -100,14 +100,33 @@ public class UIModToggler : FortRiseUI
             var isWhitelisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);
             onOffs.Add(folderName, isWhitelisted);
-            container.Add(CreateButton(folderName, onOffs));
+            Container.Add(CreateButton(folderName, onOffs));
         }
-        container.Selected = true;
     }
 
     private TextContainer.Toggleable CreateButton(string modName, Dictionary<string, bool> onOffs) 
     {
         var toggleable = new TextContainer.Toggleable(modName, onOffs[modName]);
+        if (RiseCore.Loader.CantLoad.Contains(modName))
+        {
+            toggleable.NotSelectedColor = Color.DarkRed;
+            toggleable.SelectedColor = Color.Red;
+            toggleable.Interactable = false;
+            toggleable.OnConfirm = () => {
+                Container.Selected = false;
+                var uiModal = new UIModal(0);
+                uiModal.SetTitle("Missing Mods");
+                uiModal.AddFiller("Cannot load mod due to");
+                uiModal.AddFiller("Missing dependencies.");
+                uiModal.AddFiller("Check fortRiseLog.txt");
+                uiModal.AddItem("Ok", () => {
+                    Container.Selected = true;
+                    uiModal.RemoveSelf();
+                });
+                uiModal.AutoClose = true;
+                scene.Add(uiModal);
+            };
+        }
         toggleable.Change(on => {
             if (on) 
                 RemoveToBlacklist(modName);
@@ -153,7 +172,7 @@ public class UIModToggler : FortRiseUI
                         depName = folderName;
                     }
                     AddToBlacklist(depName);
-                    var item = container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
                     item.Value = false;
                 }
             }
@@ -193,7 +212,7 @@ public class UIModToggler : FortRiseUI
                         depName = folderName;
                     }
                     RemoveToBlacklist(depName);
-                    var item = container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
                     item.Value = true;
                 }
             }
@@ -217,7 +236,7 @@ public class UIModToggler : FortRiseUI
         onOffs = null;
         blacklistedMods = null;
         oldBlacklistedMods = null;
-        container = null;
+        Container = null;
         scene = null;
         
 

@@ -11,6 +11,8 @@ public static partial class RiseCore
     public static class Loader 
     {
         internal static HashSet<string> BlacklistedMods;
+        private static List<ModuleMetadata> DelayedMods = new();
+        internal static List<string> CantLoad = new();
 
         internal static void InitializeMods() 
         {
@@ -43,6 +45,12 @@ public static partial class RiseCore
                 }
                 LoadZip(file);
             }
+
+            foreach (var delayMod in DelayedMods) 
+            {
+                LoadMod(delayMod, true);
+            }
+            DelayedMods.Clear();
         }
 
         public static void LoadDir(string dir) 
@@ -53,8 +61,7 @@ public static partial class RiseCore
                 return;
             
             moduleMetadata = ParseMetadataWithJson(dir, metaPath);
-
-            Loader.LoadMod(moduleMetadata);
+            Loader.LoadMod(moduleMetadata, false);
         }
 
         public static void LoadZip(string file)
@@ -69,19 +76,12 @@ public static partial class RiseCore
             using var memStream = entry.ExtractStream();
 
             moduleMetadata = ParseMetadataWithJson(file, memStream, true);
-
-            Loader.LoadMod(moduleMetadata);
+            Loader.LoadMod(moduleMetadata, false);
         }
 
-        public static void LoadMod(ModuleMetadata metadata, bool shouldCheck = false) 
+        public static bool CheckDependencies(ModuleMetadata metadata, bool isDelay) 
         {
-            if (metadata == null)
-                return;
-            
-            if (shouldCheck && CheckModsLoaded(metadata))
-                return;
-            
-            // Check dependencies
+            bool notFound = false;
             if (metadata.Dependencies != null) 
             {
                 foreach (var dep in metadata.Dependencies) 
@@ -89,10 +89,38 @@ public static partial class RiseCore
                     if (RiseCore.InternalModuleMetadatas.Contains(dep))
                         continue;
 
+                    if (!isDelay) 
+                    {
+                        DelayedMods.Add(metadata);
+                        return false;
+                    }
+
                     Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
+                    notFound = true;
                 }
             }
+            return !notFound;
+        }
 
+        public static void LoadMod(ModuleMetadata metadata, bool isDelayed = false) 
+        {
+            if (metadata == null)
+                return;
+
+            if (!CheckDependencies(metadata, isDelayed)) 
+            {
+                if (!isDelayed)
+                    return;
+                string path; 
+                if (!string.IsNullOrEmpty(metadata.PathZip))
+                    path = metadata.PathZip.Replace("Mods/", "");
+                else
+                    path = metadata.PathDirectory.Replace("Mods\\", "");
+                
+                CantLoad.Add(path);
+                return;
+            }
+            
             Assembly asm = null;
             ModResource modResource;
             if (!string.IsNullOrEmpty(metadata.PathZip)) 
@@ -181,16 +209,6 @@ public static partial class RiseCore
                 Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
                 break;
             }
-        }
-
-        public static bool CheckModsLoaded(ModuleMetadata metadata) 
-        {
-            foreach (var mod in RiseCore.InternalMods) 
-            {
-                if (mod.Metadata == metadata)
-                    return true;
-            }
-            return false;
         }
     }
 }
