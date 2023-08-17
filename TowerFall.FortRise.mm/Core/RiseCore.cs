@@ -16,6 +16,7 @@ using TeuJson;
 using TowerFall;
 using System.Diagnostics;
 using System.Text;
+using YYProject.XXHash;
 
 namespace FortRise;
 
@@ -280,7 +281,7 @@ public static partial class RiseCore
     [PatchFlags]
     internal static void Flags() {}
 
-    public static readonly HashAlgorithm ChecksumHasher = MD5.Create();
+    public static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
     public static byte[] GetChecksum(string path) 
     {

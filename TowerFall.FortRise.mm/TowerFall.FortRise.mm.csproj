@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
     <RootNamespace>TowerFall</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
     <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
     <ShouldIncludeNativeLua>false</ShouldIncludeNativeLua>
