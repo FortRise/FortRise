@@ -121,7 +121,6 @@ public static partial class RiseCore
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
-        Logger.Log(GameRootPath);
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 

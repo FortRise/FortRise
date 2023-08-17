@@ -160,12 +160,21 @@ public partial class patch_TFGame : TFGame
             }
         }
 
-        orig_Main(args);
-
-        if (RiseCore.WillRestart) 
+        try 
         {
-            RiseCore.RunTowerFallProcess(towerFallPath, args);
+            orig_Main(args);
+
+            if (RiseCore.WillRestart) 
+            {
+                RiseCore.RunTowerFallProcess(towerFallPath, args);
+            }
         }
+        catch (Exception e) 
+        {
+            Logger.Error(e.ToString());
+            Logger.Error(e.StackTrace);
+        }
+
         Exit:
         Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
