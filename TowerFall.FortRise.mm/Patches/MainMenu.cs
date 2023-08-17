@@ -55,8 +55,10 @@ namespace TowerFall
 
         private void CreateModToggle() 
         {
-            currentUI = new UIModToggler(this);
-            currentUI.OnEnter();
+            UIModToggler ui = new UIModToggler(this);
+            currentUI = ui;
+            ui.OnEnter();
+            ToStartSelected = ui.Container;
         }
 
         public void CreateModOptions() 
@@ -74,6 +76,7 @@ namespace TowerFall
             currentModule.CreateSettings(textContainer);
             Add(textContainer);
 
+            ToStartSelected = textContainer;
             BackState = patch_MenuState.Mods;
             TweenUICameraToY(2);
         }
@@ -109,8 +112,8 @@ namespace TowerFall
 
                 textContainer.Add(modButton);
             }
-            textContainer.Selected = true;
             Add(textContainer);
+            ToStartSelected = textContainer;
 
             BackState = patch_MenuState.Main;
             TweenUICameraToY(1);

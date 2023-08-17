@@ -109,8 +109,8 @@ public class TextContainer : MenuItem
     public override void Update()
     {
         base.Update();
-        // if (Selected) 
-        // {
+        if (Selected) 
+        {
             if (MenuInput.Up) 
             {
                 Sounds.ui_move1.Play();
@@ -137,7 +137,7 @@ public class TextContainer : MenuItem
                     Current.ConfirmPressed();
                 }
             }
-        // }
+        }
 
         foreach (var item in items) 
         {
@@ -263,6 +263,10 @@ public class TextContainer : MenuItem
         public T Value;
         private SineWave sine;
 
+        public Color SelectedColor = OptionsButton.SelectedColor;
+        public Color NotSelectedColor = OptionsButton.NotSelectedColor;
+        public bool Interactable = true;
+
         protected Image LeftArrow;
         protected Image RightArrow;
 
@@ -298,7 +302,7 @@ public class TextContainer : MenuItem
 
         public override sealed void LeftPressed()
         {
-            if (!CanLeft)
+            if (!CanLeft || !Interactable)
                 return;
             
             OptionLeft();
@@ -306,7 +310,7 @@ public class TextContainer : MenuItem
 
         public override sealed void RightPressed()
         {
-            if (!CanRight)
+            if (!CanRight || !Interactable)
                 return;
             
             OptionRight();
@@ -323,7 +327,7 @@ public class TextContainer : MenuItem
         public override void Render(Vector2 position, bool selected)
         {
             Vector2 vector = new Vector2(30f + 2f * this.ValueWiggler.Value * (float)this.WiggleDir, 0f);
-            Color color = (base.Selected ? OptionsButton.SelectedColor : OptionsButton.NotSelectedColor);
+            Color color = (base.Selected ? SelectedColor : NotSelectedColor);
             Draw.OutlineTextJustify(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * this.SelectedWiggler.Value, 0f), color, Color.Black, new Vector2(1f, 0.5f), 1f);
 
             if (Selected) 
@@ -387,6 +391,8 @@ public class TextContainer : MenuItem
 
         public override void ConfirmPressed()
         {
+            if (!Interactable)
+                return;
             Value = !Value;
             WiggleDir = Value ? 1 : -1;
             OnValueChanged?.Invoke(Value);
