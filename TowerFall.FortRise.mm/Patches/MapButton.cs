@@ -47,7 +47,7 @@ public class patch_MapButton : MapButton
         return list.ToArray();
     }
 
-    public static List<Image> InitAdventureMapButtonGraphics(int levelID) 
+    public static List<Image> InitAdventureMapButtonGraphics(Point levelID) 
     {
         var scene = Engine.Instance.Scene as MapScene;
         if (scene == null)
@@ -55,14 +55,103 @@ public class patch_MapButton : MapButton
         switch (scene.GetCurrentAdventureType()) 
         {
         case AdventureType.DarkWorld:
-            return InitAdventureWorldGraphics(levelID);
+            return InitAdventureWorldGraphics(levelID.X);
         case AdventureType.Quest:
-            return InitAdventureQuestGraphics(levelID);
+            return InitAdventureQuestGraphics(levelID.X);
         case AdventureType.Versus:
-            return InitAdventureVersusGraphics(levelID);
+            return InitAdventureVersusGraphics(levelID.X);
+        case AdventureType.Trials:
+            return InitAdventureTrialsGraphics(levelID); 
         default:
             return new List<Image>();
         }
+    }
+
+    public static List<Image> InitAdventureTrialsGraphics(Point levelID)
+    {
+        // We don't have access to the MapScene from MapButton yet.
+        var scene = Engine.Instance.Scene as MapScene;
+        if (scene == null)
+            return new List<Image>();
+        var tower = (patch_TrialsLevelData)TowerRegistry.TrialsTowerSets[scene.GetLevelSet()][levelID.X][levelID.Y];
+        var theme = tower.Theme;
+        var list = new List<Image>();
+        if (levelID.Y == 0)
+        {
+            Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+            image.CenterOrigin();
+            list.Add(image);
+            Image image2 = new Image(theme.Icon, null);
+            image2.CenterOrigin();
+            image2.Color = MapButton.GetTint(theme.TowerType);
+            list.Add(image2);
+            if (levelID.Y > 0)
+            {
+                Image image3 = new Image(MapButton.GetNumeralTexture(theme.TowerType, levelID.Y), null);
+                image3.Origin.X = image3.Width / 2f;
+                image3.Origin.Y = -7f;
+                Image image4 = image2;
+                image4.Origin.Y = image4.Origin.Y + 2f;
+                list.Add(image3);
+            }
+            Sprite<int> smallAwardIcon = tower.Stats.GetSmallAwardIcon();
+            if (smallAwardIcon != null)
+            {
+                smallAwardIcon.Play(0, false);
+                smallAwardIcon.Origin += new Vector2(10f, 10f);
+                list.Add(smallAwardIcon);
+            }
+        }
+        else
+        {
+            Image image6 = new Image(MapButton.GetSmallBlockTexture(theme.TowerType), null);
+            image6.CenterOrigin();
+            list.Add(image6);
+            if (levelID.Y > 0)
+            {
+                Image image7 = new Image(MapButton.GetNumeralTexture(theme.TowerType, levelID.Y), null);
+                image7.CenterOrigin();
+                Image image8 = image7;
+                image8.Origin.Y = image8.Origin.Y - 1f;
+                image7.Color = MapButton.GetTint(theme.TowerType);
+                list.Add(image7);
+            }
+            Sprite<int> smallAwardIcon2 = tower.Stats.GetSmallAwardIcon();
+            if (smallAwardIcon2 != null)
+            {
+                smallAwardIcon2.Play(0, false);
+                smallAwardIcon2.Origin += new Vector2(10f, 3f);
+                list.Add(smallAwardIcon2);
+            }
+        }
+        return list;
+    }
+
+    public static Image[] InitAdventureTrialsStartLevelGraphics(Point levelID, string levelSet)
+    {
+        if (levelSet == "TowerFall") 
+            return InitTrialsStartLevelGraphics(levelID);
+        
+        TowerTheme theme = TowerRegistry.TrialsGet(levelSet, levelID.X)[levelID.Y].Theme;
+        List<Image> list = new List<Image>();
+        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
+        image.CenterOrigin();
+        list.Add(image);
+        Image image2 = new Image(theme.Icon, null);
+        image2.CenterOrigin();
+        image2.Color = MapButton.GetTint(theme.TowerType);
+        list.Add(image2);
+        if (levelID.Y > 0)
+        {
+            Image image3 = new Image(MapButton.GetNumeralTexture(theme.TowerType, levelID.Y), null);
+            image3.Origin.X = image3.Width / 2f;
+            image3.Origin.Y = -7f;
+            image3.Color = MapButton.GetTint(theme.TowerType);
+            Image image4 = image2;
+            image4.Origin.Y = image4.Origin.Y + 2f;
+            list.Add(image3);
+        }
+        return list.ToArray();
     }
 
     public static Image[] InitQuestStartLevelGraphics(int levelID, string levelSet)

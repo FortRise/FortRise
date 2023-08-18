@@ -19,6 +19,7 @@ public partial class RiseCore
     public sealed class ResourceTypeQuestTowerFolder {}
     public sealed class ResourceTypeDarkWorldTowerFolder {}
     public sealed class ResourceTypeVersusTowerFolder {}
+    public sealed class ResourceTypeTrialsTowerFolder {}
     public sealed class ResourceTypeAtlas {}
     public sealed class ResourceTypeSpriteData {}
     public sealed class ResourceTypeGameData {}
@@ -416,6 +417,14 @@ public partial class RiseCore
                 if (IsExist(resource, path + "/tower.xml")) 
                 {
                     resource.ResourceType = typeof(ResourceTypeQuestTowerFolder);
+                }
+                else AssignLevelFile();
+            }
+            else if (path.StartsWith("Content/Levels/Trials")) 
+            {
+                if (IsExist(resource, path + "/tower.xml")) 
+                {
+                    resource.ResourceType = typeof(ResourceTypeTrialsTowerFolder);
                 }
                 else AssignLevelFile();
             }

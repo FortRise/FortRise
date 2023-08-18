@@ -92,7 +92,6 @@ namespace TowerFall
             levelRed = questTowerStats.CompletedHardcore;
             levelGold = questTowerStats.CompletedNoDeaths;
         }
-
     }
 }
 

@@ -17,7 +17,6 @@ public class patch_QuestLevelSystem : QuestLevelSystem
         randomSeed = QuestTowerData.ID.X;
         if (QuestTowerData.GetLevelSet() != "TowerFall") 
         {
-            Logger.Log(QuestTowerData.Path);
             using var xmlStream = RiseCore.ResourceTree.TreeMap[this.QuestTowerData.Path].Stream;
             return patch_Calc.LoadXML(xmlStream)["level"];
         }

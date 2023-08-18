@@ -25,7 +25,8 @@ public sealed class AdventureListLoader : Entity
         Depth = -100000;
         Visible = false;
         buttons = new List<MapButton>();
-        buttons.Add(new AdventureCategoryButton(map.CurrentAdventureType));
+        if (map.CurrentAdventureType != AdventureType.Trials)
+            buttons.Add(new AdventureCategoryButton(map.CurrentAdventureType));
         
         spinTween = Tween.Create(Tween.TweenMode.Persist, Ease.BackOut, 18, false);
         spinTween.OnUpdate = t => spin = MathHelper.Lerp(tweenStart, tweenEnd, t.Eased);
@@ -91,8 +92,64 @@ public sealed class AdventureListLoader : Entity
             }
         }
             break;
-        }
+        case AdventureType.Trials:
+        {
+            var set = map.GetLevelSet() ?? TowerRegistry.TrialsLevelSet[0];
+            var currentLevels = TowerRegistry.TrialsTowerSets[set];
+            var list = new List<MapButton[]>();        
+            var adv = new AdventureCategoryButton(map.CurrentAdventureType);
+            buttons.Add(adv);
+            list.Add(new MapButton[] { adv, adv, adv });
+            if (currentLevels.Count == 0)
+                break;
 
+            // Y
+            for (int i = 0; i < currentLevels.Count; i++) 
+            {
+                var array = new MapButton[currentLevels[0].Length];
+                for (int j = 0; j < array.Length; j++) 
+                {
+                    buttons.Add(array[j] = new AdventureMapButton(currentLevels[i][j], set, map.CurrentAdventureType));
+                }
+                for (int k = 0; k < array.Length; k++) 
+                {
+                    if (k > 0) 
+                    {
+                        array[k].UpButton = array[k - 1];
+                    }
+                    if (k < array.Length - 1) 
+                    {
+                        array[k].DownButton = array[k + 1];
+                    }
+                }
+                list.Add(array);
+            }
+
+            // X
+            for (int i = 0; i < list.Count; i++) 
+            {
+                if (i > 0) 
+                {
+                    for (int j = 0; j < list[i].Length; j++) 
+                    {
+                        list[i][j].LeftButton = list[i - 1][j];
+                    }
+                }
+                if (i < list.Count - 1) 
+                {
+                    for (int j = 0; j < list[i].Length; j++) 
+                    {
+                        list[i][j].RightButton = list[i + 1][j];
+                    }
+                }
+                for (int j = 0; j < list[i].Length; j++) 
+                {
+                    list[i][j].MapXIndex = i;
+                }
+            }
+        }
+            break;
+        }
 
         foreach (MapButton lockedLevel in lockedLevels) 
         {
@@ -118,7 +175,8 @@ public sealed class AdventureListLoader : Entity
             {
                 startingID = map.Buttons.Count - 1;
             }
-            map.LinkButtonsList();
+            if (map.CurrentAdventureType != AdventureType.Trials)
+                map.LinkButtonsList();
             map.InitButtons(map.Buttons[startingID]);
             map.ScrollToButton(map.Selection);
             introTween.Stop();

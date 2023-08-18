@@ -140,9 +140,10 @@ namespace TowerFall
 
         private void InitAdventureMap(List<MapButton[]> list) 
         {
-            var gotoAdventure = new GotoAdventureButton(CurrentAdventureType);
-            Buttons.Add(gotoAdventure);
-            list.Add(new MapButton[] { gotoAdventure, gotoAdventure, gotoAdventure });
+            CurrentAdventureType = AdventureType.Trials;
+            var adv = new AdventureCategoryButton(CurrentAdventureType);
+            Buttons.Add(adv);
+            list.Add(new MapButton[] { adv, adv, adv });
         }
 
         public void InitAdventure(int id) 
@@ -324,9 +325,9 @@ namespace MonoMod
         public static void PatchMapSceneBegin(ILContext ctx, CustomAttribute attrib) 
         {
             var method = ctx.Method.DeclaringType.FindMethod("System.Void InitAdventureMap(FortRise.Adventure.AdventureType)");
-            // var methodWithList = 
-            //     ctx.Method.DeclaringType.FindMethod(
-            //         "System.Void InitAdventureMap(System.Collections.Generic.List`1<TowerFall.MapButton[]>)");
+            var methodWithList = 
+                ctx.Method.DeclaringType.FindMethod(
+                    "System.Void InitAdventureMap(System.Collections.Generic.List`1<TowerFall.MapButton[]>)");
 
             ILCursor cursor = new ILCursor(ctx);
             cursor.GotoNext(instr => instr.MatchCallOrCallvirt("TowerFall.MapScene", "System.Void InitVersusButtons()"));
@@ -345,13 +346,12 @@ namespace MonoMod
             cursor.Emit(OpCodes.Ldc_I4_1);
             cursor.Emit(OpCodes.Call, method);
 
-            // Disabled for now
-            // cursor.GotoNext(MoveType.After, 
-            //     instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.MapButton[]>"),
-            //     instr => instr.MatchStloc(4));
-            // cursor.Emit(OpCodes.Ldarg_0);
-            // cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[4]);
-            // cursor.Emit(OpCodes.Call, methodWithList);
+            cursor.GotoNext(MoveType.After, 
+                instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.MapButton[]>"),
+                instr => instr.MatchStloc(4));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[4]);
+            cursor.Emit(OpCodes.Call, methodWithList);
         }
     }
 }

@@ -35,6 +35,18 @@ public sealed class AdventureMapButton : MapButton
     private MapSeedSelect seedSelect;
     private bool canSetSeed;
 
+    public override float AddY 
+    {
+        get 
+        {
+            if (base.Data.ID.Y == 0)
+                return -30f;
+            if (base.Data.ID.Y == 1)
+                return -3f;
+            return 15f;
+        }
+    }
+
 
     public AdventureMapButton(AdventureWorldTowerData data, AdventureType type) : base(new TowerMapData(data))
     {
@@ -173,6 +185,53 @@ public sealed class AdventureMapButton : MapButton
         }
     }
 
+    public AdventureMapButton(TrialsLevelData data, string levelset, AdventureType type) : base(new TowerMapData(data))
+    {
+        this.LevelSet = levelset;
+        this.type = type;
+        // canSetSeed = data.Procedural;
+        // author = data.Author.ToUpperInvariant();
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
+                
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
+
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
+
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
+    }
+
     public override bool HasDownAction => canSetSeed;
 
     public override void DownAction()
@@ -260,11 +319,17 @@ public sealed class AdventureMapButton : MapButton
                 Map.SetSeed(seedSelect != null && seedSelect.Finished);
             }
             break;
+        case AdventureType.Trials:
+            MainMenu.TrialsMatchSettings.LevelSystem = base.Data.GetLevelSystem();
+			base.Map.TweenOutButtons();
+			Music.Stop();
+			base.Map.DoEnterAreaZoom(base.Data.Position);
+            break;
         }
     }
 
     protected override List<Image> InitImages()
     {
-        return patch_MapButton.InitAdventureMapButtonGraphics(Data.ID.X);
+        return patch_MapButton.InitAdventureMapButtonGraphics(Data.ID);
     }
 }

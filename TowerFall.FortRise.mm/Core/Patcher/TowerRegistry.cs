@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -16,6 +17,9 @@ public static class TowerRegistry
 
     public static Dictionary<string, List<AdventureVersusTowerData>> VersusTowerSets = new();
     public static List<string> VersusLevelSets = new();
+
+    public static Dictionary<string, List<TrialsLevelData[]>> TrialsTowerSets = new();
+    public static List<string> TrialsLevelSet = new();
 
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
     {
@@ -129,7 +133,6 @@ public static class TowerRegistry
         QuestTowerSets[levelSet] = list; 
     }
 
-
     public static AdventureQuestTowerData QuestGet(string levelSet, int levelID) 
     {
         return QuestTowerSets[levelSet][levelID];
@@ -180,6 +183,41 @@ public static class TowerRegistry
             }
         }
         return null;
+    }
+
+
+    public static void TrialsAdd(TrialsLevelData[] datas) 
+    {
+        if (datas.Length == 0)
+            return;    
+        var levelSet = datas[0].GetLevelSet();
+        if (TrialsTowerSets.TryGetValue(levelSet, out var val)) 
+        {
+            int i = 0;
+            foreach (var data in datas) 
+            {
+                data.ID.X = val.Count;
+                data.ID.Y = i;
+                i++;
+            }
+            val.Add(datas);
+            return;
+        }
+        TrialsLevelSet.Add(levelSet);
+        var list = new List<TrialsLevelData[]>();
+        datas[0].ID.X = 0;
+        datas[1].ID.X = 0;
+        datas[2].ID.X = 0;
+        datas[0].ID.Y = 0;
+        datas[1].ID.Y = 1;
+        datas[2].ID.Y = 2;
+        list.Add(datas);
+        TrialsTowerSets[levelSet] = list; 
+    }
+
+    public static TrialsLevelData[] TrialsGet(string levelSet, int levelID) 
+    {
+        return TrialsTowerSets[levelSet][levelID];
     }
 
     internal static void LoadQuest() 
@@ -354,6 +392,52 @@ public static class TowerRegistry
                 levelData.RequiredMods = string.Empty;
 
             TowerRegistry.DarkWorldAdd(levelData.GetLevelSet(), levelData);
+        }
+    }
+
+    internal static void LoadTrials() 
+    {
+        foreach (var map in RiseCore.ResourceTree.TreeMap.Values
+            .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeTrialsTowerFolder)))
+        {
+            var path = map.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
+            RiseCore.Resource xmlResource = null;
+            foreach (var child in map.Childrens) 
+            {
+                if (child.Path.Contains("tower.xml")) 
+                {
+                    xmlResource = child;
+                }
+            }
+            if (xmlResource == null)
+                continue;
+
+            using var xmlStream = xmlResource.Stream;
+            var xml = patch_Calc.LoadXML(xmlStream)["tower"];
+
+            foreach (XmlElement tier in xml.GetElementsByTagName("tier")) 
+            {
+                int id = 0;
+                var arr = new TrialsLevelData[3];
+                foreach (XmlElement element in xml.GetElementsByTagName("level")) 
+                {
+                    var trialData = new patch_TrialsLevelData();
+                    trialData.SetLevelID(path + "-" + id);
+                    trialData.Stats = AdventureModule.SaveData.AdventureTrials.AddOrGet(trialData.GetLevelID());
+                    trialData.SetLevelSet(path);
+                    trialData.Path = map.Root + map.Path + "/" + element.Attr("path");
+                    trialData.Arrows = element.ChildInt("arrows", 3);
+                    trialData.SwitchBlockTimer = element.ChildInt("switchTimer", 200);
+                    trialData.Theme = LoadTheme(element, map);
+                    trialData.Goals = new TimeSpan[3];
+                    trialData.Goals[0] = TimeSpan.FromSeconds((double)element.ChildFloat("gold", 0.3f));
+                    trialData.Goals[1] = TimeSpan.FromSeconds((double)element.ChildFloat("diamond", 0.2f));
+                    trialData.Goals[2] = TimeSpan.FromSeconds((double)element.ChildFloat("dev", 0.1f));
+                    arr[id] = trialData;
+                    id++;
+                }
+                TowerRegistry.TrialsAdd(arr);
+            }
         }
     }
 

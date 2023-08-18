@@ -24,6 +24,7 @@ namespace TowerFall
         {
         }
 
+        // FIXME Patch the Trials section to fit with Adventure levels
         [MonoModIgnore]
         [MonoModConstructor]
         [PatchPauseMenuCtor]
@@ -231,6 +232,17 @@ namespace TowerFall
 
         [MonoModIgnore]
         private extern void AddItem(string name, Action action);
+
+        [MonoModReplace]
+        private void TrialsNextLevel()
+		{
+			RoundLogic.Restarted = false;
+			Sounds.ui_clickBack.Play(160f, 1f);
+            var trialsData = (level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
+			level.Session.MatchSettings.LevelSystem.Dispose();
+			level.Session.MatchSettings.LevelSystem = trialsData.GetLevelSystem();
+			new Session(level.Session.MatchSettings).StartGame();
+		}
     }
 }
 
