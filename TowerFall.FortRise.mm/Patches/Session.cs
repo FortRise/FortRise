@@ -23,16 +23,17 @@ namespace TowerFall
         public patch_MatchSettings MatchSettings;
 
 
-        [MonoModReplace]
-        public void StartGame() 
+        [MonoModPatch("StartGame")]
+        [MonoModIfFlag("Steamworks")]
+        public void StartGame_Steam() 
         {
 			if (!MatchSettings.SoloMode)
 			{
-                // TODO SaveData for other level set
 				GameStats stats = SaveData.Instance.Stats;
 				int num = stats.MatchesPlayed;
 				stats.MatchesPlayed = num + 1;
-				stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
+                if (this.IsOfficialLevelSet())
+                    stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
 				if (MatchSettings.RandomVersusTower)
 				{
 					num = stats.VersusRandomPlays;
@@ -42,6 +43,33 @@ namespace TowerFall
 				{
 					stats.RegisterVersusTowerSelection(MatchSettings.LevelSystem.ID.X);
 				}
+				SessionStats.MatchesPlayed++;
+			}
+			if (MatchSettings.Mode == patch_Modes.DarkWorld)
+			{
+				DarkWorldState = new patch_DarkWorldSessionState(this);
+                if (this.IsOfficialLevelSet())
+                    SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
+                else 
+                {
+                    TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X).Stats.Attempts += 1;
+                }
+			}
+			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
+			Engine.Instance.Scene = new LevelLoaderXML(this);
+        }
+
+        [MonoModPatch("StartGame")]
+        [MonoModIfFlag("NoLauncher")]
+        public void StartGame_NoLauncher() 
+        {
+			if (!MatchSettings.SoloMode)
+			{
+                if (this.IsOfficialLevelSet()) 
+                {
+                    GameStats stats = SaveData.Instance.Stats;
+                    stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
+                }
 				SessionStats.MatchesPlayed++;
 			}
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)

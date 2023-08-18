@@ -1,6 +1,6 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "4.1.0-pre2";
+var version = "4.1.0-pre3";
 
 Task("CleanInstaller")
     .Does(() => 
