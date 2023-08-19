@@ -39,6 +39,8 @@ public sealed class AdventureMapButton : MapButton
     {
         get 
         {
+            if (type != AdventureType.Trials)
+                return 0f;
             if (base.Data.ID.Y == 0)
                 return -30f;
             if (base.Data.ID.Y == 1)
