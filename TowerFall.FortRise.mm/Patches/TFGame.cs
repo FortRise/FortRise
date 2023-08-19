@@ -199,8 +199,9 @@ public partial class patch_TFGame : TFGame
     {
         FortRise.RiseCore.ModuleStart();
         FortRise.RiseCore.Events.Invoke_OnPreInitialize();
-        orig_Initialize();
         patch_Arrow.ExtendArrows();
+        patch_TreasureSpawner.ExtendTreasures();
+        orig_Initialize();
         FortRise.RiseCore.LogAllTypes();
     }
 
