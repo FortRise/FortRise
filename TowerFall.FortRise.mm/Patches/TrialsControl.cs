@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -75,7 +76,7 @@ public class patch_TrialsControl : TrialsControl
         }
         else 
         {
-            var trialsLevelStats = (trialsLevelData as patch_TrialsLevelData).Stats;
+            var trialsLevelStats = (trialsLevelData as AdventureTrialsTowerData).Stats;
             nextGoal = trialsLevelStats.NextGoal;
             bestTime = trialsLevelStats.BestTime;
             smallAward = trialsLevelStats.GetNextSmallAwardIcon();
@@ -126,10 +127,10 @@ public class patch_TrialsControl : TrialsControl
             yield return orig_WinSequence();
             yield break;
         }
-        yield return AdventureWinSequence(trialsLevelData as patch_TrialsLevelData);
+        yield return AdventureWinSequence(trialsLevelData as AdventureTrialsTowerData);
     }
 
-    private IEnumerator AdventureWinSequence(patch_TrialsLevelData trialsLevelData) 
+    private IEnumerator AdventureWinSequence(AdventureTrialsTowerData trialsLevelData) 
     {
         Point id = trialsLevelData.ID;
         var trialsLevelStats = trialsLevelData.Stats;

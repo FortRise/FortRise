@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FortRise;
 using FortRise.Adventure;
-using Microsoft.Xna.Framework.Input;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
@@ -35,15 +33,6 @@ namespace TowerFall
             counterHolder.Add(counterDelay);
             Add(counterHolder);
             crashDelay = 10;
-            // foreach (var (contaning, mapRenderer) in patch_GameData.AdventureWorldMapRenderer) 
-            // {
-            //     var entity = new Entity(-1);
-            //     if (!contaning) 
-            //         continue;
-            //     entity.Add(mapRenderer);
-            //     Add(entity);
-            //     mapRenderer.Visible = false;
-            // }
         }
 
         [MonoModConstructor]

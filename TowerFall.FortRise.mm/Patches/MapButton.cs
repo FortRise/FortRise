@@ -73,7 +73,7 @@ public class patch_MapButton : MapButton
         var scene = Engine.Instance.Scene as MapScene;
         if (scene == null)
             return new List<Image>();
-        var tower = (patch_TrialsLevelData)TowerRegistry.TrialsTowerSets[scene.GetLevelSet()][levelID.X][levelID.Y];
+        var tower = (AdventureTrialsTowerData)TowerRegistry.TrialsTowerSets[scene.GetLevelSet()][levelID.X][levelID.Y];
         var theme = tower.Theme;
         var list = new List<Image>();
         if (levelID.Y == 0)

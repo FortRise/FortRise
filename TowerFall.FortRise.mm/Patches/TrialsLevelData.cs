@@ -7,7 +7,6 @@ namespace TowerFall;
 
 public class patch_TrialsLevelData : TrialsLevelData
 {
-    public AdventureTrialsTowerStats Stats;
     public patch_TrialsLevelData(Point id, XmlElement xml) : base(id, xml)
     {
     }

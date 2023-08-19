@@ -6,7 +6,9 @@ namespace TowerFall;
 public class patch_SwitchBlockControl : SwitchBlockControl
 {
     private Session session;
-    		private Counter timer;
+    private Counter timer;
+
+
     public patch_SwitchBlockControl(Session session) : base(session)
     {
     }

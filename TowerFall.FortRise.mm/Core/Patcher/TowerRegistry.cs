@@ -18,7 +18,7 @@ public static class TowerRegistry
     public static Dictionary<string, List<AdventureVersusTowerData>> VersusTowerSets = new();
     public static List<string> VersusLevelSets = new();
 
-    public static Dictionary<string, List<TrialsLevelData[]>> TrialsTowerSets = new();
+    public static Dictionary<string, List<AdventureTrialsTowerData[]>> TrialsTowerSets = new();
     public static List<string> TrialsLevelSet = new();
 
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
@@ -186,7 +186,7 @@ public static class TowerRegistry
     }
 
 
-    public static void TrialsAdd(TrialsLevelData[] datas) 
+    public static void TrialsAdd(AdventureTrialsTowerData[] datas) 
     {
         if (datas.Length == 0)
             return;    
@@ -204,7 +204,7 @@ public static class TowerRegistry
             return;
         }
         TrialsLevelSet.Add(levelSet);
-        var list = new List<TrialsLevelData[]>();
+        var list = new List<AdventureTrialsTowerData[]>();
         datas[0].ID.X = 0;
         datas[1].ID.X = 0;
         datas[2].ID.X = 0;
@@ -418,10 +418,10 @@ public static class TowerRegistry
             foreach (XmlElement tier in xml.GetElementsByTagName("tier")) 
             {
                 int id = 0;
-                var arr = new TrialsLevelData[3];
+                var arr = new AdventureTrialsTowerData[3];
                 foreach (XmlElement element in xml.GetElementsByTagName("level")) 
                 {
-                    var trialData = new patch_TrialsLevelData();
+                    var trialData = new AdventureTrialsTowerData();
                     trialData.SetLevelID(path + "-" + id);
                     trialData.Stats = AdventureModule.SaveData.AdventureTrials.AddOrGet(trialData.GetLevelID());
                     trialData.SetLevelSet(path);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Xml;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -47,7 +48,7 @@ public class patch_TrialsRoundLogic : TrialsRoundLogic
                 xmlElement.AttrEnum<Pickups>("Treasure")
             ));
         }
-        var tower = ((Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData as patch_TrialsLevelData);
+        var tower = (Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
         if (tower.GetLevelSet() == "TowerFall") 
         {
             TrialsLevelStats[] array = SaveData.Instance.Trials.Levels[id.X];
@@ -55,7 +56,7 @@ public class patch_TrialsRoundLogic : TrialsRoundLogic
             array[y].Attempts = array[y].Attempts + 1UL;
             return;
         }
-        var stats = tower.Stats;
+        var stats = (tower as AdventureTrialsTowerData).Stats;
         stats.Attempts += 1;
     }
 }

@@ -42,7 +42,7 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
             orig_RefreshLevelStats();
             return;
         }
-        var trialsLevelStats = ((patch_TrialsLevelData[])TowerRegistry.TrialsGet(levelSet, statsID.X))[statsID.Y].Stats;
+        var trialsLevelStats = ((AdventureTrialsTowerData[])TowerRegistry.TrialsGet(levelSet, statsID.X))[statsID.Y].Stats;
         if (trialsLevelStats.BestTime == 0L)
         {
             levelBestTimeString = "";
