@@ -52,7 +52,9 @@ public static partial class RiseCore
     [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
     public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
+    [Obsolete("Use RiseCore.PickupRegistry instead.")]
     public static Dictionary<string, Pickups> PickupID = new();
+    public static Dictionary<string, PickupObject> PickupRegistry = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
     public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
 
@@ -358,7 +360,7 @@ public static partial class RiseCore
 
         lock (InternalFortModules) 
             InternalFortModules.Add(module);
-        
+
         module.LoadContent();
         module.InternalLoad();
 
@@ -652,17 +654,23 @@ public static partial class RiseCore
                     };
                 }
 
+                var pickupObject = new PickupObject() 
+                {
+                    ID = (Pickups)PickupLoaderCount,
+                    Chance = arrow.Chance
+                };
+
                 ArrowsID[name] = stride;
                 ArrowsRegistry[name] = new ArrowObject() 
                 {
                     Types = stride,
                     SpawnType = TreasureChest.Types.Normal,
                     InfoLoader = infoLoader,
-                    PickupType = (Pickups)PickupLoaderCount
+                    PickupType = pickupObject
                 };
                 ArrowNameMap[stride] = name;
                 Arrows[stride] = loader;
-                PickupID[name] = (Pickups)PickupLoaderCount;
+                PickupRegistry[name] = pickupObject;
                 PickupLoader[(Pickups)PickupLoaderCount] 
                     = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride);
                 PickupLoaderCount++;
@@ -696,7 +704,13 @@ public static partial class RiseCore
                     };
                 }
 
-                PickupID[pickupName] = (Pickups)stride;
+                var pickupObject = new PickupObject() 
+                {
+                    ID = (Pickups)PickupLoaderCount,
+                    Chance = pickup.Chance
+                };
+
+                PickupRegistry[pickupName] = pickupObject;
                 PickupLoader[(Pickups)PickupLoaderCount] = loader;
                 PickupLoaderCount++;
             }

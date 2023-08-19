@@ -10,12 +10,26 @@ public sealed class CustomPickupAttribute : Attribute
 {
     public string Name;
     public string GraphicPickupInitializer;
+    public float Chance = 1f;
 
     public CustomPickupAttribute(string name, string init = "Init") 
     {
         Name = name;
         GraphicPickupInitializer = init;
     }
+
+    public CustomPickupAttribute(string name, float chance, string init = "Init") 
+    {
+        Name = name;
+        GraphicPickupInitializer = init;
+        Chance = chance;
+    }
+}
+
+public class PickupObject 
+{
+    public Pickups ID;
+    public float Chance;
 }
 
 
@@ -23,6 +37,7 @@ public abstract class CustomOrbPickup : Pickup
 {
     public Image Border;
     public Sprite<int> Sprite;
+
 
     public CustomOrbPickup(Vector2 position, Vector2 targetPosition) : base(position, targetPosition)
     {

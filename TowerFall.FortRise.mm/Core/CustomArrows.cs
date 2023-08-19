@@ -9,21 +9,30 @@ public sealed class CustomArrowsAttribute : Attribute
 {
     public string Name;
     public string GraphicPickupInitializer;
+    public float Chance = 1f;
 
     public CustomArrowsAttribute(string name, string graphicPickupFn = null) 
     {
         Name = name;
         GraphicPickupInitializer = graphicPickupFn;
     }
+
+    public CustomArrowsAttribute(string name, float chance, string graphicPickupFn = null) 
+    {
+        Name = name;
+        GraphicPickupInitializer = graphicPickupFn;
+        Chance = chance;
+    }
 }
 
 public class ArrowObject
 {
     public ArrowTypes Types;
-    public Pickups PickupType;
+    public PickupObject PickupType;
     public TreasureChest.Types SpawnType;
     public ArrowInfoLoader InfoLoader;
 }
+
 
 public struct ArrowInfo 
 {
