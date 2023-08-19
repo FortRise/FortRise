@@ -26,7 +26,7 @@ public static class patch_Calc
             return (T)((object)Enum.Parse(typeof(T), str));
         }
         // Try to get the pickup value
-        else if (RiseCore.PickupID.TryGetValue(str, out var s) && s is T custmPickup) 
+        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
         {
             return custmPickup;
         }
