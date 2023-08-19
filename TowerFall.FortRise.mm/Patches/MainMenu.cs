@@ -102,7 +102,7 @@ namespace TowerFall
                 var setupName = mod.Meta.Name + " v" + version;
                 string author = mod.Meta.Author ?? "";
                 var modButton = new TextContainer.ButtonText(setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant());
-                if (mod is not AdventureModule) 
+                if (mod is not AdventureModule and { InternalSettings: not null }) 
                 {
                     modButton.Pressed(() => {
                         State = patch_MenuState.ModOptions;
