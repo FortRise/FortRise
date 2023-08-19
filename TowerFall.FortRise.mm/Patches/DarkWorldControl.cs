@@ -215,7 +215,7 @@ namespace MonoMod
                 var Level = ctx.Module.GetType("TowerFall.Level");
                 var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
                 var Session = ctx.Module.GetType("TowerFall.Session");
-                var LevelSet = Session.FindField("LevelSet");
+                var GetLevelSet = ctx.Module.GetType("TowerFall.SessionExt").FindMethod("System.String GetLevelSet(TowerFall.Session)");
 
                 var MapButton = ctx.Module.GetType("TowerFall.MapButton");
                 var InitDarkWorldStartLevelGraphics = MapButton.FindMethod("Monocle.Image[] InitDarkWorldStartLevelGraphics(System.Int32,System.String)");
@@ -229,7 +229,7 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldfld, f__4this);
                 cursor.Emit(OpCodes.Callvirt, get_Level);
                 cursor.Emit(OpCodes.Callvirt, get_Session);
-                cursor.Emit(OpCodes.Ldfld, LevelSet);
+                cursor.Emit(OpCodes.Call, GetLevelSet);
             });
         }
     }
