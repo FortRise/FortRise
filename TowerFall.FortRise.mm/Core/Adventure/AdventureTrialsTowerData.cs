@@ -7,6 +7,8 @@ namespace FortRise.Adventure;
 public class AdventureTrialsTowerData : patch_TrialsLevelData
 {
     public AdventureTrialsTowerStats Stats;
+    public string Author;
+    public string RequiredMods;
 
     public AdventureTrialsTowerData(Point id, XmlElement xml) : base(id, xml)
     {
