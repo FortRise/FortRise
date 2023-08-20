@@ -99,7 +99,7 @@ public static partial class RiseCore
     /// <summary>
     /// Check if the game is about to restart.
     /// </summary>
-    public static bool WillRestart => CantRestart;
+    public static bool WillRestart = false;
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
     {
@@ -253,13 +253,13 @@ public static partial class RiseCore
         
         var moduleName = module.Name;
         Logger.Info($"[RESTART] {module.Name} asked for restart. Restarting the game...");
-        CantRestart = true;
+        WillRestart = true;
         Engine.Instance.Exit();
     } 
 
     internal static void InternalRestart() 
     {
-        CantRestart = true;
+        WillRestart = true;
         Engine.Instance.Exit();
     }
 
