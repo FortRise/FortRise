@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
@@ -117,16 +118,27 @@ public class DiscordComponent : GameComponent
     private void OnMapBegin(MapScene scene)
     {
         NextPresence = new Discord.Activity {
-            Details = "Selecting a Tower",
-            State = "Mode: " + scene.Mode
+            Details = "Selecting a Tower"
         };
 
         NextPresence.Assets.LargeText = "FortRise";
         NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
-        NextPresence.Assets.SmallImage = "https://cdn2.steamgriddb.com/file/sgdb-cdn/icon/f09696910bdd874a99cd74c8f05b5c44/32/32x32.png";
-        NextPresence.Assets.SmallText = "TowerFall";
+        NextPresence.Assets.SmallImage = GetMap(scene.Mode);
+        NextPresence.Assets.SmallText = scene.Mode.ToString();
 
         dirty = true;
+
+        string GetMap(MainMenu.RollcallModes mode) 
+        {
+            return mode switch 
+            {
+                MainMenu.RollcallModes.DarkWorld => "darkworldmap",
+                MainMenu.RollcallModes.Quest => "questmap",
+                MainMenu.RollcallModes.Versus => "versus",
+                MainMenu.RollcallModes.Trials => "trials",
+                _ => "hardcore"
+            };
+        }
     }
 
     private void OnMainBegin(MainMenu menu)
@@ -137,7 +149,7 @@ public class DiscordComponent : GameComponent
 
         NextPresence.Assets.LargeText = "FortRise";
         NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
-        NextPresence.Assets.SmallImage = "https://cdn2.steamgriddb.com/file/sgdb-cdn/icon/f09696910bdd874a99cd74c8f05b5c44/32/32x32.png";
+        NextPresence.Assets.SmallImage = "versus";
         NextPresence.Assets.SmallText = "TowerFall";
 
         dirty = true;
@@ -256,7 +268,7 @@ public class DiscordComponent : GameComponent
                 State = "Players: " + TFGame.PlayerAmount + " Total Deaths: " + totalDeaths + " | " + "Total Kills: " + totalKills
             };
 
-            NextPresence.Assets.SmallImage = "https://cdn2.steamgriddb.com/file/sgdb-cdn/icon/f09696910bdd874a99cd74c8f05b5c44/32/32x32.png";
+            NextPresence.Assets.SmallImage = "versus";
             NextPresence.Assets.SmallText = "Versus";
         }
             break;
@@ -279,7 +291,32 @@ public class DiscordComponent : GameComponent
             break;
         case TrialsLevelSystem trialsSystem:
         {
-            var levelID = (session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.GetLevelID() ?? "Official Level";
+            var trialTowerData = (session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
+            int typeCompletion = 0;
+            string bestTime = "";
+            if (trialTowerData.IsOfficialLevelSet()) 
+            {
+                var data = SaveData.Instance.Trials.Levels[trialTowerData.ID.X][trialTowerData.ID.Y];
+                if (data.UnlockedGold)
+                    typeCompletion++;
+                if (data.UnlockedDiamond)
+                    typeCompletion++;
+                if (data.UnlockedDevTime)
+                    typeCompletion++;
+                bestTime = TrialsResults.GetTimeString(TimeSpan.FromTicks(data.BestTime));
+            }
+            else 
+            {
+                var data = (trialTowerData as AdventureTrialsTowerData).Stats;
+                if (data.UnlockedGold)
+                    typeCompletion++;
+                if (data.UnlockedDiamond)
+                    typeCompletion++;
+                if (data.UnlockedDevTime)
+                    typeCompletion++;
+                bestTime = TrialsResults.GetTimeString(TimeSpan.FromTicks(data.BestTime));
+            }
+            var levelID = trialTowerData.GetLevelID() ?? "Official Level";
             var index = levelID.IndexOf("/");
             if (index != -1) 
             {
@@ -288,9 +325,9 @@ public class DiscordComponent : GameComponent
 
             NextPresence = new Discord.Activity {
                 Details = "Playing " + levelID,
-                State = "Players: " + TFGame.PlayerAmount
+                State = "Best Time: " + bestTime
             };
-            NextPresence.Assets.SmallImage = GetTrialTime(logic.Session.MatchSettings);
+            NextPresence.Assets.SmallImage = GetTrialTime(typeCompletion);
             NextPresence.Assets.SmallText = "Trial";
         }
             break;
@@ -302,12 +339,15 @@ public class DiscordComponent : GameComponent
         dirty = true;
     }
 
-    // TODO Trials
-    private string GetTrialTime(MatchSettings settings) 
+    private string GetTrialTime(int typeCompletion) 
     {
-        if (settings.QuestHardcoreMode)
-            return "hardcore";
-        return "normal";
+        return typeCompletion switch 
+        {
+            3 => "trials_pearl",
+            2 => "trials_diamond",
+            1 => "trials_gold",
+            _ => "trials_none"
+        };
     }
 
     private string GetQuestDifficulty(MatchSettings settings) 
