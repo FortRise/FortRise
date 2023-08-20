@@ -26,7 +26,7 @@ public class Installer : MarshalByRefObject
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
-        "gamecontrollerdb.txt", "lua53.dll", "liblua53.dylib", "liblua53.so"
+        "gamecontrollerdb.txt", "DiscordGameSdk.dll"
     };
 
     private static readonly string[] windowsSpecificFiles = {
@@ -48,7 +48,7 @@ public class Installer : MarshalByRefObject
             FNACopy = CopyFNAFiles_Linux;
             fnaLibs = new string[] {
                 "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
-                "libSDL2-2.0.so.0", "libtheorafile.so"
+                "libSDL2-2.0.so.0", "libtheorafile.so", "discord_game_sdk.so"
             };
             break;
         case PlatformID.MacOSX:
@@ -57,7 +57,7 @@ public class Installer : MarshalByRefObject
             fnaLibs = new string[] {
                 "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
-                "libvulkan.1.dylib"
+                "libvulkan.1.dylib", "discord_game_sdk.dylib"
             };
             break;
         default:
@@ -65,22 +65,11 @@ public class Installer : MarshalByRefObject
             FNACopy = CopyFNAFiles_Windows;
             fnaLibs = new string[] {
                 "FAudio.dll", "FNA3D.dll", "lua53.dll",
-                "SDL2.dll", "libtheorafile.dll"
+                "SDL2.dll", "libtheorafile.dll", "discord_game_sdk.dll"
             };
             break;
         }
         
-        var patchVersion = Path.Combine(path, "PatchVersion.txt");
-
-        Underline("Writing the version file");
-
-        var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "4.1.0");
-
-        var text = sb.ToString();
-
-        File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
-
         var fortOrigPath = Path.Combine(path, "fortOrig");
 
         if (File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe"))) 
@@ -191,6 +180,17 @@ public class Installer : MarshalByRefObject
 
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
         AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { "--private", Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MMHOOK_TowerFall.dll") } });
+
+        var patchVersion = Path.Combine(path, "PatchVersion.txt");
+
+        Underline("Writing the version file");
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Installer Version: " + "4.1.0");
+
+        var text = sb.ToString();
+
+        File.WriteAllText(Path.Combine(path, "PatchVersion.txt"), sb.ToString());
 
         Yellow("Cleaning up");
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "");
