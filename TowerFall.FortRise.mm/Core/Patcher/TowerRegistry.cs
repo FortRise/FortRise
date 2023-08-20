@@ -400,7 +400,7 @@ public static class TowerRegistry
         foreach (var map in RiseCore.ResourceTree.TreeMap.Values
             .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeTrialsTowerFolder)))
         {
-            var path = map.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
+            var path = map.FullPath.Substring(4).Replace("Content/Levels/Trials/", string.Empty);
             RiseCore.Resource xmlResource = null;
             foreach (var child in map.Childrens) 
             {
@@ -414,6 +414,7 @@ public static class TowerRegistry
 
             using var xmlStream = xmlResource.Stream;
             var xml = patch_Calc.LoadXML(xmlStream)["tower"];
+
 
             foreach (XmlElement tier in xml.GetElementsByTagName("tier")) 
             {
@@ -435,6 +436,13 @@ public static class TowerRegistry
                     trialData.Goals[2] = TimeSpan.FromSeconds((double)element.ChildFloat("dev", 0.1f));
                     arr[id] = trialData;
                     id++;
+
+                    trialData.Author = xml.ChildText("author", string.Empty);
+
+                    if (xml.HasChild("required"))
+                        trialData.RequiredMods = xml["required"].InnerText;
+                    else
+                        trialData.RequiredMods = string.Empty;
                 }
                 TowerRegistry.TrialsAdd(arr);
             }
