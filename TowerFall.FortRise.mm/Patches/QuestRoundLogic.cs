@@ -21,6 +21,10 @@ namespace TowerFall
         [MonoModIgnore]
         [PatchQuestRoundLogicOnLevelLoadFinish]
         public extern override void OnLevelLoadFinish();
+
+        [MonoModIgnore]
+        [PatchQuestRoundLogicRegisterEnemyKills]
+        public extern void RegisterEnemyKill(Vector2 at, int killerIndex, int points);
     }
 }
 
@@ -32,8 +36,30 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchQuestRoundLogicOnLevelLoadFinish))]
     public class PatchQuestRoundLogicOnLevelLoadFinish : Attribute {}
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchQuestRoundLogicRegisterEnemyKills))]
+    public class PatchQuestRoundLogicRegisterEnemyKills : Attribute {}
+
     internal static partial class MonoModRules 
     {
+        public static void PatchQuestRoundLogicRegisterEnemyKills(ILContext ctx, CustomAttribute attrib) 
+        {
+            var OnQuestRegisterEnemyKills = ctx.Module.GetType("FortRise.RiseCore/Events").FindMethod(
+                "System.Void Invoke_OnQuestRegisterEnemyKills(TowerFall.QuestRoundLogic,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32)"
+            );
+
+            var cursor = new ILCursor(ctx);
+            ILLabel label = null;
+            cursor.GotoNext(instr => instr.MatchBrfalse(out label));
+
+            cursor.GotoNext(MoveType.After, instr => instr.MatchCallOrCallvirt("TowerFall.QuestGauntletCounter", "Decrement"));
+            cursor.MarkLabel(label);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.Emit(OpCodes.Ldarg_2);
+            cursor.Emit(OpCodes.Ldarg_3);
+            cursor.Emit(OpCodes.Call, OnQuestRegisterEnemyKills);
+        }
+
         public static void PatchQuestRoundLogicOnLevelLoadFinish(ILContext ctx, CustomAttribute attrib) 
         {
             var eventHook = ctx.Module.GetType("FortRise.RiseCore/Events");

@@ -40,6 +40,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../DiscordGameSdk/DiscordGameSdk.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Windows.Forms"/>
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>

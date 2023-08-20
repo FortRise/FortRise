@@ -50,12 +50,12 @@ public class patch_Level : Level
     {
         if (DebugMode) 
         {
-			Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
             foreach (var entity in Layers[0].Entities) 
             {
                 entity.DebugRender();
             }
-			Draw.SpriteBatch.End();
+            Draw.SpriteBatch.End();
         }
     }
 

@@ -92,6 +92,7 @@ public static partial class RiseCore
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
     public static bool DebugMode;
+    internal static bool NoRichPresence;
 
     internal static bool CantRestart = true;
 
@@ -181,6 +182,8 @@ public static partial class RiseCore
             return null;
         };
         Loader.InitializeMods();
+        if (!NoRichPresence)
+            DiscordComponent.Create();
         Logger.Info("[RESOURCE] Initializng resources...");
         RiseCore.ResourceTree.Initialize();
     }
@@ -197,6 +200,9 @@ public static partial class RiseCore
                 break;
             case "--verbose":
                 Logger.Verbosity = Logger.LogLevel.Assert;
+                break;
+            case "--no-rich-presence":
+                NoRichPresence = true;
                 break;
             }
         }

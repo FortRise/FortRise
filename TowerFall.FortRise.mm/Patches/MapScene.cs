@@ -68,6 +68,7 @@ namespace TowerFall
                 });
                 Add(entity);
             }
+            FortRise.RiseCore.Events.Invoke_OnMapBegin(this);
         }
 
 

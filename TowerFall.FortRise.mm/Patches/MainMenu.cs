@@ -5,9 +5,11 @@ using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod;
 using MonoMod.Cil;
+using MonoMod.Utils;
 
 namespace TowerFall
 {
@@ -52,6 +54,11 @@ namespace TowerFall
         [MonoModConstructor]
         [PatchMainMenuCtor]
         public extern void ctor(MenuState state);
+
+        [MonoModIgnore]
+        [PatchMainMenuBegin]
+        public extern override void Begin();
+        
 
         private void CreateModToggle() 
         {
@@ -293,6 +300,9 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCtor))]
     public class PatchMainMenuCtor : Attribute {}
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuBegin))]
+    public class PatchMainMenuBegin : Attribute {}
+
     internal static partial class MonoModRules 
     {
         public static void PatchMainMenuCtor(ILContext ctx, CustomAttribute attrib) 
@@ -301,6 +311,17 @@ namespace MonoMod
 
             cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("TowerFall.TFGame", "GameLoaded"));
             cursor.RemoveRange(4);
-        } 
+        }
+
+        public static void PatchMainMenuBegin(ILContext ctx, CustomAttribute attrib) 
+        {
+            var OnMainBegin = ctx.Module.GetType("FortRise.RiseCore/Events").FindMethod("System.Void Invoke_OnMainBegin(TowerFall.MainMenu)");
+            var cursor = new ILCursor(ctx);
+
+            cursor.GotoNext(MoveType.After, instr => instr.MatchCallOrCallvirt("Monocle.Scene", "Begin"));
+
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Call, OnMainBegin);
+        }
     }
 }

@@ -17,7 +17,6 @@ public class patch_LevelLoaderXML : LevelLoaderXML
     [MonoModConstructor]
     public void ctor(Session session) 
     {
-        RiseCore.Events.Invoke_OnLevelLoaded();
         orig_ctor(session);
         if (XML == null) 
         {
