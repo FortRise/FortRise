@@ -33,6 +33,23 @@ public static class patch_Calc
         throw new Exception("The string cannot be converted to the enum type");
     }
 
+    public static bool TryStringToEnum<T>(string str, out T result) where T : struct 
+    {
+        if (Enum.IsDefined(typeof(T), str)) 
+        {
+            result = (T)((object)Enum.Parse(typeof(T), str));
+            return true;
+        }
+        // Try to get the pickup value
+        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
+        {
+            result = custmPickup;
+            return true;
+        }
+        result = default;
+        return false;
+    }
+
     [MonoModReplace]
     public static Delegate GetMethod<T>(object obj, string method) where T : class 
     {
