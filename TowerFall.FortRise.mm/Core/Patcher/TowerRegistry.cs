@@ -309,10 +309,19 @@ public static class TowerRegistry
             {
                 var array = xml.ChildText("treasure").Split(',');
                 levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length];
+                levelData.SetTreasureChances((float[])TreasureSpawner.DefaultTreasureChances.Clone());
                 for (int i = 0; i < array.Length; i++) 
                 {
-                    var pickups = Calc.StringToEnum<Pickups>(array[i].Trim());
-                    levelData.TreasureMask[(int)pickups]++;
+                    var treasure = array[i];
+                    ParseTreasure(treasure.AsSpan().Trim(), out string resTreasure, out int chance, out int rate);
+                    var pickups = Calc.StringToEnum<Pickups>(resTreasure);
+                    if (rate == -1)
+                        levelData.TreasureMask[(int)pickups]++;
+                    else
+                        levelData.TreasureMask[(int)pickups] = levelData.TreasureMask[(int)pickups] + rate;
+                    
+                    if (chance != -1)
+                        levelData.GetTreasureChances()[(int)pickups] = (chance / 100);
                 }
 
                 levelData.ArrowShuffle = xml["treasure"].AttrBool("arrowShuffle", false);
@@ -325,6 +334,34 @@ public static class TowerRegistry
                 levelData.RequiredMods = string.Empty;
             
             TowerRegistry.VersusAdd(levelData.GetLevelSet(), levelData);
+        }
+    }
+
+    private static void ParseTreasure(ReadOnlySpan<char> treasure, out string resultTreasure, out int chance, out int rate) 
+    {
+        if (treasure.IndexOf('[') != 0)
+        {
+            chance = -1;
+            rate = -1;
+            resultTreasure = treasure.ToString();
+            return;
+        }
+
+        var text = treasure.Slice(1, treasure.IndexOf(']') - 1);
+        resultTreasure = treasure.Slice(treasure.IndexOf(']') + 1).ToString();
+        var split = text.SplitLines('*');
+        chance = -1;
+        rate = -1;
+        foreach (var sp in split) 
+        {
+            var numText = sp.Line;
+            if (numText.Contains("%".AsSpan(), StringComparison.InvariantCulture)) 
+            {
+                var chanceSlice = numText.Slice(0, numText.IndexOf('%'));
+                chance = int.Parse(chanceSlice.ToString());
+                continue;
+            }
+            rate = int.Parse(numText.ToString());
         }
     }
 
