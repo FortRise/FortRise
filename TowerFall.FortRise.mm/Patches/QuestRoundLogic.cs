@@ -49,7 +49,12 @@ namespace MonoMod
 
             var cursor = new ILCursor(ctx);
             ILLabel label = null;
-            cursor.GotoNext(instr => instr.MatchBrfalse(out label));
+            Func<Instruction, bool> stmt;
+            if (IsWindows)
+                stmt = instr => instr.MatchBrfalse(out label);
+            else
+                stmt = instr => instr.MatchBrtrue(out label);
+            cursor.GotoNext(stmt);
 
             cursor.GotoNext(MoveType.After, instr => instr.MatchCallOrCallvirt("TowerFall.QuestGauntletCounter", "Decrement"));
             cursor.MarkLabel(label);

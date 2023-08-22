@@ -309,8 +309,11 @@ namespace MonoMod
         {
             var cursor = new ILCursor(ctx);
 
+            // unnecessary bloat of mono
+            var numToRemove = IsWindows ? 4 : 11;
+
             cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("TowerFall.TFGame", "GameLoaded"));
-            cursor.RemoveRange(4);
+            cursor.RemoveRange(numToRemove);
         }
 
         public static void PatchMainMenuBegin(ILContext ctx, CustomAttribute attrib) 

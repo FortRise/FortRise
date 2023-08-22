@@ -80,8 +80,10 @@ namespace TowerFall
             session.StartGame();
         }
 
+        // This is a hack to fix System.TypeLoadException on MacOS and Linux
         [MonoModReplace]
-        private IEnumerator DarkWorldIntroSequence() 
+        [MonoModPatch("DarkWorldIntroSequence")]
+        private IEnumerator DarkWorldIntroSequence_Patch() 
         {
             int num = 0;
             for (int i = 0; i < Buttons.Count; i = num + 1) 
@@ -325,22 +327,37 @@ namespace MonoMod
             cursor.Emit(OpCodes.Ldc_I4_3);
             cursor.Emit(OpCodes.Call, method);
 
-            cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
+            if (!IsWindows)
+                cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
+
+            cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldc_I4_0);
             cursor.Emit(OpCodes.Call, method);
             cursor.GotoNext();
-            cursor.GotoNext(MoveType.Before, instr => instr.MatchLdcI4(0));
+            if (!IsWindows) 
+            {
+                cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
+                cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
+            }
+
+            cursor.GotoNext(MoveType.After, instr => instr.MatchLdcI4(0));
 
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldc_I4_1);
             cursor.Emit(OpCodes.Call, method);
 
+            int location;
+            if (IsWindows)
+                location = 4;
+            else
+                location = 2;
+
             cursor.GotoNext(MoveType.After, 
                 instr => instr.MatchNewobj("System.Collections.Generic.List`1<TowerFall.MapButton[]>"),
-                instr => instr.MatchStloc(4));
+                instr => instr.MatchStloc(location));
             cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[4]);
+            cursor.Emit(OpCodes.Ldloc_S, ctx.Body.Variables[location]);
             cursor.Emit(OpCodes.Call, methodWithList);
         }
     }

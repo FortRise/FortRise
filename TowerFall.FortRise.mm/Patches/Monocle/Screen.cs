@@ -97,7 +97,7 @@ namespace MonoMod
             var SetWindowSize = ctx.Method.DeclaringType.FindMethod("System.Void SetWindowSize(System.Int32,System.Int32,System.Boolean)");
             var cursor = new ILCursor(ctx);
 
-            if (cursor.TryGotoNext(instr => instr.MatchCallOrCallvirt("Monocle.Screen", "SetWindowSize"))) 
+            if (cursor.TryGotoNext(instr => instr.MatchCallOrCallvirt("Monocle.Screen", "System.Void SetWindowSize(System.Int32,System.Int32)"))) 
             {
                 cursor.Next.Operand = SetWindowSize;
                 cursor.Emit(OpCodes.Ldc_I4_1);
