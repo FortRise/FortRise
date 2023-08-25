@@ -22,6 +22,38 @@ namespace TowerFall
 
         public patch_MatchSettings MatchSettings;
 
+        public extern void orig_LevelLoadStart(Level level);
+
+        public void LevelLoadStart(Level level) 
+        {
+            orig_LevelLoadStart(level);
+            var levelType = this.IsOfficialLevelSet() ? "vanilla" : "modded";
+            level.AssignTag(levelType);
+            var set = this.GetLevelSet();
+            level.AssignTag("set=" + set);
+            var levelSystem = MatchSettings.LevelSystem;
+            switch (levelSystem) 
+            {
+            case DarkWorldLevelSystem dwSystem:
+                level.AssignTag("level=" + dwSystem.DarkWorldTowerData.GetLevelID());
+                level.AssignTag("darkworld");
+                break;
+            case TrialsLevelSystem lSystem:
+                level.AssignTag("level=" + lSystem.TrialsLevelData.GetLevelID());
+                level.AssignTag("trials");
+                break;
+            case QuestLevelSystem qSystem:
+                level.AssignTag("level=" + qSystem.QuestTowerData.GetLevelID());
+                level.AssignTag("quest");
+                break;
+            case VersusLevelSystem vSystem:
+                level.AssignTag("level=" + vSystem.VersusTowerData.GetLevelID());
+                level.AssignTag("versus");
+                break;
+            }
+            level.LogTags();
+        }
+
 
         [MonoModPatch("StartGame")]
         [MonoModIfFlag("Steamworks")]
