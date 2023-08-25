@@ -10,7 +10,7 @@ public class patch_MapButton : MapButton
 {
     [MonoModIgnore]
     public patch_MapScene Map { get; set; } 
-    public string Author { get; set; }
+    public string Author { [MonoModIgnore] get; [MonoModIgnore] [MonoModPublic] set; }
     public float TweenAt { get; private set; }
 
 
