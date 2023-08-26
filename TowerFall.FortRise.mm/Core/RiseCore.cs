@@ -181,6 +181,8 @@ public static partial class RiseCore
             }
             return null;
         };
+
+        RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         Loader.InitializeMods();
         if (!NoRichPresence)
             DiscordComponent.Create();

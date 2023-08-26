@@ -84,7 +84,10 @@ namespace TowerFall
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
                 else 
                 {
-                    TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X).Stats.Attempts += 1;
+                    var adventureTower = TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    adventureTower.Stats.Attempts += 1;
+                    if (adventureTower.StartingLives >= 0)
+                        DarkWorldState.ExtraLives = adventureTower.StartingLives;
                 }
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
@@ -111,44 +114,14 @@ namespace TowerFall
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
                 else 
                 {
-                    TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X).Stats.Attempts += 1;
+                    var adventureTower = TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    adventureTower.Stats.Attempts += 1;
+                    if (adventureTower.StartingLives >= 0)
+                        DarkWorldState.ExtraLives = adventureTower.StartingLives;
                 }
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
 			Engine.Instance.Scene = new LevelLoaderXML(this);
-        }
-
-        // TODO Use these
-        public void AddDeaths(int id) 
-        {
-            switch (MatchSettings.Mode) 
-            {
-            case patch_Modes.Custom:
-                // patch_GameData.AdventureWorldTowers[id].Stats.Deaths += 1;
-                break;
-            case patch_Modes.DarkWorld:
-                SaveData.Instance.DarkWorld.Towers[id].Deaths += 1;
-                break;
-            case patch_Modes.Quest:
-                SaveData.Instance.Quest.Towers[id].TotalDeaths += 1;
-                break;
-            }
-        }
-
-        public void AddAttempts(int id) 
-        {
-            switch (MatchSettings.Mode) 
-            {
-            case patch_Modes.Custom:
-                // patch_GameData.AdventureWorldTowers[id].Stats.Attempts += 1;
-                break;
-            case patch_Modes.DarkWorld:
-                SaveData.Instance.DarkWorld.Towers[id].Attempts += 1;
-                break;
-            case patch_Modes.Quest:
-                SaveData.Instance.Quest.Towers[id].TotalAttempts += 1;
-                break;
-            }
         }
 
             /* Having some problems with this, might use this soon */

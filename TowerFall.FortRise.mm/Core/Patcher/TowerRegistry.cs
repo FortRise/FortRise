@@ -383,13 +383,20 @@ public static class TowerRegistry
             levelData.Levels = new();
 
             RiseCore.Resource xmlResource = null;
+            RiseCore.Resource iconResource = null;
             foreach (var child in map.Childrens) 
             {
                 if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) || 
                 child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
-                !child.Path.StartsWith("icon"))
+                !child.Path.Contains("icon.json"))
                 {
                     levelData.Levels.Add(child.Root + child.Path);
+                    continue;
+                }
+
+                if (child.Path.Contains("icon.json")) 
+                {
+                    iconResource = child;
                     continue;
                 }
 
@@ -408,6 +415,8 @@ public static class TowerRegistry
             levelData.LoadExtraData(xml);
             levelData.Author = xml.ChildText("author", string.Empty);
             levelData.Theme = LoadTheme(xml, map);
+            if (iconResource != null)
+                levelData.BuildIcon(iconResource);
 			
 			levelData.TimeBase = xml["time"].ChildInt("base", 300);
 			levelData.TimeAdd = xml["time"].ChildInt("add", 40);

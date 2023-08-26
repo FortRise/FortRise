@@ -20,9 +20,10 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     public AdventureWorldTowerStats Stats;
 
 
-    private void BuildIcon(string path) 
+    public void BuildIcon(RiseCore.Resource icon) 
     {
-        var json = JsonConvert.DeserializeFromFile(path);
+        using var stream = icon.Stream;
+        var json = JsonConvert.DeserializeFromStream(stream);
         var layers = json["layers"].AsJsonArray;
         var solids = layers[0];
         var grid2D = solids["grid2D"].ConvertToArrayString2D();
@@ -31,7 +32,7 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
         var y = grid2D.GetLength(0);
         if (x != 16 || y != 16) 
         {
-            Logger.Error($"[Adventure] {path}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
+            Logger.Error($"[Adventure] {icon.FullPath}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");
             return;
         }
         Theme.Icon = new Subtexture(new Monocle.Texture(TowerMapData.BuildIcon(bitString, Theme.TowerType)));
