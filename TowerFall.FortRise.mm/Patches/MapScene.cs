@@ -61,6 +61,8 @@ namespace TowerFall
                     {
                         AdventureType.Quest => MainMenu.QuestMatchSettings.LevelSystem.ID.X,
                         AdventureType.DarkWorld => MainMenu.DarkWorldMatchSettings.LevelSystem.ID.X,
+                        AdventureType.Trials => MainMenu.TrialsMatchSettings.LevelSystem.ID.X,
+                        AdventureType.Versus => MainMenu.VersusMatchSettings.LevelSystem.ID.X,
                         _ => 0
                     };
                     GotoAdventure(CurrentAdventureType, startingID + 1);
@@ -171,10 +173,10 @@ namespace TowerFall
             LevelSet = "TowerFall";
             Renderer.ChangeLevelSet(LevelSet);
             Buttons.Clear();
-            Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
             switch (CurrentAdventureType) 
             {
             case AdventureType.Quest:
+                Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
                 for (int i = 0; i < GameData.QuestLevels.Length; i++)
                 {
                     if (SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
@@ -184,6 +186,7 @@ namespace TowerFall
                 }
                 break;
             case AdventureType.DarkWorld:
+                Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
                 for (int j = 0; j < GameData.DarkWorldTowers.Count; j++)
                 {
                     if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(j))
@@ -193,12 +196,63 @@ namespace TowerFall
                 }
                 break;
             case AdventureType.Versus:
+                Buttons.Add(new AdventureCategoryButton(CurrentAdventureType));
                 Buttons.Add(new AdventureChaoticRandomSelect());
                 InitVersusButtons();
                 break;
+            case AdventureType.Trials:
+                List<MapButton[]> list = new List<MapButton[]>();
+				this.InitAdventureMap(list);
+				for (int k = 0; k < GameData.VersusTowers.Count; k++)
+				{
+					if (SaveData.Instance.Unlocks.GetTowerUnlocked(k))
+					{
+						var array = new MapButton[GameData.TrialsLevels.GetLength(1)];
+						for (int l = 0; l < array.Length; l++)
+						{
+							array[l] = new TrialsMapButton(GameData.TrialsLevels[k, l]);
+							Buttons.Add(array[l]);
+						}
+						for (int m = 0; m < array.Length; m++)
+						{
+							if (m > 0)
+							{
+								array[m].UpButton = array[m - 1];
+							}
+							if (m < array.Length - 1)
+							{
+								array[m].DownButton = array[m + 1];
+							}
+						}
+						list.Add(array);
+					}
+				}
+				for (int n = 0; n < list.Count; n++)
+				{
+					if (n > 0)
+					{
+						for (int num3 = 0; num3 < list[n].Length; num3++)
+						{
+							list[n][num3].LeftButton = list[n - 1][num3];
+						}
+					}
+					if (n < list.Count - 1)
+					{
+						for (int num4 = 0; num4 < list[n].Length; num4++)
+						{
+							list[n][num4].RightButton = list[n + 1][num4];
+						}
+					}
+					for (int num5 = 0; num5 < list[n].Length; num5++)
+					{
+						list[n][num5].MapXIndex = n;
+					}
+				}
+                break;
             }
 
-            this.LinkButtonsList();
+            if (CurrentAdventureType != AdventureType.Trials)
+                this.LinkButtonsList();
             if (id >= Buttons.Count)
                 id = Buttons.Count;
             InitButtons(Buttons[0]);
