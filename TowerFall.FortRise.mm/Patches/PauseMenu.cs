@@ -1,5 +1,6 @@
 using System;
 using FortRise;
+using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -236,12 +237,23 @@ namespace TowerFall
         [MonoModReplace]
         private void TrialsNextLevel()
 		{
-			RoundLogic.Restarted = false;
-			Sounds.ui_clickBack.Play(160f, 1f);
+            RoundLogic.Restarted = false;
+            Sounds.ui_clickBack.Play(160f, 1f);
             var trialsData = (level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
 			level.Session.MatchSettings.LevelSystem.Dispose();
-			level.Session.MatchSettings.LevelSystem = trialsData.GetLevelSystem();
-			new Session(level.Session.MatchSettings).StartGame();
+            if (trialsData.IsOfficialLevelSet()) 
+            {
+                Point id = this.level.Session.MatchSettings.LevelSystem.ID;
+                this.level.Session.MatchSettings.LevelSystem = GameData.TrialsLevels[id.X, id.Y + 1].GetLevelSystem();
+            }
+            else 
+            {
+                level.Session.MatchSettings.LevelSystem = TowerRegistry
+                    .TrialsGet(trialsData.GetLevelSet(), trialsData.ID.X)[trialsData.ID.Y + 1]
+                    .GetLevelSystem();
+            }
+
+            new Session(this.level.Session.MatchSettings).StartGame();
 		}
     }
 }
@@ -267,6 +279,15 @@ namespace MonoMod
                 {
                     cursor.GotoNext(MoveType.After, 
                         instr => instr.MatchLdftn("TowerFall.PauseMenu", "QuestRestart"),
+                        instr => instr.MatchNewobj("System.Action"),
+                        instr => instr.MatchCallOrCallvirt("TowerFall.PauseMenu", "AddItem"));
+                    cursor.Emit(OpCodes.Ldarg_0);
+                    cursor.Emit(OpCodes.Call, addSettings);
+                }
+                else if (cursor.Next.MatchLdarg(1)) 
+                {
+                    cursor.GotoNext(MoveType.After, 
+                        instr => instr.MatchLdftn("TowerFall.PauseMenu", "DarkWorldRestart"),
                         instr => instr.MatchNewobj("System.Action"),
                         instr => instr.MatchCallOrCallvirt("TowerFall.PauseMenu", "AddItem"));
                     cursor.Emit(OpCodes.Ldarg_0);
