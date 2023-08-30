@@ -14,9 +14,11 @@ public class VanillaAudioSystem : IAudioSystem
         audioCategory = MusicExt.GetAudioCategory();
     }
 
-    public void Add(string name, Stream stream)
+    public void Add(string name, Stream stream) {}
+
+    public void Pause()
     {
-        throw new System.NotImplementedException();
+        audioCategory.Pause();
     }
 
     public void Play(string name)
@@ -24,6 +26,11 @@ public class VanillaAudioSystem : IAudioSystem
         if (MusicExt.GetAudioEngine() == null)
             return;
         soundBank.PlayCue(name);
+    }
+
+    public void Resume()
+    {
+        audioCategory.Resume();
     }
 
     public void Stop(AudioStopOptions options)

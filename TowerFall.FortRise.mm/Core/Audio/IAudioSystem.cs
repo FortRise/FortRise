@@ -6,6 +6,8 @@ namespace FortRise;
 public interface IAudioSystem 
 {
     void Play(string name);
+    void Resume();
+    void Pause();
     void Stop(AudioStopOptions options);
 
     void Add(string name, Stream stream);

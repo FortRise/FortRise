@@ -19,6 +19,11 @@ public class WavAudioSystem : IAudioSystem
         SFXMap.Add(name, SoundEffect.FromStream(stream));
     }
 
+    public void Pause()
+    {
+        current?.Play();
+    }
+
     public void Play(string name)
     {
         Stop(AudioStopOptions.Immediate);
@@ -27,6 +32,11 @@ public class WavAudioSystem : IAudioSystem
         current.Volume = Music.MasterVolume;
         current.IsLooped = true;
         current.Play();
+    }
+
+    public void Resume()
+    {
+        current?.Resume();
     }
 
     public void Stop(AudioStopOptions options)

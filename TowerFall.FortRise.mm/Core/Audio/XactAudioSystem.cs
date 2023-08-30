@@ -40,4 +40,12 @@ public class XactAudioSystem : IAudioSystem
     {
         throw new System.NotImplementedException();
     }
+
+    public void Resume()
+    {
+    }
+
+    public void Pause()
+    {
+    }
 }
