@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FortRise;
@@ -44,7 +45,7 @@ public static class SceneExt
 {
     public static List<string> GetSceneTags(this Scene scene) 
     {
-        return ((patch_Scene)scene).SceneTags;
+        return ((patch_Scene)scene).SceneTags ?? new List<string>();
     }
 
     public static void AssignTag(this Scene scene, string tag) 
