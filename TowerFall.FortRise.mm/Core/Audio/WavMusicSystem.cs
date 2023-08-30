@@ -5,12 +5,12 @@ using Monocle;
 
 namespace FortRise;
 
-public class WavAudioSystem : IAudioSystem
+public class WavMusicSystem : IMusicSystem
 {
     public Dictionary<string, SoundEffect> SFXMap = new();
     private SoundEffectInstance current;
 
-    public WavAudioSystem() 
+    public WavMusicSystem() 
     {
     }
 

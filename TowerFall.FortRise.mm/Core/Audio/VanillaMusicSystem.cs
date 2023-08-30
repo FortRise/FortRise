@@ -4,11 +4,11 @@ using Monocle;
 
 namespace FortRise;
 
-public class VanillaAudioSystem : IAudioSystem
+public class VanillaMusicSystem : IMusicSystem
 {
     private SoundBank soundBank;
     private AudioCategory audioCategory;
-    public VanillaAudioSystem() 
+    public VanillaMusicSystem() 
     {
         soundBank = MusicExt.GetSoundBank();
         audioCategory = MusicExt.GetAudioCategory();
@@ -27,6 +27,7 @@ public class VanillaAudioSystem : IAudioSystem
             return;
         soundBank.PlayCue(name);
     }
+    
 
     public void Resume()
     {
