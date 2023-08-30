@@ -97,7 +97,6 @@ public class patch_MatchVariants : MatchVariants
         return atlas["variants/" + variantName[0].ToString().ToLowerInvariant() + variantName.Substring(1)];
     }
 
-    [Obsolete("Use `Calc.IncompatibleWith` extension method")]
     public void CreateCustomLinks(params Variant[] variants)
     {
         for (int i = 0; i < variants.Length; i++)
