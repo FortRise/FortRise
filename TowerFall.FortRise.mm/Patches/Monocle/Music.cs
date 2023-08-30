@@ -66,21 +66,17 @@ public static class patch_Music
         if (audioEngine == null)
             return;
 
-        var indexOfSlash = filepath.IndexOf('/');
-        if (indexOfSlash != -1) 
-        {
-            var path = filepath.Substring(0, indexOfSlash);
-            if (patch_Audio.TryAccessModAudio(path, out var audioBank)) 
-            {
-                Stop();
-                path = filepath.Substring(path.Length + 1).Trim();
-                audioBank.Play(path);
-            }
-            currentSong = filepath;
-            return;
-        }
+        PlayInternal(filepath);
+    }
 
-        soundBank.PlayCue(filepath);
+    private static void PlayInternal(string filepath) 
+    {
+        Stop();
+        var audioSystem = patch_Audio.GetAudioSystemFromExtension(filepath);
+        if (audioSystem != null) 
+        {
+            patch_Audio.PlaySystem(audioSystem, filepath);
+        }
         currentSong = filepath;
     }
 
@@ -108,20 +104,8 @@ public static class patch_Music
             currentSong = filepath;
             return;
         }
-        var indexOfSlash = filepath.IndexOf('/');
-        if (indexOfSlash != -1) 
-        {
-            var path = filepath.Substring(0, indexOfSlash);
-            if (patch_Audio.TryAccessModAudio(path, out var audioBank)) 
-            {
-                path = filepath.Substring(path.Length + 1).Trim();
-                audioBank.Play(path);
-            }
-            currentSong = filepath;
-            return;
-        }
-        currentSong = filepath;
-        soundBank.PlayCue(filepath);
+        
+        PlayInternal(filepath);
     }
 
     [MonoModReplace]
@@ -136,16 +120,17 @@ public static class patch_Music
         }
 
         patch_Audio.StopAudio(AudioStopOptions.AsAuthored);
-        if (audioEngine != null)
-        {
-            currentSong = null;
-            audioCategory.Stop(AudioStopOptions.AsAuthored);
-        }
+        currentSong = null;
     }
 
     internal static AudioEngine InternalAccessAudioEngine() 
     {
         return audioEngine;
+    }
+
+    internal static SoundBank InternalAccessSoundBank() 
+    {
+        return soundBank;
     }
 
     internal static AudioCategory InternalAccessAudioCategory() 
@@ -160,6 +145,11 @@ public static class MusicExt
     public static AudioEngine GetAudioEngine() 
     {
         return patch_Music.InternalAccessAudioEngine();
+    }
+
+    public static SoundBank GetSoundBank() 
+    {
+        return patch_Music.InternalAccessSoundBank();
     }
 
     public static AudioCategory GetAudioCategory() 

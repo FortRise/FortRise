@@ -25,6 +25,8 @@ public partial class RiseCore
     public sealed class ResourceTypeGameData {}
     public sealed class ResourceTypeWaveBank {}
     public sealed class ResourceTypeSoundBank {}
+    public sealed class ResourceTypeWavFile {}
+    public sealed class ResourceTypeOggFile {}
     public sealed class ResourceTypeAudioEngine {}
 
     internal static HashSet<string> BlacklistedExtension = new() {
@@ -118,6 +120,14 @@ public partial class RiseCore
                 else if (path.EndsWith("xwb")) 
                 {
                     ResourceType = typeof(ResourceTypeWaveBank);
+                }
+                else if (path.EndsWith(".wav")) 
+                {
+                    ResourceType = typeof(ResourceTypeWavFile);
+                }
+                else if (path.EndsWith(".ogg")) 
+                {
+                    ResourceType = typeof(ResourceTypeOggFile);
                 }
                 // FIXME fix normal file
                 else 

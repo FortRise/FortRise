@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using Monocle;
 
@@ -33,5 +34,10 @@ public class XactAudioSystem : IAudioSystem
             currentCue.Stop(options);
             currentCue = null;
         }
+    }
+
+    public void Add(string name, Stream stream)
+    {
+        throw new System.NotImplementedException();
     }
 }

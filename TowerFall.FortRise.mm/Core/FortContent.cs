@@ -120,35 +120,54 @@ public class FortContent
 
     internal void LoadAudio() 
     {
-        foreach (var audioEngineRes in ResourceSystem.Resources.Where(x => 
-            x.Value.Path.StartsWith("Content/Music/Win"))) 
+        // foreach (var audioEngineRes in ResourceSystem.Resources.Where(x => 
+        //     x.Value.Path.StartsWith("Content/Music/Win"))) 
+        // {
+        //     XactAudioSystem audioBank = null;
+        //     foreach (var child in audioEngineRes.Value.Childrens) 
+        //     {
+        //         if (child.Path.EndsWith(".xwb")) 
+        //         {
+        //             var bankPath = LoadBank(child);
+
+        //             audioBank ??= new XactAudioSystem();
+        //             var waveBank = new WaveBank(audioBank.Engine, bankPath);
+        //             audioBank.Wave = waveBank;
+        //         }
+        //         else if (child.Path.EndsWith(".xsb")) 
+        //         {
+        //             var bankPath = LoadBank(child);
+
+        //             audioBank ??= new XactAudioSystem();
+        //             var soundBank = new SoundBank(audioBank.Engine, bankPath);
+        //             audioBank.Sound = soundBank;
+        //         }
+        //     }
+
+        //     if (audioBank == null)
+        //         continue;
+
+        //     var modDirectory = audioEngineRes.Value.Root.Substring(4).Replace("/", "");
+        //     patch_Audio.ModAudios.Add(modDirectory, audioBank);
+        // }
+
+        foreach (var child in ResourceSystem.Resources.Values.Where(x => 
+            x.ResourceType == typeof(RiseCore.ResourceTypeWavFile))) 
         {
-            XactAudioSystem audioBank = null;
-            foreach (var child in audioEngineRes.Value.Childrens) 
+            var path = child.Path.Replace("Content/Music/", "");
+            var extension = Path.GetExtension(child.Path);
+            var audio = patch_Audio.GetAudioSystemFromExtension(extension);
+            if (audio == null)
+                continue;    
+
+            var indexOfSlash = child.Path.IndexOf('/');
+            if (indexOfSlash != -1) 
             {
-                if (child.Path.EndsWith(".xwb")) 
-                {
-                    var bankPath = LoadBank(child);
-
-                    audioBank ??= new XactAudioSystem();
-                    var waveBank = new WaveBank(audioBank.Engine, bankPath);
-                    audioBank.Wave = waveBank;
-                }
-                else if (child.Path.EndsWith(".xsb")) 
-                {
-                    var bankPath = LoadBank(child);
-
-                    audioBank ??= new XactAudioSystem();
-                    var soundBank = new SoundBank(audioBank.Engine, bankPath);
-                    audioBank.Sound = soundBank;
-                }
+                using var stream = child.Stream;
+                path = child.Root.Substring(4) + path;
+                audio.Add(path, stream);
             }
-
-            if (audioBank == null)
-                continue;
-
-            var modDirectory = audioEngineRes.Value.Root.Substring(4).Replace("/", "");
-            patch_Audio.ModAudios.Add(modDirectory, audioBank);
+            Logger.Log(path);
         }
     }
 

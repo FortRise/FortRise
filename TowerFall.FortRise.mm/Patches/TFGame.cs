@@ -335,6 +335,7 @@ public partial class patch_TFGame : TFGame
                 Logger.Log("[LOAD] ...Music");
                 TFGame.WriteLineToLoadLog("Loading Music...");
                 patch_Music.Initialize();
+                patch_Audio.InitAudioSystems();
                 foreach (var mods in RiseCore.InternalMods) 
                 {
                     mods.Content.LoadAudio();
