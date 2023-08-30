@@ -34,6 +34,7 @@ public class WavAudioSystem : IAudioSystem
         if (current != null) 
         {
             current.Stop(true);
+            current.Dispose();
             current = null;
         }
     }
