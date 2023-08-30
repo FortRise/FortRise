@@ -51,7 +51,6 @@ namespace TowerFall
                 level.AssignTag("versus");
                 break;
             }
-            level.LogTags();
         }
 
 

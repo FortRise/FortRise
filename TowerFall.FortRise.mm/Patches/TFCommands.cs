@@ -51,6 +51,10 @@ public static partial class patch_TFCommands
             portals.Shuffle<QuestSpawnPortal>(); 
             portals[0].AppearAndSpawn(args[0]);
         });
+        commands.RegisterCommand("logtags", args => 
+        {
+            Engine.Instance.Scene.LogTags();
+        });
 
         foreach (var module in FortRise.RiseCore.InternalFortModules) 
         {
