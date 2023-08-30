@@ -43,7 +43,7 @@ public sealed class AdventureCategoryButton : patch_MapButton
         for (int i = 0; i < sets.Count; i++) 
         {
             var item = sets[i];
-            uiModal.AddItem(item, () => ChangeLevelSet(item));
+            uiModal.AddItem(UncategorizedIfGlobal(item), () => ChangeLevelSet(item));
         }
 
         uiModal.SetStartIndex(Map.GetLevelSet());
@@ -53,6 +53,15 @@ public sealed class AdventureCategoryButton : patch_MapButton
             Map.MapPaused = false;
         };
         Map.Add(uiModal);
+
+        string UncategorizedIfGlobal(string item) 
+        {
+            if (item == "::global::") 
+            {
+                return "Uncategorized";
+            }
+            return item;
+        }
     }
 
     private void ChangeLevelSet(string levelSet) 
