@@ -7,24 +7,23 @@ namespace Monocle;
 
 public static class patch_Audio 
 {
-    public static Dictionary<string, IAudioSystem> AudioSystems = new();
-    internal static IAudioSystem currentAudio;
+    public static Dictionary<string, IMusicSystem> AudioSystems = new();
+    internal static IMusicSystem currentAudio;
     internal static List<SFX> loopList;
 
-    internal static void InitAudioSystems() 
+    internal static void InitMusicSystems() 
     {
-        RegisterAudioSystem(new WavAudioSystem(), ".wav");
-        RegisterAudioSystem(new VanillaAudioSystem(), ".vanilla");
+        RegisterMusicSystem(new WavMusicSystem(), ".wav");
+        RegisterMusicSystem(new VanillaMusicSystem(), ".vanilla");
     }
 
-    public static void PlaySystem(IAudioSystem system, string name) 
+    public static void PlayMusic(IMusicSystem system, string name) 
     {
         system.Play(name);
         currentAudio = system;
     }
 
-
-    public static void RegisterAudioSystem(IAudioSystem system, string associatedExtension) 
+    public static void RegisterMusicSystem(IMusicSystem system, string associatedExtension) 
     {
         if (AudioSystems.ContainsKey(associatedExtension)) 
         {
@@ -33,7 +32,7 @@ public static class patch_Audio
         AudioSystems[associatedExtension] = system;
     }
 
-    public static IAudioSystem GetAudioSystemFromExtension(string musicPath) 
+    public static IMusicSystem GetMusicSystemFromExtension(string musicPath) 
     {
         var ext = Path.GetExtension(musicPath);
         if (string.IsNullOrEmpty(ext))

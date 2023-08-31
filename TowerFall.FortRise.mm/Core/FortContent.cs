@@ -3,12 +3,10 @@ using System.IO;
 using XNAGraphics = Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using System.Collections.Generic;
-using Ionic.Zip;
 using System.Linq;
 using TowerFall;
 using FortRise.Adventure;
 using System.Xml;
-using Microsoft.Xna.Framework.Audio;
 
 namespace FortRise;
 
@@ -120,54 +118,30 @@ public class FortContent
 
     internal void LoadAudio() 
     {
-        // foreach (var audioEngineRes in ResourceSystem.Resources.Where(x => 
-        //     x.Value.Path.StartsWith("Content/Music/Win"))) 
-        // {
-        //     XactAudioSystem audioBank = null;
-        //     foreach (var child in audioEngineRes.Value.Childrens) 
-        //     {
-        //         if (child.Path.EndsWith(".xwb")) 
-        //         {
-        //             var bankPath = LoadBank(child);
-
-        //             audioBank ??= new XactAudioSystem();
-        //             var waveBank = new WaveBank(audioBank.Engine, bankPath);
-        //             audioBank.Wave = waveBank;
-        //         }
-        //         else if (child.Path.EndsWith(".xsb")) 
-        //         {
-        //             var bankPath = LoadBank(child);
-
-        //             audioBank ??= new XactAudioSystem();
-        //             var soundBank = new SoundBank(audioBank.Engine, bankPath);
-        //             audioBank.Sound = soundBank;
-        //         }
-        //     }
-
-        //     if (audioBank == null)
-        //         continue;
-
-        //     var modDirectory = audioEngineRes.Value.Root.Substring(4).Replace("/", "");
-        //     patch_Audio.ModAudios.Add(modDirectory, audioBank);
-        // }
-
         foreach (var child in ResourceSystem.Resources.Values.Where(x => 
             x.ResourceType == typeof(RiseCore.ResourceTypeWavFile))) 
         {
-            var path = child.Path.Replace("Content/Music/", "");
-            var extension = Path.GetExtension(child.Path);
-            var audio = patch_Audio.GetAudioSystemFromExtension(extension);
-            if (audio == null)
-                continue;    
-
-            var indexOfSlash = child.Path.IndexOf('/');
-            if (indexOfSlash != -1) 
+            if (child.Path.StartsWith("Content/Music")) 
             {
-                using var stream = child.Stream;
-                path = child.Root.Substring(4) + path;
-                audio.Add(path, stream);
+                var path = child.Path.Replace("Content/Music/", "");
+                var extension = Path.GetExtension(child.Path);
+                var audio = patch_Audio.GetMusicSystemFromExtension(extension);
+                if (audio == null)
+                    continue;    
+
+                var indexOfSlash = child.Path.IndexOf('/');
+                if (indexOfSlash != -1) 
+                {
+                    using var stream = child.Stream;
+                    path = child.Root.Substring(4) + path;
+                    audio.Add(path, stream);
+                }
+                continue;
             }
-            Logger.Log(path);
+            // if (child.Path.StartsWith("Content/SFX")) 
+            // {
+            //     var path = child.Path.Replace("Content/SFX/", "");
+            // }
         }
     }
 
@@ -482,18 +456,6 @@ public class FortContent
         return tex;
     }
 
-    /// <summary>
-    /// Load a music form a mod content path. 
-    /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
-    /// </summary>
-    /// <param name="fileName">A path to the .wav or .ogg file</param>
-    /// <param name="musicType">A music type of how it will behave when played</param>
-    /// <returns>A MusicHolder that can holds your music to be able to play in MusicPlayer</returns>
-    public MusicHolder LoadMusic(string fileName, CustomMusicType musicType) 
-    {
-        return new MusicHolder(this, fileName, ContentAccess.ModContent, musicType);
-    }
-
     public SFX LoadSFX(string fileName, bool obeysMasterPitch = true) 
     {
         if (sfxes.TryGetValue(fileName, out var val))
@@ -543,52 +505,5 @@ public class FortContent
             }
             atlases.Clear();
         }
-    }
-}
-
-
-public class MusicHolder
-{
-    private string filePath;
-    public string FilePath 
-    {
-        get 
-        {
-            return Access switch 
-            {
-                ContentAccess.Content => Calc.LOADPATH + FilePath,
-                ContentAccess.ModContent => content + "/" + filePath,
-                _ => filePath
-            };
-        }
-        set => filePath = value;
-    }
-    public Stream Stream 
-    {
-        get 
-        {
-            if (content.MapResource.TryGetValue(FilePath, out var resource)) 
-            {
-                return resource.Stream;
-            }
-            return File.OpenRead(FilePath);
-        }
-    }
-    public ContentAccess Access;
-    public CustomMusicType MusicType;
-    private FortContent content;
-
-
-    public MusicHolder(FortContent content, string filePath, ContentAccess access, CustomMusicType musicType) 
-    {
-        this.content = content;
-        FilePath = access switch 
-        {
-            ContentAccess.Content => Calc.LOADPATH + FilePath,
-            ContentAccess.ModContent => content.UseContent + filePath,
-            _ => filePath
-        };
-        Access = access;
-        MusicType = musicType;
     }
 }
