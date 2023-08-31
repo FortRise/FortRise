@@ -19,11 +19,12 @@ public class patch_SaveData : SaveData
 
     public static string Load() 
     {
+        var error = orig_Load();
         foreach (var module in RiseCore.InternalFortModules)
         {
             module.LoadData();
         }
-        return orig_Load();
+        return error;
     }
 
     public extern void orig_Verify();
