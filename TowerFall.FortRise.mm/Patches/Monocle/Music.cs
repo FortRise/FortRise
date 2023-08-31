@@ -46,22 +46,6 @@ public static class patch_Music
             return;
 
         Stop();
-        SoundHelper.StopMusic();
-        if (filepath.Contains("custom:")) 
-        {
-            if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-            {
-                SoundHelper.PlayMusic(storedInstance);
-            }
-            else 
-            {
-                SoundHelper.PathToSoundWithPrefix(filepath, "custom:", out SoundEffectInstance instance);
-                SoundHelper.StoredInstance.Add(filepath, instance);
-                SoundHelper.PlayMusic(instance);
-            }
-            currentSong = filepath;
-            return;
-        }
 
         if (audioEngine == null)
             return;
@@ -72,10 +56,10 @@ public static class patch_Music
     private static void PlayInternal(string filepath) 
     {
         Stop();
-        var audioSystem = patch_Audio.GetAudioSystemFromExtension(filepath);
+        var audioSystem = patch_Audio.GetMusicSystemFromExtension(filepath);
         if (audioSystem != null) 
         {
-            patch_Audio.PlaySystem(audioSystem, filepath);
+            patch_Audio.PlayMusic(audioSystem, filepath);
         }
         currentSong = filepath;
     }
@@ -88,22 +72,6 @@ public static class patch_Music
         
         audioCategory.Stop(AudioStopOptions.Immediate);
         patch_Audio.StopAudio(AudioStopOptions.Immediate);
-        SoundHelper.StopMusicImmediate();
-        if (filepath.Contains("custom:")) 
-        {
-            if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-            {
-                SoundHelper.PlayMusic(storedInstance);
-            }
-            else 
-            {
-                SoundHelper.PathToSoundWithPrefix(filepath, "custom:", out SoundEffectInstance instance);
-                SoundHelper.StoredInstance.Add(filepath, instance);
-                SoundHelper.PlayMusic(instance);
-            }
-            currentSong = filepath;
-            return;
-        }
         
         PlayInternal(filepath);
     }
@@ -156,76 +124,4 @@ public static class MusicExt
     {
         return patch_Music.InternalAccessAudioCategory(); 
     }
-
-    public static void PlayCustom(this MusicHolder content) 
-    {
-        string filepath = content.FilePath;
-        
-        if (content.MusicType == CustomMusicType.AsVanilla) 
-        {
-            patch_Music.CurrentSong = filepath;
-            Music.Stop();
-        }
-        else
-            patch_Music.CurrentCustomSong = filepath;
-        SoundHelper.StopMusic();
-        if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-        {
-            SoundHelper.PlayMusic(storedInstance);
-        }
-        else 
-        {
-            SoundHelper.PathToSound(filepath, out SoundEffectInstance instance);
-            SoundHelper.StoredInstance.Add(filepath, instance);
-            SoundHelper.PlayMusic(instance);
-        }
-    }
-
-    public static void PlayImmediateCustom(this MusicHolder content) 
-    {
-        string filepath = content.FilePath;
-
-        if (content.MusicType == CustomMusicType.AsVanilla) 
-        {
-            Music.Stop();
-            patch_Music.AudioCategory.Stop(AudioStopOptions.Immediate);
-            patch_Music.CurrentSong = filepath;
-        }
-        else
-            patch_Music.CurrentCustomSong = filepath;
-        SoundHelper.StopMusicImmediate();
-        if (SoundHelper.StoredInstance.TryGetValue(filepath, out SoundEffectInstance storedInstance)) 
-        {
-            SoundHelper.PlayMusic(storedInstance);
-        }
-        else 
-        {
-            SoundHelper.PathToSound(filepath, out SoundEffectInstance instance);
-            SoundHelper.StoredInstance.Add(filepath, instance);
-            SoundHelper.PlayMusic(instance);
-        }
-        if (content.MusicType == CustomMusicType.AsVanilla)
-            patch_Music.CurrentSong = filepath;
-        else
-            patch_Music.CurrentCustomSong = filepath;
-    }
-
-    public static void StopCustom(this MusicHolder content) 
-    {
-        if (patch_Music.CurrentSong != null && SoundHelper.StoredInstance.TryGetValue(patch_Music.CurrentSong, out var instance) 
-            && instance.State == SoundState.Playing)
-        {
-            if (content.MusicType == CustomMusicType.AsVanilla)
-                patch_Music.CurrentSong = null;
-            else
-                patch_Music.CurrentCustomSong = null;
-            instance.Stop();
-        }
-    }
-}
-
-public enum CustomMusicType
-{
-    AsVanilla,
-    FullCustom
 }
