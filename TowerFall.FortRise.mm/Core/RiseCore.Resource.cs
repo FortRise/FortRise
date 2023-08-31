@@ -135,6 +135,22 @@ public partial class RiseCore
                     ResourceType = typeof(ResourceTypeFile);
                 }
             }
+            else if (path.StartsWith("Content/SFX")) 
+            {
+                if (path.EndsWith(".wav")) 
+                {
+                    ResourceType = typeof(ResourceTypeWavFile);
+                }
+                else if (path.EndsWith(".ogg")) 
+                {
+                    ResourceType = typeof(ResourceTypeOggFile);
+                }
+                // FIXME fix normal file
+                else 
+                {
+                    ResourceType = typeof(ResourceTypeFile);
+                }
+            }
             else if (path.EndsWith(".xml")) 
             {
                 ResourceType = typeof(ResourceTypeXml);
