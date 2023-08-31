@@ -45,7 +45,7 @@ namespace MonoMod
 
                 var session = method.DeclaringType.FindField("session");
                 var matchSettings = session.FieldType.Resolve().FindField("MatchSettings");
-                var levelSet = session.FieldType.Resolve().FindField("LevelSet");
+                var GetLevelSet = ctx.Module.GetType("TowerFall.SessionExt").FindMethod("System.String GetLevelSet(TowerFall.Session)");
 
                 var darkWorldState = session.FieldType.Resolve().FindField("DarkWorldState");
                 var time = darkWorldState.FieldType.Resolve().FindField("Time");
@@ -101,7 +101,7 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.Emit(OpCodes.Ldfld, this_4);
                 cursor.Emit(OpCodes.Ldfld, session);
-                cursor.Emit(OpCodes.Ldfld, levelSet);
+                cursor.Emit(OpCodes.Call, GetLevelSet);
                 cursor.Emit(OpCodes.Stloc_S, loc_LevelSet);
 
                 /* Emit necessary code to call the InvokeDarkWorldComplete_Result hook */
