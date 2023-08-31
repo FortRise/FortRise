@@ -326,7 +326,8 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        //TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
+        if (RiseCore.DumpAssets)
+            TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
 
         TaskHelper.Run("loading sfx", () => 
         {
@@ -335,7 +336,7 @@ public partial class patch_TFGame : TFGame
                 Logger.Log("[LOAD] ...Music");
                 TFGame.WriteLineToLoadLog("Loading Music...");
                 patch_Music.Initialize();
-                patch_Audio.InitAudioSystems();
+                patch_Audio.InitMusicSystems();
                 foreach (var mods in RiseCore.InternalMods) 
                 {
                     mods.Content.LoadAudio();

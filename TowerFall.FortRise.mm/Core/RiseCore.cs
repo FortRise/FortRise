@@ -93,6 +93,7 @@ public static partial class RiseCore
     /// </summary>
     public static bool DebugMode;
     internal static bool NoRichPresence;
+    internal static bool DumpAssets;
 
     internal static bool CantRestart = true;
 
@@ -205,6 +206,9 @@ public static partial class RiseCore
                 break;
             case "--no-rich-presence":
                 NoRichPresence = true;
+                break;
+            case "--dump-assets":
+                DumpAssets = true;
                 break;
             }
         }
@@ -331,9 +335,12 @@ public static partial class RiseCore
     internal static void Initialize() 
     {
         // Lua.Initialize();
-        foreach (var t in InternalFortModules) 
+        foreach (var fortModule in InternalFortModules) 
         {
-            t.Initialize();
+            fortModule.Initialize();
+            if (fortModule is ITowerPatcher patcher)
+                patcher.PatchTower(new OnTower(fortModule));
+            RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
 
         Relinker.Modder.Dispose();
@@ -778,5 +785,17 @@ public static partial class RiseCore
         {
             Logger.Log(line, level);
         }
+    }
+
+    public static bool IsModExists(string name) 
+    {
+        foreach (var module in InternalFortModules) 
+        {
+            if (module.Meta.Name == name) 
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
