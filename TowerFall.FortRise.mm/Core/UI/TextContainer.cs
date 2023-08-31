@@ -13,7 +13,9 @@ public class TextContainer : MenuItem
     public float Height;
     public float CurrentPositionY;
     public int ToX;
-    public bool FadeBlack;
+    public bool WithFade;
+    public Color FadeColor = Color.Black * 0.5f;
+    public Action BackAction;
 
     public IReadOnlyList<Item> Items => items;
 
@@ -54,13 +56,13 @@ public class TextContainer : MenuItem
         {
             if (item.Visible)
             {
-                num += 12;
+                num += item2.LineOffset;
             }
             if (item2 == item)
                 break;
             
         }
-        return num - 12 * 0.5f;
+        return num - item.LineOffset * 0.5f;
     }
 
     public TextContainer Add(Item item) 
@@ -80,7 +82,7 @@ public class TextContainer : MenuItem
         {
             if (item3.Visible)
             {
-                Height += 12;
+                Height += item3.LineOffset;
             }
         }
         return this;
@@ -121,6 +123,10 @@ public class TextContainer : MenuItem
                 Sounds.ui_move1.Play();
                 MoveItem(1);
             }
+            else if (MenuInput.Back) 
+            {
+                BackAction?.Invoke();
+            }
             if (Current != null) 
             {
                 if (MenuInput.Left) 
@@ -155,8 +161,8 @@ public class TextContainer : MenuItem
 
     public override void Render()
     {
-        if (FadeBlack)
-            Draw.Rect(0f, 0f, 320f, 240f, Color.Black * 0.5f);
+        if (WithFade)
+            Draw.Rect(0f, 0f, 320f, 240f, FadeColor);
         base.Render();
         
         var position = Position - new Vector2(0, Height);
@@ -166,7 +172,7 @@ public class TextContainer : MenuItem
             if (item.Visible) 
             {
                 item.Render(position + new Vector2(0, item.SelectedWiggler.Value * 4f), Selected && Current == item);
-                position.Y += 12;
+                position.Y += item.LineOffset;
             }
         }
     }
@@ -216,8 +222,8 @@ public class TextContainer : MenuItem
         public Wiggler ValueWiggler;
         public Wiggler SelectedWiggler;
         public bool Selected;
-
         public int Index;
+        public virtual int LineOffset => 12;
 
         public bool Visible = true;
 
