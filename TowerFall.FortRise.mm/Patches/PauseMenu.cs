@@ -143,7 +143,7 @@ namespace TowerFall
             Sounds.ui_click.Play(160f, 1f);
             var container = new TextContainer(180);
             container.LayerIndex = 4;
-            container.FadeBlack = true;
+            container.WithFade = true;
             var fullscreen = new TextContainer.Toggleable("Fullscreen", SaveData.Instance.Options.Fullscreen);
             fullscreen.Change(value => {
                 SaveData.Instance.Options.Fullscreen = value;

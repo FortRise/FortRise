@@ -19,10 +19,22 @@ public sealed class AdventureCategoryButton : patch_MapButton
         Map.MatchStarting = false;
         Map.MapPaused = true;
 
-        var uiModal = new UIModal(0);
-        uiModal.SetTitle("SELECT CATEGORY");
-        uiModal.AutoClose = true;
-        uiModal.AddItem("TowerFall", () => ChangeLevelSet(null));
+        var textContainer = new TextContainer(160);
+        textContainer.LayerIndex = 0;
+        textContainer.WithFade = true;
+        textContainer.BackAction = () => 
+        {
+            Map.Selection = this;
+            Map.MapPaused = false;
+            Sounds.ui_unpause.Play(160f);
+            textContainer.RemoveSelf();
+        };
+        var towerFallButton = new BowButton("TowerFall");
+        towerFallButton.Pressed(() => {
+            ChangeLevelSet(null);
+            textContainer.RemoveSelf();
+        });
+        textContainer.Add(towerFallButton);
 
         List<string> sets = null;
         switch (Type) 
@@ -40,19 +52,25 @@ public sealed class AdventureCategoryButton : patch_MapButton
             sets = TowerRegistry.QuestLevelSets;
             break;
         }
+
+        int startIndex = 0;
         for (int i = 0; i < sets.Count; i++) 
         {
             var item = sets[i];
-            uiModal.AddItem(UncategorizedIfGlobal(item), () => ChangeLevelSet(item));
+            if (Map.GetLevelSet() == item)
+                startIndex = i + 1;
+            var modButton = new BowButton(UncategorizedIfGlobal(item));
+            modButton.Pressed(() => {
+                ChangeLevelSet(item);
+                textContainer.RemoveSelf();
+            });
+            textContainer.Add(modButton);
         }
 
-        uiModal.SetStartIndex(Map.GetLevelSet());
-        uiModal.OnBack = () => 
-        {
-            Map.Selection = this;
-            Map.MapPaused = false;
-        };
-        Map.Add(uiModal);
+        Map.Add(textContainer);
+        textContainer.Selection = startIndex;
+        textContainer.Selected = true;
+        textContainer.TweenIn();
 
         string UncategorizedIfGlobal(string item) 
         {
