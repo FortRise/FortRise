@@ -143,6 +143,15 @@ namespace TowerFall
         [MonoModIgnore]
         private extern void InitOptions(List<OptionsButton> buttons);
 
+        [MonoModIgnore]
+        [PatchMainMenuCreateOptions]
+        private extern void CreateOptions();
+
+        public static void Internal_CreateOptions(List<OptionsButton> buttons) 
+        {
+            // Future use
+        }
+
 
         [MonoModIgnore]
         private extern void MainOptions();
@@ -303,8 +312,23 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuBegin))]
     public class PatchMainMenuBegin : Attribute {}
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCreateOptions))]
+    public class PatchMainMenuCreateOptions : Attribute {}
+
     internal static partial class MonoModRules 
     {
+        public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib) 
+        {
+            var Internal_CreateOptions = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void Internal_CreateOptions(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
+            var cursor = new ILCursor(ctx);
+
+            cursor.GotoNext(MoveType.After, 
+                instr => instr.MatchCallOrCallvirt("System.Collections.Generic.List`1<TowerFall.OptionsButton>", "Add"));
+
+            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.Emit(OpCodes.Call, Internal_CreateOptions);
+        }
+
         public static void PatchMainMenuCtor(ILContext ctx, CustomAttribute attrib) 
         {
             var cursor = new ILCursor(ctx);

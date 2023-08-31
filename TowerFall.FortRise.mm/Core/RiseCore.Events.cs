@@ -175,5 +175,14 @@ public static partial class RiseCore
         {
             OnAfterRender?.Invoke(spriteBatch);
         }
+
+        /// <summary>
+        /// Called after a mod initialized.
+        /// </summary>
+        public static event Action<FortModule> OnModInitialized; 
+        internal static void Invoke_OnModInitialized(FortModule module) 
+        {
+            OnModInitialized?.Invoke(module);
+        }
     }
 }
