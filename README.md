@@ -34,7 +34,7 @@ Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers w
 ![archer-loader](./img/archer-loader.png)
 
 ## [TF.EX (TowerFall NetPlay WIP)](https://github.com/Fcornaire/TF.EX)
-### By: [DShad]
+### By: [DShad](https://github.com/Fcornaire)
 TF EX is a mod that attempt to bring netplay to TowerFall (EX as a Fighting game EX move, usually costing meter).
 ![netplay](https://github.com/Fcornaire/TF.EX/blob/main/images/demo.gif)
 
