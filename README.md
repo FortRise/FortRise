@@ -49,7 +49,7 @@ Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide 
 ![eight-player-versus](./img/eight-player-versus.png)
 ![eight-player-quest](./img/eight-player-quest.png)
 
-## [Oops! All Arrwos Mod](https://github.com/CoolModder/Towerfall-Redemption/releases/tag/v3.1.0-Arrows)
+## [Oops! All Arrows Mod](https://github.com/CoolModder/Towerfall-Redemption/releases/tag/v3.1.0-Arrows)
 ### By: [CoolModder](https://github.com/CoolModder)
 Enjoy the chaos of ten new arrows, with more on the way!
 ![oops-all-arrows](https://github.com/CoolModder/Towerfall-Redemption/blob/main/giphy.gif)
