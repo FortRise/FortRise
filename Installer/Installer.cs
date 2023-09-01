@@ -1,6 +1,5 @@
 using System.Text;
 using System.IO;
-using System.Threading.Tasks;
 using System;
 using System.Reflection;
 using System.Xml;
@@ -26,11 +25,7 @@ public class Installer : MarshalByRefObject
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
-        "gamecontrollerdb.txt", "DiscordGameSdk.dll"
-    };
-
-    private static readonly string[] windowsSpecificFiles = {
-        "gamecontrollerdb.txt"
+        "DiscordGameSdk.dll", "Fortrise.targets"
     };
 
     private static string[] fnaLibs; 
@@ -43,14 +38,6 @@ public class Installer : MarshalByRefObject
         Action<string> FNACopy;
         switch (Environment.OSVersion.Platform) 
         {
-        case PlatformID.Unix:
-            FNAPath = "lib64";
-            FNACopy = CopyFNAFiles_Linux;
-            fnaLibs = new string[] {
-                "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
-                "libSDL2-2.0.so.0", "libtheorafile.so", "discord_game_sdk.so"
-            };
-            break;
         case PlatformID.MacOSX:
             FNAPath = "MacOS/osx";
             FNACopy = CopyFNAFiles_MacOS;
@@ -58,6 +45,14 @@ public class Installer : MarshalByRefObject
                 "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
                 "libvulkan.1.dylib", "discord_game_sdk.dylib"
+            };
+            break;
+        case PlatformID.Unix:
+            FNAPath = "lib64";
+            FNACopy = CopyFNAFiles_Linux;
+            fnaLibs = new string[] {
+                "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
+                "libSDL2-2.0.so.0", "libtheorafile.so", "discord_game_sdk.so"
             };
             break;
         default:
@@ -101,9 +96,9 @@ public class Installer : MarshalByRefObject
 
         var libPath = "";
 
-        Underline("Supporting DInput and other SDL controllers");
         if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
         {
+            Underline("Supporting DInput and other SDL controllers");
             if (!File.Exists(Path.Combine(path, "gamecontrollerdb.txt")))
                 File.Copy(Path.Combine(libPath, "gamecontrollerdb.txt"), Path.Combine(path, "gamecontrollerdb.txt"), true);
         }
@@ -275,6 +270,7 @@ public class Installer : MarshalByRefObject
 
     private static void CopyFNAFiles_Windows(string path) 
     {
+        Console.WriteLine("CopyFNAFiles_Windows is called");
         foreach (var fnaLib in fnaLibs) 
         {
             var lib = Path.Combine("x86", fnaLib);
@@ -292,6 +288,7 @@ public class Installer : MarshalByRefObject
 
     private static void CopyFNAFiles_Linux(string path) 
     {
+        Console.WriteLine("CopyFNAFiles_Linux is called");
         foreach (var fnaLib in fnaLibs) 
         {
             var origPath = Path.Combine(path, "lib64/orig");
@@ -300,7 +297,7 @@ public class Installer : MarshalByRefObject
             if (!Directory.Exists(origPath)) 
                 Directory.CreateDirectory(origPath);
             
-            if (File.Exists(Path.Combine(lib64Path, Path.GetFileName(fnaLib))))
+            if (File.Exists(Path.Combine(lib64Path, Path.GetFileName(fnaLib))) && !File.Exists(Path.Combine(origPath, Path.GetFileName(fnaLib))))
                 File.Copy(Path.Combine(lib64Path, Path.GetFileName(fnaLib)), origPath, true);
             
             var lib = Path.Combine("lib64", fnaLib);
@@ -315,6 +312,7 @@ public class Installer : MarshalByRefObject
 
     private static void CopyFNAFiles_MacOS(string path) 
     {
+        Console.WriteLine("CopyFNAFiles_MACOS is called");
         var macOSPath = new DirectoryInfo(path).Parent.FullName;
         foreach (var fnaLib in fnaLibs) 
         {
@@ -323,7 +321,7 @@ public class Installer : MarshalByRefObject
             if (!Directory.Exists(origPath)) 
                 Directory.CreateDirectory(origPath);
 
-            if (File.Exists(Path.Combine(osxPath, Path.GetFileName(fnaLib))))
+            if (File.Exists(Path.Combine(osxPath, Path.GetFileName(fnaLib))) && !File.Exists(Path.Combine(origPath, Path.GetFileName(fnaLib))))
                 File.Copy(Path.Combine(osxPath, Path.GetFileName(fnaLib)), origPath, true);
             
             var lib = Path.Combine("osx", fnaLib);
