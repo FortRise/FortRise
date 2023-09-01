@@ -132,13 +132,10 @@ public class FortContent
                     path = child.Root.Substring(4) + path;
                     var trackInfo = new TrackInfo(path, child.Root + child.Path, child.ResourceType);
                     patch_Audio.TrackMap.Add(path, trackInfo);
+                    Logger.Verbose($"[MUSIC] [{child.Root}] Added '{path}' to TrackMap.");
                 }
                 continue;
             }
-            // if (child.Path.StartsWith("Content/SFX")) 
-            // {
-            //     var path = child.Path.Replace("Content/SFX/", "");
-            // }
         }
     }
 
