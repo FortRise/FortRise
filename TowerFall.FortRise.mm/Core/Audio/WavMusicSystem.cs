@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using Monocle;
 
@@ -9,9 +7,6 @@ public class WavMusicSystem : IMusicSystem
 {
     private AudioTrack current;
 
-    public WavMusicSystem() 
-    {
-    }
 
     public void Pause()
     {

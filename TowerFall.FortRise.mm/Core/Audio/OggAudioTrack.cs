@@ -61,21 +61,18 @@ public class OggAudioTrack : AudioTrack, IDisposable
             {
                 buffer = new float[Math.Min(lengthInFloats, samplesLeft) * info.channels];
                 FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
+                return buffer;
             }
-            else 
-            {
-                buffer = new float[(lengthInFloats - loopStart) * info.channels];
-                int count = FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
-                Seek(loopStart);
-                FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length - count);
-            }
-        }
-        else 
-        {
-            buffer = new float[lengthInFloats * info.channels];
-            FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
+            buffer = new float[(lengthInFloats - loopStart) * info.channels];
+            int count = FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
+            Seek(loopStart);
+            FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length - count);
+
+            return buffer;
         }
 
+        buffer = new float[lengthInFloats * info.channels];
+        FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
         return buffer;
     }
 

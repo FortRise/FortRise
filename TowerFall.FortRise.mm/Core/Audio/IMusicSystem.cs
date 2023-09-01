@@ -1,4 +1,3 @@
-using System.IO;
 using Microsoft.Xna.Framework.Audio;
 
 namespace FortRise;

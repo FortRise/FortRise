@@ -36,7 +36,7 @@ public class patch_Scene : Scene
     {
         foreach (var tag in SceneTags) 
         {
-            Logger.Log($"[TAGS] {tag}");
+            Logger.Info($"[TAGS] {tag}");
         }
     }
 }

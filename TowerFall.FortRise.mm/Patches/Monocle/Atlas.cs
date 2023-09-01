@@ -8,7 +8,6 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
-using TowerFall;
 
 namespace Monocle;
 
@@ -36,7 +35,7 @@ public class patch_Atlas : Atlas
         DataPath = Path.Combine(Calc.LOADPATH, xmlPath)
             .Replace(".xml", "")
             .Replace('\\', '/')
-            .Replace("/Atlas", "/TowerFall_Atlas");
+            .Replace("/Atlas", "/VanillaAtlas");
         MapAllAssets(this, DataPath);
     }
 
@@ -80,23 +79,21 @@ public class patch_Atlas : Atlas
             {
                 subTex = new Subtexture(baseTexture, x, y, width, height);
                 SubTextures[name] = subTex;
+                continue;
             }
-            else 
+            var tagsCSV = attrib["tag"].Value;
+            var tags = Calc.ReadCSV(tagsCSV);
+            foreach (var tag in tags) 
             {
-                var tagsCSV = attrib["tag"].Value;
-                var tags = Calc.ReadCSV(tagsCSV);
-                foreach (var tag in tags) 
+                subTex = new TaggedSubtexture(baseTexture, x, y, width, height, tags);
+                if (TaggedSubTextures.TryGetValue(tag, out var textures)) 
                 {
-                    subTex = new TaggedSubtexture(baseTexture, x, y, width, height, tags);
-                    if (TaggedSubTextures.TryGetValue(tag, out var textures)) 
-                    {
-                        textures.Add(name, subTex);
-                        continue;
-                    }
-                    var newTextures = new Dictionary<string, Subtexture>();
-                    newTextures.Add(name, subTex);
-                    TaggedSubTextures.Add(tag, newTextures);
+                    textures.Add(name, subTex);
+                    continue;
                 }
+                var newTextures = new Dictionary<string, Subtexture>();
+                newTextures.Add(name, subTex);
+                TaggedSubTextures.Add(tag, newTextures);
             }
         }
     }

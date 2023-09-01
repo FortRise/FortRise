@@ -14,7 +14,6 @@ public class patch_MatchVariants : MatchVariants
     public IReadOnlyDictionary<string, Variant> CustomVariants => customVariants;
 
 
-    /* Private fields from MatchVariants */
     private List<Variant> canRandoms;
 
 
