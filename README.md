@@ -1,4 +1,4 @@
-![image](https://github.com/Terria-K/FortRise/assets/86240437/d8e61984-1e44-4a27-84dd-e3256614af4a)# FortRise - TowerFall Mod Loader
+# FortRise - TowerFall Mod Loader
 It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson). It's using [MonoMod](https://github.com/MonoMod/MonoMod) an open-source C# modding utility.
 
 
