@@ -34,6 +34,11 @@ public class VanillaMusicSystem : IMusicSystem
         audioCategory.Resume();
     }
 
+    public void Seek(uint seekFrames)
+    {
+        Logger.Log("[FACT Music System] Seek is not supported!");
+    }
+
     public void Stop(AudioStopOptions options)
     {
         if (MusicExt.GetAudioEngine() == null)

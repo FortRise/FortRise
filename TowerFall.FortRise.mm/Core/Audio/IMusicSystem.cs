@@ -9,6 +9,5 @@ public interface IMusicSystem
     void Resume();
     void Pause();
     void Stop(AudioStopOptions options);
-
-    void Add(string name, Stream stream);
+    void Seek(uint seekFrames);
 }

@@ -119,22 +119,19 @@ public class FortContent
     internal void LoadAudio() 
     {
         foreach (var child in ResourceSystem.Resources.Values.Where(x => 
-            x.ResourceType == typeof(RiseCore.ResourceTypeWavFile))) 
+            x.ResourceType == typeof(RiseCore.ResourceTypeWavFile) || x.ResourceType == typeof(RiseCore.ResourceTypeOggFile))) 
         {
             if (child.Path.StartsWith("Content/Music")) 
             {
                 var path = child.Path.Replace("Content/Music/", "");
-                var extension = Path.GetExtension(child.Path);
-                var audio = patch_Audio.GetMusicSystemFromExtension(extension);
-                if (audio == null)
-                    continue;    
 
                 var indexOfSlash = child.Path.IndexOf('/');
                 if (indexOfSlash != -1) 
                 {
                     using var stream = child.Stream;
                     path = child.Root.Substring(4) + path;
-                    audio.Add(path, stream);
+                    var trackInfo = new TrackInfo(path, child.Root + child.Path, child.ResourceType);
+                    patch_Audio.TrackMap.Add(path, trackInfo);
                 }
                 continue;
             }

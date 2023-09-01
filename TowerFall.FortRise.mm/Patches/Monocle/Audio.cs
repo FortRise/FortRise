@@ -8,12 +8,14 @@ namespace Monocle;
 public static class patch_Audio 
 {
     public static Dictionary<string, IMusicSystem> AudioSystems = new();
+    public static Dictionary<string, TrackInfo> TrackMap = new();
     internal static IMusicSystem currentAudio;
     internal static List<SFX> loopList;
 
     internal static void InitMusicSystems() 
     {
         RegisterMusicSystem(new WavMusicSystem(), ".wav");
+        RegisterMusicSystem(new OggMusicSystem(), ".ogg");
         RegisterMusicSystem(new VanillaMusicSystem(), ".vanilla");
     }
 
