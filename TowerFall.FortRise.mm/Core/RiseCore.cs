@@ -92,6 +92,7 @@ public static partial class RiseCore
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
     public static bool DebugMode;
+    public static bool NoIntro;
     internal static bool NoRichPresence;
     internal static bool DumpAssets;
 
@@ -193,7 +194,33 @@ public static partial class RiseCore
 
     public static void ParseArgs(string[] args) 
     {
-        foreach (var arg in args) 
+        var compiledArgs = new HashSet<string>(args);
+        if (File.Exists("launch.txt")) 
+        {
+            using var fs = File.OpenText("launch.txt");
+            string argPass;
+            while ((argPass = fs.ReadLine()) != null) 
+            {
+                if (argPass.Trim().StartsWith(";") || string.IsNullOrEmpty(argPass))
+                    continue;
+                compiledArgs.Add(argPass.Trim());
+            }
+        }
+        else 
+        {
+            using var fs = File.CreateText("launch.txt");
+            fs.WriteLine("; Add any of available launch arguments here.");
+            fs.WriteLine("; Lines starting with ; are ignored, so all of the arguments are disabled.");
+            fs.WriteLine("");
+            fs.WriteLine(";--debug");
+            fs.WriteLine(";--nointro");
+            fs.WriteLine("; You can also change your graphics driver, it can be either OpenGL, DirectX, or Vulkan");
+            fs.WriteLine("; The defualt may be depends on your platform and some platform doesn't support one of the other graphics driver.");
+            fs.WriteLine(";--graphics OpenGL");
+        }
+
+
+        foreach (var arg in compiledArgs) 
         {
             switch (arg) 
             {
@@ -209,6 +236,30 @@ public static partial class RiseCore
                 break;
             case "--dump-assets":
                 DumpAssets = true;
+                break;
+            case "--no-quit":
+                MainMenu.NoQuit = true;
+                break;
+            case "--no-gamepads":
+                MainMenu.NoGamepads = true;
+                break;
+            case "--no-gamepadsupdates":
+                MainMenu.NoGamepadUpdates = true;
+                break;
+            case "--nointro":
+                NoIntro = true;
+                break;
+            case "--loadlog":
+                TFGame.StartLoadLog();
+                break;
+            case "--graphics OpenGL":
+                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "OpenGL");
+                break;
+            case "--graphics Vulkan":
+                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "Vulkan");
+                break;
+            case "--graphics D3D11":
+                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "D3D11");
                 break;
             }
         }

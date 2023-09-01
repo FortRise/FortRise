@@ -52,8 +52,8 @@ public partial class patch_TFGame : TFGame
     [MonoModConstructor]
     public void ctor(bool noIntro) 
     {
-        orig_ctor(noIntro);
-        if (!noIntro)
+        orig_ctor(noIntro || RiseCore.NoIntro);
+        if (!RiseCore.NoIntro && !noIntro)
             this.noIntro = RiseCore.DebugMode;
     }
 
