@@ -46,12 +46,15 @@ public class patch_Pickup : Pickup
 
     private static Pickup GetCustomPickup(Vector2 position, Vector2 target, int playerIndex, Pickups type) 
     {
-        if (type <= Pickups.Gem)
-            return null;
+        if (type <= Pickups.Gem) 
+        {
+            return new GemPickup(position, target);
+        }
         if (!FortRise.RiseCore.PickupLoader.TryGetValue(type, out var loader)) 
         {
             Logger.Error("Pickup type cannot be found!");
-            return null;
+            Sounds.ui_levelLock.Play(160f);
+            return new GemPickup(position, target);;
         }
         return loader?.Invoke(position, target, playerIndex);
     }

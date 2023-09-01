@@ -27,7 +27,7 @@ public class patch_Level : Level
         var name = e.Name;
         if (FortRise.RiseCore.LevelEntityLoader.TryGetValue(name, out var val)) 
         {
-            Add(val(e, e.Position()));
+            Add(val(e, e.Position(), e.Nodes()));
             return;
         }
         orig_LoadEntity(e);
@@ -50,12 +50,12 @@ public class patch_Level : Level
     {
         if (DebugMode) 
         {
-			Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Lerp(Matrix.Identity, Camera.Matrix, 1f));
             foreach (var entity in Layers[0].Entities) 
             {
                 entity.DebugRender();
             }
-			Draw.SpriteBatch.End();
+            Draw.SpriteBatch.End();
         }
     }
 

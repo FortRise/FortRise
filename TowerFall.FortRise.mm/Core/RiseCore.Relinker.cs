@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Ionic.Zip;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Mdb;
@@ -163,12 +164,6 @@ public static partial class RiseCore
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
-            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
-            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
-
-            var checksums = new string[2];
-            checksums[0] = GameChecksum;
-            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
 
             if (Environment.Is64BitProcess) 
             {
@@ -185,6 +180,12 @@ public static partial class RiseCore
                 }
             }
 
+            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
+            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+
+            var checksums = new string[2];
+            checksums[0] = GameChecksum;
+            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
             
 
             if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
@@ -424,6 +425,33 @@ public static partial class RiseCore
 
         private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
         {
+            if (!string.IsNullOrEmpty(meta.PathZip)) 
+            {
+                return (mod, main, name, fullname) => 
+                {
+                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
+                    {
+                        return def;
+                    }
+
+                    string path = name + ".dll";
+                    if (!string.IsNullOrEmpty(meta.DLL))
+                        path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
+                    path = path.Replace('\\', '/');
+
+                    using var zip = new ZipFile(meta.PathZip);
+                    foreach (var entry in zip.Entries) 
+                    {
+                        if (entry.FileName != path)
+                            continue;
+                        using var memStream = entry.ExtractStream();
+                        return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
+                    }
+
+                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    return null;
+                };
+            }
             if (!string.IsNullOrEmpty(Path.GetDirectoryName(meta.DLL))) 
             {
                 return (mod, main, name, fullname) => 

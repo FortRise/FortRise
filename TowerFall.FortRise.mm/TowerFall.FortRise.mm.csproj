@@ -4,8 +4,10 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
     <RootNamespace>TowerFall</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
     <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
+    <ShouldIncludeNativeLua>false</ShouldIncludeNativeLua>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,12 +28,19 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.7.31.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
+    <PackageReference Include="KeraLua" Version="1.0.22" />
+    <PackageReference Include="NLua" Version="1.4.25" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Content\Atlas\**\*">
       <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DiscordGameSdk/DiscordGameSdk.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -39,8 +39,10 @@ namespace MonoMod
             var Entity = ctx.Module.GetType("Monocle.Entity");
             var Position = Entity.FindField("Position");
             var RiseCore = ctx.Module.GetType("FortRise.RiseCore/Events");
+            var QuestSpawnPortal = ctx.Module.GetType("TowerFall.QuestSpawnPortal");
+            var Nodes = QuestSpawnPortal.FindField("Nodes");
             var InvokeEvent = RiseCore.FindMethod(
-                "System.Void InvokeQuestSpawnPortal_FinishSpawn(System.String,Microsoft.Xna.Framework.Vector2,TowerFall.Facing,TowerFall.Level)");
+                "System.Void InvokeQuestSpawnPortal_FinishSpawn(System.String,Microsoft.Xna.Framework.Vector2,TowerFall.Facing,Microsoft.Xna.Framework.Vector2[],TowerFall.Level)");
 
             var label = ctx.DefineLabel();
             var cursor = new ILCursor(ctx);
@@ -56,6 +58,8 @@ namespace MonoMod
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldfld, Position);
             cursor.Emit(OpCodes.Ldloc_0);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldfld, Nodes);
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Call, get_level);
             cursor.Emit(OpCodes.Call, InvokeEvent);

@@ -5,10 +5,15 @@ namespace FortRise;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class CustomLevelEntityAttribute : Attribute 
 {
-    public string Name;
+    public string[] Names;
 
     public CustomLevelEntityAttribute(string name) 
     {
-        Name = name;
+        Names = new string[1] { name };
+    }
+
+    public CustomLevelEntityAttribute(params string[] names) 
+    {
+        Names = names;
     }
 }

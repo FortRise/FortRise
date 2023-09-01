@@ -6,8 +6,14 @@ Installer/lib/**/*.config
 Installer/lib/**/*.exe
 Installer/lib/**/*.xml
 Installer/lib/**/*.json
+Installer/lib/**/*.txt
 Installer/lib/**/*.pdb
+Installer/lib/**/*.so
+Installer/lib/**/*.so.0
+Installer/lib/**/*.dylib
 Installer/lib-old/
+Installer/lib-native/
+Installer/lib-kick/
 artifacts/
 lib-stripped/TestDep
 PatchVersion.txt

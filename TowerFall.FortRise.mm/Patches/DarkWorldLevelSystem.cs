@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Xml;
 using FortRise;
+using FortRise.Adventure;
 using Monocle;
 using MonoMod;
 
@@ -37,7 +39,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         ID = tower.ID;
         Theme = tower.Theme;
         ShowControls = false;
-        ShowTriggerControls = (!patch_SaveData.AdventureActive && ID.X == 2);
+        ShowTriggerControls = (tower.GetLevelSet() == "TowerFall" && ID.X == 2);
     }
 
     [MonoModReplace]
@@ -52,13 +54,23 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
             randomSeed = file;
             var levelFile = DarkWorldTowerData.Levels[file];
-            if (DarkWorldTowerData is AdventureWorldTowerData && levelFile.EndsWith("json")) 
+            if (DarkWorldTowerData is AdventureWorldTowerData data) 
             {
-                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(levelFile))["level"];
+                using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
+                if (levelFile.EndsWith("json")) 
+                {
+                    return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
+                }
+                else 
+                {
+                    return patch_Calc.LoadXML(level)["level"];
+                }
             }
-            return Calc.LoadXML(levelFile)["level"];
+            
+            using Stream stream = File.OpenRead(levelFile);
+            return patch_Calc.LoadXML(stream)["level"];
         }
-        catch (ArgumentOutOfRangeException e)
+        catch (Exception e)
         {
             ErrorHelper.StoreException("Missing Level", e);
             randomSeed = 0;
@@ -66,26 +78,28 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         }
     }
 
+
     [MonoModIgnore]
     public extern patch_DarkWorldTowerData.patch_LevelData GetLevelData(DarkWorldDifficulties difficulty, int roundIndex);
 
     public override TilesetData GetBGTileset()
     {
-        if (patch_SaveData.AdventureActive) 
-        {
-            if (patch_GameData.CustomTilesets.TryGetValue(Theme.BGTileset, out var val))
-                return val;
-        }
+        // TODO CustomBGTileset
+        // if (patch_SaveData.AdventureActive) 
+        // {
+        //     if (patch_GameData.CustomTilesets.TryGetValue(Theme.BGTileset, out var val))
+        //         return val;
+        // }
         return base.GetBGTileset();
     }
 
     public override TilesetData GetTileset()
     {
-        if (patch_SaveData.AdventureActive) 
-        {
-            if (patch_GameData.CustomTilesets.TryGetValue(Theme.Tileset, out var val))
-                return val;
-        }
+        // if (patch_SaveData.AdventureActive) 
+        // {
+        //     if (patch_GameData.CustomTilesets.TryGetValue(Theme.Tileset, out var val))
+        //         return val;
+        // }
         return base.GetTileset();
     }
 }

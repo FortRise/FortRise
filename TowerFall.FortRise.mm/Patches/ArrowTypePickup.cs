@@ -1,3 +1,4 @@
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -19,13 +20,13 @@ public class patch_ArrowTypePickup : ArrowTypePickup
         orig_ctor(position, targetPosition, type);
         if (type <= ArrowTypes.Prism)
             return;
-        if (!FortRise.RiseCore.PickupGraphicArrows.TryGetValue(type, out var infoLoader))
+        if (!RiseCore.ArrowNameMap.TryGetValue(type, out var id)) 
             return;
-        var info = infoLoader?.Invoke();
+        
+        var info = RiseCore.ArrowsRegistry[id].InfoLoader?.Invoke();
         if (info == null)
             return;
         var value = info.Value;
-        
         
         if (value.Animated != null)
         {

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoMod;
-using static Monocle.MInput;
 
 namespace Monocle;
 
@@ -18,7 +17,6 @@ public static class patch_MInput
         Keyboard = new patch_KeyboardData();
         Mouse = new patch_MouseData();
         XGamepads = new List<patch_XGamepadData>();
-        Joysticks = new List<JoystickData>();
         UpdateJoysticks();
         foreach (var gamepad in MInput.XGamepads) 
         {

@@ -31,7 +31,7 @@ public static partial class CallHelper
     public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName) 
     {
         var targetType = typeof(TTarget);
-        var baseUpdateMethod = typeof(TBase).GetMethod(methodName);
+        var baseUpdateMethod = typeof(TBase).GetMethod(methodName, new Type[] { <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, null);
         var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);
@@ -77,7 +77,7 @@ public static partial class CallHelper
     public static Action<TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>> CallBaseGen<TBase, TTarget, <# for (int j = 1; j <= i; j++){#>T<#=j#><#if (j != i){#>, <#}#><#}#>>(string methodName, BindingFlags flags) 
     {
         var targetType = typeof(TTarget);
-        var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags);
+        var baseUpdateMethod = typeof(TBase).GetMethod(methodName, flags, null, new Type[] { <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, null);
         var dm = new DynamicMethod("<Base>" + methodName, null, new Type[] { targetType, <# for (int j = 1; j <= i; j++){#>typeof(T<#=j#>)<#if (j != i){#>, <#}#><#}#> }, targetType);
         var gen = dm.GetILGenerator();
         gen.Emit(OpCodes.Ldarg_0);

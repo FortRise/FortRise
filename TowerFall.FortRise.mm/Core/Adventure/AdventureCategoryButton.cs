@@ -6,8 +6,10 @@ namespace FortRise.Adventure;
 
 public sealed class AdventureCategoryButton : patch_MapButton
 {
-    public AdventureCategoryButton() : base("TOWER CATEGORY")
+    public AdventureType Type;
+    public AdventureCategoryButton(AdventureType type) : base("TOWER CATEGORY")
     {
+        Type = type;
     }
 
     public override void OnConfirm()
@@ -17,66 +19,83 @@ public sealed class AdventureCategoryButton : patch_MapButton
         Map.MatchStarting = false;
         Map.MapPaused = true;
 
-        var uiModal = new UIModal(0);
-        uiModal.SetTitle("SELECT CATEGORY");
-        uiModal.AutoClose = true;
-        for (int i = 0; i < patch_GameData.AdventureWorldCategories.Count; i++) 
-        {
-            var item = patch_GameData.AdventureWorldCategories[i];
-
-            int IamParticularlyHateCapturedValuesWithoutMyConsent = i;
-            if (item == "::global::")
-            {
-                uiModal.AddItem("GLOBAL LEVELS", () => ChangeCategory(IamParticularlyHateCapturedValuesWithoutMyConsent));
-                continue;
-            }
-            uiModal.AddItem(item, () => ChangeCategory(IamParticularlyHateCapturedValuesWithoutMyConsent));
-        }
-
-        uiModal.SetStartIndex(Map.CustomLevelCategory);
-        uiModal.OnBack = () => 
+        var textContainer = new TextContainer(160);
+        textContainer.LayerIndex = 0;
+        textContainer.WithFade = true;
+        textContainer.BackAction = () => 
         {
             Map.Selection = this;
             Map.MapPaused = false;
+            Sounds.ui_unpause.Play(160f);
+            textContainer.RemoveSelf();
         };
-        Map.Add(uiModal);
+        textContainer.Add(new TextContainer.HeaderText("Select Category"));
+        var towerFallButton = new BowButton("TowerFall");
+        towerFallButton.Pressed(() => {
+            ChangeLevelSet(null);
+            textContainer.RemoveSelf();
+        });
+        textContainer.Add(towerFallButton);
+
+        List<string> sets = null;
+        switch (Type) 
+        {
+        case AdventureType.Quest:
+            sets = TowerRegistry.QuestLevelSets;
+            break;
+        case AdventureType.DarkWorld:
+            sets = TowerRegistry.DarkWorldLevelSets;
+            break;
+        case AdventureType.Versus:
+            sets = TowerRegistry.VersusLevelSets;
+            break;
+        case AdventureType.Trials:
+            sets = TowerRegistry.TrialsLevelSet;
+            break;
+        }
+
+        int startIndex = 0;
+        for (int i = 0; i < sets.Count; i++) 
+        {
+            var item = sets[i];
+            if (Map.GetLevelSet() == item)
+                startIndex = i + 2;
+            var modButton = new BowButton(UncategorizedIfGlobal(item));
+            modButton.Pressed(() => {
+                ChangeLevelSet(item);
+                textContainer.RemoveSelf();
+            });
+            textContainer.Add(modButton);
+        }
+
+        Map.Add(textContainer);
+        textContainer.Selection = startIndex;
+        textContainer.Selected = true;
+        textContainer.TweenIn();
+
+        string UncategorizedIfGlobal(string item) 
+        {
+            if (item == "::global::") 
+            {
+                return "Uncategorized";
+            }
+            return item;
+        }
     }
 
-    private void ChangeCategory(int category) 
+    private void ChangeLevelSet(string levelSet) 
     {
-        Map.CustomLevelCategory = category;
-        Map.GotoAdventure();
+        if (levelSet == null)  
+        {
+            Map.ExitAdventure();
+            Map.MapPaused = false;
+            return;
+        }
+
+        Map.Renderer.ChangeLevelSet(levelSet);
+        Map.SetLevelSet(levelSet);
+        Map.GotoAdventure(Map.CurrentAdventureType);
         Map.MapPaused = false;
-        var customMapRenderer = patch_GameData.AdventureWorldMapRenderer[Map.CustomLevelCategory];
-        if (customMapRenderer.contains) 
-        {
-            if (Map.CurrentMapRender != null)
-                Map.CurrentMapRender.Visible = false;
-            Map.CurrentMapRender = customMapRenderer.renderer;
-            Map.Renderer.Visible = false;
-            Map.CurrentMapRender.Visible = true;
-
-            if (Map.Selection == null || Map.Selection.Data == null) 
-            {
-                Map.CurrentMapRender.OnSelectionChange("");
-                return;
-            }
-            Map.CurrentMapRender.OnSelectionChange(Map.Selection.Data.Title);
-        }
-        else 
-        {
-            if (Map.CurrentMapRender != null)
-                Map.CurrentMapRender.Visible = false;
-            Map.Renderer.Visible = true;
-            Map.CurrentMapRender = null;
-
-            if (Map.Selection == null || Map.Selection.Data == null)
-            {
-                Map.Renderer.OnSelectionChange("");
-                return;
-            }
-            Map.Renderer.OnSelectionChange(Map.Selection.Data.Title);
-        }
     }
 
     protected override List<Image> InitImages()

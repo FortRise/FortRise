@@ -4,11 +4,20 @@ using System.Reflection;
 using MonoMod;
 using FortRise;
 using TowerFall;
+using System.IO;
 
 namespace Monocle;
 
 public static class patch_Calc 
 {
+    public static XmlDocument LoadXML(Stream stream) 
+    {
+        using var textReader = new StreamReader(stream);
+        var xmlDocument = new XmlDocument();
+        xmlDocument.LoadXml(textReader.ReadToEnd());
+        return xmlDocument;
+    }
+
     [MonoModReplace]
     public static T StringToEnum<T>(string str) where T : struct 
     {
@@ -17,11 +26,28 @@ public static class patch_Calc
             return (T)((object)Enum.Parse(typeof(T), str));
         }
         // Try to get the pickup value
-        else if (RiseCore.PickupID.TryGetValue(str, out var s) && s is T custmPickup) 
+        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
         {
             return custmPickup;
         }
         throw new Exception("The string cannot be converted to the enum type");
+    }
+
+    public static bool TryStringToEnum<T>(string str, out T result) where T : struct 
+    {
+        if (Enum.IsDefined(typeof(T), str)) 
+        {
+            result = (T)((object)Enum.Parse(typeof(T), str));
+            return true;
+        }
+        // Try to get the pickup value
+        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
+        {
+            result = custmPickup;
+            return true;
+        }
+        result = default;
+        return false;
     }
 
     [MonoModReplace]
@@ -99,5 +125,10 @@ public static class patch_Calc
         {
             Logger.Log(obj2);
         }
+    }
+
+    public static float Clamp(float value, float min, float max)
+    {
+        return Math.Min(Math.Max(value, min), max);
     }
 }

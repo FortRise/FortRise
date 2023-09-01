@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using TeuJson;
 using TowerFall;
 
 namespace FortRise;
@@ -24,6 +25,10 @@ public abstract partial class FortModule
     public string Name { get; internal set; }
     public string ID { get; internal set; }
     public ModuleMetadata Meta { get; internal set; }
+    public bool SupportModDisabling { get; set; } = true;
+    public bool RequiredRestart { get; set; }
+    public bool DisposeTextureAfterUnload { get; set; } = true;
+
     public virtual Type SettingsType { get; }
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
@@ -35,10 +40,16 @@ public abstract partial class FortModule
     public abstract void Unload();
 
 
-    public void InternalLoad() 
+    internal void InternalLoad() 
     {
         LoadSettings();
         Load();
+    }
+
+    internal void InternalUnload() 
+    {
+        Content?.Unload(DisposeTextureAfterUnload);
+        Unload();
     }
 
     internal void SaveData() 
@@ -90,11 +101,14 @@ public abstract partial class FortModule
         InternalSettings.Save(path);
     }
 
+    [Obsolete("Use CreateModSettings(FortRise.TextContainer) instead")]
     public virtual void CreateModSettings(List<OptionsButton> optionList) {}
 
-    internal void CreateSettings(List<OptionsButton> optionsList) 
+    public virtual void CreateModSettings(TextContainer textContainer) {}
+
+    internal void CreateSettings(TextContainer textContainer) 
     {
-        CreateModSettings(optionsList);
+        CreateModSettings(textContainer);
 
         var type = SettingsType;
         var settings = InternalSettings;
@@ -120,128 +134,51 @@ public abstract partial class FortModule
 
             if (fieldType == typeof(bool)) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    optionButton.State = BoolToString((bool)field.GetValue(settings));
-                }, null, null, () => {
-                    var val = !(bool)field.GetValue(settings);
-                    field.SetValue(settings, val);
-                    return val;
+                var defaultVal = (bool)field.GetValue(settings);
+                var toggleable = new TextContainer.Toggleable(fullName, defaultVal);
+                toggleable.Change(x => {
+                    field.SetValue(settings, x);
                 });
-                optionsList.Add(optionButton);
+                textContainer.Add(toggleable);
             }
             else if (fieldType == typeof(Action)) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
+                var actionButton = new TextContainer.ButtonText(fullName);
+                actionButton.OnConfirm = () => {
                     var action = (Action)field.GetValue(settings);
-                    action();
-                });
-                optionsList.Add(optionButton);
+                    action?.Invoke();
+                };
+                textContainer.Add(actionButton);
             }
             else if ((fieldType == typeof(int)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    var value = (int)field.GetValue(settings);
-                    optionButton.State = optAttrib.Options[value].ToUpperInvariant();
-                    optionButton.CanLeft = (value > 0);
-                    optionButton.CanRight = (value < optAttrib.Options.Length - 1);
-                }, () => {
-                    var value = (int)field.GetValue(settings);
-                    value -= 1;
-                    field.SetValue(settings, value);
-                }, () => {
-                    var value = (int)field.GetValue(settings);
-                    value += 1;
-                    field.SetValue(settings, value);
-                }, null);
-                optionsList.Add(optionButton);
+                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                selectionOption.Change(x => {
+                    field.SetValue(settings, x.Item2);
+                });
+                textContainer.Add(selectionOption);
             }
             else if ((fieldType == typeof(string)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    optionButton.State = optAttrib.Options[index].ToUpperInvariant();
-                    optionButton.CanLeft = (index > 0);
-                    optionButton.CanRight = (index < optAttrib.Options.Length - 1);
-                }, () => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    index -= 1;
-                    value = optAttrib.Options[index];
-                    field.SetValue(settings, value);
-                }, () => {
-                    var value = (string)field.GetValue(settings);
-                    var index = Array.IndexOf(optAttrib.Options, value);
-                    index += 1;
-                    value = optAttrib.Options[index];
-                    field.SetValue(settings, value);
-                }, null);
-                optionsList.Add(optionButton);
+                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                selectionOption.Change(x => {
+                    field.SetValue(settings, x.Item1);
+                });
+                textContainer.Add(selectionOption);
             }
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) && 
                 (attrib = field.GetCustomAttribute<SettingsNumberAttribute>()) != null) 
             {
-                var optionButton = new OptionsButton(fullName);
-                optionButton.SetCallbacks(() => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)field.GetValue(settings);
-                        optionButton.State = value.ToString();
-                        optionButton.CanLeft = (value > attrib.Min);
-                        optionButton.CanRight = (value < attrib.Max);
-                    }
-                    else 
-                    {
-                        var value = (int)field.GetValue(settings);
-                        optionButton.State = value.ToString();
-                        optionButton.CanLeft = (value > attrib.Min);
-                        optionButton.CanRight = (value < attrib.Max);
-                    }
+                var numberButton = new TextContainer.Number(fullName, attrib.Min, attrib.Max);
+                numberButton.Change(x => {
+                    if (field.FieldType == typeof(float))
+                        field.SetValue(settings, (float)x);
+                    else
+                        field.SetValue(settings, x);
+                });
 
-                }, () => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)(field.GetValue(settings));
-                        value -= attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                    else 
-                    {
-                        var value = (int)(field.GetValue(settings));
-                        value -= attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                }, () => {
-                    if (fieldType == typeof(float)) 
-                    {
-                        var value = (float)(field.GetValue(settings));
-                        value += attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                    else 
-                    {
-                        var value = (int)(field.GetValue(settings));
-                        value += attrib.Step;
-                        field.SetValue(settings, value);
-                    }
-                }, null);
-                optionsList.Add(optionButton);
+                textContainer.Add(numberButton);
             }
-        }
-        
-
-        
-        string BoolToString(bool value)
-        {
-            if (!value)
-            {
-                return "OFF";
-            }
-            return "ON";
         }
     }
 
@@ -249,9 +186,14 @@ public abstract partial class FortModule
     public virtual void LoadContent() {}
     public virtual void Initialize() {}
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
+
+    public bool IsModExists(string modName) 
+    {
+        return RiseCore.IsModExists(modName);
+    }
 }
 
-public class ModuleMetadata 
+public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
 {
     public string Name;
     public Version Version;
@@ -259,15 +201,80 @@ public class ModuleMetadata
     public string Description;
     public string Author;
     public string DLL;
-    public string PathDirectory;
-    public string[] Dependencies;
+    public string PathDirectory = string.Empty;
+    public string PathZip = string.Empty;
+    public ModuleMetadata[] Dependencies;
     public string NativePath;
     public string NativePathX86;
 
-    internal ModuleMetadata() {}
+    public ModuleMetadata() {}
+
 
     public override string ToString()
     {
         return $"Metadata: {Name} by {Author} {Version}";
     }
+
+
+    public bool Equals(ModuleMetadata other)
+    {
+        if (other.Name != this.Name)
+            return false;
+        
+        if (other.Version.Major != this.Version.Major)
+            return false;
+        
+        if (this.Version.Minor < other.Version.Minor)
+            return false;
+
+        return true;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as ModuleMetadata);
+    
+
+    public override int GetHashCode()
+    {
+        var version = Version.Major.GetHashCode() + Version.Minor.GetHashCode();
+        var name = Name.GetHashCode();
+        return version + name;
+    }
+
+    public void Deserialize(JsonObject value)
+    {
+        Name = value["name"];
+        Version = new Version(value.GetJsonValueOrNull("version") ?? "1.0.0");
+        var fVersion = value.GetJsonValueOrNull("required");
+        if (fVersion == null)
+            FortRiseVersion = RiseCore.FortRiseVersion;
+        else
+            FortRiseVersion = new Version(fVersion);
+        Description = value.GetJsonValueOrNull("description") ?? string.Empty;
+        Author = value.GetJsonValueOrNull("author") ?? string.Empty;
+        DLL = value.GetJsonValueOrNull("dll") ?? string.Empty;
+        NativePath = value.GetJsonValueOrNull("nativePath") ?? string.Empty;
+        NativePathX86 = value.GetJsonValueOrNull("nativePathX86") ?? string.Empty;
+        var dep = value.GetJsonValueOrNull("dependencies");
+        if (dep is null)
+            return;
+        Dependencies = dep.ConvertToArray<ModuleMetadata>();
+    }
+
+    public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)
+    {
+        if (rhs is null)
+        {
+            if (lhs is null)
+            {
+                return true;
+            }
+
+            // Only the left side is null.
+            return false;
+        }
+        // Equals handles case of null on right side.
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(ModuleMetadata lhs, ModuleMetadata rhs) => !(lhs == rhs);
 }
