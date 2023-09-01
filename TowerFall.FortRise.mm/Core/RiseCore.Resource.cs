@@ -37,6 +37,10 @@ public partial class RiseCore
         "bin", "obj"
     };
 
+    internal static HashSet<string> BlacklistedCommonFolders = new() {
+        "packer/"
+    };
+
     public abstract class Resource 
     {
         public string FullPath;
@@ -373,6 +377,8 @@ public partial class RiseCore
 
                 if (entry.IsDirectory)  
                 {
+                    if (BlacklistedCommonFolders.Contains(fileName)) 
+                        continue;
                     var file = fileName.Remove(fileName.Length - 1);
                     var zipResource = new ZipResource(this, file, prefix + file, entry);
                     Add(file, zipResource);
@@ -498,6 +504,8 @@ public partial class RiseCore
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(FolderDirectory + '/', "");
+                if (BlacklistedCommonFolders.Contains(simpliPath)) 
+                    continue;
                 var newFolderResource = new FileResource(this, simpliPath, fixedFolder);
                 Lookup(prefix, folder, FolderDirectory, newFolderResource);
                 Add(fixedFolder, newFolderResource);
@@ -522,6 +530,8 @@ public partial class RiseCore
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
+                if (BlacklistedCommonFolders.Contains(simpliPath)) 
+                    continue;
                 var newFolderResource = new FileResource(this, simpliPath, prefix + simpliPath);
                 Lookup(prefix, folder, modDirectory, newFolderResource);
                 Add(simpliPath, newFolderResource);
