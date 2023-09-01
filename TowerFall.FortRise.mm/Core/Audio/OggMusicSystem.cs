@@ -15,6 +15,8 @@ public class OggMusicSystem : IMusicSystem
 
     public void Play(string name)
     {
+        Stop(AudioStopOptions.Immediate);
+
         current = patch_Audio.TrackMap[name].Create();
         current.Looping = true;
         current.Play();
