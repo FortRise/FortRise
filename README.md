@@ -1,4 +1,4 @@
-# FortRise - TowerFall Mod Loader
+![image](https://github.com/Terria-K/FortRise/assets/86240437/d8e61984-1e44-4a27-84dd-e3256614af4a)# FortRise - TowerFall Mod Loader
 It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson). It's using [MonoMod](https://github.com/MonoMod/MonoMod) an open-source C# modding utility.
 
 
@@ -33,6 +33,11 @@ If the game crashes before loading, or you see an error in the log file that say
 Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers with custom hair, wings, ghost, particles, layers and even taunts and skins for archers.
 ![archer-loader](./img/archer-loader.png)
 
+## [TF.EX (TowerFall NetPlay WIP)](https://github.com/Fcornaire/TF.EX)
+### By: [DShad]
+TF EX is a mod that attempt to bring netplay to TowerFall (EX as a Fighting game EX move, usually costing meter).
+![netplay](https://github.com/Fcornaire/TF.EX/blob/main/images/demo.gif)
+
 ## Adventure
 ### By: [Terria](https://github.com/Terria-K)
 Loads custom Dark World levels with workshop-like button without having to mess around with original game files.
@@ -44,6 +49,10 @@ Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide 
 ![eight-player-versus](./img/eight-player-versus.png)
 ![eight-player-quest](./img/eight-player-quest.png)
 
+## [Oops! All Arrwos Mod](https://github.com/CoolModder/Towerfall-Redemption/releases/tag/v3.1.0-Arrows)
+### By: [CoolModder](https://github.com/CoolModder)
+Enjoy the chaos of ten new arrows, with more on the way!
+![oops-all-arrows](https://github.com/CoolModder/Towerfall-Redemption/blob/main/giphy.gif)
 
 ## Roadmap
 Check the [roadmap](./ROADMAP.md) for planned features.
