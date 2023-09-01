@@ -29,6 +29,7 @@ public sealed class AdventureCategoryButton : patch_MapButton
             Sounds.ui_unpause.Play(160f);
             textContainer.RemoveSelf();
         };
+        textContainer.Add(new TextContainer.HeaderText("Select Category"));
         var towerFallButton = new BowButton("TowerFall");
         towerFallButton.Pressed(() => {
             ChangeLevelSet(null);
@@ -58,7 +59,7 @@ public sealed class AdventureCategoryButton : patch_MapButton
         {
             var item = sets[i];
             if (Map.GetLevelSet() == item)
-                startIndex = i + 1;
+                startIndex = i + 2;
             var modButton = new BowButton(UncategorizedIfGlobal(item));
             modButton.Pressed(() => {
                 ChangeLevelSet(item);

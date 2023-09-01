@@ -92,15 +92,36 @@ public class TextContainer : MenuItem
     {
         if (Current != null)
             Current.Selected = false;
-        Selection += index;
-        if (Selection < 0) 
+        
+        int hoverables = 0;
+        foreach (var item in items) 
         {
-            Selection = items.Count - 1;
+            if (item.IsHoverable)
+                hoverables++;
         }
-        else if (Selection >= items.Count) 
+
+        do 
         {
-            Selection = 0;
+            Selection += index;
+            if (hoverables > 2) 
+            {
+                if (Selection < 0) 
+                {
+                    Selection = items.Count - 1;
+                }
+                else if (Selection >= items.Count) 
+                {
+                    Selection = 0;
+                }
+            }
+            else if (Selection < 0 || Selection > items.Count - 1)
+            {
+                break;
+            }
         }
+        while (!Current.IsHoverable);
+
+        Selection = Calc.Clamp(this.Selection, 0, this.items.Count - 1);
 
         CurrentPositionY = Position.Y;
         Current.Selected = true;
@@ -224,6 +245,7 @@ public class TextContainer : MenuItem
         public bool Selected;
         public int Index;
         public virtual int LineOffset => 12;
+        public virtual bool IsHoverable => true;
 
         public bool Visible = true;
 
@@ -272,6 +294,8 @@ public class TextContainer : MenuItem
         public Color SelectedColor = OptionsButton.SelectedColor;
         public Color NotSelectedColor = OptionsButton.NotSelectedColor;
         public bool Interactable = true;
+
+        public override bool IsHoverable => true;
 
         protected Image LeftArrow;
         protected Image RightArrow;
@@ -479,6 +503,43 @@ public class TextContainer : MenuItem
         public override void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color)
         {
             Draw.OutlineTextJustify(TFGame.Font, Options[Value.Item2], position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+        }
+    }
+
+    public class HeaderText : Item 
+    {
+        public string Text;
+        public float Scale = 2f;
+        public override bool IsHoverable => false;
+
+        public override int LineOffset => 12 * (int)Scale;
+
+        public HeaderText(string text) 
+        {
+            Text = text.ToUpperInvariant();
+        }
+
+        public override void Render(Vector2 position, bool selected)
+        {
+            Draw.OutlineTextCentered(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * SelectedWiggler.Value, 0f), Color.White, Color.Black, Scale);
+        }
+    }
+
+    public class ImageHeader : Item 
+    {
+        public Subtexture Texture;
+        public Vector2 Scale = new Vector2(1);
+        public override bool IsHoverable => false;
+        public override int LineOffset => Texture.Height * (int)Scale.Y;
+
+        public ImageHeader(Subtexture texture) 
+        {
+            Texture = texture;
+        }
+
+        public override void Render(Vector2 position, bool selected)
+        {
+            Draw.OutlineTextureCentered(Texture, position + new Vector2(-5f, 0f) + new Vector2(5f, 0f), Color.White, Scale);
         }
     }
 
