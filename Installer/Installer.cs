@@ -84,6 +84,7 @@ public class Installer : MarshalByRefObject
             ThrowError("Copying failed");           
             return;
         }
+
         Underline("Moving original FNA.dll and FNA.dll.config into fortOrig folder if have one");
         if (File.Exists(Path.Combine(path, "FNA.dll")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll")))
         {
