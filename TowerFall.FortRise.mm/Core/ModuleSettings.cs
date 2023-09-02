@@ -62,6 +62,9 @@ public abstract class ModuleSettings
         foreach (var val in json.Pairs) 
         {
             var field = thisType.GetField(val.Key, BindingFlags.Public | BindingFlags.Instance);
+            if (field == null)
+                continue;
+
             if (field.FieldType == typeof(bool)) 
             {
                 field.SetValue(this, json[val.Key].AsBoolean);
