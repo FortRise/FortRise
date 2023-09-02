@@ -11,6 +11,7 @@ public class OggAudioTrack : AudioTrack, IDisposable
     private uint loopStart;
     private uint loopEnd;
     private uint sampleCount;
+    private int channels;
 
     private bool oggLooping;
 
@@ -33,6 +34,7 @@ public class OggAudioTrack : AudioTrack, IDisposable
         if (error == 0) 
         {
             var info = FAudio.stb_vorbis_get_info(handle);
+            channels = info.channels;
             CreateSoundEffect((int)info.sample_rate, info.channels);
             sampleCount = FAudio.stb_vorbis_stream_length_in_samples(handle);
             FindLoop();
@@ -47,32 +49,38 @@ public class OggAudioTrack : AudioTrack, IDisposable
         FAudio.stb_vorbis_close(handle);
         base.Dispose();
     }
-
-    public override float[] CreateBuffer()
+    
+    public unsafe override float[] CreateBuffer(int countSample)
     {
-        var info = FAudio.stb_vorbis_get_info(handle);
-        float[] buffer;
-        var lengthInFloats = FAudio.stb_vorbis_stream_length_in_samples(handle);
+        float[] buffer = new float[countSample * channels];
+        int currentSample = FAudio.stb_vorbis_get_sample_offset(handle);
+
+        int sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, buffer, buffer.Length);
+
         if (oggLooping) 
         {
-            int currentSample = FAudio.stb_vorbis_get_sample_offset(handle);
             int samplesLeft = (int)(loopEnd - currentSample);
-            if (samplesLeft > 0) 
+            if (samplesLeft < 0)
+                samplesLeft = 0;
+            if (samplesLeft < countSample) 
             {
-                buffer = new float[Math.Min(lengthInFloats, samplesLeft) * info.channels];
-                FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
-                return buffer;
+                if (sample < countSample) 
+                {
+                    Logger.Warning($"[OGG Decode] Asked for {samplesLeft} received {sample} samples prior to loop");
+                }
+                Seek(loopStart);
+                int bufferBase = samplesLeft * channels;
+                fixed (float* p = &buffer[bufferBase]) 
+                {
+                    sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, buffer, buffer.Length - bufferBase);
+                }
+                sample += samplesLeft;
             }
-            buffer = new float[(lengthInFloats - loopStart) * info.channels];
-            int count = FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
-            Seek(loopStart);
-            FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length - count);
-
-            return buffer;
         }
 
-        buffer = new float[lengthInFloats * info.channels];
-        FAudio.stb_vorbis_get_samples_float_interleaved(handle, info.channels, buffer, buffer.Length);
+        if (sample > 0 && sample != countSample)
+            Logger.Warning($"[OGG Decode] Wanted {countSample} but actual sample count is {sample}");
+
         return buffer;
     }
 
