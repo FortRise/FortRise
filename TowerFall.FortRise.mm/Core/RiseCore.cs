@@ -52,8 +52,6 @@ public static partial class RiseCore
     [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
     public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
-    [Obsolete("Use RiseCore.PickupRegistry instead.")]
-    public static Dictionary<string, Pickups> PickupID = new();
     public static Dictionary<string, PickupObject> PickupRegistry = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
     public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
@@ -153,14 +151,11 @@ public static partial class RiseCore
             if (string.IsNullOrEmpty(name?.Name))
                 return null;
 
-            foreach (var mod in InternalFortModules) 
+            foreach (var mod in InternalMods) 
             {
-                var meta = mod.Meta;
+                var meta = mod.Metadata;
 
                 if (meta == null)
-                    continue;
-
-                if (string.IsNullOrEmpty(meta.PathDirectory))
                     continue;
                 
                 var path = name.Name + ".dll";
@@ -172,14 +167,12 @@ public static partial class RiseCore
                         path = path.Substring(pathDirectory.Length + 1);
                 }
 
-                var depPath = Path.Combine(meta.PathDirectory, path);
-
-                if (!File.Exists(depPath))
-                    continue;
-                using var fs = File.OpenRead(depPath);
-                if (fs != null)
-                    return Relinker.GetRelinkedAssembly(meta, Path.GetFullPath(Path.Combine(meta.PathDirectory, path)), fs);
-                
+                if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly)) 
+                {
+                    using var stream = res.Stream;
+                    if (stream != null)
+                        return Relinker.Relink(meta, meta.Name, stream);
+                }
             }
             return null;
         };
@@ -281,10 +274,8 @@ public static partial class RiseCore
             return null;
         }
         string zipPath = "";
-        var dll = metadata.DLL;
         if (!zip) 
         {
-            metadata.DLL = dll is not null ? Path.GetFullPath(Path.Combine(dirPath, dll)) : string.Empty;
             metadata.PathDirectory = dirPath;
         }
         else 

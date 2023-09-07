@@ -134,7 +134,7 @@ public static partial class RiseCore
                 if (zip.ContainsEntry(dllPath)) 
                 {
                     using var dll = zip[dllPath].ExtractStream();
-                    asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, dll);
+                    asm = Relinker.Relink(metadata, metadata.DLL, dll);
                 }
             }
             else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
@@ -142,11 +142,12 @@ public static partial class RiseCore
                 modResource = new FolderModResource(metadata);
 
                 RiseCore.ResourceTree.AddMod(metadata, modResource);
+                var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
 
-                if (File.Exists(metadata.DLL)) 
+                if (File.Exists(fullDllPath)) 
                 {
-                    using var stream = File.OpenRead(metadata.DLL);
-                    asm = Relinker.GetRelinkedAssembly(metadata, metadata.DLL, stream);
+                    using var stream = File.OpenRead(fullDllPath);
+                    asm = Relinker.Relink(metadata, metadata.DLL, stream);
                 }
             }
             else 

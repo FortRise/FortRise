@@ -13,6 +13,7 @@ public partial class RiseCore
     public sealed class ResourceTypeFile {}
     public sealed class ResourceTypeFolder {}
 
+    public sealed class ResourceTypeAssembly {}
     public sealed class ResourceTypeXml {}
     public sealed class ResourceTypeJson {}
     public sealed class ResourceTypeOel {}
@@ -70,6 +71,10 @@ public partial class RiseCore
                 {
                     ResourceType = typeof(ResourceTypeAtlas);
                 }
+            }
+            else if (path.EndsWith(".dll")) 
+            {
+                ResourceType = typeof(ResourceTypeAssembly);
             }
             else if (path.StartsWith("Content/Atlas/GameData") && filename.EndsWith(".xml")) 
             {
