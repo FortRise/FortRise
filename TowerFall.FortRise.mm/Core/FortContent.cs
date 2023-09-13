@@ -148,15 +148,22 @@ public class FortContent
             var png = child.Root + child.Path;
             if (Path.GetExtension(png) != ".png")
                 continue;
-            var xml = png.Replace(".png", ".xml");
-            if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xml)) 
-                continue;
+            
+            string data = null;
+            foreach (var ext in AtlasReader.InternalReaders.Keys) 
+            {
+                data = png.Replace(".png", ext);
+                if (!RiseCore.ResourceTree.TreeMap.ContainsKey(data)) 
+                    continue;
+                break;
+            }
+
             int indexOfSlash = png.IndexOf('/');
 
             png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
-            xml = xml.Substring(indexOfSlash + 1).Replace("Content/", "");
+            data = data.Substring(indexOfSlash + 1).Replace("Content/", "");
 
-            LoadAtlas(xml, png);
+            LoadAtlas(data, png);
         }
 
         foreach (var spriteDataRes in ResourceSystem.Resources
@@ -347,22 +354,23 @@ public class FortContent
     /// <summary>
     /// Load Atlas from a mod Content path. This will use the <c>ContentPath</c> property, it's `Content/` by default.
     /// </summary>
-    /// <param name="xmlPath">A path to where the xml path is.</param>
+    /// <param name="dataPath">A path to where the xml path is.</param>
     /// <param name="imagePath">A path to where the png path is.</param>
     /// <returns>An atlas of an image.</returns>
-    public patch_Atlas LoadAtlas(string xmlPath, string imagePath) 
+    public patch_Atlas LoadAtlas(string dataPath, string imagePath) 
     {
-        var atlasID = xmlPath + imagePath;
-        if (xmlPath.Replace(".xml", "") == imagePath.Replace(".png", "")) 
+        var ext = Path.GetExtension(dataPath);
+        var atlasID = dataPath + imagePath;
+        if (dataPath.Replace(ext, "") == imagePath.Replace(".png", "")) 
         {
-            atlasID = xmlPath.Replace(".xml", "");
+            atlasID = dataPath.Replace(ext, "");
         }
         if (atlases.TryGetValue(atlasID, out var atlasExisted)) 
             return atlasExisted;
         
-        using var xml = this[contentPath + "/" + xmlPath].Stream;
+        using var data = this[contentPath + "/" + dataPath].Stream;
         using var image = this[contentPath + "/" + imagePath].Stream;
-        var atlas = AtlasExt.CreateAtlas(this, xml, image);
+        var atlas = AtlasExt.CreateAtlas(this, data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);
         return atlas;

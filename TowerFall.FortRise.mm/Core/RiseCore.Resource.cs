@@ -67,9 +67,12 @@ public partial class RiseCore
 
             if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png")) 
             {
-                if (ResourceTree.IsExist(this, path.Replace(".png", ".xml"))) 
+                foreach (var ext in AtlasReader.InternalReaders.Keys) 
                 {
-                    ResourceType = typeof(ResourceTypeAtlas);
+                    if (ResourceTree.IsExist(this, path.Replace(".png", ext))) 
+                    {
+                        ResourceType = typeof(ResourceTypeAtlas);
+                    }
                 }
             }
             else if (path.EndsWith(".dll")) 

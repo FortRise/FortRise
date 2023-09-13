@@ -177,6 +177,7 @@ public static partial class RiseCore
             return null;
         };
 
+        AtlasReader.Initialize();
         RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         Loader.InitializeMods();
         if (!NoRichPresence)
