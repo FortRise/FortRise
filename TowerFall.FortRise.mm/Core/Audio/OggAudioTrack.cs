@@ -72,7 +72,7 @@ public class OggAudioTrack : AudioTrack, IDisposable
                 int bufferBase = samplesLeft * channels;
                 fixed (float* p = &buffer[bufferBase]) 
                 {
-                    sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, buffer, buffer.Length - bufferBase);
+                    sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, (IntPtr)p, buffer.Length - bufferBase);
                 }
                 sample += samplesLeft;
             }
