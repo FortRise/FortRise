@@ -213,14 +213,14 @@ public static partial class RiseCore
             fs.WriteLine(";--graphics OpenGL");
         }
 
-
+        Logger.Verbosity = Logger.LogLevel.Error;
         foreach (var arg in compiledArgs) 
         {
             switch (arg) 
             {
             case "--debug":
                 DebugMode = true;
-                Logger.Verbosity = Logger.LogLevel.Error;
+                Logger.Verbosity = Logger.LogLevel.Debug;
                 break;
             case "--verbose":
                 Logger.Verbosity = Logger.LogLevel.Assert;
