@@ -259,6 +259,7 @@ public static class TowerRegistry
                 levelData.RequiredMods = string.Empty;
 
             TowerRegistry.QuestAdd(levelData.GetLevelSet(), levelData);
+            RiseCore.Events.Invoke_OnAdventureQuestTowerDataAdd(levelData.GetLevelSet(), levelData);
         }
     }
 
@@ -339,6 +340,7 @@ public static class TowerRegistry
                 levelData.RequiredMods = string.Empty;
             
             TowerRegistry.VersusAdd(levelData.GetLevelSet(), levelData);
+            RiseCore.Events.Invoke_OnAdventureVersusTowerDataAdd(levelData.GetLevelSet(), levelData);
         }
     }
 
@@ -443,6 +445,7 @@ public static class TowerRegistry
                 levelData.RequiredMods = string.Empty;
 
             TowerRegistry.DarkWorldAdd(levelData.GetLevelSet(), levelData);
+            RiseCore.Events.Invoke_OnAdventureDarkWorldTowerDataAdd(levelData.GetLevelSet(), levelData);
         }
     }
 
@@ -496,6 +499,8 @@ public static class TowerRegistry
                         trialData.RequiredMods = string.Empty;
                 }
                 TowerRegistry.TrialsAdd(arr);
+                if (arr.Length > 0)
+                    RiseCore.Events.Invoke_OnAdventureTrialsTowerDatasAdd(arr[0].GetLevelSet(), arr);
             }
         }
     }
