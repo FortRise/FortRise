@@ -16,7 +16,8 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + Go to the Releases page, and download the latest installer in zip file.
 + + NoAnsi for Windows, OSXLinux for Mac and Linux.
 + Extract all of the contents and open the command line.
-+ Type `Installer.exe --patch "<Path to TowerFall>"` to do install and patch TowerFall.
++ Type `Installer.NoAnsi.exe --patch "<Path to TowerFall>"` to do install and patch TowerFall.
++ + `Installer.NoAnsi.bin.osx` for Mac and `Installer.NoAnsi.bin.x86_64` for Linux.
 + Wait for it to patch.
 + And, it's done! Launch TowerFall and it should have a mods section in main menu.
 
