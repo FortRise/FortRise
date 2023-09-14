@@ -551,6 +551,7 @@ public partial class RiseCore
     public static class ResourceTree 
     {
         public static Dictionary<string, Resource> TreeMap = new();
+        public static List<ModResource> ModResources = new();
 
 
         public static void AddMod(ModuleMetadata metadata, ModResource resource) 
@@ -564,11 +565,15 @@ public partial class RiseCore
                 return;
             }
             resource.Lookup(prefixPath);
+
+            Logger.Info($"[RESOURCE] Initializing {resource.Metadata} resources...");
+            Initialize(resource);
+            ModResources.Add(resource);
         }
 
-        internal static void Initialize() 
+        internal static void Initialize(ModResource resource) 
         {
-            foreach (var res in TreeMap.Values) 
+            foreach (var res in resource.Resources.Values) 
             {
                 res.AssignType();
             }

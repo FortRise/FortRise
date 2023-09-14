@@ -148,30 +148,28 @@ public static partial class RiseCore
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
         {
             var name = asmArgs?.Name == null ? null : new AssemblyName(asmArgs.Name);
+
             if (string.IsNullOrEmpty(name?.Name))
                 return null;
 
-            foreach (var mod in InternalMods) 
+            foreach (var mod in RiseCore.ResourceTree.ModResources) 
             {
                 var meta = mod.Metadata;
 
-                if (meta == null)
+                if (meta is null)
                     continue;
                 
                 var path = name.Name + ".dll";
-                if (!string.IsNullOrEmpty(meta.DLL)) 
-                {
-                    var pathDirectory = Path.GetDirectoryName(meta.DLL);
-                    path = Path.Combine(pathDirectory, path).Replace('\\', '/');
-                    if (!string.IsNullOrEmpty(pathDirectory))
-                        path = path.Substring(pathDirectory.Length + 1);
-                }
+                var pathDirectory = string.IsNullOrEmpty(meta.PathZip) ? meta.PathDirectory : meta.PathZip;
+                path = Path.Combine(pathDirectory, path).Replace('\\', '/');
+                if (!string.IsNullOrEmpty(pathDirectory))
+                    path = path.Substring(pathDirectory.Length + 1);
 
                 if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly)) 
                 {
                     using var stream = res.Stream;
                     if (stream != null)
-                        return Relinker.Relink(meta, meta.Name, stream);
+                        return Relinker.Relink(meta, name.Name, stream);
                 }
             }
             return null;
@@ -182,8 +180,6 @@ public static partial class RiseCore
         Loader.InitializeMods();
         if (!NoRichPresence)
             DiscordComponent.Create();
-        Logger.Info("[RESOURCE] Initializng resources...");
-        RiseCore.ResourceTree.Initialize();
     }
 
     public static void ParseArgs(string[] args) 

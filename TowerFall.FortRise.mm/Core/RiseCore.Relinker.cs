@@ -152,12 +152,9 @@ public static partial class RiseCore
 
         private static ModuleDefinition runtimeRulesModule;
 
-        public static Assembly Relink(
-            ModuleMetadata meta, string asmDLL, Stream stream) 
+        public static Assembly LoadModAssembly(ModuleMetadata meta, string asmDLL, Stream stream) 
         {
-            string asmName = Path.GetFileNameWithoutExtension(asmDLL);
-            ModuleDefinition module = null;
-            asmName = asmName.Replace(" ", "_");
+            var asmName = Path.GetFileNameWithoutExtension(asmDLL);
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
@@ -188,7 +185,7 @@ public static partial class RiseCore
                 }
                 else
                     Logger.Error($"[Relinker] Cannot find directory.");
-                NativeMethods.AddDllDirectory(meta.NativePath);
+                NativeMethods.AddDllDirectory(nativePath);
             }
             else if (!string.IsNullOrEmpty(meta.NativePathX86))
             {
@@ -215,8 +212,20 @@ public static partial class RiseCore
                 }
                 else
                     Logger.Error($"[Relinker] Cannot find directory.");
-                NativeMethods.AddDllDirectory(meta.NativePathX86);
+                NativeMethods.AddDllDirectory(nativePath);
             }
+            return Relink(meta, asmName, stream);
+        }
+
+        public static Assembly Relink(
+            ModuleMetadata meta, string asmName, Stream stream) 
+        {
+            ModuleDefinition module = null;
+            asmName = asmName.Replace(" ", "_");
+
+            var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
 
             var cachedPath = Path.Combine(dirPath, $"{asmName}.{meta.Name}.dll");
             var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
@@ -382,7 +391,7 @@ public static partial class RiseCore
                         Logger.Error($"[Relinker] {cachedPath} is currently in used.");
                         temporaryASM = true;
                         long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                        cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{asmDLL}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
+                        cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{asmName}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
                         Logger.Info($"[Relinker] Moving to {cachedPath}");
                         modder.Module.Name += "." + stamp2;
                         modder.Module.Assembly.Name.Name += "." + stamp2;
@@ -490,7 +499,7 @@ public static partial class RiseCore
                     return null;
                 };
             }
-            if (!string.IsNullOrEmpty(Path.GetDirectoryName(meta.DLL))) 
+            if (!string.IsNullOrEmpty(meta.PathDirectory)) 
             {
                 return (mod, main, name, fullname) => 
                 {
@@ -500,10 +509,7 @@ public static partial class RiseCore
                     }
 
                     string path = name + ".dll";
-                    if (!string.IsNullOrEmpty(meta.DLL))
-                        path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
-                    if (!File.Exists(path))
-                        path = Path.Combine(meta.PathDirectory, path);
+                    path = Path.Combine(meta.PathDirectory, path);
                     if (File.Exists(path)) 
                     {
                         return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));

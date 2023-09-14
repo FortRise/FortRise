@@ -134,7 +134,7 @@ public static partial class RiseCore
                 if (zip.ContainsEntry(dllPath)) 
                 {
                     using var dll = zip[dllPath].ExtractStream();
-                    asm = Relinker.Relink(metadata, metadata.DLL, dll);
+                    asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
                 }
             }
             else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
@@ -147,7 +147,7 @@ public static partial class RiseCore
                 if (File.Exists(fullDllPath)) 
                 {
                     using var stream = File.OpenRead(fullDllPath);
-                    asm = Relinker.Relink(metadata, metadata.DLL, stream);
+                    asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
                 }
             }
             else 
