@@ -32,7 +32,6 @@ These are the following roadmap that are planned or completed:
 ### v4.1.0
 - [x] Support .zip files for loading mods.
 - [x] Disable/Enable mods.
-- [x] Lua Interpreter.
 - [x] Dependency map.
 - [x] Custom Dark World Boss.
 - [x] Custom level entity.
@@ -41,3 +40,6 @@ These are the following roadmap that are planned or completed:
 - [ ] Debug Tower maps.
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
+- [ ] Net Core Support.
+- [ ] Lua Interpreter.
+- [ ] Rewrite Relinker completely.

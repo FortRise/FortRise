@@ -52,8 +52,6 @@ public static partial class RiseCore
     [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
     public static Dictionary<string, ArrowTypes> ArrowsID = new();
     public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
-    [Obsolete("Use RiseCore.PickupRegistry instead.")]
-    public static Dictionary<string, Pickups> PickupID = new();
     public static Dictionary<string, PickupObject> PickupRegistry = new();
     public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
     public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
@@ -150,46 +148,38 @@ public static partial class RiseCore
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
         {
             var name = asmArgs?.Name == null ? null : new AssemblyName(asmArgs.Name);
+
             if (string.IsNullOrEmpty(name?.Name))
                 return null;
 
-            foreach (var mod in InternalFortModules) 
+            foreach (var mod in RiseCore.ResourceTree.ModResources) 
             {
-                var meta = mod.Meta;
+                var meta = mod.Metadata;
 
-                if (meta == null)
-                    continue;
-
-                if (string.IsNullOrEmpty(meta.PathDirectory))
+                if (meta is null)
                     continue;
                 
                 var path = name.Name + ".dll";
-                if (!string.IsNullOrEmpty(meta.DLL)) 
+                var pathDirectory = string.IsNullOrEmpty(meta.PathZip) ? meta.PathDirectory : meta.PathZip;
+                path = Path.Combine(pathDirectory, path).Replace('\\', '/');
+                if (!string.IsNullOrEmpty(pathDirectory))
+                    path = path.Substring(pathDirectory.Length + 1);
+
+                if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly)) 
                 {
-                    var pathDirectory = Path.GetDirectoryName(meta.DLL);
-                    path = Path.Combine(pathDirectory, path).Replace('\\', '/');
-                    if (!string.IsNullOrEmpty(pathDirectory))
-                        path = path.Substring(pathDirectory.Length + 1);
+                    using var stream = res.Stream;
+                    if (stream != null)
+                        return Relinker.Relink(meta, name.Name, stream);
                 }
-
-                var depPath = Path.Combine(meta.PathDirectory, path);
-
-                if (!File.Exists(depPath))
-                    continue;
-                using var fs = File.OpenRead(depPath);
-                if (fs != null)
-                    return Relinker.GetRelinkedAssembly(meta, Path.GetFullPath(Path.Combine(meta.PathDirectory, path)), fs);
-                
             }
             return null;
         };
 
+        AtlasReader.Initialize();
         RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         Loader.InitializeMods();
         if (!NoRichPresence)
             DiscordComponent.Create();
-        Logger.Info("[RESOURCE] Initializng resources...");
-        RiseCore.ResourceTree.Initialize();
     }
 
     public static void ParseArgs(string[] args) 
@@ -219,14 +209,14 @@ public static partial class RiseCore
             fs.WriteLine(";--graphics OpenGL");
         }
 
-
+        Logger.Verbosity = Logger.LogLevel.Error;
         foreach (var arg in compiledArgs) 
         {
             switch (arg) 
             {
             case "--debug":
                 DebugMode = true;
-                Logger.Verbosity = Logger.LogLevel.Error;
+                Logger.Verbosity = Logger.LogLevel.Debug;
                 break;
             case "--verbose":
                 Logger.Verbosity = Logger.LogLevel.Assert;
@@ -281,10 +271,8 @@ public static partial class RiseCore
             return null;
         }
         string zipPath = "";
-        var dll = metadata.DLL;
         if (!zip) 
         {
-            metadata.DLL = dll is not null ? Path.GetFullPath(Path.Combine(dirPath, dll)) : string.Empty;
             metadata.PathDirectory = dirPath;
         }
         else 

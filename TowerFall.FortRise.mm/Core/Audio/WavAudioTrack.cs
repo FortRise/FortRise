@@ -18,7 +18,7 @@ public class WavAudioTrack : AudioTrack
         soundEffect = null;
     }
 
-    public override float[] CreateBuffer()
+    public override float[] CreateBuffer(int countSample)
     {
         return null;
     }

@@ -49,11 +49,14 @@ public abstract class AudioTrack : IDisposable
     {
         if (soundEffect is DynamicSoundEffectInstance instance) 
         {
-            instance.SubmitFloatBufferEXT(CreateBuffer());
+            while (instance.PendingBufferCount < 3) 
+            {
+                instance.SubmitFloatBufferEXT(CreateBuffer(3 * 1024));
+            }
         }
     }
 
-    public abstract float[] CreateBuffer();
+    public abstract float[] CreateBuffer(int sample);
     
 
     public virtual void Dispose()

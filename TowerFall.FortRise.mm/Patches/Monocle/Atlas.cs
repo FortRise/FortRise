@@ -261,25 +261,22 @@ public static class AtlasExt
 
     public static patch_Atlas CreateAtlas(this FortContent content, Stream xmlStream, Stream imageStream)
     {
-        XmlNodeList elementsByTagName = patch_Calc.LoadXML(xmlStream)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        var atlas = new patch_Atlas();
-
-        atlas.SetSubTextures(new Dictionary<string, Subtexture>(elementsByTagName.Count));
-        foreach (XmlElement item in elementsByTagName)
-        {
-            XmlAttributeCollection attributes = item.Attributes;
-            atlas.SubTextures.Add(
-                attributes["name"].Value, 
-                new Subtexture(atlas, 
-                Convert.ToInt32(attributes["x"].Value), 
-                Convert.ToInt32(attributes["y"].Value), 
-                Convert.ToInt32(attributes["width"].Value), 
-                Convert.ToInt32(attributes["height"].Value))
-            );
-        }
-
+        patch_Atlas atlas = AtlasReader.Read(xmlStream, ".xml");
         atlas.LoadStream(imageStream);
+        return atlas;
+    }
 
+    public static patch_Atlas CreateAtlas(this FortContent content, Stream xmlStream, Stream imageStream, string ext)
+    {
+        patch_Atlas atlas = AtlasReader.Read(xmlStream, ext);
+        atlas.LoadStream(imageStream);
+        return atlas;
+    }
+
+    public static patch_Atlas CreateAtlasJson(this FortContent content, Stream jsonStream, Stream imageStream)
+    {
+        patch_Atlas atlas = AtlasReader.Read(jsonStream, ".json");
+        atlas.LoadStream(imageStream);
         return atlas;
     }
 }

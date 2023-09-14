@@ -7,6 +7,8 @@ namespace Monocle;
 
 public static class patch_Audio 
 {
+    // Compat together for 1.3.3.1
+    public static string ORIGINAL_LOAD_PREFIX = Calc.LOADPATH + "SFX" + Path.DirectorySeparatorChar.ToString();
     public static Dictionary<string, IMusicSystem> AudioSystems = new();
     public static Dictionary<string, TrackInfo> TrackMap = new();
     internal static IMusicSystem currentAudio;

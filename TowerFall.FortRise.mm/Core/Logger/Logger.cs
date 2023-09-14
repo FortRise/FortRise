@@ -8,7 +8,7 @@ namespace FortRise;
 
 public static class Logger 
 {
-    public enum LogLevel { Info, Debug, Warning, Error, Verbose, Assert}
+    public enum LogLevel { Info, Warning, Error, Debug, Verbose, Assert}
     private static StringBuilder builder = new();
     private static IConsole consoleWindow;
 
