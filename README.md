@@ -3,8 +3,8 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 
 
 
-### Installation
-## Pyrgos:
+## Installation
+### Pyrgos:
 + Download and Install [pyrgos](https://github.com/Terria-K/pyrgos).
 + Launch pyrgos.
 + Add a TowerFall directory to the launcher.
@@ -12,7 +12,7 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + Click the installer versions you have in the launcher, if you haven't had one, download an installer inside of the launcher.
 + Wait for it to patch.
 + Done! And click the play button to see the changes.
-## Full CLI
+### Full CLI
 + Go to the Releases page, and download the latest installer in zip file.
 + + NoAnsi for Windows, OSXLinux for Mac and Linux.
 + Extract all of the contents and open the command line.
@@ -20,14 +20,14 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + Wait for it to patch.
 + And, it's done! Launch TowerFall and it should have a mods section in main menu.
 
-### Mod Installation
+## Mod Installation
 + For installing a mod, you must create a directory called `Mods`.
 + Then create a folder inside of it and name what it represent the mod is.
 + Paste all of the mod content and done.
 + Launch TowerFall to see the changes.
 
 
-### Creating mods
+## Creating mods
 For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
 
 ## Troubleshooting
@@ -35,7 +35,7 @@ For creating mods, check out [Creating Mods in the wiki](https://github.com/Terr
 If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
 
 
-### Mods Created in FortRise
+# Mods Created in FortRise
 ## [Archer Loader](https://github.com/RedDude/ArcherLoader/releases/)
 ### By: [RedDude](https://github.com/RedDude)
 Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers with custom hair, wings, ghost, particles, layers and even taunts and skins for archers.
