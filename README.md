@@ -34,6 +34,10 @@ For creating mods, check out [Creating Mods in the wiki](https://github.com/Terr
 ## Troubleshooting
 ### The game crashes before it even loads! (Windows only)
 If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
+### Join the official TowerFall Discord Server, we can help you here!
+<a href="https://discord.gg/6qjaePQ">
+ <img alt="TowerFall" src="https://discordapp.com/api/guilds/248961953656078337/embed.png?style=banner2" />
+</a>
 
 
 # Mods Created in FortRise
