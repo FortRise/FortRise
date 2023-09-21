@@ -7,7 +7,9 @@ Installer/lib/**/*.exe
 Installer/lib/**/*.xml
 Installer/lib/**/*.json
 Installer/lib/**/*.pdb
+Installer/lib/runtime.zip
 Installer/lib-old/
+Installer/lib-native/
 artifacts/
 lib-stripped/TestDep
 PatchVersion.txt
