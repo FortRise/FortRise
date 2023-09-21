@@ -14,11 +14,11 @@ public sealed class AdventureModule : FortModule
     {
         Instance = this;
 
-        // Internal things
+        // Internal things, don't try this in your own mods.
         Meta = new ModuleMetadata() {
             Name = "Adventure",
             Author = "FortRise",
-            Version = new Version("2.0.0"),
+            Version = new Version("3.0.0"),
         };
 
         Name = "Adventure";

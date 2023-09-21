@@ -25,7 +25,7 @@ public static class JsonUtils
     }
 }
 
-public class Option<T> 
+public struct Option<T> 
 {
     public T Wrapped;
 

@@ -14,7 +14,6 @@ public class patch_MatchVariants : MatchVariants
     public IReadOnlyDictionary<string, Variant> CustomVariants => customVariants;
 
 
-    /* Private fields from MatchVariants */
     private List<Variant> canRandoms;
 
 
@@ -50,6 +49,11 @@ public class patch_MatchVariants : MatchVariants
 
     public Variant AddVariant(string variantName, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
     {
+        return AddVariant(variantName, GetVariantIconFromName(variantName, info.VariantAtlas), info, flags, noPerPlayer);
+    }
+
+    public Variant AddVariant(string variantName, Subtexture variantIcon, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
+    {
         TempVariantHolder.TempCustom ??= new Dictionary<string, bool>();
         var list = Variants.ToList();
         Pickups[] itemExclusions = info.Exclusions;
@@ -73,9 +77,8 @@ public class patch_MatchVariants : MatchVariants
             coopValue = 1;
         }
         var title = GetCustomVariantTitle(variantName);
-        var variant = new Variant(
-            GetVariantIconFromName(variantName, info.VariantAtlas), title, description, 
-            itemExclusions, perPlayer, header, null, scrollEffect, hidden, flag, tournamentRule1v, 
+        var variant = new Variant(variantIcon, title, description, itemExclusions, perPlayer, 
+            header, null, scrollEffect, hidden, flag, tournamentRule1v, 
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
         customs.Add(variant);
         customVariants.Add(variantName, variant);
@@ -86,12 +89,13 @@ public class patch_MatchVariants : MatchVariants
             TempVariantHolder.TempCustom.Add(variantName, false);
         return variant;
     }
+
+
     public static Subtexture GetVariantIconFromName(string variantName, Atlas atlas)
     {
-        return atlas["variants/" + variantName[0].ToString().ToLower(CultureInfo.InvariantCulture) + variantName.Substring(1)];
+        return atlas["variants/" + variantName[0].ToString().ToLowerInvariant() + variantName.Substring(1)];
     }
 
-    [Obsolete("Use `Calc.IncompatibleWith` extension method")]
     public void CreateCustomLinks(params Variant[] variants)
     {
         for (int i = 0; i < variants.Length; i++)
@@ -138,7 +142,35 @@ public struct VariantInfo
         Exclusions = null;
         NewInVersion = null;
     }
+
+    public VariantInfo(string header, Atlas variantAtlas)
+    {
+        VariantAtlas = variantAtlas;
+        Header = header;
+        Description = "";
+        Exclusions = null;
+        NewInVersion = null;
+    }
+
+    public VariantInfo(string header, Atlas variantAtlas, params Pickups[] exclusion)
+    {
+        VariantAtlas = variantAtlas;
+        Header = header;
+        Description = "";
+        Exclusions = null;
+        NewInVersion = null;
+    }
+
+    public VariantInfo(string header, string description, Atlas variantAtlas, params Pickups[] exclusion)
+    {
+        VariantAtlas = variantAtlas;
+        Header = header;
+        Description = "";
+        Exclusions = null;
+        NewInVersion = null;
+    }
 }
+
 
 [Flags]
 public enum VariantFlags

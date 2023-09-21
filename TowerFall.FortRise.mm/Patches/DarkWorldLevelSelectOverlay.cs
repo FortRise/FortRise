@@ -1,3 +1,4 @@
+using FortRise.Adventure;
 using MonoMod;
 
 namespace TowerFall;
@@ -24,27 +25,32 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
 
     public extern void orig_Update();
 
-    private void CheckUpdate() 
+    public override void Update()
     {
         if (map.Selection is DarkWorldMapButton or AdventureMapButton)
             orig_Update();
+        else
+            base_Update();
     }
 
-    public override void Update()
+    [MonoModLinkTo("Monocle.Entity", "System.Void Update()")]
+    [MonoModIgnore]
+    public void base_Update() 
     {
-        CheckUpdate();
+        base.Update();
     }
 
     private extern void orig_RefreshLevelStats();
     
     private void RefreshLevelStats() 
     {
-        if (!patch_SaveData.AdventureActive)
+        var levelSet = map.GetLevelSet();
+        if (levelSet == "TowerFall")
         {
             orig_RefreshLevelStats();
             return;
         }
-        AdventureWorldTowerStats adventureWorldTowerStats = patch_GameData.AdventureWorldTowers[statsID].Stats;
+        var adventureWorldTowerStats = TowerRegistry.DarkWorldGet(levelSet, statsID).Stats;
         long num;
         int num2;
         switch (TFGame.PlayerAmount)

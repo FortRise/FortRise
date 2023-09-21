@@ -15,11 +15,11 @@ public static partial class RiseCore
 
         public static event QuestSpawnPortal_FinishSpawnHandler OnQuestSpawnPortal_FinishSpawn;
 
-        internal static void InvokeQuestSpawnPortal_FinishSpawn(string name, Vector2 position, Facing facing, Level level) 
+        internal static void InvokeQuestSpawnPortal_FinishSpawn(string name, Vector2 position, Facing facing, Vector2[] nodes, Level level) 
         {
             if (RiseCore.EnemyLoader.TryGetValue(name, out EnemyLoader loader)) 
             {
-                level.Add(loader?.Invoke(position + new Vector2(0f, 2f), facing));
+                level.Add(loader?.Invoke(position + new Vector2(0f, 2f), facing, nodes));
                 return;
             }
             if (name.Contains("Skeleton") || name.Contains("Jester")) 

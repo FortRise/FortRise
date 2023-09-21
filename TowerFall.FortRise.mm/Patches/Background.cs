@@ -137,14 +137,14 @@ public class patch_Background : Background
         public Image Image;
         public CustomBackdrop(Level level, XmlElement xml) : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var atlasText = xml.Attr("atlas", "Atlas/atlas");
+            if (!mod.Source.Content.Atlases.TryGetValue(atlasText, out var atlas)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have an atlas!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid Atlas path: {atlasText}.");
                 return;
             }
-            this.Image = new Image(storage.Atlas[xml.InnerText], null);
+            this.Image = new Image(atlas[xml.InnerText], null);
             this.Image.Position = xml.Position(Vector2.Zero);
             this.Image.Color = Color.White * xml.AttrFloat("opacity", 1f);
         }
@@ -164,14 +164,15 @@ public class patch_Background : Background
         private Sprite<int> sprite;
         public CustomAnimatedLayer(Level level, XmlElement xml) : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var spriteDataText = xml.Attr("spriteData", "Atlas/SpriteData/bgSpriteData");
+            if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataText, out var spriteData)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have a spriteData!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid SpriteData path: {spriteDataText}.");
                 return;
             }
-            this.sprite = storage.SpriteData.GetSpriteInt(xml.InnerText);
+            
+            this.sprite = spriteData.GetSpriteInt(xml.InnerText);
             this.sprite.Play(0, false);
             this.sprite.Position = xml.Position(Vector2.Zero);
             this.sprite.Color = Color.White * xml.AttrFloat("opacity");
@@ -200,25 +201,25 @@ public class patch_Background : Background
 
         public CustomFadeLayer(Level level, XmlElement xml) : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            
+            if (mod.Source.Content.SpriteDatas.TryGetValue(xml.InnerText, out var spriteData)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have a spriteData!");
+                this.Base = xml.AttrFloat("opacity", 0.5f);
+                this.Amplitude = xml.AttrFloat("opacityRange", 0.25f);
+                this.Position = xml.Position(Vector2.Zero);
+                this.Range = new Vector2(xml.AttrFloat("xRange"), xml.AttrFloat("yRange"));
+                this.Sprite = spriteData.GetSpriteInt(xml.InnerText);
+                this.Sprite.Position = this.Position;
+                this.Sprite.Play(0, false);
+                this.Sprite.RandomizeFrame();
+                this.Sprite.OnAnimationComplete = this.UpdatePosition;
+                this.sine = new SineWave(xml.AttrFloat("fadeSpeed", 0.02f) * 6.2831855f);
+                this.sine.Randomize();
+                this.UpdatePosition(null);
                 return;
             }
-            this.Base = xml.AttrFloat("opacity", 0.5f);
-            this.Amplitude = xml.AttrFloat("opacityRange", 0.25f);
-            this.Position = xml.Position(Vector2.Zero);
-            this.Range = new Vector2(xml.AttrFloat("xRange"), xml.AttrFloat("yRange"));
-            this.Sprite = storage.SpriteData.GetSpriteInt(xml.InnerText);
-            this.Sprite.Position = this.Position;
-            this.Sprite.Play(0, false);
-            this.Sprite.RandomizeFrame();
-            this.Sprite.OnAnimationComplete = this.UpdatePosition;
-            this.sine = new SineWave(xml.AttrFloat("fadeSpeed", 0.02f) * 6.2831855f);
-            this.sine.Randomize();
-            this.UpdatePosition(null);
+            Logger.Error($"[BACKGROUND][{mod.Root}] Missing SpriteData");
         }
 
         private void UpdatePosition(Sprite<int> s = null)
@@ -256,11 +257,11 @@ public class patch_Background : Background
         public CustomFadeMoveLayer(Level level, XmlElement xml)
             : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var spriteDataText = xml.Attr("spriteData", "Atlas/SpriteData/bgSpriteData");
+            if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataText, out var spriteData)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have a spriteData!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid SpriteData path: {spriteDataText}.");
                 return;
             }
             this.Position = xml.Position(Vector2.Zero);
@@ -268,7 +269,7 @@ public class patch_Background : Background
             this.MaxAlpha = xml.AttrFloat("maxAlpha", 1f);
             this.Time = xml.AttrFloat("time", 1f) * 60f;
             this.RateRange = xml.AttrFloat("rateRange", 0.4f);
-            this.Sprite = storage.SpriteData.GetSpriteInt(xml.InnerText);
+            this.Sprite = spriteData.GetSpriteInt(xml.InnerText);
             this.Sprite.Position = this.Position;
             this.Sprite.Play(0, false);
             this.appearing = true;
@@ -326,15 +327,15 @@ public class patch_Background : Background
         public CustomNodeLayer(Level level, XmlElement xml)
             : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var spriteDataText = xml.Attr("spriteData", "Atlas/SpriteData/bgSpriteData");
+            if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataText, out var spriteData)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have a spriteData!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid SpriteData path: {spriteDataText}.");
                 return;
             }
             this.endWarp = xml.AttrBool("endWarp", true);
-            this.sprite = storage.SpriteData.GetSpriteInt(xml.Attr("sprite"));
+            this.sprite = spriteData.GetSpriteInt(xml.Attr("sprite"));
             this.sprite.Play(0, false);
             this.sprite.Color = Color.White * xml.AttrFloat("opacity", 1f);
             this.delayCounter = new Counter();
@@ -421,16 +422,16 @@ public class patch_Background : Background
 
         public CustomScrollLayer(Level level, XmlElement xml) : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var atlasText = xml.Attr("atlas", "Atlas/atlas");
+            if (!mod.Source.Content.Atlases.TryGetValue(atlasText, out var atlas)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have an atlas!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid Atlas path: {atlasText}.");
                 return;
             }
             this.TileX = true;
             this.TileY = true;
-            this.Image = new Image(storage.Atlas[xml.InnerText], null);
+            this.Image = new Image(atlas[xml.InnerText], null);
             this.Speed = new Vector2(xml.AttrFloat("speedX", 0f), xml.AttrFloat("speedY", 0f));
             this.Image.Position = xml.Position(Vector2.Zero);
             this.Image.Color = Color.White * xml.AttrFloat("opacity", 1f);
@@ -503,15 +504,15 @@ public class patch_Background : Background
         public CustomWavyLayer(Level level, XmlElement xml)
             : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var atlasText = xml.Attr("atlas", "Atlas/atlas");
+            if (!mod.Source.Content.Atlases.TryGetValue(atlasText, out var atlas)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have an atlas!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid Atlas path: {atlasText}.");
                 return;
             }
 
-            this.subtexture = storage.Atlas[xml.InnerText];
+            this.subtexture = atlas[xml.InnerText];
             this.color = Color.White * xml.AttrFloat("opacity", 1f);
             this.position = xml.Position(Vector2.Zero);
             this.add = 6.2831855f / (float)xml.AttrInt("waveFrames", 60);
@@ -547,16 +548,16 @@ public class patch_Background : Background
         public CustomOceanLayer(Level level, XmlElement xml)
             : base(level)
         {
-            var id = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).ThemeID;
-            var storage = patch_GameData.CustomBGAtlas[id];
-            if (storage.Atlas == null) 
+            var mod = (level.Session.MatchSettings.LevelSystem.Theme as patch_TowerTheme).Mod;
+            var spriteDataText = xml.Attr("spriteData", "Atlas/SpriteData/bgSpriteData");
+            if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataText, out var spriteData)) 
             {
-                Logger.Error($"[Background] {level.Session.MatchSettings.LevelSystem.Theme.Name} Storage does not have a spriteData!");
+                Logger.Error($"[BACKGROUND][{mod.Root}] Missing or invalid SpriteData path: {spriteDataText}.");
                 return;
             }
 
             this.playCounter = new Counter();
-            this.sprite = storage.SpriteData.GetSpriteInt(xml.InnerText);
+            this.sprite = spriteData.GetSpriteInt(xml.InnerText);
             this.sprite.Position = xml.Position(Vector2.Zero);
             this.sprite.Color = Color.White * xml.AttrFloat("opacity");
             this.sprite.OnAnimationComplete = new Action<Sprite<int>>(this.OnAnimationComplete);

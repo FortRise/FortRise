@@ -77,10 +77,23 @@ public static class SpriteDataExt
             filename = Calc.LOADPATH + filename;
             break;
         case ContentAccess.ModContent:
-            filename = content.GetContentPath(filename);
-            break;
+        {
+            if (content == null) 
+            {
+                Logger.Error("[SpriteData] You cannot use SpriteDataExt.CreateSpriteData while FortContent is null");
+                return null;
+            }
+            using var fileStream = content[filename].Stream;
+            return SpriteDataExt.CreateSpriteData(content, fileStream, atlas);
         }
-        XmlDocument xmlDocument = Calc.LoadXML(filename);
+        }
+        using var stream = File.OpenRead(filename);
+        return SpriteDataExt.CreateSpriteData(content, stream, atlas);
+    }
+
+    public static patch_SpriteData CreateSpriteData(this FortContent content, Stream filename, patch_Atlas atlas)
+    {
+        XmlDocument xmlDocument = patch_Calc.LoadXML(filename);
         var sprites = new Dictionary<string, XmlElement>();
         foreach (object item in xmlDocument["SpriteData"])
         {
@@ -93,5 +106,29 @@ public static class SpriteDataExt
 
         spriteData.SetAtlasAndSprite(atlas, sprites);
         return spriteData;
+    }
+
+    public static bool TryCreateSpriteData(this FortContent content, Stream filename, out patch_SpriteData data)
+    {
+        var xmlElement = patch_Calc.LoadXML(filename)["SpriteData"];
+        var sprites = new Dictionary<string, XmlElement>();
+        var attr = xmlElement.Attr("atlas", "Atlas/atlas");
+        if (!content.Atlases.TryGetValue(attr, out var atlas)) 
+        {
+            data = null;
+            return false;
+        }
+        foreach (object item in xmlElement)
+        {
+            if (item is XmlElement)
+            {
+                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
+            }
+        }
+        var spriteData = new patch_SpriteData();
+        
+        spriteData.SetAtlasAndSprite(atlas, sprites);
+        data = spriteData;
+        return true;
     }
 }

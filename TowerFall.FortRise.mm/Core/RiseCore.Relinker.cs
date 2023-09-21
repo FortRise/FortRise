@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Ionic.Zip;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Mdb;
@@ -151,40 +152,87 @@ public static partial class RiseCore
 
         private static ModuleDefinition runtimeRulesModule;
 
-        public static Assembly GetRelinkedAssembly(
-            ModuleMetadata meta, string pathToAssembly, Stream stream) 
+        public static Assembly LoadModAssembly(ModuleMetadata meta, string asmDLL, Stream stream) 
         {
-            var assemblyDirectories = Path.GetDirectoryName(pathToAssembly).Replace("\\", "/").Split('/');
-            var lastDirectory = assemblyDirectories[assemblyDirectories.Length - 1];
-            string asmName = Path.GetFileNameWithoutExtension(pathToAssembly);
+            var asmName = Path.GetFileNameWithoutExtension(asmDLL);
+
+            var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
+
+            if (Environment.Is64BitProcess && !string.IsNullOrEmpty(meta.NativePath)) 
+            {
+                var nativePath = Path.Combine(dirPath, "Natives", $"{asmName}.{meta.Name}");
+                if (!Directory.Exists(nativePath))
+                    Directory.CreateDirectory(nativePath);
+                if (!string.IsNullOrEmpty(meta.PathZip)) 
+                {
+                    using var zipFile = ZipFile.Read(meta.PathZip);
+                    foreach (var entry in zipFile.Entries) 
+                    {
+                        if (entry.FileName.StartsWith(meta.NativePath)) 
+                        {
+                            entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrEmpty(meta.PathDirectory))
+                {
+                    foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePath))) 
+                    {
+                        File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                    }
+                }
+                else
+                    Logger.Error($"[Relinker] Cannot find directory.");
+                NativeMethods.AddDllDirectory(nativePath);
+            }
+            else if (!string.IsNullOrEmpty(meta.NativePathX86))
+            {
+                var nativePath = Path.Combine(dirPath, "NativesX86", $"{asmName}.{meta.Name}");
+                if (!Directory.Exists(nativePath))
+                    Directory.CreateDirectory(nativePath);
+                if (!string.IsNullOrEmpty(meta.PathZip)) 
+                {
+                    using var zipFile = ZipFile.Read(meta.PathZip);
+                    foreach (var entry in zipFile.Entries) 
+                    {
+                        if (entry.FileName.StartsWith(meta.NativePathX86)) 
+                        {
+                            entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrEmpty(meta.PathDirectory))
+                {
+                    foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePathX86))) 
+                    {
+                        File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                    }
+                }
+                else
+                    Logger.Error($"[Relinker] Cannot find directory.");
+                NativeMethods.AddDllDirectory(nativePath);
+            }
+            return Relink(meta, asmName, stream);
+        }
+
+        public static Assembly Relink(
+            ModuleMetadata meta, string asmName, Stream stream) 
+        {
             ModuleDefinition module = null;
             asmName = asmName.Replace(" ", "_");
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
-            var cachedPath = Path.Combine(dirPath, $"{lastDirectory}.{meta.Name}.{asmName}.dll");
+
+            var cachedPath = Path.Combine(dirPath, $"{asmName}.{meta.Name}.dll");
             var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
 
             var checksums = new string[2];
             checksums[0] = GameChecksum;
             checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
-
-            if (Environment.Is64BitProcess) 
-            {
-                if (!string.IsNullOrEmpty(meta.NativePath)) 
-                {
-                    NativeMethods.AddDllDirectory(Path.Combine(Path.GetDirectoryName(pathToAssembly), meta.NativePath));
-                }
-            }
-            else 
-            {
-                if (!string.IsNullOrEmpty(meta.NativePathX86)) 
-                {
-                    NativeMethods.AddDllDirectory(Path.Combine(Path.GetDirectoryName(pathToAssembly), meta.NativePathX86));
-                }
-            }
-
             
 
             if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
@@ -257,7 +305,7 @@ public static partial class RiseCore
                 modder.MissingDependencyResolver = dependencyResolver;
 
                 var metaPath = meta.DLL.Substring(0, meta.DLL.Length - 4) + ".pdb";
-                modder.ReaderParameters.SymbolStream = OpenSymbol(metaPath);
+                modder.ReaderParameters.SymbolStream = OpenSymbol(meta, metaPath);
                 modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
 
                 ((DefaultAssemblyResolver)modder.AssemblyResolver).ResolveFailure += resolver;
@@ -343,7 +391,7 @@ public static partial class RiseCore
                         Logger.Error($"[Relinker] {cachedPath} is currently in used.");
                         temporaryASM = true;
                         long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                        cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{lastDirectory}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
+                        cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{asmName}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
                         Logger.Info($"[Relinker] Moving to {cachedPath}");
                         modder.Module.Name += "." + stamp2;
                         modder.Module.Assembly.Name.Name += "." + stamp2;
@@ -424,7 +472,7 @@ public static partial class RiseCore
 
         private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
         {
-            if (!string.IsNullOrEmpty(Path.GetDirectoryName(meta.DLL))) 
+            if (!string.IsNullOrEmpty(meta.PathZip)) 
             {
                 return (mod, main, name, fullname) => 
                 {
@@ -436,8 +484,32 @@ public static partial class RiseCore
                     string path = name + ".dll";
                     if (!string.IsNullOrEmpty(meta.DLL))
                         path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
-                    if (!File.Exists(path))
-                        path = Path.Combine(meta.PathDirectory, path);
+                    path = path.Replace('\\', '/');
+
+                    using var zip = new ZipFile(meta.PathZip);
+                    foreach (var entry in zip.Entries) 
+                    {
+                        if (entry.FileName != path)
+                            continue;
+                        using var memStream = entry.ExtractStream();
+                        return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
+                    }
+
+                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    return null;
+                };
+            }
+            if (!string.IsNullOrEmpty(meta.PathDirectory)) 
+            {
+                return (mod, main, name, fullname) => 
+                {
+                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
+                    {
+                        return def;
+                    }
+
+                    string path = name + ".dll";
+                    path = Path.Combine(meta.PathDirectory, path);
                     if (File.Exists(path)) 
                     {
                         return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));
@@ -450,11 +522,25 @@ public static partial class RiseCore
             return null;
         }
 
-        private static Stream OpenSymbol(string symbolPath) 
+        private static Stream OpenSymbol(ModuleMetadata metadata, string name) 
         {
-            if (!string.IsNullOrEmpty(symbolPath) && File.Exists(symbolPath)) 
+            if (!string.IsNullOrEmpty(metadata.PathZip)) 
             {
-                return File.OpenRead(symbolPath);
+                using var zipFile = new ZipFile(metadata.PathZip);
+                foreach (var entry in zipFile.Entries) 
+                {
+                    if (!name.Contains(entry.FileName))
+                        continue;
+                    return entry.ExtractStream();
+                }
+            }
+            if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
+            {
+                var pdbPath = Path.Combine(metadata.PathDirectory, name);
+                if (File.Exists(pdbPath)) 
+                {
+                    return File.OpenRead(pdbPath);
+                }
             }
             return null;
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Threading;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -52,13 +52,43 @@ public partial class patch_TFGame : TFGame
     [MonoModConstructor]
     public void ctor(bool noIntro) 
     {
-        orig_ctor(noIntro);
-        this.noIntro = RiseCore.DebugMode;
+        orig_ctor(noIntro || RiseCore.NoIntro);
+        if (!RiseCore.NoIntro && !noIntro)
+            this.noIntro = RiseCore.DebugMode;
     }
 
     public extern static void orig_Main(string[] args);
     public static void Main(string[] args) 
     {
+        var towerFallPath = typeof(TFGame).Assembly.Location;
+        bool vanillaLaunch = false;
+        foreach (var arg in args) 
+        {
+            if (arg == "--vanilla")
+            {
+                vanillaLaunch = true;
+                break;
+            }
+        }
+
+        if (vanillaLaunch) 
+        {
+            ThreadStart start = () => {
+                try 
+                {
+                    AppDomain.CurrentDomain.ExecuteAssembly("fortOrig/TowerFall.exe");
+                }
+                catch (Exception e) 
+                {
+                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(e.StackTrace);
+                }
+            };
+            Thread thread = new Thread(start);
+            thread.Start();
+            thread.Join();
+            goto Exit;
+        }
         if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
         {
             try 
@@ -77,6 +107,8 @@ public partial class patch_TFGame : TFGame
                 ));
             }
         }
+
+        RiseCore.ParseArgs(args);
         var patchFile = "PatchVersion.txt";
         if (File.Exists(patchFile)) 
         {
@@ -87,19 +119,6 @@ public partial class patch_TFGame : TFGame
                 string readed;
                 while ((readed = reader.ReadLine()) != null) 
                 {
-                    if (readed.Contains("Debug")) 
-                    {
-                        var debugMode = readed.Split(':')[1].Trim();
-                        RiseCore.DebugMode = bool.Parse(debugMode);
-                        if (RiseCore.DebugMode && Logger.Verbosity < Logger.LogLevel.Error)
-                            Logger.Verbosity = Logger.LogLevel.Error;
-                    }
-                    if (readed.Contains("Verbose")) 
-                    {
-                        var verbose = readed.Split(':')[1].Trim();
-                        if (bool.Parse(verbose))
-                            Logger.Verbosity = Logger.LogLevel.Assert;
-                    }
                     if (readed.Contains("Installer")) 
                     {
                         var version = readed.Split(':')[1].Trim();
@@ -109,7 +128,7 @@ public partial class patch_TFGame : TFGame
             }
             catch 
             {
-                Logger.Log("Unable to load PatchVersion.txt, Debug Mode Proceed", Logger.LogLevel.Warning);
+                Logger.Log("Unable to load PatchVersion.txt, Unknown FortRise version will be sent.", Logger.LogLevel.Warning);
                 Logger.Log("Please report this bug", Logger.LogLevel.Warning);
                 RiseCore.DebugMode = true;
             }
@@ -127,6 +146,11 @@ public partial class patch_TFGame : TFGame
                 RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
             };
 
+            detourModManager.OnDetour += (assembly, source, dest) => 
+            {
+                RiseCore.DetourLogs.Add($"Detour from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}");
+            };
+            
             try 
             {
                 Logger.AttachConsole(RiseCore.ConsoleAttachment());
@@ -138,9 +162,25 @@ public partial class patch_TFGame : TFGame
             }
         }
 
-        orig_Main(args);
+        try 
+        {
+            orig_Main(args);
+
+            if (RiseCore.WillRestart) 
+            {
+                RiseCore.RunTowerFallProcess(towerFallPath, args);
+            }
+        }
+        catch (Exception e) 
+        {
+            Logger.Error(e.ToString());
+            Logger.Error(e.StackTrace);
+        }
+
+        Exit:
         Logger.DetachConsole();
         Logger.WriteToFile("fortRiseLog.txt");
+        Environment.Exit(0);
     }
 
     protected extern void orig_LoadContent();
@@ -149,6 +189,10 @@ public partial class patch_TFGame : TFGame
     {
         orig_LoadContent();
         FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content\\Atlas\\menuatlas.xml", "Content\\Atlas\\menuatlas.png");
+        foreach (var mods in RiseCore.InternalMods) 
+        {
+            mods.Content.LoadResources();
+        }
     }
 
     protected extern void orig_Initialize();
@@ -157,10 +201,9 @@ public partial class patch_TFGame : TFGame
     {
         FortRise.RiseCore.ModuleStart();
         FortRise.RiseCore.Events.Invoke_OnPreInitialize();
-        FortRise.RiseCore.Initialize();
-        orig_Initialize();
-        FortRise.RiseCore.Events.Invoke_OnPostInitialize();
         patch_Arrow.ExtendArrows();
+        patch_TreasureSpawner.ExtendTreasures();
+        orig_Initialize();
         FortRise.RiseCore.LogAllTypes();
     }
 
@@ -193,39 +236,45 @@ public partial class patch_TFGame : TFGame
     [MonoModReplace]
     public static void Load()
     {
-        Task.Factory.StartNew(delegate
+        TaskHelper.Run("loading data", () =>
         {
             try
             {
                 Loader.Message = "LOADING";
-                Calc.Log(new object[] { "=== LOADING DATA ===" });
-                Calc.Log(new object[] { "...Input" });
+                Logger.Log("[LOAD] === LOADING DATA ===");
+                Loader.Message = "INITIALIZING INPUT";
+                Logger.Log("[LOAD] ...Input");
                 TFGame.WriteLineToLoadLog("Initializing Input...");
-                NewGamepadInput.Init();
                 PlayerInput.AssignInputs();
                 for (int i = 0; i < 4; i++)
                 {
                     TFGame.Characters[i] = i;
                 }
-                Calc.Log(new object[] { "...Archer Data" });
+                Loader.Message = "INITIALIZING ARCHER DATA";
+                Logger.Log("[LOAD] ...Archer Data");
                 ArcherData.Initialize();
-                Calc.Log(new object[] { "...Level Data" });
+                Loader.Message = "INITIALIZING LEVEL DATA";
+                Logger.Log("[LOAD] ...Level Data");
                 GameData.Load();
+                Loader.Message = "INITIALIZING DEFAULT SESSION";
                 TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
                 MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();
                 MainMenu.TrialsMatchSettings = MatchSettings.GetDefaultTrials();
                 MainMenu.QuestMatchSettings = MatchSettings.GetDefaultQuest();
                 MainMenu.DarkWorldMatchSettings = MatchSettings.GetDefaultDarkWorld();
-                Calc.Log(new object[] { "...Awards and Tips" });
+                Loader.Message = "LOADING VERSUS AWARDS AND TIPS";
+                Logger.Log("[LOAD] ...Awards and Tips");
                 TFGame.WriteLineToLoadLog("Loading Versus Awards...");
                 VersusAwards.Initialize();
                 TFGame.WriteLineToLoadLog("Loading Versus Tips...");
                 GameTips.Initialize();
-                Calc.Log(new object[] { "...Save Data" });
+                Loader.Message = "VERIFYING SAVE DATA";
+                Logger.Log("[LOAD] ...Save Data");
                 TFGame.WriteLineToLoadLog("Verifying Save Data...");
                 SaveData.Instance.Verify();
                 SessionStats.Initialize();
-                Calc.Log(new object[] { "...Entity Caching" });
+                Loader.Message = "CACHING ENTITIES";
+                Logger.Log("[LOAD] ...Entity Caching");
                 TFGame.WriteLineToLoadLog("Initializing Entity Caching...");
                 Arrow.Initialize();
                 Cache.Init<CatchShine>();
@@ -245,22 +294,31 @@ public partial class patch_TFGame : TFGame
                 Cache.Init<CyclopsShot>();
                 Cache.Init<CataclysmBullet>();
                 Cache.Init<WorkshopPortal>();
-                Calc.Log(new object[] { "...Particles and Lighting" });
+                Loader.Message = "LOADING PARTICLES AND LIGHTING";
+                Logger.Log("[LOAD] ...Particles and Lighting");
                 TFGame.WriteLineToLoadLog("Initializing Particle Systems...");
                 Particles.Initialize();
                 TFGame.WriteLineToLoadLog("Initializing Lighting Systems...");
                 LightingLayer.Initialize();
 
-                Calc.Log(new object[] { "...Shaders (1/2)" });
+                Loader.Message = "LOADING SHADERS";
+                Logger.Log("[LOAD] ...Shaders (1/2)");
                 TFGame.WriteLineToLoadLog("Initializing Shaders (1 of 2)...");
                 ScreenEffects.Initialize();
-                Calc.Log(new object[] { "...Shaders (2/2)" });
+                Logger.Log("[LOAD] ...Shaders (2/2)");
                 TFGame.WriteLineToLoadLog("Initializing Shaders (2 of 2)...");
                 TFGame.LoadLightingEffect();
-                Calc.Log(new object[] { "=== LOADING COMPLETE ===" });
+                Logger.Log("[LOAD] === LOADING COMPLETE ===");
                 TFGame.WriteLineToLoadLog("Loading Complete!");
-                Loader.Message = "";
+
+                Loader.Message = "INITIALIZING MODS";
+                FortRise.RiseCore.Initialize();
+
                 TFGame.GameLoaded = true;
+                if (TaskHelper.WaitForAll()) 
+                {
+                    Loader.Message = "WAITING FOR OTHER TASK TO COMPLETE";
+                }
             }
             catch (Exception ex)
             {
@@ -270,29 +328,49 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        Task.Factory.StartNew(() => 
+        if (RiseCore.DumpAssets)
+            TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
+
+        TaskHelper.Run("loading sfx", () => 
         {
-            Calc.Log(new object[] { "...Music" });
-            TFGame.WriteLineToLoadLog("Loading Music...");
-            patch_Music.Initialize();
-            if (!Sounds.Loaded)
+            try 
             {
-                Calc.Log("...SFX" );
-                TFGame.WriteLineToLoadLog("Loading Sounds...");
-                Sounds.Load();
+                Logger.Log("[LOAD] ...Music");
+                TFGame.WriteLineToLoadLog("Loading Music...");
+                patch_Music.Initialize();
+                patch_Audio.InitMusicSystems();
+                foreach (var mods in RiseCore.InternalMods) 
+                {
+                    mods.Content.LoadAudio();
+                }
+                if (!Sounds.Loaded)
+                {
+                    Logger.Log("[LOAD] ...SFX" );
+                    TFGame.WriteLineToLoadLog("Loading Sounds...");
+                    Sounds.Load();
+                }
+                SoundLoaded = true;
+                Logger.Log("[LOAD] === SOUND LOADING COMPLETE ===");
             }
-            SoundLoaded = true;
-            Calc.Log("=== SOUND LOADING COMPLETE ===");
+            catch (Exception ex)
+            {
+                TFGame.Log(ex, true);
+                TFGame.OpenLog();
+                Engine.Instance.Exit();
+            }
         });
     }
 
     [MonoModReplace]
     public static IEnumerator MainMenuLoadWait()
     {
-        while (!TFGame.GameLoaded || !patch_TFGame.SoundLoaded)
+        while (TaskHelper.WaitForAll())
         {
             yield return 0;
         }
+
+        FortRise.RiseCore.Events.Invoke_OnPostInitialize();
+        Loader.Message = "";
         if (SaveData.NewDataCreated && MainMenu.LoadError == null)
         {
             Saver saver = new Saver(true, null);

@@ -1,101 +1,47 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
-var version = "4.0.2";
 
-Task("CleanInstallerANSI")
-    .Does(() => 
-{
-    CleanDirectory($"./artifacts/FortRise.Installer.v{version}");
-});
+var version = "4.2.0";
 
-Task("CleanInstallerNoANSI")
+
+Task("CleanInstaller")
     .Does(() => 
 {
     CleanDirectory($"./artifacts/FortRise.Installer.v{version}-NoANSI");
+    CleanDirectory($"./artifacts/FortRise.Installer.v{version}-OSXLinux");
 });
 
-Task("BuildInstallerANSI")
-    .IsDependentOn("CleanInstallerANSI")
-    .Does(() => 
-{
-    DotNetBuild("./Installer/Installer.csproj", new DotNetBuildSettings 
-    {
-        Configuration = configuration,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        }
-    });
-});
 
-Task("PublishInstallerANSI")
-    .IsDependentOn("BuildInstallerANSI")
-    .Does(() => 
-{
-    DotNetPublish("./Installer/Installer.csproj", new DotNetPublishSettings 
-    {
-        Configuration = configuration,
-        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}",
-        Runtime = "win-x64",
-        NoBuild = true,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        },
-    });
-});
-
-Task("BuildInstallerNoANSI")
-    .IsDependentOn("CleanInstallerNoANSI")
+Task("BuildInstaller")
+    .IsDependentOn("CleanInstaller")
     .Does(() => 
 {
     DotNetBuild("./Installer/Installer.NoAnsi.csproj", new DotNetBuildSettings 
     {
-        Configuration = configuration,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        }
+        Configuration = configuration
+    });
+    DotNetBuild("./Installer/Installer.Kick.csproj", new DotNetBuildSettings 
+    {
+        Configuration = configuration
     });
 });
 
-Task("PublishInstallerNoANSI")
-    .IsDependentOn("BuildInstallerNoANSI")
+Task("PublishInstaller")
+    .IsDependentOn("BuildInstaller")
     .Does(() => 
 {
     DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
         OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
-        Runtime = "win-x64",
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        },
+        NoBuild = true
+    });
+    DotNetPublish("./Installer/Installer.Kick.csproj", new DotNetPublishSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-OSXLinux",
         NoBuild = true
     });
 });
-
-Task("Publish")
-    .IsDependentOn("CleanInstallerNoANSI")
-    .IsDependentOn("CleanInstallerANSI")
-    .IsDependentOn("BuildInstallerANSI")
-    .IsDependentOn("PublishInstallerANSI")
-    .IsDependentOn("BuildInstallerNoANSI")
-    .Does(() => 
-{
-    DotNetPublish("./Installer/Installer.NoAnsi.csproj", new DotNetPublishSettings 
-    {
-        Configuration = configuration,
-        OutputDirectory = $"./artifacts/FortRise.Installer.v{version}-NoANSI",
-        NoBuild = true,
-        MSBuildSettings = new DotNetMSBuildSettings 
-        {
-            Version = version
-        },
-    });
-});
-
-
 
 RunTarget(target);

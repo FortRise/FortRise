@@ -17,7 +17,7 @@ public sealed class UploadMapButton : patch_MapButton
         LoadTower();
         Map.Selection = null;
         OnDeselect();
-        Map.GotoAdventure();
+        Map.GotoAdventure(Map.CurrentAdventureType);
         Map.MatchStarting = false;
     }
 
@@ -31,14 +31,14 @@ public sealed class UploadMapButton : patch_MapButton
 
     private void Load(string path) 
     {
-        var selectedPath = path.Replace("\\", "/");
-        var loader = AdventureModule.SaveData.LevelLocations;
-        if (!loader.Contains(selectedPath) && 
-            patch_GameData.LoadAdventureTowers(selectedPath, null))
-        {
-            loader.Add(selectedPath);
-            SaveLoaded();
-        }
+        // var selectedPath = path.Replace("\\", "/");
+        // var loader = AdventureModule.SaveData.LevelLocations;
+        // if (!loader.Contains(selectedPath) && 
+        //     patch_GameData.LoadAdventureTowers(selectedPath, null))
+        // {
+        //     loader.Add(selectedPath);
+        //     SaveLoaded();
+        // }
     }
 
     internal void SaveLoaded() 

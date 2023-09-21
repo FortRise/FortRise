@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using FortRise;
@@ -13,6 +14,7 @@ namespace Monocle;
 public class patch_Atlas : Atlas
 {
     private string xmlPath;
+    public string DataPath;
 
     public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load)
     {
@@ -22,13 +24,105 @@ public class patch_Atlas : Atlas
     {
     }
 
+    public extern void orig_ctor(string xmlPath, string imagePath, bool load);
+
+    [MonoModConstructor]
+    public void ctor(string xmlPath, string imagePath, bool load) 
+    {
+        orig_ctor(xmlPath, imagePath, load);
+
+        TaggedSubTextures = new();
+        DataPath = Path.Combine(Calc.LOADPATH, xmlPath)
+            .Replace(".xml", "")
+            .Replace('\\', '/')
+            .Replace("/Atlas", "/VanillaAtlas");
+        MapAllAssets(this, DataPath);
+    }
+
+    public static void MapAllAssets(patch_Atlas atlas, string path) 
+    {
+        if (path.StartsWith("Content/../DarkWorldContent/"))
+            path = path.Replace("Content/../DarkWorldContent/", "Content/");
+        foreach (var resource in RiseCore.ResourceTree.TreeMap.Values
+            .Where(x => x.Path.Contains(path))) 
+        {
+            atlas.MoveToAtlas(resource);
+        }
+    }
+
+    public void MoveToAtlas(RiseCore.Resource resource) 
+    {
+        var pngPath = resource.Root + resource.Path;
+        if (Path.GetExtension(pngPath) != ".png")
+            return;
+        var xmlPath = pngPath.Replace(".png", ".xml");
+        if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xmlPath)) 
+            return;
+        
+        using var xmlStream = RiseCore.ResourceTree.TreeMap[xmlPath].Stream;
+        using var imageStream = RiseCore.ResourceTree.TreeMap[pngPath].Stream;
+
+        var baseTexture = new Texture(Texture2D.FromStream(Engine.Instance.GraphicsDevice, imageStream));
+        
+        var subTextures = patch_Calc.LoadXML(xmlStream)["TextureAtlas"].GetElementsByTagName("SubTexture");
+        foreach (XmlElement subTexture in subTextures) 
+        {
+            var attrib = subTexture.Attributes;
+            var x = Convert.ToInt32(attrib["x"].Value);
+            var y = Convert.ToInt32(attrib["y"].Value);
+            var width = Convert.ToInt32(attrib["width"].Value);
+            var height = Convert.ToInt32(attrib["height"].Value);
+            string name = subTexture.HasAttr("mapTo") ? attrib["mapTo"].Value : attrib["name"].Value;
+            
+            Subtexture subTex;
+            if (!subTexture.HasAttr("tag")) 
+            {
+                subTex = new Subtexture(baseTexture, x, y, width, height);
+                SubTextures[name] = subTex;
+                continue;
+            }
+            var tagsCSV = attrib["tag"].Value;
+            var tags = Calc.ReadCSV(tagsCSV);
+            foreach (var tag in tags) 
+            {
+                subTex = new TaggedSubtexture(baseTexture, x, y, width, height, tags);
+                if (TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                {
+                    textures.Add(name, subTex);
+                    continue;
+                }
+                var newTextures = new Dictionary<string, Subtexture>();
+                newTextures.Add(name, subTex);
+                TaggedSubTextures.Add(tag, newTextures);
+            }
+        }
+    }
+
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
+    public Dictionary<string, Dictionary<string, Subtexture>> TaggedSubTextures { get; private set; }
 
     public Subtexture this[string name]
     {
-        [MonoModIgnore]
+        [MonoModReplace]
         get
         {
+            if (TaggedSubTextures == null)
+                return this.SubTextures[name];
+
+            var scene = Engine.Instance.Scene;
+
+            if (scene?.GetSceneTags() != null) 
+            {
+                foreach (var tag in scene.GetSceneTags())
+                {
+                    if (TaggedSubTextures.TryGetValue(tag, out var tex))
+                    {
+                        if (tex.TryGetValue(name, out var val))
+                            return val;
+                    }
+                }
+            }
+
             return this.SubTextures[name];
         }
     }
@@ -144,28 +238,45 @@ public static class AtlasExt
     {
         switch (access) 
         {
-        case ContentAccess.Content:
+        case ContentAccess.Content: 
             xmlPath = Calc.LOADPATH + xmlPath;
-            imagePath = Calc.LOADPATH + imagePath;
+            imagePath =  Calc.LOADPATH + imagePath;
             break;
         case ContentAccess.ModContent:
-            xmlPath = content.GetContentPath(xmlPath);
-            imagePath = content.GetContentPath(imagePath);
-            break;
+            {
+                if (content == null) 
+                {
+                    Logger.Error("[Atlas] You cannot use AtlasExt.CreateAtlas while FortContent is null");
+                    return null;
+                }
+                using var xmlStream = content[xmlPath].Stream;
+                using var imageStream = content[imagePath].Stream;
+                return AtlasExt.CreateAtlas(content, xmlStream, imageStream);
+            }
         }
-        XmlNodeList elementsByTagName = Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        var atlas = new patch_Atlas();
+        using var rootXmlStream = File.OpenRead(xmlPath);
+        using var rootImageStream = File.OpenRead(imagePath);
+        return AtlasExt.CreateAtlas(content, rootXmlStream, rootImageStream);
+    }
 
-        atlas.SetXMLPath(xmlPath);
-        atlas.SetImagePath(imagePath);
-        atlas.SetSubTextures(new Dictionary<string, Subtexture>(elementsByTagName.Count));
-        foreach (XmlElement item in elementsByTagName)
-        {
-            XmlAttributeCollection attributes = item.Attributes;
-            atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
-        }
+    public static patch_Atlas CreateAtlas(this FortContent content, Stream xmlStream, Stream imageStream)
+    {
+        patch_Atlas atlas = AtlasReader.Read(xmlStream, ".xml");
+        atlas.LoadStream(imageStream);
+        return atlas;
+    }
 
-        atlas.Load();
+    public static patch_Atlas CreateAtlas(this FortContent content, Stream xmlStream, Stream imageStream, string ext)
+    {
+        patch_Atlas atlas = AtlasReader.Read(xmlStream, ext);
+        atlas.LoadStream(imageStream);
+        return atlas;
+    }
+
+    public static patch_Atlas CreateAtlasJson(this FortContent content, Stream jsonStream, Stream imageStream)
+    {
+        patch_Atlas atlas = AtlasReader.Read(jsonStream, ".json");
+        atlas.LoadStream(imageStream);
         return atlas;
     }
 }

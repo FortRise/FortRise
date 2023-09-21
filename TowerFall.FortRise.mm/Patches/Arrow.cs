@@ -81,14 +81,15 @@ public abstract class patch_Arrow : Actor
 
     internal static void ExtendArrows() 
     {
-        var arrowIDCount = ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count;
+        var arrowIDCount = ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count;
+        ARROW_TYPES += ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count;
         Array.Resize(ref Names, arrowIDCount);
         Array.Resize(ref Colors, arrowIDCount);
         Array.Resize(ref ColorsB, arrowIDCount);
-        foreach (var arrow in RiseCore.ArrowsID.Values) 
+        foreach (var arrowObject in RiseCore.ArrowsRegistry.Values) 
         {
-            var loader = RiseCore.PickupGraphicArrows[arrow];
-            var info = loader?.Invoke();
+            var arrow = arrowObject.Types;
+            var info = arrowObject.InfoLoader?.Invoke();
             if (info == null)
                 return;
             var value = info.Value;
@@ -106,7 +107,7 @@ public abstract class patch_Arrow : Actor
     [MonoModReplace]
     public static void Initialize() 
     {
-        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + FortRise.RiseCore.ArrowsID.Count];
+        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count];
         for (int i = 0; i < cached.Length; i++)
         {
             cached[i] = new Stack<patch_Arrow>();

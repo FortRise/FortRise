@@ -14,18 +14,37 @@ public class UIModal : Entity
     public Color SelectionB = Calc.HexToColor("F7BB59");
     public Color NotSelection = Calc.HexToColor("F8F8F8");
 
-    private int itemCount;
+
+    protected internal patch_MenuPanel panel;
+    protected internal int itemCount;
+
+    public IReadOnlyList<string> FillerNames => fillerNames;
+    public IReadOnlyList<string> OptionNames => optionNames;
+
     private List<string> optionNames = new();
     private List<string> fillerNames = new();
     private List<string> selectedOptionNames = new();
     private List<Action> optionActions = new();
     private Wiggler selectionWiggler;
-    private MenuPanel panel;
     private Counter confirmCounter;
     private int optionIndex;
     private Color fillerColor = Color.White;
     private bool noTitle;
 
+    public int Width 
+    {
+        get => width;
+        set 
+        {
+            width = value;
+            if (panel == null) 
+                return;
+            
+            panel.Width = width;
+        }
+    }
+
+    private int width = 120;
     public bool SelectionFlash;
     public bool AutoClose = true;
     public string Title;
@@ -43,6 +62,11 @@ public class UIModal : Entity
         Add(selectionWiggler);
     }
 
+    public UIModal SetPanelWidth(int width) 
+    {
+        Width = width;
+        return this;
+    }
 
     public override void Added()
     {
@@ -52,7 +76,7 @@ public class UIModal : Entity
         else if (optionIndex >= optionNames.Count - 1)
             optionIndex = optionNames.Count - 1;
         Sounds.ui_pause.Play(160f);
-        panel = new MenuPanel(120, itemCount * 10 + 30);
+        panel = new patch_MenuPanel(width, itemCount * 10 + 30);
         Add(panel);
     }
 
@@ -158,6 +182,18 @@ public class UIModal : Entity
     public UIModal SetStartIndex(int index) 
     {
         optionIndex = index;
+        return this;
+    }
+
+    /// <summary>
+    /// Set the start index of a modal based on the option name. It will automatically adjust if the index is out of bounds.
+    /// </summary>
+    /// <param name="optionName">An option name</param>
+    /// <returns>A UIModal context</returns>
+    public UIModal SetStartIndex(string optionName) 
+    {
+        var optIndex = optionNames.IndexOf(optionName.ToUpperInvariant());
+        optionIndex = optIndex;
         return this;
     }
 
