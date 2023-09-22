@@ -2,11 +2,49 @@ using System;
 
 namespace FortRise;
 
-// Based on:
-// https://www.meziantou.net/split-a-string-into-lines-without-allocation.htm
+
 
 public static class StringUtils
 {
+    public static string ToTitleCase(string characters)  
+    {
+        return ToTitleCase(characters.AsSpan());
+    }
+    public static string ToTitleCase(ReadOnlySpan<char> characters) 
+    {
+        Span<char> s = stackalloc char[characters.Length];
+        bool capital = true;
+        for (int i = 0; i < characters.Length; i++) 
+        {        
+            char current = characters[i];
+            if (char.IsWhiteSpace(current))
+            {
+                capital = true;
+                continue;
+            }
+            if (capital) 
+            {
+
+                if (!char.IsUpper(current)) 
+                {
+                    s[i] = char.ToUpper(current);
+                }
+                capital = false;
+                continue;
+            }
+            
+            if (char.IsUpper(current)) 
+            {
+                s[i] = char.ToLower(current);
+            }
+            else
+                s[i] = characters[i];
+        }
+        return s.ToString();
+    }
+
+    // Based on:
+    // https://www.meziantou.net/split-a-string-into-lines-without-allocation.htm
     public static LineSplitEnumerator SplitLines(this ReadOnlySpan<char> str, char separator)
     {
         // LineSplitEnumerator is a struct so there is no allocation here

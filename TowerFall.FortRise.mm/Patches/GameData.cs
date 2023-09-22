@@ -1,4 +1,3 @@
-using System.Globalization;
 using FortRise;
 using FortRise.Adventure;
 
@@ -20,21 +19,21 @@ public static class patch_GameData
         foreach (var questTowers in GameData.QuestLevels) 
         {
             var name = questTowers.Theme.Name;
-            var correctName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name.ToLower());
+            var correctName = StringUtils.ToTitleCase(name);
             questTowers.SetLevelID(correctName);
         }
 
         foreach (var versusTowers in GameData.VersusTowers) 
         {
             var name = versusTowers.Theme.Name;
-            var correctName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name.ToLower());
+            var correctName = StringUtils.ToTitleCase(name);
             versusTowers.SetLevelID(correctName);
         }
 
         foreach (var darkWorldTowers in GameData.DarkWorldTowers) 
         {
             var name = darkWorldTowers.Theme.Name;
-            var correctName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name.ToLower());
+            var correctName = StringUtils.ToTitleCase(name);
             darkWorldTowers.SetLevelID(correctName);
         }
 
@@ -46,7 +45,7 @@ public static class patch_GameData
                 1 => "II",
                 _ => "III"
             };
-            var correctName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name.ToLower()) + " " + id;
+            var correctName = StringUtils.ToTitleCase(name) + " " + id;
             trialTowers.SetLevelID(correctName);
         }
         TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
