@@ -1,98 +1,103 @@
 using System;
-using FortRise;
 using Monocle;
+using FortRise;
 
-namespace TowerFall;
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public sealed class CustomArrowsAttribute : Attribute 
+namespace FortRise 
 {
-    public string Name;
-    public string GraphicPickupInitializer;
-    public float Chance = 1f;
-
-    public CustomArrowsAttribute(string name, string graphicPickupFn = null) 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    public class CustomArrowsAttribute : Attribute 
     {
-        Name = name;
-        GraphicPickupInitializer = graphicPickupFn;
-    }
+        public string Name;
+        public string GraphicPickupInitializer;
+        public float Chance = 1f;
 
-    public CustomArrowsAttribute(string name, float chance, string graphicPickupFn = null) 
-    {
-        Name = name;
-        GraphicPickupInitializer = graphicPickupFn;
-        Chance = chance;
+        public CustomArrowsAttribute(string name, string graphicPickupFn = null) 
+        {
+            Name = name;
+            GraphicPickupInitializer = graphicPickupFn;
+        }
+
+        public CustomArrowsAttribute(string name, float chance, string graphicPickupFn = null) 
+        {
+            Name = name;
+            GraphicPickupInitializer = graphicPickupFn;
+            Chance = chance;
+        }
     }
 }
 
-public class ArrowObject
+
+namespace TowerFall 
 {
-    public ArrowTypes Types;
-    public PickupObject PickupType;
-    public TreasureChest.Types SpawnType;
-    public ArrowInfoLoader InfoLoader;
-}
-
-
-public struct ArrowInfo 
-{
-    public string Color = "F7EAC3";
-    public string ColorB = "FFFFFF";
-    public string Name = "";
-    public TreasureChest.Types SpawnType;
-    internal Image Simple;
-    internal Subtexture HUD;
-    internal Sprite<int> Animated;
-    internal byte Type;
-
-    [Obsolete("Use ArrowInfo.Create or ArrowInfo.CreateAnimated instead")]
-    public ArrowInfo()
+    public class ArrowObject
     {
-        Simple = null;
-        Animated = null;
-        HUD = null;
-        Type = 0;
-        SpawnType = TreasureChest.Types.Normal;
-    }
-#pragma warning disable CS0618
-
-    public static ArrowInfo Create(Image simple, TreasureChest.Types spawnType) 
-    {
-        return new ArrowInfo { Simple = simple, Type = 0, SpawnType = spawnType };
+        public ArrowTypes Types;
+        public PickupObject PickupType;
+        public TreasureChest.Types SpawnType;
+        public ArrowInfoLoader InfoLoader;
     }
 
-    public static ArrowInfo Create(Image simple) 
-    {
-        return new ArrowInfo { Simple = simple, Type = 0 };
-    }
 
-    public static ArrowInfo CreateAnimated(Sprite<int> animated) 
+    public struct ArrowInfo 
     {
-        return new ArrowInfo { Animated = animated, Type = 1 };
-    }
+        public string Color = "F7EAC3";
+        public string ColorB = "FFFFFF";
+        public string Name = "";
+        public TreasureChest.Types SpawnType;
+        internal Image Simple;
+        internal Subtexture HUD;
+        internal Sprite<int> Animated;
+        internal byte Type;
 
-    public static ArrowInfo CreateAnimated(Sprite<int> animated, TreasureChest.Types spawnType) 
-    {
-        return new ArrowInfo { Animated = animated, Type = 1, SpawnType = spawnType };
-    }
+        [Obsolete("Use ArrowInfo.Create or ArrowInfo.CreateAnimated instead")]
+        public ArrowInfo()
+        {
+            Simple = null;
+            Animated = null;
+            HUD = null;
+            Type = 0;
+            SpawnType = TreasureChest.Types.Normal;
+        }
+    #pragma warning disable CS0618
 
-    public static ArrowInfo Create(Image simple, Subtexture hud, TreasureChest.Types spawnType) 
-    {
-        return new ArrowInfo { Simple = simple, Type = 0, HUD = hud, SpawnType = spawnType };
-    }
+        public static ArrowInfo Create(Image simple, TreasureChest.Types spawnType) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0, SpawnType = spawnType };
+        }
 
-    public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud, TreasureChest.Types spawnType) 
-    {
-        return new ArrowInfo { Animated = animated, Type = 1, HUD = hud, SpawnType = spawnType };
-    }
+        public static ArrowInfo Create(Image simple) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0 };
+        }
 
-    public static ArrowInfo Create(Image simple, Subtexture hud) 
-    {
-        return new ArrowInfo { Simple = simple, Type = 0, HUD = hud };
-    }
+        public static ArrowInfo CreateAnimated(Sprite<int> animated) 
+        {
+            return new ArrowInfo { Animated = animated, Type = 1 };
+        }
 
-    public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud) 
-    {
-        return new ArrowInfo { Animated = animated, Type = 1, HUD = hud };
+        public static ArrowInfo CreateAnimated(Sprite<int> animated, TreasureChest.Types spawnType) 
+        {
+            return new ArrowInfo { Animated = animated, Type = 1, SpawnType = spawnType };
+        }
+
+        public static ArrowInfo Create(Image simple, Subtexture hud, TreasureChest.Types spawnType) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0, HUD = hud, SpawnType = spawnType };
+        }
+
+        public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud, TreasureChest.Types spawnType) 
+        {
+            return new ArrowInfo { Animated = animated, Type = 1, HUD = hud, SpawnType = spawnType };
+        }
+
+        public static ArrowInfo Create(Image simple, Subtexture hud) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0, HUD = hud };
+        }
+
+        public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud) 
+        {
+            return new ArrowInfo { Animated = animated, Type = 1, HUD = hud };
+        }
     }
 }
