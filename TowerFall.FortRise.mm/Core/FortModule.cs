@@ -185,7 +185,9 @@ public abstract partial class FortModule
 
     public virtual void LoadContent() {}
     public virtual void Initialize() {}
+    [Obsolete("Use FortModule.OnVariantsRegister(VariantManager, bool) instead")]
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
+    public virtual void OnVariantsRegister(VariantManager manager, bool noPerPlayer = false) {}
 
     public bool IsModExists(string modName) 
     {
