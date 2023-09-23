@@ -3,42 +3,45 @@ using System;
 namespace FortRise;
 
 
-
+/// <summary>
+/// Collections of utilities for strings
+/// </summary>
 public static class StringUtils
 {
+    /// <summary>
+    /// Transform the text into a title case (ex. sacred ground -> Sacred Ground) 
+    /// </summary>
+    /// <param name="characters">An input text to transform with</param>
+    /// <returns>A title cased text</returns>
     public static string ToTitleCase(string characters)  
     {
         return ToTitleCase(characters.AsSpan());
     }
+
+    /// <summary>
+    /// Transform the text into a title case (ex. sacred ground -> Sacred Ground) 
+    /// </summary>
+    /// <param name="characters">A span containing the pointer to string</param>
+    /// <returns>A title cased text</returns>
     public static string ToTitleCase(ReadOnlySpan<char> characters) 
     {
+
         Span<char> s = stackalloc char[characters.Length];
+        characters.ToLowerInvariant(s);
         bool capital = true;
-        for (int i = 0; i < characters.Length; i++) 
-        {        
-            char current = characters[i];
+        for (int i = 0; i < s.Length; i++)
+        {
+            char current = s[i];
             if (char.IsWhiteSpace(current))
             {
                 capital = true;
                 continue;
             }
-            if (capital) 
-            {
-
-                if (!char.IsUpper(current)) 
-                {
-                    s[i] = char.ToUpper(current);
-                }
-                capital = false;
+            if (!capital)
                 continue;
-            }
             
-            if (char.IsUpper(current)) 
-            {
-                s[i] = char.ToLower(current);
-            }
-            else
-                s[i] = characters[i];
+            s[i] = char.ToUpper(current);
+            capital = false;
         }
         return s.ToString();
     }
