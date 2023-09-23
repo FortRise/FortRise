@@ -140,7 +140,7 @@ namespace TowerFall
                 XML = xml;
                 HotReload(solidsBitData, bgBitData, bgTileData, solidTilesData);
 
-                Logger.Info($"[Level] Hot Reloaded {fullPath}");
+                Logger.Info($"[Level][Reload] Hot Reloaded {fullPath}");
             }
             catch (UnauthorizedAccessException) 
             {
@@ -149,6 +149,11 @@ namespace TowerFall
             catch (IOException) 
             {
                 Thread.Sleep(500);
+            }
+            catch (Exception x)
+            {
+                Logger.Error($"[Level][Reload] Unexpected error while trying to hot reload.");
+                Logger.Error(x.ToString());
             }
         }
 
@@ -171,7 +176,7 @@ namespace TowerFall
                 if (entity is not LevelEntity)
                     continue;
                 
-                if (entity is Actor or LevelTiles) 
+                if (entity is Actor or LevelTiles or QuestSpawnPortal) 
                 {
                     if (entity is not Lantern and not Orb)
                         continue;
