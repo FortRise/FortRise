@@ -122,6 +122,7 @@ public static partial class RiseCore
             }
             
             Assembly asm = null;
+            LuaModule luaModule = null;
             ModResource modResource;
             if (!string.IsNullOrEmpty(metadata.PathZip)) 
             {
@@ -143,11 +144,22 @@ public static partial class RiseCore
 
                 RiseCore.ResourceTree.AddMod(metadata, modResource);
                 var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
+                var fullLuaPath = Path.Combine(metadata.PathDirectory, "main.lua");
 
                 if (File.Exists(fullDllPath)) 
                 {
                     using var stream = File.OpenRead(fullDllPath);
                     asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
+                }
+                else if (File.Exists(fullLuaPath)) 
+                {
+                    using var mainLua = File.OpenRead(fullLuaPath);
+                    luaModule = new LuaModule(metadata, mainLua);
+                    var content = modResource.Content;
+                    luaModule.Content = content;
+                    ModuleGuids.Add(luaModule.ID);
+                    luaModule.Register();
+                    Logger.Info($"[Loader] {luaModule.ID}: {luaModule.Name} Lua Registered.");
                 }
             }
             else 

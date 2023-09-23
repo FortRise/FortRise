@@ -16,6 +16,7 @@ public static partial class RiseCore
         internal static void Initialize() 
         {
             Context = new NLua.Lua();
+            Context.LoadCLRPackage();
         }
 
         public static NLua.LuaFunction LoadScript(string path) 

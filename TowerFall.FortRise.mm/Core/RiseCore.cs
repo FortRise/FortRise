@@ -175,6 +175,7 @@ public static partial class RiseCore
             return null;
         };
 
+        Lua.Initialize();
         AtlasReader.Initialize();
         RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         Loader.InitializeMods();
@@ -419,6 +420,8 @@ public static partial class RiseCore
         module.InternalLoad();
 
         module.Enabled = true;
+        if (module is LuaModule)
+            return;
         try 
         {
 
