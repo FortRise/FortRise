@@ -10,6 +10,7 @@ public class patch_VersusLevelSystem : VersusLevelSystem
 {
     private List<string> levels;
     private string lastLevel;
+    public string LastLevel => lastLevel;
 
     [MonoModIgnore]
     public VersusTowerData VersusTowerData { get; private set; }
@@ -61,4 +62,12 @@ public class patch_VersusLevelSystem : VersusLevelSystem
 
     [MonoModIgnore]
     private extern void GenLevels(MatchSettings matchSettings);
+}
+
+public static class VersusLevelSystemExt 
+{
+    public static string GetLastLevel(this VersusLevelSystem system) 
+    {
+        return ((patch_VersusLevelSystem)system).LastLevel;
+    }
 }

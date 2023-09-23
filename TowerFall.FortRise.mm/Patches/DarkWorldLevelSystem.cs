@@ -11,6 +11,7 @@ namespace TowerFall;
 public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
 {
     private int startLevel;
+    public int StartLevel => startLevel;
     public patch_DarkWorldLevelSystem(DarkWorldTowerData tower) : base(tower)
     {
     }
@@ -101,5 +102,13 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         //         return val;
         // }
         return base.GetTileset();
+    }
+}
+
+public static class DarkWorldLevelSystemExt 
+{
+    public static int GetStartLevel(this DarkWorldLevelSystem system) 
+    {
+        return ((patch_DarkWorldLevelSystem)system).StartLevel;
     }
 }

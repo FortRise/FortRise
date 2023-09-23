@@ -90,7 +90,8 @@ public static partial class RiseCore
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
     public static bool DebugMode;
-    public static bool NoIntro;
+    public static bool NoIntro { get; private set; }
+    public static bool NoAutoPause { get; private set; }
     internal static bool NoRichPresence;
     internal static bool DumpAssets;
 
@@ -224,6 +225,9 @@ public static partial class RiseCore
                 break;
             case "--no-rich-presence":
                 NoRichPresence = true;
+                break;
+            case "--no-auto-pause":
+                NoAutoPause = true;
                 break;
             case "--dump-assets":
                 DumpAssets = true;
@@ -374,7 +378,6 @@ public static partial class RiseCore
 
     internal static void Initialize() 
     {
-        // Lua.Initialize();
         foreach (var fortModule in InternalFortModules) 
         {
             fortModule.Initialize();
@@ -424,7 +427,6 @@ public static partial class RiseCore
             return;
         try 
         {
-
         foreach (var type in module.GetType().Assembly.GetTypes()) 
         {
             if (type is null)
