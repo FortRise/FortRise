@@ -42,11 +42,15 @@ public partial class RiseCore
         "packer/"
     };
 
+    /// <summary>
+    /// A class that contains a path and stream to your resource works both on folder and zip. 
+    /// </summary>
     public abstract class Resource 
     {
         public string FullPath;
         public string Path;
         public string Root;
+        public string RootPath => Root + Path;
         public List<Resource> Childrens = new();
         public ModResource Source;
         public Type ResourceType;
@@ -435,6 +439,8 @@ public partial class RiseCore
 
         public override void Lookup(string prefix)
         {
+            if (!Directory.Exists(FolderDirectory))
+                Directory.CreateDirectory(FolderDirectory);
             var files = Directory.GetFiles(FolderDirectory);
             for (int i = 0; i < files.Length; i++) 
             {
@@ -579,6 +585,11 @@ public partial class RiseCore
             }
         }
 
+        public static bool TryGetValue(string path, out RiseCore.Resource res) 
+        {
+            return TreeMap.TryGetValue(path, out res);
+        }
+
         public static bool IsExist(string path) 
         {
             return TreeMap.ContainsKey(path);
@@ -587,6 +598,16 @@ public partial class RiseCore
         public static bool IsExist(Resource resource, string path) 
         {
             return TreeMap.ContainsKey(resource.Root + path);
+        }
+
+        public static void LoopThroughModsContent(Action<FortContent> modsAction) 
+        {
+            foreach (var mod in ModResources) 
+            {
+                if (mod.Content == null)
+                    continue;
+                modsAction(mod.Content);
+            }
         }
 
         public static async Task DumpAll() 
@@ -599,7 +620,7 @@ public partial class RiseCore
                 using TextWriter tw = new StreamWriter(file);
 
                 tw.WriteLine("FORTRISE RESOURCE DUMP");
-                tw.WriteLine("VERSION 4.1.0.0");
+                tw.WriteLine("VERSION 4.3.0.0");
                 tw.WriteLine("==============================");
                 foreach (var globalResource in TreeMap) 
                 {

@@ -130,7 +130,7 @@ public class FortContent
                 {
                     using var stream = child.Stream;
                     path = child.Root.Substring(4) + path;
-                    var trackInfo = new TrackInfo(path, child.Root + child.Path, child.ResourceType);
+                    var trackInfo = new TrackInfo(path, child.RootPath, child.ResourceType);
                     patch_Audio.TrackMap.Add(path, trackInfo);
                     Logger.Verbose($"[MUSIC] [{child.Root}] Added '{path}' to TrackMap.");
                 }
@@ -145,7 +145,7 @@ public class FortContent
             x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas))) 
         {
             var child = atlasRes.Value;
-            var png = child.Root + child.Path;
+            var png = child.RootPath;
             if (Path.GetExtension(png) != ".png")
                 continue;
             
@@ -170,7 +170,7 @@ public class FortContent
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData))) 
         {
             var child = spriteDataRes.Value;
-            var spriteData = child.Root + child.Path;
+            var spriteData = child.RootPath;
             if (Path.GetExtension(spriteData) != ".xml")
                 continue;
 
@@ -186,7 +186,7 @@ public class FortContent
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData))) 
         {
             var child = gameDataRes.Value;
-            var gameData = child.Root + child.Path;
+            var gameData = child.RootPath;
             if (Path.GetExtension(gameData) != ".xml")
                 continue;
             
@@ -456,6 +456,29 @@ public class FortContent
         var tex2D = LoadRawTexture2D(path);
         var tex = new Texture(tex2D);
         return tex;
+    }
+
+    /// <summary>
+    /// Load text inside of a file 
+    /// </summary>
+    /// <param name="path">A path to a file</param>
+    /// <returns>A text inside of a file</returns>
+    public string LoadText(string path) 
+    {
+        using var stream = this[contentPath + "/" + path].Stream;
+        using TextReader sr = new StreamReader(stream);
+        return sr.ReadToEnd();
+    }
+
+    /// <summary>
+    /// Load <see cref="System.Xml.XmlDocument"/> from a file.
+    /// </summary>
+    /// <param name="path">A path to a file</param>
+    /// <returns>A <see cref="System.Xml.XmlDocument"/></returns>
+    public XmlDocument LoadXML(string path) 
+    {
+        using var stream = this[contentPath + "/" + path].Stream;
+        return patch_Calc.LoadXML(stream);
     }
 
     public SFX LoadSFX(string fileName, bool obeysMasterPitch = true) 
