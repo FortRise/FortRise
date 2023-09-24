@@ -43,7 +43,7 @@ namespace TowerFall
         public string Color = "F7EAC3";
         public string ColorB = "FFFFFF";
         public string Name = "";
-        public TreasureChest.Types SpawnType;
+        public SFX PickupSound;
         internal Image Simple;
         internal Subtexture HUD;
         internal Sprite<int> Animated;
@@ -56,18 +56,18 @@ namespace TowerFall
             Animated = null;
             HUD = null;
             Type = 0;
-            SpawnType = TreasureChest.Types.Normal;
+            PickupSound = null;
         }
     #pragma warning disable CS0618
-
-        public static ArrowInfo Create(Image simple, TreasureChest.Types spawnType) 
-        {
-            return new ArrowInfo { Simple = simple, Type = 0, SpawnType = spawnType };
-        }
 
         public static ArrowInfo Create(Image simple) 
         {
             return new ArrowInfo { Simple = simple, Type = 0 };
+        }
+
+        public static ArrowInfo Create(Image simple, SFX pickupSound) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0, PickupSound = pickupSound };
         }
 
         public static ArrowInfo CreateAnimated(Sprite<int> animated) 
@@ -75,19 +75,9 @@ namespace TowerFall
             return new ArrowInfo { Animated = animated, Type = 1 };
         }
 
-        public static ArrowInfo CreateAnimated(Sprite<int> animated, TreasureChest.Types spawnType) 
+        public static ArrowInfo CreateAnimated(Sprite<int> animated, SFX pickupSound) 
         {
-            return new ArrowInfo { Animated = animated, Type = 1, SpawnType = spawnType };
-        }
-
-        public static ArrowInfo Create(Image simple, Subtexture hud, TreasureChest.Types spawnType) 
-        {
-            return new ArrowInfo { Simple = simple, Type = 0, HUD = hud, SpawnType = spawnType };
-        }
-
-        public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud, TreasureChest.Types spawnType) 
-        {
-            return new ArrowInfo { Animated = animated, Type = 1, HUD = hud, SpawnType = spawnType };
+            return new ArrowInfo { Animated = animated, Type = 1, PickupSound = pickupSound};
         }
 
         public static ArrowInfo Create(Image simple, Subtexture hud) 
@@ -98,6 +88,16 @@ namespace TowerFall
         public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud) 
         {
             return new ArrowInfo { Animated = animated, Type = 1, HUD = hud };
+        }
+
+        public static ArrowInfo Create(Image simple, Subtexture hud, SFX pickupSound) 
+        {
+            return new ArrowInfo { Simple = simple, Type = 0, HUD = hud, PickupSound = pickupSound };
+        }
+
+        public static ArrowInfo CreateAnimated(Sprite<int> animated, Subtexture hud, SFX pickupSound) 
+        {
+            return new ArrowInfo { Animated = animated, Type = 1, HUD = hud, PickupSound = pickupSound};
         }
     }
 }
