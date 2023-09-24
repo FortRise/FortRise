@@ -93,7 +93,7 @@ public static partial class RiseCore
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
     internal static bool NoRichPresence;
-    internal static bool DumpAssets;
+    internal static bool DumpResources;
 
     internal static bool CantRestart = true;
 
@@ -229,8 +229,11 @@ public static partial class RiseCore
             case "--no-auto-pause":
                 NoAutoPause = true;
                 break;
-            case "--dump-assets":
-                DumpAssets = true;
+            case "--dump-resources":
+                DumpResources = true;
+                break;
+            case "--use-scancodes":
+                Environment.SetEnvironmentVariable("FNA_KEYBOARD_USE_SCANCODES", "1");
                 break;
             case "--no-quit":
                 MainMenu.NoQuit = true;

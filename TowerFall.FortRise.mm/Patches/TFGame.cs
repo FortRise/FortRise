@@ -328,7 +328,7 @@ public partial class patch_TFGame : TFGame
             }
         });
 
-        if (RiseCore.DumpAssets)
+        if (RiseCore.DumpResources)
             TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
 
         TaskHelper.Run("loading sfx", () => 
