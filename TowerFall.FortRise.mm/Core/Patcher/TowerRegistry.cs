@@ -282,7 +282,7 @@ public static class TowerRegistry
                 child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
                 !child.Path.StartsWith("icon"))
                 {
-                    levelData.Levels.Add(AdventureVersusLevelData.CreateFromAdventure(child.Root + child.Path));
+                    levelData.Levels.Add(AdventureVersusLevelData.CreateFromAdventure(child.RootPath));
                     continue;
                 }
 
@@ -392,7 +392,7 @@ public static class TowerRegistry
                 child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
                 !child.Path.Contains("icon.json"))
                 {
-                    levelData.Levels.Add(child.Root + child.Path);
+                    levelData.Levels.Add(child.RootPath);
                     continue;
                 }
 
