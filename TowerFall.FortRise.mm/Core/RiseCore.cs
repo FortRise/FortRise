@@ -435,6 +435,7 @@ public static partial class RiseCore
             if (type is null)
                 continue;
             
+            // TODO rewrite
             foreach (var attrib in type.GetCustomAttributes<CustomRoundLogicAttribute>()) 
             {
                 if (attrib is null)
@@ -601,7 +602,7 @@ public static partial class RiseCore
                         Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
                         continue;
                     }
-                    id = id.Trim();
+                    id = id.Trim().Replace("/", "__");
                     methodName = methodName?.Trim();
 
                     ConstructorInfo ctor;
