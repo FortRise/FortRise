@@ -289,29 +289,37 @@ internal static partial class MonoModRules
 
     private static bool RelinkAgainstFNA(MonoModder modder) 
     {
-        // Check if the module references either XNA or FNA
-        bool proceed = false;
-        foreach (var asm in modder.Module.AssemblyReferences) 
+        try 
         {
-            if (asm.Name == "FNA" || asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+            // Check if the module references either XNA or FNA
+            bool proceed = false;
+            foreach (var asm in modder.Module.AssemblyReferences) 
             {
-                proceed = true;
-                break;
+                if (asm.Name == "FNA" || asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+                {
+                    proceed = true;
+                    break;
+                }
             }
+            if (!proceed)
+                return false;
+            // if (!modder.Module.AssemblyReferences.Any(asmRef => asmRef.Name == "FNA" || asmRef.Name.StartsWith("Microsoft.Xna.Framework")))
+            //     return false;
+
+            // Replace XNA assembly references with FNA ones
+            bool didReplaceXNA = ReplaceAssemblyRefs(MonoModRule.Modder, GetRulesAssemblyRef("FNA"));
+
+            // Ensure that FNA.dll can be loaded
+            if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null) 
+                throw new Exception("Failed to resolve Microsoft.Xna.Framework.Game");
+
+            return didReplaceXNA;
         }
-        if (!proceed)
+        catch 
+        {
+            Console.WriteLine("[FortRise] Cannot be Relinked to FNA");
             return false;
-        // if (!modder.Module.AssemblyReferences.Any(asmRef => asmRef.Name == "FNA" || asmRef.Name.StartsWith("Microsoft.Xna.Framework")))
-        //     return false;
-
-        // Replace XNA assembly references with FNA ones
-        bool didReplaceXNA = ReplaceAssemblyRefs(MonoModRule.Modder, GetRulesAssemblyRef("FNA"));
-
-        // Ensure that FNA.dll can be loaded
-        if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null)
-            throw new Exception("Failed to resolve Microsoft.Xna.Framework.Game");
-
-        return didReplaceXNA;
+        }
     }
 
     public static void PatchPostFix(ILContext ctx, CustomAttribute attrib) 
