@@ -10,9 +10,13 @@ Installer/lib/**/*.json
 Installer/lib/**/*.txt
 Installer/lib/**/*.pdb
 Installer/lib/runtime.zip
-Installer/lib/**/*.so
-Installer/lib/**/*.so.0
-Installer/lib/**/*.dylib
+Installer/lib-framework/**/*.dll
+Installer/lib-framework/**/*.config
+Installer/lib-framework/**/*.exe
+Installer/lib-framework/**/*.xml
+Installer/lib-framework/**/*.json
+Installer/lib-framework/**/*.txt
+Installer/lib-framework/**/*.pdb
 Installer/lib-old/
 Installer/lib-native/
 Installer/lib-kick/

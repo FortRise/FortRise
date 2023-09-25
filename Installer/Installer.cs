@@ -13,7 +13,7 @@ public class Installer : MarshalByRefObject
 
 
     private static readonly string[] fileDependencies = {
-        "FNA.dll", "FNA.dll.config",
+        "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
         "MonoMod.exe", 
         "MonoMod.xml", "0Harmony.dll",
@@ -23,9 +23,9 @@ public class Installer : MarshalByRefObject
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
+        "TeuJson.dll", "DotNetZip.dll", "DotNetZip.pdb", "NLua.dll", "KeraLua.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
-        "DiscordGameSdk.dll", "Fortrise.targets"
+        "DiscordGameSdk.dll", "DiscordGameSdk.pdb", "Fortrise.targets"
     };
 
     private static string[] fnaLibs; 
