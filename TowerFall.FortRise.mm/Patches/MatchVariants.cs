@@ -79,7 +79,10 @@ public class patch_MatchVariants : MatchVariants
             variantIcon,
             info.Header ?? manager.CurrentContext,
             (FortRise.CustomVariantFlags)(int)flags,
-            info.Exclusions);       
+            info.Exclusions) 
+        {
+            Description = info.Description
+        };
         return manager.AddVariant(fortRiseInfo, noPerPlayer);
     }
 
