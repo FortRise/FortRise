@@ -152,7 +152,8 @@ public abstract partial class FortModule
             }
             else if ((fieldType == typeof(int)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                var defaultVal = (int)field.GetValue(settings);
+                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options, defaultVal);
                 selectionOption.Change(x => {
                     field.SetValue(settings, x.Item2);
                 });
@@ -160,7 +161,9 @@ public abstract partial class FortModule
             }
             else if ((fieldType == typeof(string)) && (optAttrib = field.GetCustomAttribute<SettingsOptionsAttribute>()) != null) 
             {
-                var selectionOption = new TextContainer.SelectionOption(fullName, optAttrib.Options);
+                var defaultVal = (string)field.GetValue(settings);
+                var selectionOption = new TextContainer.SelectionOption(
+                    fullName, optAttrib.Options, Array.IndexOf<string>(optAttrib.Options, defaultVal));
                 selectionOption.Change(x => {
                     field.SetValue(settings, x.Item1);
                 });
@@ -169,7 +172,8 @@ public abstract partial class FortModule
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) && 
                 (attrib = field.GetCustomAttribute<SettingsNumberAttribute>()) != null) 
             {
-                var numberButton = new TextContainer.Number(fullName, attrib.Min, attrib.Max);
+                var defaultVal = (int)field.GetValue(settings);
+                var numberButton = new TextContainer.Number(fullName, defaultVal, attrib.Min, attrib.Max);
                 numberButton.Change(x => {
                     if (field.FieldType == typeof(float))
                         field.SetValue(settings, (float)x);
