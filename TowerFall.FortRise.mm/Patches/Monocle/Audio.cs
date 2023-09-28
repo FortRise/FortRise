@@ -49,7 +49,7 @@ public static class patch_Audio
         return null;
     }
 
-    public static void StopAudio(AudioStopOptions options) 
+    public static void StopMusic(AudioStopOptions options) 
     {
         if (currentAudio != null) 
         {
