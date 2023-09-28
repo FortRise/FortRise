@@ -68,7 +68,7 @@ public static class patch_Music
             return;
         
         audioCategory.Stop(AudioStopOptions.Immediate);
-        patch_Audio.StopAudio(AudioStopOptions.Immediate);
+        patch_Audio.StopMusic(AudioStopOptions.Immediate);
         
         PlayInternal(filepath);
     }
@@ -84,7 +84,7 @@ public static class patch_Music
             return;
         }
 
-        patch_Audio.StopAudio(AudioStopOptions.AsAuthored);
+        patch_Audio.StopMusic(AudioStopOptions.AsAuthored);
         currentSong = null;
     }
 
