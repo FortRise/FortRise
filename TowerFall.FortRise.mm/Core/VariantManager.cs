@@ -7,7 +7,7 @@ using TowerFall;
 namespace FortRise;
 
 /// <summary>
-/// Use to manager variants on load.
+/// Use to manage variants on load.
 /// </summary>
 public class VariantManager : IDisposable 
 {
