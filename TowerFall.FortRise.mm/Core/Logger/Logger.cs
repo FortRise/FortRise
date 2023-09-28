@@ -45,7 +45,7 @@ public static class Logger
         Engine.Instance?.Commands?.Log(text);
         if (consoleWindow != null)
             WriteLine(consoleWindow, text, level);
-        if (level == LogLevel.Error || level == LogLevel.Assert)
+        if (level == LogLevel.Assert)
             Debugger.Break();
     }
 
