@@ -28,6 +28,7 @@ public sealed class CustomPickupAttribute : Attribute
 
 public class PickupObject 
 {
+    public string Name;
     public Pickups ID;
     public float Chance;
 }
