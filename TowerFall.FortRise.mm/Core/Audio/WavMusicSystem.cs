@@ -17,9 +17,14 @@ public class WavMusicSystem : IMusicSystem
     {
         Stop(AudioStopOptions.Immediate);
 
-        current = patch_Audio.TrackMap[name].Create();
-        current.Looping = true;
-        current.Play();
+        if (patch_Audio.TryGetTrackMap(name, out var info)) 
+        {
+            current = info.Create();
+            current.Looping = true;
+            current.Play();
+            return;
+        }
+        Logger.Error($"[WAV Music System] No audio file named '{name}' exists on the Music Folder");
     }
 
     public void Resume()

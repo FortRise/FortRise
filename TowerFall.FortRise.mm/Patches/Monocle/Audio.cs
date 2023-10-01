@@ -21,6 +21,13 @@ public static class patch_Audio
         RegisterMusicSystem(new VanillaMusicSystem(), ".vanilla");
     }
 
+    public static bool TryGetTrackMap(string name, out TrackInfo info) 
+    {
+        if (TrackMap.TryGetValue(name, out info))
+            return true;
+        return false;
+    }
+
     public static void PlayMusic(IMusicSystem system, string name) 
     {
         system.Play(name);
