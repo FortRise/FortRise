@@ -109,14 +109,24 @@ public class VariantManager : IDisposable
     }
 
     public void AddArrowVariants(
-        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header) 
+        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header)  
     {
         var customArrowInfo = obj.InfoLoader();
-        var name = $"StartWith{RemoveSlashes(customArrowInfo.Name)}";
-        var variantInfo = new CustomVariantInfo(name, arrowVariantIcon, 
+        var name = $"{RemoveSlashes(customArrowInfo.Name)}";
+        AddArrowVariants(obj, arrowVariantIcon, arrowExcludeVariantIcon, name, header);
+    }
+
+    public void AddArrowVariants(
+        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string name, string header) 
+    {
+        string variantStartWithName = $"StartWith{name}";
+        var variantInfo = new CustomVariantInfo(variantStartWithName, arrowVariantIcon, 
             CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom) { Header = header };
         var variant = AddVariant(variantInfo);
-        AddPickupVariant(obj.PickupType, arrowExcludeVariantIcon, header);
+        string variantPickupName = $"No{name}";
+        if (!variantPickupName.EndsWith("Arrows"))
+            variantPickupName += " Arrows";
+        AddPickupVariant(obj.PickupType, arrowExcludeVariantIcon, variantPickupName, header);
 
         CreateLinks(main.StartWithBoltArrows, variant);
         CreateLinks(main.StartWithBombArrows, variant);
@@ -144,7 +154,11 @@ public class VariantManager : IDisposable
 
     public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon, string header) 
     {
-        var name = $"Exclude{RemoveSlashes(obj.Name)}";
+        AddPickupVariant(obj, pickupExcludeVariantIcon, $"No{RemoveSlashes(obj.Name)}", header);
+    }
+
+    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon, string name, string header) 
+    {
         var variantInfo = new CustomVariantInfo(name, pickupExcludeVariantIcon, 
             CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom, obj.ID) { Header = header };
         AddVariant(variantInfo);
@@ -155,7 +169,7 @@ public class VariantManager : IDisposable
         var idx = name.IndexOf('/');
         if (idx != -1) 
         {
-            return name.Substring(idx);
+            return name.Substring(idx + 1);
         }
         return name;
     }
