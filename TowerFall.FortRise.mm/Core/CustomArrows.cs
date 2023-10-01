@@ -33,7 +33,6 @@ namespace TowerFall
     {
         public ArrowTypes Types;
         public PickupObject PickupType;
-        public TreasureChest.Types SpawnType;
         public ArrowInfoLoader InfoLoader;
     }
 
