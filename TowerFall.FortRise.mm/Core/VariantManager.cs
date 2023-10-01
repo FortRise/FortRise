@@ -103,20 +103,20 @@ public class VariantManager : IDisposable
         return variant;
     }
 
-    public void AddArrowVariants(ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon) 
+    public void AddArrowVariant(ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon) 
     {
-        AddArrowVariants(obj, arrowVariantIcon, arrowExcludeVariantIcon, currentContext);
+        AddArrowVariant(obj, arrowVariantIcon, arrowExcludeVariantIcon, currentContext);
     }
 
-    public void AddArrowVariants(
+    public void AddArrowVariant(
         ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header)  
     {
         var customArrowInfo = obj.InfoLoader();
         var name = $"{RemoveSlashes(customArrowInfo.Name)}";
-        AddArrowVariants(obj, arrowVariantIcon, arrowExcludeVariantIcon, name, header);
+        AddArrowVariant(obj, arrowVariantIcon, arrowExcludeVariantIcon, name, header);
     }
 
-    public void AddArrowVariants(
+    public void AddArrowVariant(
         ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string name, string header) 
     {
         string variantStartWithName = $"StartWith{name}";
