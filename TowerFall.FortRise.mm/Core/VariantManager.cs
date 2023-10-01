@@ -21,6 +21,7 @@ public class VariantManager : IDisposable
     /// <see cref="TowerFall.MatchVariants"/> is a TowerFall class for holding all the variants.
     /// </summary>
     public MatchVariants MatchVariants => main;
+    public static List<(Variant, ArrowTypes)> StartWithVariants = new();
 
     internal Dictionary<string, List<Variant>> ToAdd = new();
     internal int TotalCustomVariantsAdded;
@@ -97,10 +98,66 @@ public class VariantManager : IDisposable
             toAdd.Add(variant);
             return variant;
         }
-        var list = new List<Variant>();
-        list.Add(variant);
+        var list = new List<Variant> { variant };
         ToAdd.Add(header, list);
         return variant;
+    }
+
+    public void AddArrowVariants(ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon) 
+    {
+        AddArrowVariants(obj, arrowVariantIcon, arrowExcludeVariantIcon, currentContext);
+    }
+
+    public void AddArrowVariants(
+        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header) 
+    {
+        var customArrowInfo = obj.InfoLoader();
+        var name = $"StartWith{RemoveSlashes(customArrowInfo.Name)}";
+        var variantInfo = new CustomVariantInfo(name, arrowVariantIcon, 
+            CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom) { Header = header };
+        var variant = AddVariant(variantInfo);
+        AddPickupVariant(obj.PickupType, arrowExcludeVariantIcon, header);
+
+        CreateLinks(main.StartWithBoltArrows, variant);
+        CreateLinks(main.StartWithBombArrows, variant);
+        CreateLinks(main.StartWithDrillArrows, variant);
+        CreateLinks(main.StartWithBrambleArrows, variant);
+        CreateLinks(main.StartWithFeatherArrows, variant);
+        CreateLinks(main.StartWithLaserArrows, variant);
+        CreateLinks(main.StartWithPrismArrows, variant);
+        CreateLinks(main.StartWithRandomArrows, variant);
+        CreateLinks(main.StartWithTriggerArrows, variant);
+        CreateLinks(main.StartWithSuperBombArrows, variant);
+        CreateLinks(main.StartWithToyArrows, variant);
+        foreach (var (other, _) in StartWithVariants) 
+        {
+            CreateLinks(other, variant);
+        }
+
+        StartWithVariants.Add((variant, obj.Types));
+    }
+
+    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon) 
+    {
+        AddPickupVariant(obj, pickupExcludeVariantIcon, currentContext);
+    }
+
+    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon, string header) 
+    {
+        var name = $"Exclude{RemoveSlashes(obj.Name)}";
+        var variantInfo = new CustomVariantInfo(name, pickupExcludeVariantIcon, 
+            CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom, obj.ID) { Header = header };
+        AddVariant(variantInfo);
+    }
+
+    private static string RemoveSlashes(string name) 
+    {
+        var idx = name.IndexOf('/');
+        if (idx != -1) 
+        {
+            return name.Substring(idx);
+        }
+        return name;
     }
 
     /// <summary>
@@ -208,6 +265,16 @@ public struct CustomVariantInfo
         Flags = flag;
         Description = string.Empty;
         Exclusions = null;
+        Header = null;
+    }
+
+    public CustomVariantInfo(string name, Subtexture icon, CustomVariantFlags flags = CustomVariantFlags.None, params Pickups[] exclusions) 
+    {
+        Name = name;
+        Icon = icon;
+        Flags = flags;
+        Description = string.Empty;
+        Exclusions = exclusions;
         Header = null;
     }
 

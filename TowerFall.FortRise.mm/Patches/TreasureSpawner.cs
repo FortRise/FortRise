@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FortRise;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -102,5 +103,37 @@ public class patch_TreasureSpawner : TreasureSpawner
             DefaultTreasureChances[(int)id] = chance;
             FullTreasureMask[(int)id] = 1;
         }
+    }
+
+    public extern ArrowTypes orig_GetRandomArrowType(bool includeDefaultArrows);
+
+    public ArrowTypes GetRandomArrowType(bool includeDefaultArrows) 
+    {
+        var arrow = orig_GetRandomArrowType(includeDefaultArrows);
+        var list = new List<ArrowTypes> { arrow };
+        foreach (var customArrow in RiseCore.ArrowsRegistry.Values)
+        {
+            if (Exclusions.Contains(customArrow.PickupType.ID))
+                continue;
+            
+            list.Add(customArrow.Types);
+        }
+        return Random.Choose(list);
+    }
+
+    public extern List<Pickups> orig_GetArrowShufflePickups();
+
+    public List<Pickups> GetArrowShufflePickups() 
+    {
+        var list = orig_GetArrowShufflePickups();
+        foreach (var customArrow in RiseCore.ArrowsRegistry.Values)
+        {
+            if (Exclusions.Contains(customArrow.PickupType.ID))
+                continue;
+            
+            list.Add(customArrow.PickupType.ID);
+        }
+        list.Shuffle();
+        return list;
     }
 }

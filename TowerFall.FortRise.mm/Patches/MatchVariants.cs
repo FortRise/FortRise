@@ -102,6 +102,34 @@ public class patch_MatchVariants : MatchVariants
     {
         return InternalCustomVariants[name];
     }
+
+    public extern ArrowTypes orig_GetStartArrowType(int playerIndex, ArrowTypes randomType);
+
+    public ArrowTypes GetStartArrowType(int playerIndex, ArrowTypes randomType) 
+    {
+        foreach (var (arrowVariant, arrowTypes) in VariantManager.StartWithVariants)
+        {
+            if (!arrowVariant[playerIndex])
+                continue;
+            return arrowTypes;
+        }
+        return orig_GetStartArrowType(playerIndex, randomType);
+    }
+
+    public extern List<Pickups> orig_GetItemExclusions(bool customTower);
+
+    public List<Pickups> GetItemExclusions(bool customTower)
+    {
+        var list = orig_GetItemExclusions(customTower);
+        foreach (var customVariant in InternalCustomVariants.Values) 
+        {
+            if (customVariant && customVariant.ItemExclusions != null) 
+            {
+                list.AddRange(customVariant.ItemExclusions);
+            }
+        }
+        return list;
+    }
 }
 
 [Obsolete("Use FortRise.CustomVariantInfo")]
