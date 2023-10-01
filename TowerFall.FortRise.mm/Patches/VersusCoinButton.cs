@@ -22,8 +22,7 @@ public class patch_VersusCoinButton : VersusCoinButton
 
     public override void Render() 
     {
-        if (patch_MainMenu.VersusMatchSettings.CurrentModeName == null)
-            patch_MainMenu.VersusMatchSettings.CurrentModeName = "LastManStanding";
+        patch_MainMenu.VersusMatchSettings.CurrentModeName ??= "LastManStanding";
 
         var mode = CustomVersusRoundLogic.LookUpModes[patch_MainMenu.VersusMatchSettings.CurrentModeName];
         patch_MainMenu.VersusMatchSettings.Mode = mode;

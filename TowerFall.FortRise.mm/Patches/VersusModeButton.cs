@@ -28,7 +28,6 @@ public class patch_VersusModeButton : VersusModeButton
         const int BuiltInModeCount = 3;
         base_Update();
 
-        Modes mode = MainMenu.VersusMatchSettings.Mode;
         string currentModeName = patch_MainMenu.VersusMatchSettings.CurrentModeName;
         if (!Selected)
             return;
