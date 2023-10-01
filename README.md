@@ -51,11 +51,6 @@ Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers w
 TF EX is a mod that attempt to bring netplay to TowerFall (EX as a Fighting game EX move, usually costing meter).
 ![netplay](https://github.com/Fcornaire/TF.EX/blob/main/images/demo.gif)
 
-## Adventure
-### By: [Terria](https://github.com/Terria-K)
-Loads custom Dark World levels with workshop-like button without having to mess around with original game files.
-![adventure](./img/menu.png)
-
 ## [Eight-Player Mode (WIP)](https://github.com/Terria-K/EightPlayerMod)
 ### By: [Terria](https://github.com/Terria-K) and [RedDude](https://github.com/RedDude)
 Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide quest.
