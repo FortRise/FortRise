@@ -94,6 +94,7 @@ public static partial class RiseCore
     public static bool DebugMode;
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
+    public static bool NoErrorScene { get; private set; }
     internal static bool NoRichPresence;
     internal static bool DumpResources;
 
@@ -248,6 +249,9 @@ public static partial class RiseCore
                 break;
             case "--nointro":
                 NoIntro = true;
+                break;
+            case "--no-error-scene":
+                NoErrorScene = true;
                 break;
             case "--loadlog":
                 TFGame.StartLoadLog();

@@ -53,7 +53,7 @@ public class patch_Engine : Engine
             }
             catch (Exception e) 
             {
-                if (Instance.Scene == null) 
+                if (Instance.Scene == null || RiseCore.NoErrorScene) 
                 {
                     TFGame.Log(e, false);
                     TFGame.OpenLog();
