@@ -46,6 +46,8 @@ public static partial class RiseCore
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
     public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
     public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
+    // TODO make this public
+    internal static Dictionary<string, GameMode> GameModes = new();
 
     // Extending enums this way. Please inform me if there's a better way to do this.
     public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
@@ -719,6 +721,7 @@ public static partial class RiseCore
 
                 var pickupObject = new PickupObject() 
                 {
+                    Name = name,
                     ID = (Pickups)PickupLoaderCount,
                     Chance = arrow.Chance
                 };
@@ -727,7 +730,6 @@ public static partial class RiseCore
                 ArrowsRegistry[name] = new ArrowObject() 
                 {
                     Types = stride,
-                    SpawnType = TreasureChest.Types.Normal,
                     InfoLoader = infoLoader,
                     PickupType = pickupObject
                 };
@@ -769,6 +771,7 @@ public static partial class RiseCore
 
                 var pickupObject = new PickupObject() 
                 {
+                    Name = pickupName,
                     ID = (Pickups)PickupLoaderCount,
                     Chance = pickup.Chance
                 };
@@ -846,4 +849,6 @@ public static partial class RiseCore
         }
         return false;
     }
+
+    public static ArrowTypes GetArrowID(string name) => RiseCore.ArrowsRegistry[name].Types;
 }
