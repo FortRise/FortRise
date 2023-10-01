@@ -182,7 +182,7 @@ public class Installer : MarshalByRefObject
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "4.3.1");
+        sb.AppendLine("Installer Version: " + "4.4.0");
 
         var text = sb.ToString();
 
