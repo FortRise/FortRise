@@ -1,6 +1,7 @@
 using TowerFall;
 using Monocle;
 using System;
+using System.Collections.Generic;
 
 namespace FortRise;
 
@@ -16,29 +17,185 @@ public struct OnTower
         // Future use...
     }
 
-    public VersusPatch VERSUS_SacredGround => new VersusPatch(0);
-    public VersusPatch VERSUS_TwilightSpire => new VersusPatch(1);
-    public VersusPatch VERSUS_Backfire => new VersusPatch(2);
-    public VersusPatch VERSUS_Flight => new VersusPatch(3);
-    public VersusPatch VERSUS_Mirage => new VersusPatch(4);
-    public VersusPatch VERSUS_Thornwood => new VersusPatch(5);
-    public VersusPatch VERSUS_FrostfangKeep => new VersusPatch(6);
-    public VersusPatch VERSUS_KingsCourt => new VersusPatch(7);
-    public VersusPatch VERSUS_SunkenCity => new VersusPatch(8);
-    public VersusPatch VERSUS_Moonstone => new VersusPatch(9);
-    public VersusPatch VERSUS_Towerforge => new VersusPatch(10);
-    public VersusPatch VERSUS_Ascension => new VersusPatch(11);
-    public VersusPatch VERSUS_TheAmaranth => new VersusPatch(12);
-    public VersusPatch VERSUS_Dreadwood => new VersusPatch(13);
-    public VersusPatch VERSUS_Darkfang => new VersusPatch(14);
-    public VersusPatch VERSUS_Cataclysm => new VersusPatch(15);
+#region VersusPatch
+    public readonly VersusPatch VERSUS_SacredGround => new VersusPatch(0);
+    public readonly VersusPatch VERSUS_TwilightSpire => new VersusPatch(1);
+    public readonly VersusPatch VERSUS_Backfire => new VersusPatch(2);
+    public readonly VersusPatch VERSUS_Flight => new VersusPatch(3);
+    public readonly VersusPatch VERSUS_Mirage => new VersusPatch(4);
+    public readonly VersusPatch VERSUS_Thornwood => new VersusPatch(5);
+    public readonly VersusPatch VERSUS_FrostfangKeep => new VersusPatch(6);
+    public readonly VersusPatch VERSUS_KingsCourt => new VersusPatch(7);
+    public readonly VersusPatch VERSUS_SunkenCity => new VersusPatch(8);
+    public readonly VersusPatch VERSUS_Moonstone => new VersusPatch(9);
+    public readonly VersusPatch VERSUS_Towerforge => new VersusPatch(10);
+    public readonly VersusPatch VERSUS_Ascension => new VersusPatch(11);
+    public readonly VersusPatch VERSUS_TheAmaranth => new VersusPatch(12);
+    public readonly VersusPatch VERSUS_Dreadwood => new VersusPatch(13);
+    public readonly VersusPatch VERSUS_Darkfang => new VersusPatch(14);
+    public readonly VersusPatch VERSUS_Cataclysm => new VersusPatch(15);
 
-    public void VERSUS_All(Action<VersusPatch> patchAll) 
+    public readonly void VERSUS_All(Action<VersusPatch> patchAll) 
     {
         for (int i = 0; i < 16; i++) 
         {
             var versusPatch = new VersusPatch(i);
             patchAll(versusPatch);
+        }
+    }
+#endregion
+
+#region DarkWorldPatch
+    public readonly DarkWorldPatch DARKWORLD_TheAmaranth => new(0);
+    public readonly DarkWorldPatch DARKWORLD_Dreadwood => new(1);
+    public readonly DarkWorldPatch DARKWORLD_Darkfang => new(2);
+    public readonly DarkWorldPatch DARKWORLD_Cataclysm => new(3);
+    public readonly DarkWorldPatch DARKWORLD_DarkGauntlet => new(4);
+#endregion
+}
+
+/// <summary>
+/// A struct that patch the dark world towers. Please use this <see cref="ITowerPatcher.PatchTower(FortRise.OnTower)"/> 
+/// to handle the patch.
+/// </summary>
+public struct DarkWorldPatch 
+{
+    internal int LevelID;
+    internal DarkWorldPatch(int id) 
+    {
+        if (id >= GameData.DarkWorldTowers.Count)
+        {
+            Logger.Warning("[Tower Patcher] Level ID does not exists!");
+        }
+        LevelID = id;
+    }
+
+    public readonly LevelSet Normal()
+    {
+        var tower = GameData.DarkWorldTowers[LevelID];
+        return new LevelSet(this, tower.Normal);
+    }
+
+    public readonly LevelSet Hardcore()
+    {
+        var tower = GameData.DarkWorldTowers[LevelID];
+        return new LevelSet(this, tower.Hardcore);
+    }
+
+    public readonly LevelSet Legendary()
+    {
+        var tower = GameData.DarkWorldTowers[LevelID];
+        return new LevelSet(this, tower.Legendary);
+    }
+
+
+    public struct LevelSet 
+    {
+        private DarkWorldPatch patch;
+        private List<DarkWorldTowerData.LevelData> setData;
+        internal LevelSet(DarkWorldPatch patch, List<DarkWorldTowerData.LevelData> setData) 
+        {
+            this.patch = patch;
+            this.setData = setData;
+        }
+
+        public readonly DarkWorldPatch Back() 
+        {
+            return patch;
+        }
+
+        public readonly FileLevel Level(int file) 
+        {
+            return new FileLevel(this, setData[file]);
+        }
+
+        public readonly LevelSet AllLevel(Action<FileLevel> levelAction) 
+        {
+            for (int i = 0; i < setData.Count; i++) 
+            {
+                levelAction(new FileLevel(this, setData[i]));
+            }
+            return this;
+        }
+
+
+        public struct FileLevel 
+        {
+            private DarkWorldTowerData.LevelData levelData;
+            private LevelSet levelSet;
+            internal FileLevel(LevelSet levelSet, DarkWorldTowerData.LevelData levelData) 
+            {
+                this.levelData = levelData;
+                this.levelSet = levelSet;
+            }
+
+            public readonly LevelSet Back() 
+            {
+                return levelSet;
+            }
+
+            public readonly FileLevel AddTreasure(Pickups pickup) 
+            {
+                for (int i = 0; i < 4; i++) 
+                {
+                    AddTreasure(pickup, i);
+                }
+                return this;
+            }
+
+            public readonly FileLevel AddTreasure(string pickup) 
+            {
+                var realPickup = RiseCore.PickupRegistry[pickup].ID;
+                return AddTreasure(realPickup);
+            }
+
+            public readonly FileLevel AddTreasure(string pickup, int playerAmount) 
+            {
+                var realPickup = RiseCore.PickupRegistry[pickup].ID;
+                return AddTreasure(realPickup, playerAmount);
+            }
+
+            public readonly FileLevel AddTreasure(Pickups pickup, int playerAmount) 
+            {
+                levelData.TreasureData[playerAmount].Add(pickup);
+                return this;
+            }
+
+            public readonly FileLevel RemoveTreasure(Pickups pickup) 
+            {
+                for (int i = 0; i < 4; i++) 
+                {
+                    RemoveTreasure(pickup, i);
+                }
+                return this;
+            }
+
+            public readonly FileLevel RemoveTreasure(string pickup) 
+            {
+                var realPickup = RiseCore.PickupRegistry[pickup].ID;
+                return RemoveTreasure(realPickup);
+            }
+
+            public readonly FileLevel RemoveTreasure(string pickup, int playerAmount) 
+            {
+                var realPickup = RiseCore.PickupRegistry[pickup].ID;
+                return RemoveTreasure(realPickup, playerAmount);
+            }
+
+            public readonly FileLevel RemoveTreasure(Pickups pickup, int playerAmount) 
+            {
+                levelData.TreasureData[playerAmount].Remove(pickup);
+                return this;
+            }
+
+            public readonly FileLevel LogTotalTreasure(Pickups pickup) 
+            {
+                foreach (var treasure in levelData.TreasureData[0]) 
+                {
+                    Logger.Info("[LevelPatcher] Treasure: " + treasure);
+                }
+                return this;
+            }
         }
     }
 }
