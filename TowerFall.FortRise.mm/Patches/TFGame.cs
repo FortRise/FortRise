@@ -55,6 +55,8 @@ namespace TowerFall
         public void ctor(bool noIntro) 
         {
             orig_ctor(noIntro || RiseCore.NoIntro);
+
+            FortRise.RiseCore.ModuleStart();
             if (!RiseCore.NoIntro && !noIntro)
                 this.noIntro = RiseCore.DebugMode;
         }
@@ -203,7 +205,7 @@ namespace TowerFall
         protected override void Initialize() 
         {
             orig_LoadContent();
-            FortRise.RiseCore.ModuleStart();
+            FortRise.RiseCore.RegisterAllMods();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             patch_Arrow.ExtendArrows();
             patch_TreasureSpawner.ExtendTreasures();

@@ -131,13 +131,15 @@ public static partial class RiseCore
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 
-        new NoModule(new ModuleMetadata() {
+         new NoModule(new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
         }).Register();
 
         AdventureModule = new AdventureModule();
+        AdventureModule.InternalLoad();
         AdventureModule.Register();
+        InternalFortModules.Add(AdventureModule);
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
             AssemblyName asmName = new AssemblyName(asmArgs.Name);
@@ -407,6 +409,14 @@ public static partial class RiseCore
         }
     }
 
+    internal static void RegisterAllMods() 
+    {
+        foreach (var mod in InternalFortModules) 
+        {
+            mod.Register();
+        }
+    }
+
     internal static void WriteBlacklist(JsonValue ctx, string path) 
     {
         JsonTextWriter.WriteToFile(path, ctx);
@@ -417,20 +427,7 @@ public static partial class RiseCore
         if (module is NoModule)
             return;
 
-        // Everything is registered, so no need to register it again.
-        if (InternalFortModules.Contains(module)) 
-        {
-            module.LoadContent();
-            module.InternalLoad();
-            return;
-        }
-
-        lock (InternalFortModules) 
-            InternalFortModules.Add(module);
-
         module.LoadContent();
-        module.InternalLoad();
-
         module.Enabled = true;
         if (module is LuaModule)
             return;

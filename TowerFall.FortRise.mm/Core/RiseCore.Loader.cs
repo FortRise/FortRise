@@ -205,21 +205,23 @@ public static partial class RiseCore
                 if (customAttribute == null)
                     continue;
                 
-                FortModule obj = Activator.CreateInstance(t) as FortModule;
+                FortModule module = Activator.CreateInstance(t) as FortModule;
                 if (metadata.Name == string.Empty)
                 {
                     metadata.Name = customAttribute.Name;
                 }
-                obj.Meta = metadata;
-                obj.Name = customAttribute.Name;
-                obj.ID = customAttribute.GUID;
+                module.Meta = metadata;
+                module.Name = customAttribute.Name;
+                module.ID = customAttribute.GUID;
                 var content = resource.Content;
-                obj.Content = content;
+                module.Content = content;
+                module.InternalLoad();
+                lock (InternalFortModules) 
+                    InternalFortModules.Add(module);
 
-                ModuleGuids.Add(obj.ID);
-                obj.Register();
+                ModuleGuids.Add(module.ID);
 
-                Logger.Info($"[Loader] {obj.ID}: {obj.Name} Registered.");
+                Logger.Info($"[Loader] {module.ID}: {module.Name} Loaded.");
                 break;
             }
         }

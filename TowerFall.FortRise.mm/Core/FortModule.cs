@@ -29,14 +29,34 @@ public abstract partial class FortModule
     public bool RequiredRestart { get; set; }
     public bool DisposeTextureAfterUnload { get; set; } = true;
 
+    /// <summary>
+    /// Use to let the mod loader know which settings type to initialize.
+    /// </summary>
     public virtual Type SettingsType { get; }
+    /// <summary>
+    /// An initialized settings from <see cref="FortModule.SettingsType"/>. Cast this with your own settings type.
+    /// </summary>
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
+    /// <summary>
+    /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..
+    /// </summary>
     public FortContent Content;
 
-
+    /// <summary>
+    /// Override this function to load your hooks and set environment variables for your mod.
+    /// <br/>
+    /// DO NOT LOAD YOUR CONTENTS HERE OR INITIALIZE SOMETHING. 
+    /// <br/>
+    /// Use <see cref="FortModule.LoadContent"/>
+    /// or <see cref="FortModule.Initialize"/> instead.
+    /// </summary>
     public abstract void Load();
+
+    /// <summary>
+    /// Override this function to unload your hooks or dispose your resources.
+    /// </summary>
     public abstract void Unload();
 
 
