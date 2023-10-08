@@ -114,6 +114,7 @@ namespace TowerFall
                 }
             }
 
+            FortRise.RiseCore.Start();
             RiseCore.ParseArgs(args);
             var patchFile = "PatchVersion.txt";
             if (File.Exists(patchFile)) 
@@ -251,6 +252,7 @@ namespace TowerFall
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
+                    patch_XGamepadInput.Init();
                     PlayerInput.AssignInputs();
                     for (int i = 0; i < 4; i++)
                     {

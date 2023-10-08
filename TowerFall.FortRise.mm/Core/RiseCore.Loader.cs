@@ -16,7 +16,6 @@ public static partial class RiseCore
 
         internal static void InitializeMods() 
         {
-            BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
 
             var directory = Directory.GetDirectories("Mods");
             foreach (var dir in directory) 

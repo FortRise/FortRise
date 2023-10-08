@@ -17,6 +17,7 @@ using TowerFall;
 using System.Diagnostics;
 using System.Text;
 using YYProject.XXHash;
+using Ionic.Zip;
 
 namespace FortRise;
 
@@ -120,6 +121,60 @@ public static partial class RiseCore
         catch 
         {
             return new HashSet<string>(0);
+        }
+    }
+
+    internal static void Start() 
+    {
+        Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
+        var directory = Directory.GetDirectories("Mods");
+        foreach (var dir in directory) 
+        {
+            if (dir.Contains("_RelinkerCache"))
+                continue;    
+            var dirInfo = new DirectoryInfo(dir);
+            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(dirInfo.Name))  
+                continue;
+            
+            LoadDir(dir);
+        }
+        var files = Directory.GetFiles("Mods");
+        foreach (var file in files) 
+        {
+            if (!file.EndsWith("zip"))
+                continue;
+            var fileName = Path.GetFileName(file);
+            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(Path.GetFileName(fileName))) 
+                continue;
+            
+            LoadZip(file);
+        }
+        static void LoadDir(string dir) 
+        {
+            var metaPath = Path.Combine(dir, "env.json");
+            if (!File.Exists(metaPath))
+                return;
+            var value = JsonTextReader.FromFile(metaPath);    
+            foreach (var val in value.Pairs) 
+            {
+                Environment.SetEnvironmentVariable(val.Key, val.Value);
+            }
+        }
+
+        static void LoadZip(string file)
+        {
+            using var zipFile = ZipFile.Read(file);
+
+            if (!zipFile.ContainsEntry("env.json"))
+                return;
+            
+            var entry = zipFile["env.json"];
+            using var memStream = entry.ExtractStream();
+            var value = JsonTextReader.FromStream(memStream);
+            foreach (var val in value.Pairs) 
+            {
+                Environment.SetEnvironmentVariable(val.Key, val.Value);
+            }
         }
     }
 
