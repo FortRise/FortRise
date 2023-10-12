@@ -11,6 +11,7 @@ public class MapRendererNode : CompositeComponent
     public XmlElement Xml;
     public RiseCore.Resource Mod;
     public Subtexture Water;
+    public Subtexture Land;
     public bool HideVanilla;
 
     public Dictionary<string, AnimatedTower> AnimatedTowers = new();
@@ -41,7 +42,8 @@ public class MapRendererNode : CompositeComponent
                 break;
             case "landImage":
                 var landImageName = element.Attr("image", "mapLand");
-                Add(new Image(atlas[landImageName]));
+                Land = atlas[landImageName];
+                Add(new Image(Land));
                 break;
             case "waterImage":
                 var waterImageName = element.Attr("image", "mapWater");

@@ -19,6 +19,35 @@ public class patch_MapRenderer : MapRenderer
     private Sprite<string> darkfang;
     private Sprite<string> cataclysm;
 
+    // The devs does not make these properties instance instead of static.
+    // Fine, I'll do it myself.
+    public int GetInstanceWidth() 
+    {
+        if (node != null && node.Land != null) 
+        {
+            return node.Land.Width;
+        }
+        return MapRenderer.Width;
+    }
+
+    public int GetInstanceHeight() 
+    {
+        if (node != null && node.Land != null) 
+        {
+            return node.Land.Height;
+        }
+        return MapRenderer.Height;
+    }
+
+    public Vector2 GetInstanceCenter() 
+    {
+        if (node != null && node.Land != null) 
+        {
+            return node.Land.HalfSize;
+        }
+        return MapRenderer.Center;
+    }
+
 
     public patch_MapRenderer(bool forceMoonstone) : base(forceMoonstone)
     {
