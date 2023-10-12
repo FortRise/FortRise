@@ -108,7 +108,7 @@ public class patch_MapRenderer : MapRenderer
         }
         if (RiseCore.GameData.MapRenderers.TryGetValue(levelSet, out var val)) 
         {
-            node = RiseCore.GameData.MapRenderers[levelSet];
+            node = val;
             Add(node); 
             ToggleAllMainElements(false);
         }
