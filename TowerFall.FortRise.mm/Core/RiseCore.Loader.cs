@@ -16,7 +16,6 @@ public static partial class RiseCore
 
         internal static void InitializeMods() 
         {
-
             var directory = Directory.GetDirectories("Mods");
             foreach (var dir in directory) 
             {
@@ -214,6 +213,7 @@ public static partial class RiseCore
                 module.ID = customAttribute.GUID;
                 var content = resource.Content;
                 module.Content = content;
+                module.ParseArgs(RiseCore.ApplicationArgs);
                 module.InternalLoad();
                 lock (InternalFortModules) 
                     InternalFortModules.Add(module);

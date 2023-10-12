@@ -98,6 +98,7 @@ public static partial class RiseCore
     public static bool NoErrorScene { get; private set; }
     internal static bool NoRichPresence;
     internal static bool DumpResources;
+    internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
 
@@ -246,6 +247,7 @@ public static partial class RiseCore
 
     public static void ParseArgs(string[] args) 
     {
+        ApplicationArgs = args;
         var compiledArgs = new HashSet<string>(args);
         if (File.Exists("launch.txt")) 
         {
