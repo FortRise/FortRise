@@ -336,6 +336,16 @@ public class FortContent
         return Array.Empty<string>();
     }
 
+    public TrackInfo LoadMusic(string path) 
+    {
+        var musicPath = contentPath + "/" + path;
+        var musicResource = this[musicPath];
+        using var musicStream = musicResource.Stream;
+        var resourceType = musicResource.ResourceType;
+        var trackInfo = new TrackInfo(path, musicPath, resourceType);
+        return trackInfo;
+    }
+
     public RiseCore.Resource[] GetResources(string path) 
     {
         if (TryGetValue(path, out var folder)) 

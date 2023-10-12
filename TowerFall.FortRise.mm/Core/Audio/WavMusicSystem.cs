@@ -27,6 +27,13 @@ public class WavMusicSystem : IMusicSystem
         Logger.Error($"[WAV Music System] No audio file named '{name}' exists on the Music Folder");
     }
 
+    public void Play(TrackInfo trackInfo)
+    {
+        current = trackInfo.Create();
+        current.Looping = true;
+        current.Play();
+    }
+
     public void Resume()
     {
         current?.Resume();
