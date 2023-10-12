@@ -53,6 +53,7 @@ public class patch_Engine : Engine
             }
             catch (Exception e) 
             {
+                Logger.Error(e.ToString());
                 if (Instance.Scene == null || RiseCore.NoErrorScene) 
                 {
                     TFGame.Log(e, false);
@@ -63,9 +64,8 @@ public class patch_Engine : Engine
                 {
                     ErrorSceneBuilder.HandleErrorScene(e);
                     end = true;
+                    continue;
                 }
-                Logger.Error(e.ToString());
-                continue;
             }
             break;
         }
