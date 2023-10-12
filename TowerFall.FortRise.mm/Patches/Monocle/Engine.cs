@@ -56,9 +56,7 @@ public class patch_Engine : Engine
                 Logger.Error(e.ToString());
                 if (Instance.Scene == null || RiseCore.NoErrorScene) 
                 {
-                    TFGame.Log(e, false);
-                    TFGame.OpenLog();
-                    break;
+                    goto Fatal;
                 }
                 if ((bool)fieldGameRunApplication.GetValue(this)) 
                 {
@@ -66,6 +64,10 @@ public class patch_Engine : Engine
                     end = true;
                     continue;
                 }
+                Fatal:
+                TFGame.Log(e, false);
+                TFGame.OpenLog();
+                break;
             }
             break;
         }
