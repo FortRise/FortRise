@@ -111,7 +111,9 @@ public class patch_MapRenderer : MapRenderer
             node = val;
             Add(node); 
             ToggleAllMainElements(false);
+            return;
         }
+        ToggleAllMainElements(true);
     }
 
     public void ToggleAllMainElements(bool toggle) 
