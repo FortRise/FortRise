@@ -35,12 +35,13 @@ public class patch_XGamepadInput : XGamepadInput
     }
 
     [MonoModReplace]
+    [MonoModConstructor]
     public void ctor(int xGamepadID) 
     {
         XGamepadIndex = xGamepadID;
         XGamepad = MInput.XGamepads[xGamepadID];
         id = GamePad.GetGUIDEXT((PlayerIndex)xGamepadID);
-        XmlElement xmlElement = ControllerInfoMap.TryGetValue(id, out var val) ? val[id] : ControllerInfoMap["null"];
+        XmlElement xmlElement = ControllerInfoMap.TryGetValue(id, out var val) ? val : ControllerInfoMap["null"];
         name = xmlElement["name"].InnerText.ToUpper(CultureInfo.InvariantCulture);
         var text = xmlElement.ChildText("buttonset", "default");
 
