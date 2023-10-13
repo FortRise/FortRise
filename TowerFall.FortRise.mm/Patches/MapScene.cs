@@ -85,9 +85,8 @@ namespace TowerFall
             session.StartGame();
         }
 
-        // This is a hack to fix System.TypeLoadException on MacOS and Linux
         [MonoModReplace]
-        [MonoModPatch("DarkWorldIntroSequence")]
+        [MonoModPatch("DarkWorldIntroSequence")] // This is a hack to fix System.TypeLoadException on MacOS and Linux
         private IEnumerator DarkWorldIntroSequence_Patch() 
         {
             int num = 0;
