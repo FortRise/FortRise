@@ -3,6 +3,7 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoMod;
+using Steamworks;
 
 namespace Monocle;
 
@@ -85,7 +86,6 @@ public static class patch_MInput
                 MInput.XGamepads.Add(gamepadData);
                 Logger.Info("Add XGamepad: " + gamepadData);
                 MInput.GamepadsChanged = true;
-                Logger.Log("XGamepadCount: " + XGamepads.Count);
             }
         }
     }
