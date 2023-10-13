@@ -865,6 +865,8 @@ public static partial class RiseCore
         {
             Logger.Log(e.ToString());
         }
+
+        module.AfterLoad();
     }
 
     internal static void Unregister(this FortModule module) 
@@ -896,11 +898,16 @@ public static partial class RiseCore
         }
     }
 
-    public static bool IsModExists(string name) 
+    /// <summary>
+    /// Checks if a <see cref="FortRise.FortModule"/> exists or been loaded. This checks for a Fort name, not a metadata name.
+    /// </summary>
+    /// <param name="modName">A Fort name, not a metadata name</param>
+    /// <returns>true if found, else false</returns>
+    public static bool IsModExists(string modName) 
     {
         foreach (var module in InternalFortModules) 
         {
-            if (module.Meta.Name == name) 
+            if (module.Name == modName) 
             {
                 return true;
             }

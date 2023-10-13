@@ -45,7 +45,7 @@ public abstract partial class FortModule
     public FortContent Content;
 
     /// <summary>
-    /// Override this function to load your hooks and set environment variables for your mod.
+    /// Override this function to load your hooks, events, and set environment variables for your mod.
     /// <br/>
     /// DO NOT LOAD YOUR CONTENTS HERE OR INITIALIZE SOMETHING. 
     /// <br/>
@@ -206,16 +206,38 @@ public abstract partial class FortModule
         }
     }
 
-
+    /// <summary>
+    /// Override this function and this is called after all mods are loaded and 
+    /// this mod is registered.
+    /// </summary>
+    public virtual void AfterLoad() {}
+    /// <summary>
+    /// Override this function and load your contents here such as <see cref="Monocle.Atlas"/>,
+    /// <see cref="Monocle.SFX"/>, <see cref="Monocle.SpriteData"/>, etc.. <br/>
+    /// There is <see cref="FortModule.Content"/> you can use to load your content inside of your mod folder or zip. 
+    /// </summary>
     public virtual void LoadContent() {}
+    /// <summary>
+    /// Override this function and this is called after all the game data is loaded.
+    /// </summary>
     public virtual void Initialize() {}
     [Obsolete("Use FortModule.OnVariantsRegister(VariantManager, bool) instead")]
     public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
+    /// <summary>
+    /// Override this function and allows you to add your own variant using the <paramref name="manager"/>.
+    /// </summary>
+    /// <param name="manager">A <see cref="FortRise.VariantManager"/> use to add variant</param>
+    /// <param name="noPerPlayer">Checks if the variant would not a per player variant, default is true</param>
     public virtual void OnVariantsRegister(VariantManager manager, bool noPerPlayer = false) {}
+    /// <summary>
+    /// Override this function and allows you to parse a launch arguments that has been passed to the game.
+    /// </summary>
+    /// <param name="args">A launch arguments that has been passed to the game</param>
     public virtual void ParseArgs(string[] args) 
     {
     }
 
+    /// <inheritdoc cref="RiseCore.IsModExists(string)"/>
     public bool IsModExists(string modName) 
     {
         return RiseCore.IsModExists(modName);
