@@ -1,7 +1,7 @@
 var target = Argument("target", "Publish");
 var configuration = Argument("configuration", "Release");
 
-var version = "4.5.2";
+var version = "4.6.0";
 
 
 Task("CleanInstaller")
