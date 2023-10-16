@@ -10,10 +10,15 @@ public partial class RiseCore
 {
     public static class GameData 
     {
-        public static Dictionary<string, TowerTheme> Themes = new();
-        public static Dictionary<string, TilesetData> Tilesets = new();
-        public static Dictionary<string, XmlElement> BGs = new();
-        public static Dictionary<string, MapRendererNode> MapRenderers = new();
+        public static IReadOnlyDictionary<string, TowerTheme> Themes => InternalThemes;
+        public static IReadOnlyDictionary<string, TilesetData> Tilesets => InternalTilesets;
+        public static IReadOnlyDictionary<string, XmlElement> BGs => InternalBGs;
+        public static IReadOnlyDictionary<string, MapRendererNode> MapRenderers => InternalMapRenderers;
+
+        internal static Dictionary<string, TowerTheme> InternalThemes = new();
+        internal static Dictionary<string, TilesetData> InternalTilesets = new();
+        internal static Dictionary<string, XmlElement> InternalBGs = new();
+        internal static Dictionary<string, MapRendererNode> InternalMapRenderers = new();
 
         private static Queue<Action> themesActions = new();
         private static Queue<Action> tilesetActions = new();

@@ -516,7 +516,7 @@ public static class TowerRegistry
                 var theme = ThemeResource.Create(atlas, map);
                 return new patch_TowerTheme(xml["theme"], map, theme);
             }
-            else if (RiseCore.GameData.Themes.TryGetValue(xml.ChildText("theme").Trim(), out var theme)) 
+            else if (RiseCore.GameData.InternalThemes.TryGetValue(xml.ChildText("theme").Trim(), out var theme)) 
             {
                 return theme;
             }

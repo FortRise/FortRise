@@ -65,7 +65,7 @@ public class patch_MapRenderer : MapRenderer
             orig_OnSelectionChange(towerName);
             return;
         }
-        if (RiseCore.GameData.MapRenderers.TryGetValue(levelSet, out var node)) 
+        if (RiseCore.GameData.InternalMapRenderers.TryGetValue(levelSet, out var node)) 
         {
             node.StartSelection(towerName);
         }
@@ -106,7 +106,7 @@ public class patch_MapRenderer : MapRenderer
             ToggleAllMainElements(true);
             return;
         }
-        if (RiseCore.GameData.MapRenderers.TryGetValue(levelSet, out var val)) 
+        if (RiseCore.GameData.InternalMapRenderers.TryGetValue(levelSet, out var val)) 
         {
             node = val;
             Add(node); 

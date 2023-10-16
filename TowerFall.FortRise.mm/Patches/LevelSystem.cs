@@ -13,7 +13,7 @@ public class patch_LevelSystem : LevelSystem
 
     public override TilesetData GetTileset() 
     {
-        if (RiseCore.GameData.Tilesets.TryGetValue(Theme.Tileset, out var tileset)) 
+        if (RiseCore.GameData.InternalTilesets.TryGetValue(Theme.Tileset, out var tileset)) 
             return tileset;
         
         return orig_GetTileset();
@@ -23,7 +23,7 @@ public class patch_LevelSystem : LevelSystem
 
     public override TilesetData GetBGTileset() 
     {
-        if (RiseCore.GameData.Tilesets.TryGetValue(Theme.BGTileset, out var tileset)) 
+        if (RiseCore.GameData.InternalTilesets.TryGetValue(Theme.BGTileset, out var tileset)) 
             return tileset;
         
         return orig_GetBGTileset();

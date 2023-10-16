@@ -206,7 +206,7 @@ public class FortContent
                     RiseCore.GameData.Defer(() => 
                     {
                         var towerTheme = new patch_TowerTheme(xmlTheme, child, themeResource);
-                        RiseCore.GameData.Themes.Add(child.Root.Substring(4) + themeID, towerTheme);
+                        RiseCore.GameData.InternalThemes.Add(child.Root.Substring(4) + themeID, towerTheme);
                         Logger.Verbose("[TOWER THEME] Loaded: " + child.Root.Substring(4) + themeID);
                     }, 0);
                 }
@@ -219,7 +219,7 @@ public class FortContent
                 foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG")) 
                 {
                     var bgID = bgs.Attr("id");
-                    RiseCore.GameData.BGs.Add(child.Root.Substring(4) + bgID, bgs);
+                    RiseCore.GameData.InternalBGs.Add(child.Root.Substring(4) + bgID, bgs);
                 }
 
                 Logger.Verbose("[BG] Loaded: " + child.Root.Substring(4) + child.Path);
@@ -236,7 +236,7 @@ public class FortContent
                     RiseCore.GameData.Defer(() => 
                     {
                         var tilesetID = tilesets.Attr("id", tilesets.Name);
-                        RiseCore.GameData.Tilesets.Add(child.Root.Substring(4) + tilesetID, new patch_TilesetData(tilesets, themeResource));
+                        RiseCore.GameData.InternalTilesets.Add(child.Root.Substring(4) + tilesetID, new patch_TilesetData(tilesets, themeResource));
                     }, 1);
                 }
 
@@ -248,7 +248,7 @@ public class FortContent
                 using var xmlStream = child.Stream;
                 var xmlMap = patch_Calc.LoadXML(xmlStream)["map"];
                 var map = new MapRendererNode(xmlMap, child);
-                RiseCore.GameData.Defer(() => RiseCore.GameData.MapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
+                RiseCore.GameData.Defer(() => RiseCore.GameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
                 Logger.Verbose("[MapData] Loaded: " + child.Root.Substring(4) + child.Path);
             }
                 break;

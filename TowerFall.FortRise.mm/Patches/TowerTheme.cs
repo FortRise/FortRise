@@ -42,10 +42,10 @@ public class patch_TowerTheme : TowerTheme
         World = xml.ChildEnum("World", TowerTheme.Worlds.Normal);
         Raining = xml.ChildBool("Raining", false);
         BackgroundID = xml.ChildText("Background");
-        if (RiseCore.GameData.BGs.ContainsKey(BackgroundID))
+        if (RiseCore.GameData.InternalBGs.ContainsKey(BackgroundID))
         {
-            BackgroundData = RiseCore.GameData.BGs[this.BackgroundID]["Background"];
-            ForegroundData = RiseCore.GameData.BGs[this.BackgroundID]["Foreground"];
+            BackgroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Background"];
+            ForegroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Foreground"];
         }
         else if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
