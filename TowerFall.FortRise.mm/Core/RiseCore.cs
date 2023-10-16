@@ -551,7 +551,7 @@ public static partial class RiseCore
                 foreach (var name in attrib.Names) 
                 {
                     string id;
-                    string methodName = null;
+                    string methodName = string.Empty;
                     string[] split = name.Split('=');
                     if (split.Length == 1) 
                     {
@@ -646,7 +646,7 @@ public static partial class RiseCore
                 foreach (var name in clea.Names) 
                 {
                     string id;
-                    string methodName = null;
+                    string methodName = string.Empty;
                     string[] split = name.Split('=');
                     if (split.Length == 1) 
                     {
