@@ -56,9 +56,11 @@ public static partial class RiseCore
             var metaPath = Path.Combine(dir, "meta.json");
             ModuleMetadata moduleMetadata = null;
             if (!File.Exists(metaPath))
+                metaPath = Path.Combine(dir, "meta.hjson");
+            if (!File.Exists(metaPath))
                 return;
             
-            moduleMetadata = ParseMetadataWithJson(dir, metaPath);
+            moduleMetadata = ParseMetadata(dir, metaPath);
             Loader.LoadMod(moduleMetadata, false);
         }
 
@@ -67,13 +69,19 @@ public static partial class RiseCore
             using var zipFile = ZipFile.Read(file);
 
             ModuleMetadata moduleMetadata = null;
-            if (!zipFile.ContainsEntry("meta.json"))
+            string metaFile = "meta.json";
+            if (!zipFile.ContainsEntry(metaFile))
+                metaFile = "meta.hjson";
+             if (!zipFile.ContainsEntry(metaFile))
                 return;
             
-            var entry = zipFile["meta.json"];
+            var entry = zipFile[metaFile];
             using var memStream = entry.ExtractStream();
 
-            moduleMetadata = ParseMetadataWithJson(file, memStream, true);
+            if (Path.GetExtension(metaFile) == ".hjson")
+                moduleMetadata = ParseMetadataWithHJson(file, memStream, true);
+            else
+                moduleMetadata = ParseMetadataWithJson(file, memStream, true);
             Loader.LoadMod(moduleMetadata, false);
         }
 

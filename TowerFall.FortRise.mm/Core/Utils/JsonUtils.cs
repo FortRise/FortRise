@@ -5,6 +5,25 @@ namespace FortRise;
 
 public static class JsonUtils 
 {
+    public static Option<Hjson.JsonValue> GetJsonValueOrNone(this Hjson.JsonValue value, string key) 
+    {
+        if (value.ContainsKey(key))
+            return Option<Hjson.JsonValue>.Some(value[key]);
+        return Option<Hjson.JsonValue>.None();
+    }
+
+    public static Hjson.JsonValue GetJsonValueOrNull(this Hjson.JsonValue value, string key) 
+    {
+        if (value.ContainsKey(key))
+            return value[key];
+        return null;
+    }
+
+    public static Vector2 Position(this Hjson.JsonValue value) 
+    {
+        return new Vector2(value["x"], value["y"]);
+    }
+
     public static Option<JsonValue> GetJsonValueOrNone(this JsonValue value, string key) 
     {
         if (value.Contains(key))

@@ -16,6 +16,7 @@ public partial class RiseCore
     public sealed class ResourceTypeAssembly {}
     public sealed class ResourceTypeXml {}
     public sealed class ResourceTypeJson {}
+    public sealed class ResourceTypeHJson {}
     public sealed class ResourceTypeOel {}
     public sealed class ResourceTypeQuestTowerFolder {}
     public sealed class ResourceTypeDarkWorldTowerFolder {}
@@ -190,6 +191,10 @@ public partial class RiseCore
                 if (path.EndsWith(".json")) 
                 {
                     ResourceType = typeof(ResourceTypeJson);
+                }
+                else if (path.EndsWith(".hjson")) 
+                {
+                    ResourceType = typeof(ResourceTypeHJson);
                 }
                 else if (path.EndsWith(".oel")) 
                 {

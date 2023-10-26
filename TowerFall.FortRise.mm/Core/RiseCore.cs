@@ -328,6 +328,17 @@ public static partial class RiseCore
         }
     }
 
+    public static ModuleMetadata ParseMetadata(string dir, string path)  
+    {
+        if (Path.GetExtension(path) == ".json") 
+        {
+            using var jfs = File.OpenRead(path);
+            return ParseMetadataWithJson(dir, jfs);
+        }
+        using var fs = File.OpenRead(path);
+        return ParseMetadataWithHJson(dir, fs);
+    }
+
     public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
     {
         using var fs = File.OpenRead(path);
@@ -338,6 +349,36 @@ public static partial class RiseCore
     {
         var json = JsonTextReader.FromStream(path);
         var metadata = json.Convert<ModuleMetadata>();
+        if (FortRiseVersion < metadata.FortRiseVersion) 
+        {
+            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {FortRiseVersion}");
+            return null;
+        }
+        string zipPath = "";
+        if (!zip) 
+        {
+            metadata.PathDirectory = dirPath;
+        }
+        else 
+        {
+            zipPath = dirPath;
+            dirPath = Path.GetDirectoryName(dirPath);
+            metadata.PathZip = zipPath;
+        }
+
+        return metadata; 
+    }
+
+    public static ModuleMetadata ParseMetadataWithHJson(string dir, string path)  
+    {
+        using var fs = File.OpenRead(path);
+        return ParseMetadataWithHJson(dir, fs);
+    }
+
+    public static ModuleMetadata ParseMetadataWithHJson(string dirPath, Stream path, bool zip = false) 
+    {
+        var hjson = Hjson.HjsonValue.Load(path);
+        var metadata = ModuleMetadata.HJsonToMetadata(hjson);
         if (FortRiseVersion < metadata.FortRiseVersion) 
         {
             Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {FortRiseVersion}");

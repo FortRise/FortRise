@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
     <PackageReference Include="TeuJson" Version="3.1.2" />
     <PackageReference Include="TeuJson.Generator" Version="3.1.2" />
+    <PackageReference Include="Hjson" Version="3.0.0" />
     <PackageReference Include="MonoMod" Version="22.7.31.1" />
     <PackageReference Include="MonoModReorg.Backports" Version="23.3.22.1" />
     <PackageReference Include="MonoMod.Utils" Version="22.7.31.1" />

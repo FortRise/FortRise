@@ -24,7 +24,7 @@ public class Installer : MarshalByRefObject
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "TeuJson.dll", "Ionic.Zip.Reduced.dll", "NLua.dll", "KeraLua.dll",
-        "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll",
+        "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll", "Hjson.dll",
         "DiscordGameSdk.dll", "DiscordGameSdk.pdb", "Fortrise.targets"
     };
 
