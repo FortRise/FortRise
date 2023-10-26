@@ -336,6 +336,13 @@ public class FortContent
         return Array.Empty<string>();
     }
 
+    public T LoadShader<T>(string path, string passName, out int id) 
+    where T : ShaderResource, new()
+    {
+        var shaderPath = contentPath + "/" + path;
+        return ShaderManager.AddShader<T>(this[shaderPath], passName, out id);
+    }
+
     public TrackInfo LoadMusic(string path) 
     {
         var musicPath = contentPath + "/" + path;

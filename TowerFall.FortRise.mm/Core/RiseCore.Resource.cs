@@ -29,6 +29,7 @@ public partial class RiseCore
     public sealed class ResourceTypeWavFile {}
     public sealed class ResourceTypeOggFile {}
     public sealed class ResourceTypeAudioEngine {}
+    public sealed class ResourceTypeEffects {}
 
     internal static HashSet<string> BlacklistedExtension = new() {
         ".csproj", ".cs", ".md", ".toml", ".aseprite", ".ase", ".xap"
@@ -170,6 +171,10 @@ public partial class RiseCore
             else if (path.EndsWith(".xml")) 
             {
                 ResourceType = typeof(ResourceTypeXml);
+            }
+            else if (path.EndsWith(".fxb")) 
+            {
+                ResourceType = typeof(ResourceTypeEffects);
             }
             else if (Childrens.Count != 0) 
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Xml;
@@ -16,7 +17,12 @@ namespace TowerFall
 {
     public class patch_Level : Level
     {
+        private Layer bgGameLayer;
+        private Layer gameLayer;
+        private RenderTarget2D foregroundRenderTarget;
         private FileSystemWatcher levelWatcher;
+        private List<ShaderFilter> ActiveShaders;
+
         private bool reload;
         public XmlElement XML
         {
@@ -36,6 +42,7 @@ namespace TowerFall
         public void ctor(Session session, XmlElement xml) 
         {
             orig_ctor(session, xml);
+            ActiveShaders = new();
             if (!RiseCore.DebugMode || session.GetLevelSet() == "TowerFall") 
                 return;
             
@@ -83,6 +90,71 @@ namespace TowerFall
                 return;
             }
             orig_LoadEntity(e);
+        }
+
+        [MonoModReplace]
+        public void CoreRender(RenderTarget2D canvas) 
+        {
+            Engine.Instance.GraphicsDevice.SetRenderTarget(foregroundRenderTarget);
+            Engine.Instance.GraphicsDevice.Clear(Color.Transparent);
+            bgGameLayer.Render();
+            gameLayer.Render();
+            if (Foreground != null && Foreground.Visible)
+            {
+                Foreground.Render();
+            }
+
+            Engine.Instance.GraphicsDevice.SetRenderTarget(canvas);
+            if (Background != null && Background.Visible)
+            {
+                Background.Render();
+            }
+            if (LightingLayer.DarkenForLightning)
+            {
+                TFGame.LightingAlpha.SetValue(Math.Min(1f, LightingLayer.Alpha * 1.5f));
+            }
+            else
+            {
+                TFGame.LightingAlpha.SetValue(LightingLayer.Alpha);
+            }
+            foreach (var shaders in ActiveShaders) 
+            {
+                shaders.BeforeRender(canvas);
+            }
+
+            Engine.Instance.GraphicsDevice.Textures[1] = LightingLayer.Canvas.Texture2D;
+            Draw.SpriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, TFGame.LightingEffect, Matrix.Identity);
+            Draw.SpriteBatch.Draw(foregroundRenderTarget, Vector2.Zero, Color.White);
+            foreach (var shader in ActiveShaders) 
+            {
+                shader.Render(canvas);
+            }
+            Draw.SpriteBatch.End();
+            foreach (var shader in ActiveShaders) 
+            {
+                shader.AfterRender(canvas);
+            }
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Identity);
+            if (Camera.Origin == Vector2.Zero)
+            {
+                if (Camera.X < 0f)
+                {
+                    Draw.Rect(0f, -2f, 2f, 244f, Color.Black);
+                }
+                else if (Camera.X > 0f)
+                {
+                    Draw.Rect(318f, -2f, 2f, 244f, Color.Black);
+                }
+                if (Camera.Y < 0f)
+                {
+                    Draw.Rect(-2f, 0f, 324f, 2f, Color.Black);
+                }
+                else if (Camera.Y > 0f)
+                {
+                    Draw.Rect(-2f, 238f, 324f, 2f, Color.Black);
+                }
+            }
+            Draw.SpriteBatch.End();
         }
 
         [MonoModIgnore]
@@ -235,6 +307,23 @@ namespace TowerFall
         [PatchLevelHandlePausing]
         [MonoModIgnore]
         public extern void HandlePausing();
+
+        public void Activate(ShaderFilter filter) 
+        {
+            ActiveShaders.Add(filter);
+            filter.Activated(new ShaderFilter.LevelRenderData { 
+                ForegroundRenderTarget = foregroundRenderTarget,
+                BGTiles = BGTiles,
+                SolidTiles = Tiles,
+                Level = this
+            });
+        }
+
+        public void Deactivate(ShaderFilter filter) 
+        {
+            ActiveShaders.Remove(filter);
+            filter.Deactivated();
+        }
     }
 }
 
