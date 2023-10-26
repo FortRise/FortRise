@@ -32,16 +32,16 @@ public class patch_TowerTheme : TowerTheme
         else 
             Icon = TFGame.MenuAtlas["towerIcons/" + icon];
 
-        TowerType = xml.ChildEnum<MapButton.TowerType>("TowerType");
+        TowerType = xml.ChildEnum<MapButton.TowerType>("TowerType", MapButton.TowerType.Normal);
         MapPosition = xml["MapPosition"].Position();
-        Music = xml.ChildText("Music", "");
+        Music = xml.ChildText("Music", "SacredGround");
         DarknessColor = xml.ChildHexColor("DarknessColor", Color.Black).Invert();
-        DarknessOpacity = xml.ChildFloat("DarknessOpacity");
+        DarknessOpacity = xml.ChildFloat("DarknessOpacity", 0.2f);
         Wind = xml.ChildInt("Wind", 0);
-        Lanterns = xml.ChildEnum<TowerTheme.LanternTypes>("Lanterns");
+        Lanterns = xml.ChildEnum<TowerTheme.LanternTypes>("Lanterns", LanternTypes.CathedralTorch);
         World = xml.ChildEnum("World", TowerTheme.Worlds.Normal);
         Raining = xml.ChildBool("Raining", false);
-        BackgroundID = xml.ChildText("Background");
+        BackgroundID = xml.ChildText("Background", "SacredGround");
         if (RiseCore.GameData.InternalBGs.ContainsKey(BackgroundID))
         {
             BackgroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Background"];
@@ -56,8 +56,8 @@ public class patch_TowerTheme : TowerTheme
         DrillParticleColor = xml.ChildHexColor("DrillParticleColor", Color.Red);
         Cold = xml.ChildBool("Cold", false);
         CrackedBlockColor = xml.ChildHexColor("CrackedBlockColor", "4EB1E9");
-        Tileset = xml.ChildText("Tileset");
-        BGTileset = xml.ChildText("BGTileset");
+        Tileset = xml.ChildText("Tileset", "SacredGround");
+        BGTileset = xml.ChildText("BGTileset", "SacredGroundBG");
         Cataclysm = (xml.ChildText("Tileset") == "Cataclysm");
 
         if (xml.HasChild("PlayerInvisibility"))
