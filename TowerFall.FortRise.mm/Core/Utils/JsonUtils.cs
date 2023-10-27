@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using TeuJson;
 
@@ -17,6 +18,32 @@ public static class JsonUtils
         if (value.ContainsKey(key))
             return value[key];
         return null;
+    }
+
+    public static bool TryParseEnum<T>(this Hjson.JsonValue value, string key, out T result) 
+    where T : struct, Enum
+    {
+        if (value.ContainsKey(key)) 
+        {
+            var str = value[key];
+            if (Enum.TryParse<T>(str, out result))
+                return true;
+
+            return false;
+        }
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetValue(this Hjson.JsonValue value, string key, out Hjson.JsonValue result) 
+    {
+        if (value.ContainsKey(key)) 
+        {
+            result = value[key];
+            return true;
+        }
+        result = null;
+        return false;
     }
 
     public static Vector2 Position(this Hjson.JsonValue value) 

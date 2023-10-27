@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using NLua;
-using TeuJson;
 
 namespace TowerFall;
 
@@ -92,7 +91,7 @@ public class patch_TowerTheme : TowerTheme
     }
 
     [MonoModConstructor]
-    public void ctor(JsonValue value) 
+    public void ctor(Hjson.JsonValue value) 
     {
         Name = value.GetJsonValueOrNull("Name") ?? "";
         Name = Name.ToUpperInvariant();
@@ -105,7 +104,7 @@ public class patch_TowerTheme : TowerTheme
         MapPosition = jsonPosition == null ? Vector2.Zero : jsonPosition.Position();
         Music = value.GetJsonValueOrNull("Music") ?? "SacredGround";
         DarknessColor = Calc.HexToColor(value.GetJsonValueOrNull("DarknessColor") ?? "000000").Invert();
-        DarknessOpacity = value.GetJsonValueOrNull("DarknessOpacity") ?? 0f;
+        DarknessOpacity = value.GetJsonValueOrNull("DarknessOpacity") ?? 0.2f;
         Wind = value.GetJsonValueOrNull("Wind") ?? 0;
         if (Enum.TryParse<TowerTheme.LanternTypes>(value.GetJsonValueOrNull("Lanterns") ?? "CathedralTorch", out var lanternResult)) 
         {
@@ -116,13 +115,13 @@ public class patch_TowerTheme : TowerTheme
             World = worldResult;
         }
         Raining = value.GetJsonValueOrNull("Raining") ?? false;
-        BackgroundID = value["Background"];
+        BackgroundID = value.GetJsonValueOrNull("Background") ?? "SacredGround";
         if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
             BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
             ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
         }
-        if (value.Contains("PlayerInvisibility")) 
+        if (value.ContainsKey("PlayerInvisibility")) 
         {
             var playerInvisibility = value["PlayerInvisibility"];
             InvisibleOpacities = new float[9]
