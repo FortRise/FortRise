@@ -44,6 +44,12 @@ internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchFlags))]
 internal class PatchFlags : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.ObsoletePatch))]
+internal class ObsoletePatch : Attribute 
+{
+    public ObsoletePatch(string arg) {}
+}
+
 internal static partial class MonoModRules 
 {
     private static bool IsTowerFall;
@@ -320,6 +326,19 @@ internal static partial class MonoModRules
             Console.WriteLine("[FortRise] Cannot be Relinked to FNA");
             return false;
         }
+    }
+
+    public static void ObsoletePatch(ILContext ctx, CustomAttribute attrib) 
+    {
+        string strArg = attrib.ConstructorArguments[0].Value as string;
+        var typeRef = ctx.Module.ImportReference(
+            typeof(System.String));
+        var obsoleteAttributeRef = ctx.Module.ImportReference(
+            typeof(System.ObsoleteAttribute)
+        .GetConstructor(new Type[1] { typeof(System.String) }));
+        var obsolete = new CustomAttribute(obsoleteAttributeRef);
+        obsolete.ConstructorArguments.Add(new CustomAttributeArgument(typeRef, strArg));
+        ctx.Method.CustomAttributes.Add(obsolete);
     }
 
     public static void PatchPostFix(ILContext ctx, CustomAttribute attrib) 
