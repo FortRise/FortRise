@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -248,7 +249,7 @@ namespace TowerFall
                 try
                 {
                     Loader.Message = "LOADING";
-                    Logger.Log("[LOAD] === LOADING DATA ===");
+                    Logger.Log("[LOAD] --- LOADING DATA ---");
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
@@ -316,7 +317,7 @@ namespace TowerFall
                     Logger.Log("[LOAD] ...Shaders (2/2)");
                     TFGame.WriteLineToLoadLog("Initializing Shaders (2 of 2)...");
                     TFGame.LoadLightingEffect();
-                    Logger.Log("[LOAD] === LOADING COMPLETE ===");
+                    Logger.Log("[LOAD] --- LOADING COMPLETE ---");
                     TFGame.WriteLineToLoadLog("Loading Complete!");
 
                     Loader.Message = "INITIALIZING MODS";
@@ -343,22 +344,30 @@ namespace TowerFall
             {
                 try 
                 {
+                    Stopwatch watch = Stopwatch.StartNew();
                     Logger.Log("[LOAD] ...Music");
                     TFGame.WriteLineToLoadLog("Loading Music...");
                     patch_Music.Initialize();
                     patch_Audio.InitMusicSystems();
+
                     foreach (var mods in RiseCore.InternalMods) 
                     {
                         mods.Content.LoadAudio();
                     }
+
+                    Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
+
+                    watch = Stopwatch.StartNew();
                     if (!Sounds.Loaded)
                     {
                         Logger.Log("[LOAD] ...SFX" );
                         TFGame.WriteLineToLoadLog("Loading Sounds...");
                         Sounds.Load();
                     }
+
                     SoundLoaded = true;
-                    Logger.Log("[LOAD] === SOUND LOADING COMPLETE ===");
+                    Logger.Info($"[LOAD] -- SOUND LOADING: {watch.ElapsedMilliseconds} ms --");
+                    watch.Stop();
                 }
                 catch (Exception ex)
                 {
