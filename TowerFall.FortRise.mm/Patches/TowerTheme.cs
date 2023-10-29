@@ -12,9 +12,9 @@ namespace TowerFall;
 public class patch_TowerTheme : TowerTheme 
 {
     public RiseCore.Resource Mod;
-    public Guid ThemeID;
     public patch_TowerTheme(XmlElement xml) {}
     public patch_TowerTheme(XmlElement xml, RiseCore.Resource mod, ThemeResource resource) {}
+    public patch_TowerTheme(Hjson.JsonValue value, RiseCore.Resource mod, ThemeResource resource) {}
     public patch_TowerTheme(LuaTable value) {}
 
 
@@ -91,10 +91,19 @@ public class patch_TowerTheme : TowerTheme
     }
 
     [MonoModConstructor]
-    public void ctor(Hjson.JsonValue value) 
+    public void ctor(Hjson.JsonValue value, RiseCore.Resource mod, ThemeResource resource) 
     {
-        Name = value.GetJsonValueOrNull("Name") ?? "";
+        Mod = mod;
+        var atlas = resource.Atlas != null ? resource.Atlas : TFGame.MenuAtlas;
+        Name = value.GetJsonValueOrNull("Name") ?? string.Empty;
         Name = Name.ToUpperInvariant();
+
+        var icon = value.GetJsonValueOrNull("Icon") ?? "sacredGround";
+        if (atlas.Contains(icon)) 
+            Icon = atlas[icon];
+        else 
+            Icon = TFGame.MenuAtlas["towerIcons/" + icon];
+
         Icon = TFGame.MenuAtlas["towerIcons/" + value.GetJsonValueOrNull("Icon") ?? "sacredGround"];
         if (Enum.TryParse<MapButton.TowerType>(value.GetJsonValueOrNull("TowerType") ?? "Normal" , out var result)) 
         {
@@ -116,7 +125,12 @@ public class patch_TowerTheme : TowerTheme
         }
         Raining = value.GetJsonValueOrNull("Raining") ?? false;
         BackgroundID = value.GetJsonValueOrNull("Background") ?? "SacredGround";
-        if (GameData.BGs.ContainsKey(BackgroundID)) 
+        if (RiseCore.GameData.InternalBGs.ContainsKey(BackgroundID))
+        {
+            BackgroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Background"];
+            ForegroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Foreground"];
+        }
+        else if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
             BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
             ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
@@ -215,7 +229,7 @@ public class patch_TowerTheme : TowerTheme
 
     public Guid GenerateThemeID() 
     {
-        return ThemeID = Guid.NewGuid();
+        return Guid.Empty;
     }
 }
 
