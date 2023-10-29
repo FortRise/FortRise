@@ -57,6 +57,7 @@ public class patch_SFX : SFX
             instance.Pan = SFX.CalculatePan(panX);
             SoundEffectTracker.Track(instance);
             instance.Play();
+            effect = instance;
         }
     }
 
