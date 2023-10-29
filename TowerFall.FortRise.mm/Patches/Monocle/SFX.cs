@@ -7,6 +7,7 @@ namespace Monocle;
 
 public class patch_SFX : SFX
 {
+    private SoundEffectInstance effect;
     public SoundEffect Data
     {
         [MonoModIgnore] get => throw null;
@@ -41,6 +42,56 @@ public class patch_SFX : SFX
         {
             Data = null;
         }
+    }
+
+    [MonoModReplace]
+    public override void Play(float panX = 160f, float volume = 1f)
+    {
+        if (Data != null && Audio.MasterVolume > 0f)
+        {
+            AddToPlayedList(panX, volume);
+            volume *= Audio.MasterVolume;
+            var instance = Data.CreateInstance();
+            instance.Volume = volume;
+            instance.Pitch = ObeysMasterPitch ? Audio.MasterPitch : 0f;
+            instance.Pan = SFX.CalculatePan(panX);
+            SoundEffectTracker.Track(instance);
+            instance.Play();
+        }
+    }
+
+    [MonoModPatch("OnPitchChange")]
+    [MonoModReplace]
+    internal void OnPitchChange() 
+    {
+        if (effect == null)
+            return;
+        
+        effect.Pitch = Audio.MasterPitch;
+    }
+
+    [MonoModReplace]
+    public override void Pause()
+    {
+        if (effect == null || effect.State != SoundState.Playing)
+            return;
+        effect.Pause();
+    }
+
+    [MonoModReplace]
+    public override void Resume()
+    {
+        if (effect == null || effect.State != SoundState.Paused)
+            return;
+        effect.Resume();
+    }
+
+    [MonoModReplace]
+    public override void Stop(bool addToList = true)
+    {
+        if (effect == null)
+            return;
+        effect.Stop();
     }
 }
 

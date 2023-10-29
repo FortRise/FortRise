@@ -131,6 +131,13 @@ public static class patch_Music
     {
         return audioCategory;
     }
+
+    [MonoModReplace]
+    internal static void Update()
+    {
+        audioEngine?.Update();
+        SoundEffectTracker.Update();
+    }
 }
 
 
