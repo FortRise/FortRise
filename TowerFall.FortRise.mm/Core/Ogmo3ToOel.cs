@@ -70,27 +70,18 @@ public static class Ogmo3ToOel
             switch (layer.Name) 
             {
             case "BG": 
-            {
                 bg.InnerText = Array2DToBitString(layer.Grid2D);
                 break;
-            }            
             case "BGTiles": 
-            {
                 bgTiles.InnerText = Array2DToCSV(layer.Data);
-            }
                 break;
             case "Solids":
-            {
                 solids.InnerText = Array2DToBitString(layer.Grid2D);
-            }
                 break;
             case "SolidTiles":
-            {
                 solidTiles.InnerText = Array2DToCSV(layer.Data);
-            }
                 break;
             case "Entities":
-            {
                 foreach (var entity in layer.Entities) 
                 {
                     var element = xmlDocument.CreateElement(entity.Name);
@@ -99,7 +90,8 @@ public static class Ogmo3ToOel
                     element.SetAttribute("width", entity.Width.ToString());
                     element.SetAttribute("height", entity.Height.ToString());
 
-                    if (entity.Nodes != null)
+                    if (entity.Nodes != null) 
+                    {
                         foreach (var node in entity.Nodes) 
                         {
                             var nodeElement = xmlDocument.CreateElement("node");
@@ -107,9 +99,9 @@ public static class Ogmo3ToOel
                             nodeElement.SetAttribute("y", node.Y.ToString());
                             element.AppendChild(nodeElement);
                         }
+                    }
 
-                    if (entity.Values != null)
-                    foreach (var values in entity.Values.Pairs) 
+                    foreach (var values in entity.Values?.Pairs) 
                     {
                         var attrib = xmlDocument.CreateAttribute(values.Key);
                         if (values.Value.IsBoolean) 
@@ -124,7 +116,6 @@ public static class Ogmo3ToOel
                     }
                     entities.AppendChild(element);
                 }
-            }
                 break;
             default:
                 ReadLayer?.Invoke(layer, level);
@@ -389,10 +380,11 @@ public sealed partial class OgmoEntity : IDeserialize
         var alpha = Float(a);
         return new Color(red, green, blue, alpha);
     }
+    private static char[] SplitChar = new char[1] { ',' };
 
     public Color Color(string value)
     {
-        var val = String(value).Split(',');
+        var val = String(value).Split(SplitChar);
         if (val.Length == 4) 
         {
             var red = Float(val[0]);
