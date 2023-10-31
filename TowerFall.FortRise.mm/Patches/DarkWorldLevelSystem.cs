@@ -11,7 +11,11 @@ namespace TowerFall;
 public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
 {
     private int startLevel;
-    public int StartLevel => startLevel;
+    public int StartLevel 
+    {
+        get => startLevel;
+        set => startLevel = value;
+    }
     public patch_DarkWorldLevelSystem(DarkWorldTowerData tower) : base(tower)
     {
     }
@@ -68,6 +72,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
                 }
             }
             
+            // Load vanilla levels instead
             using Stream stream = File.OpenRead(levelFile);
             return patch_Calc.LoadXML(stream)["level"];
         }

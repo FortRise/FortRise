@@ -21,6 +21,28 @@ public static class TowerRegistry
     public static Dictionary<string, List<AdventureTrialsTowerData[]>> TrialsTowerSets = new();
     public static List<string> TrialsLevelSet = new();
 
+    public static void PlayDarkWorld(string levelSet, string levelID, DarkWorldDifficulties difficulty, int startLevel = 0) 
+    {
+        // Checks if any players are present
+        foreach (var player in TFGame.Players) 
+        {
+            if (player)
+                // if there is, go to the level loading immediately
+                goto Proceed;
+        }
+        //if not, activate atleast one player
+        TFGame.Players[0] = true;
+        Proceed:
+        var level = DarkWorldGet(levelSet, levelID);
+        patch_DarkWorldLevelSystem system = level.GetLevelSystem() as patch_DarkWorldLevelSystem;
+        MainMenu.DarkWorldMatchSettings.DarkWorldDifficulty = difficulty;
+        system.StartLevel = startLevel;
+        MainMenu.DarkWorldMatchSettings.LevelSystem = system;
+        Session session = new Session(MainMenu.DarkWorldMatchSettings);
+        session.SetLevelSet(levelSet);
+        session.StartGame();
+    }
+
     public static void DarkWorldAdd(string levelSet, AdventureWorldTowerData data) 
     {
         if (levelSet == string.Empty)
@@ -86,6 +108,24 @@ public static class TowerRegistry
         }
         return null;
     }
+
+    public static AdventureWorldTowerData DarkWorldGet(string levelSet, string levelID, out int id) 
+    {
+        var darkWorldLevel = DarkWorldTowerSets[levelSet];
+        int i = 0;
+        foreach (var level in darkWorldLevel) 
+        {
+            if (level.GetLevelID() == levelID) 
+            {
+                id = i;
+                return level;
+            }
+            i++;
+        }
+        id = -1;
+        return null;
+    }
+
     public static bool TryDarkWorldGet(string levelSet, int levelID, out AdventureQuestTowerData data) 
     {
         if (QuestTowerSets.TryGetValue(levelSet, out var arr)) 

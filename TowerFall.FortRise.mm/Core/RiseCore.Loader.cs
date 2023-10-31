@@ -136,12 +136,15 @@ public static partial class RiseCore
 
                 RiseCore.ResourceTree.AddMod(metadata, modResource);
 
-                using var zip = new ZipFile(metadata.PathZip);
-                var dllPath = metadata.DLL.Replace('\\', '/');
-                if (zip.ContainsEntry(dllPath)) 
+                if (!RiseCore.DisableFortMods) 
                 {
-                    using var dll = zip[dllPath].ExtractStream();
-                    asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
+                    using var zip = new ZipFile(metadata.PathZip);
+                    var dllPath = metadata.DLL.Replace('\\', '/');
+                    if (zip.ContainsEntry(dllPath)) 
+                    {
+                        using var dll = zip[dllPath].ExtractStream();
+                        asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
+                    }
                 }
             }
             else if (!string.IsNullOrEmpty(metadata.PathDirectory)) 
@@ -152,20 +155,23 @@ public static partial class RiseCore
                 var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
                 var fullLuaPath = Path.Combine(metadata.PathDirectory, "main.lua");
 
-                if (File.Exists(fullDllPath)) 
+                if (!RiseCore.DisableFortMods) 
                 {
-                    using var stream = File.OpenRead(fullDllPath);
-                    asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
-                }
-                else if (File.Exists(fullLuaPath)) 
-                {
-                    using var mainLua = File.OpenRead(fullLuaPath);
-                    luaModule = new LuaModule(metadata, mainLua);
-                    var content = modResource.Content;
-                    luaModule.Content = content;
-                    ModuleGuids.Add(luaModule.ID);
-                    luaModule.Register();
-                    Logger.Info($"[Loader] {luaModule.ID}: {luaModule.Name} Lua Registered.");
+                    if (File.Exists(fullDllPath)) 
+                    {
+                        using var stream = File.OpenRead(fullDllPath);
+                        asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
+                    }
+                    else if (File.Exists(fullLuaPath)) 
+                    {
+                        using var mainLua = File.OpenRead(fullLuaPath);
+                        luaModule = new LuaModule(metadata, mainLua);
+                        var content = modResource.Content;
+                        luaModule.Content = content;
+                        ModuleGuids.Add(luaModule.ID);
+                        luaModule.Register();
+                        Logger.Info($"[Loader] {luaModule.ID}: {luaModule.Name} Lua Registered.");
+                    }
                 }
             }
             else 

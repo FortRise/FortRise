@@ -98,6 +98,8 @@ public static partial class RiseCore
     public static bool NoErrorScene { get; private set; }
     internal static bool NoRichPresence;
     internal static bool DumpResources;
+    internal static bool DisableFortMods;
+    internal static int LevelQuickStart;
     internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
@@ -195,6 +197,7 @@ public static partial class RiseCore
         AdventureModule = new AdventureModule();
         AdventureModule.InternalLoad();
         AdventureModule.Register();
+        EntityRegistry.LoadAllBuiltinEnemies();
         InternalFortModules.Add(AdventureModule);
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
@@ -247,8 +250,7 @@ public static partial class RiseCore
 
     public static void ParseArgs(string[] args) 
     {
-        ApplicationArgs = args;
-        var compiledArgs = new HashSet<string>(args);
+        var compiledArgs = new List<string>(args);
         if (File.Exists("launch.txt")) 
         {
             using var fs = File.OpenText("launch.txt");
@@ -257,7 +259,12 @@ public static partial class RiseCore
             {
                 if (argPass.Trim().StartsWith(";") || string.IsNullOrEmpty(argPass))
                     continue;
-                compiledArgs.Add(argPass.Trim());
+                var splittedArgs = argPass.Trim().Split(' ');
+                foreach (var splittedArg in splittedArgs) 
+                {
+                    if (!compiledArgs.Contains(splittedArg))
+                        compiledArgs.Add(argPass.Trim());
+                }
             }
         }
         else 
@@ -274,8 +281,10 @@ public static partial class RiseCore
         }
 
         Logger.Verbosity = Logger.LogLevel.Error;
-        foreach (var arg in compiledArgs) 
+        int cursor = 0;
+        while (cursor < compiledArgs.Count) 
         {
+            var arg = compiledArgs[cursor];
             switch (arg) 
             {
             case "--debug":
@@ -315,17 +324,49 @@ public static partial class RiseCore
             case "--loadlog":
                 TFGame.StartLoadLog();
                 break;
-            case "--graphics OpenGL":
-                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "OpenGL");
+            case "--graphics":
+                cursor++;
+                arg = compiledArgs[cursor];
+                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", arg);
                 break;
-            case "--graphics Vulkan":
-                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "Vulkan");
+            case "--disable-fort-mods":
+                DisableFortMods = true;
                 break;
-            case "--graphics D3D11":
-                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", "D3D11");
+            case "--level-quick-start": 
+                cursor++;
+                arg = compiledArgs[cursor];
+                try 
+                {
+                    int num = 0;
+                    var span = arg.AsSpan().SplitLines('.');
+                    foreach (var (s, x) in span) 
+                    {
+                        if (s[0] == '0') 
+                        {
+                            num = int.Parse(s[1].ToString());
+                            break;
+                        }
+                        num = int.Parse(s.ToString());
+                        break;
+                    }
+                    LevelQuickStart = num;
+                    // TODO add arguments for these
+                    RiseCore.Events.OnPostInitialize += () => {
+                        TowerRegistry.PlayDarkWorld("Adventure World", "Adventure World/3 - Soar", DarkWorldDifficulties.Legendary, LevelQuickStart);
+                    };
+                }
+                catch (Exception ex) 
+                {
+                    Logger.Error("[Quick Start] Couldn't quick start as the passed arguments is invalid");
+                    Logger.Error(ex);
+                }
+                
                 break;
             }
+            cursor++;
         }
+
+        ApplicationArgs = compiledArgs.ToArray();
     }
 
     public static ModuleMetadata ParseMetadata(string dir, string path)  
@@ -589,96 +630,7 @@ public static partial class RiseCore
             {
                 if (attrib is null)
                     continue;
-                foreach (var name in attrib.Names) 
-                {
-                    string id;
-                    string methodName = string.Empty;
-                    string[] split = name.Split('=');
-                    if (split.Length == 1) 
-                    {
-                        id = split[0];
-                    }
-                    else if (split.Length == 2) 
-                    {
-                        id = split[0];
-                        methodName = split[1];
-                    }
-                    else 
-                    {
-                        Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
-                        continue;
-                    }
-                    id = id.Trim();
-                    methodName = methodName?.Trim();
-                    ConstructorInfo ctor;
-                    MethodInfo info;
-                    EnemyLoader loader = null;
-
-                    info = type.GetMethod(methodName, new Type[] { typeof(Vector2), typeof(Facing) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
-                    {
-                        loader = (position, facing, _) => {
-                            var invoked = (patch_Enemy)info.Invoke(null, new object[] {
-                                position, facing
-                            });
-                            invoked.Load();
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
-
-                    info = type.GetMethod(methodName, new Type[] { typeof(Vector2), typeof(Facing), typeof(Vector2[]) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(Enemy))) 
-                    {
-                        loader = (position, facing, nodes) => {
-                            var invoked = (patch_Enemy)info.Invoke(null, new object[] {
-                                position, facing, nodes
-                            });
-                            invoked.Load();
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
-
-                    ctor = type.GetConstructor(
-                        new Type[] { typeof(Vector2), typeof(Facing) }
-                    );
-                    if (ctor != null) 
-                    {
-                        loader = (position, facing, _) => {
-                            var invoked = (patch_Enemy)ctor.Invoke(new object[] {
-                                position,
-                                facing
-                            });
-                            invoked.Load();
-
-                            return invoked;
-
-                        };
-                        goto Loaded;
-                    }
-
-                    ctor = type.GetConstructor(
-                        new Type[] { typeof(Vector2), typeof(Facing), typeof(Vector2[]) }
-                    );
-                    if (ctor != null) 
-                    {
-                        loader = (position, facing, nodes) => {
-                            var invoked = (patch_Enemy)ctor.Invoke(new object[] {
-                                position,
-                                facing,
-                                nodes
-                            });
-                            invoked.Load();
-
-                            return invoked;
-
-                        };
-                        goto Loaded;
-                    }
-                    Loaded:
-                    EnemyLoader[id] = loader;
-                }
+                EntityRegistry.AddEnemy(module, type, attrib.Names);
             }
             foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
             {
@@ -703,7 +655,7 @@ public static partial class RiseCore
                         Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
                         continue;
                     }
-                    id = id.Trim().Replace("/", "__");
+                    id = id.Trim();
                     methodName = methodName?.Trim();
 
                     ConstructorInfo ctor;
