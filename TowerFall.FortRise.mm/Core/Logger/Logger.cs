@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -60,7 +61,7 @@ public static class Logger
             LogLevel.Verbose => $"\u001b[95m",
             _ => "\u001b[96m"
         };
-        console.StdOut.WriteLine($"{colors}{text}\u001b[0m");
+        console.StdOut.WriteLine($"\u001b[37m({DateTime.Now.ToString("HH:mm:ss")}) {colors}{text}\u001b[0m");
     }
 
     public static void Log(
