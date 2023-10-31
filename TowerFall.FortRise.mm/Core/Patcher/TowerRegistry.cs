@@ -590,10 +590,6 @@ public static class TowerRegistry
                 var theme = ThemeResource.Create(atlas, map);
                 return new patch_TowerTheme(value["theme"], map, theme);
             }
-            else if (RiseCore.GameData.InternalThemes.TryGetValue(value["theme"].ToValue().ToString(), out var theme)) 
-            {
-                return theme;
-            }
             else 
             {
                 return GameData.Themes[value["theme"]];
@@ -613,13 +609,9 @@ public static class TowerRegistry
                 var theme = ThemeResource.Create(atlas, map);
                 return new patch_TowerTheme(xml["theme"], map, theme);
             }
-            else if (RiseCore.GameData.InternalThemes.TryGetValue(xml.ChildText("theme").Trim(), out var theme)) 
-            {
-                return theme;
-            }
             else 
             {
-                return GameData.Themes[xml.ChildText("theme")];
+                return GameData.Themes[xml.ChildText("theme").Trim()];
             }
         }
         return TowerTheme.GetDefault();

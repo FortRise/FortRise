@@ -19,6 +19,8 @@ namespace FortRise;
 /// </remarks>
 public class FortContent 
 {
+    public delegate void DataLoaderHandler(RiseCore.Resource resource, string rootPath);
+    public static event DataLoaderHandler DataLoader;
     /// <summary>
     /// A property where your default Content lookup is being used. Some methods are relying on this.
     /// </summary>
@@ -73,49 +75,6 @@ public class FortContent
         Dispose(disposeTexture);
     }
 
-    internal string LoadBank(RiseCore.Resource child) 
-    {
-        var modDirectory = child.Root.Substring(4);
-        var cachePath = "Mods/_RelinkerCache/";
-        var bankDirectory = cachePath + modDirectory;
-        var bankPath = bankDirectory + Path.GetFileName(child.Path);
-
-        if (!Directory.Exists(bankDirectory))
-            Directory.CreateDirectory(bankDirectory);
-
-        var cachedChecksumPath = bankPath + ".sum";
-
-        var stream = child.Stream;
-        
-        var checksums = new string[2];
-        checksums[0] = RiseCore.GameChecksum;
-        checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
-
-        if (File.Exists(bankPath) && File.Exists(cachedChecksumPath) && RiseCore.Relinker.ChecksumsEqual(
-            checksums, File.ReadAllLines(cachedChecksumPath))) 
-        {
-            Logger.Info($"[BANK] Loading Cached Bank file to {bankPath}");
-            goto LoadBankImmediately;
-        }
-
-        Logger.Info($"[BANK] Creating Bank file to {bankPath}");
-
-        if (File.Exists(cachedChecksumPath))
-            File.Delete(cachedChecksumPath);
-        
-        File.WriteAllLines(cachedChecksumPath, checksums);
-
-        using (var fs = File.Create(bankPath)) 
-        {
-            stream.CopyTo(fs);
-        }
-
-        LoadBankImmediately:
-        stream.Dispose();
-        stream = null;
-        return bankPath;
-    }
-
     internal void LoadAudio() 
     {
         foreach (var child in ResourceSystem.Resources.Values.Where(x => 
@@ -131,7 +90,7 @@ public class FortContent
                     using var stream = child.Stream;
                     path = child.Root.Substring(4) + path;
                     var trackInfo = new TrackInfo(path, child.RootPath, child.ResourceType);
-                    patch_Audio.TrackMap.Add(path, trackInfo);
+                    patch_Audio.TrackMap[path] = trackInfo;
                     Logger.Verbose($"[MUSIC] [{child.Root}] Added '{path}' to TrackMap.");
                 }
                 continue;
@@ -203,10 +162,10 @@ public class FortContent
                     var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
                     var themeID = xmlTheme.Attr("id", xmlTheme.Name);
-                    RiseCore.GameData.Defer(() => 
+                    RiseCore.ExtendedGameData.Defer(() => 
                     {
                         var towerTheme = new patch_TowerTheme(xmlTheme, child, themeResource);
-                        RiseCore.GameData.InternalThemes.Add(child.Root.Substring(4) + themeID, towerTheme);
+                        TowerFall.GameData.Themes[child.Root.Substring(4) + themeID] = towerTheme;
                         Logger.Verbose("[TOWER THEME] Loaded: " + child.Root.Substring(4) + themeID);
                     }, 0);
                 }
@@ -219,7 +178,10 @@ public class FortContent
                 foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG")) 
                 {
                     var bgID = bgs.Attr("id");
-                    RiseCore.GameData.InternalBGs.Add(child.Root.Substring(4) + bgID, bgs);
+                    RiseCore.ExtendedGameData.Defer(() => 
+                    {
+                        TowerFall.GameData.BGs[child.Root.Substring(4) + bgID] = bgs;
+                    }, 1);
                 }
 
                 Logger.Verbose("[BG] Loaded: " + child.Root.Substring(4) + child.Path);
@@ -233,10 +195,10 @@ public class FortContent
                 {
                     var atlas = tilesets.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
-                    RiseCore.GameData.Defer(() => 
+                    RiseCore.ExtendedGameData.Defer(() => 
                     {
                         var tilesetID = tilesets.Attr("id", tilesets.Name);
-                        RiseCore.GameData.InternalTilesets.Add(child.Root.Substring(4) + tilesetID, new patch_TilesetData(tilesets, themeResource));
+                        TowerFall.GameData.Tilesets[child.Root.Substring(4) + tilesetID] = new patch_TilesetData(tilesets, themeResource);
                     }, 1);
                 }
 
@@ -248,9 +210,12 @@ public class FortContent
                 using var xmlStream = child.Stream;
                 var xmlMap = patch_Calc.LoadXML(xmlStream)["map"];
                 var map = new MapRendererNode(xmlMap, child);
-                RiseCore.GameData.Defer(() => RiseCore.GameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
+                RiseCore.ExtendedGameData.Defer(() => RiseCore.ExtendedGameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
                 Logger.Verbose("[MapData] Loaded: " + child.Root.Substring(4) + child.Path);
             }
+                break;
+            default:
+                DataLoader?.Invoke(child, gameData);
                 break;
             }
         }
@@ -371,7 +336,7 @@ public class FortContent
     /// <summary>
     /// Load Atlas from a mod Content path. This will use the <c>ContentPath</c> property, it's `Content/` by default.
     /// </summary>
-    /// <param name="dataPath">A path to where the xml path is.</param>
+    /// <param name="dataPath">A path to where the xml or json path is.</param>
     /// <param name="imagePath">A path to where the png path is.</param>
     /// <returns>An atlas of an image.</returns>
     public patch_Atlas LoadAtlas(string dataPath, string imagePath) 
@@ -387,6 +352,47 @@ public class FortContent
         
         using var data = this[contentPath + "/" + dataPath].Stream;
         using var image = this[contentPath + "/" + imagePath].Stream;
+        var atlas = AtlasExt.CreateAtlas(this, data, image, ext);
+        atlases.Add(atlasID, atlas);
+        Logger.Verbose("[ATLAS] Loaded: " + atlasID);
+        return atlas;
+    }
+
+    /// <summary>
+    /// Load Atlas from a mod Content path without extension. This will use the <c>ContentPath</c> property, it's `Content/` by default.
+    /// </summary>
+    /// <param name="path">A path to where an atlas data name and atlas png name can be match together</param>
+    /// <returns>An atlas of an image.</returns>
+    public patch_Atlas LoadAtlas(string path) 
+    {
+        var ext = Path.GetExtension(path);
+        var atlasID = path;
+        if (!string.IsNullOrEmpty(ext)) 
+        {
+            var idx = path.IndexOf(".");
+            path = path.Substring(0, idx);
+        }
+        
+        if (atlases.TryGetValue(path, out var atlasExisted)) 
+            return atlasExisted;
+        
+        RiseCore.Resource dataRes;
+        if (this.MapResource.TryGetValue(contentPath + "/" + path + ".xml", out var res)) 
+        {
+            dataRes = res;
+        }
+        else if (this.MapResource.TryGetValue(contentPath + "/" + path + ".json", out var res2)) 
+        {
+            dataRes = res2;
+        }
+        else 
+        {
+            Logger.Error($"[ATLAS] No data xml or json found in this path {path}");
+            return null;
+        }
+        
+        using var data = dataRes.Stream;
+        using var image = this[contentPath + "/" + path + ".png"].Stream;
         var atlas = AtlasExt.CreateAtlas(this, data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);

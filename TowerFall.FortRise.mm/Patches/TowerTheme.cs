@@ -41,12 +41,7 @@ public class patch_TowerTheme : TowerTheme
         World = xml.ChildEnum("World", TowerTheme.Worlds.Normal);
         Raining = xml.ChildBool("Raining", false);
         BackgroundID = xml.ChildText("Background", "SacredGround");
-        if (RiseCore.GameData.InternalBGs.ContainsKey(BackgroundID))
-        {
-            BackgroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Background"];
-            ForegroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Foreground"];
-        }
-        else if (GameData.BGs.ContainsKey(BackgroundID)) 
+        if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
             BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
             ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
@@ -125,12 +120,8 @@ public class patch_TowerTheme : TowerTheme
         }
         Raining = value.GetJsonValueOrNull("Raining") ?? false;
         BackgroundID = value.GetJsonValueOrNull("Background") ?? "SacredGround";
-        if (RiseCore.GameData.InternalBGs.ContainsKey(BackgroundID))
-        {
-            BackgroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Background"];
-            ForegroundData = RiseCore.GameData.InternalBGs[this.BackgroundID]["Foreground"];
-        }
-        else if (GameData.BGs.ContainsKey(BackgroundID)) 
+        
+        if (GameData.BGs.ContainsKey(BackgroundID)) 
         {
             BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
             ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
