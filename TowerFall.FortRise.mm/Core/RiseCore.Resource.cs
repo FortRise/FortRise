@@ -44,6 +44,8 @@ public partial class RiseCore
         "packer/"
     };
 
+    private static char[] SplitSeparator = new char[1] { '/' };
+
     /// <summary>
     /// A class that contains a path and stream to your resource works both on folder and zip. 
     /// </summary>
@@ -405,7 +407,7 @@ public partial class RiseCore
                     var zipResource = new ZipResource(this, file, prefix + file, entry);
                     Add(file, zipResource);
                     folders.Add(file, zipResource);
-                    var split = file.Split('/');
+                    var split = file.Split(SplitSeparator);
                     Array.Resize(ref split, split.Length - 1);
                     var newPath = CombineAllPath(split);
                     if (folders.TryGetValue(newPath, out var resource)) 
