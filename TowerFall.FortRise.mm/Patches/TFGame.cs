@@ -1,17 +1,20 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using FortRise;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil;
 using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
+using SDL2;
 
 namespace TowerFall 
 {
@@ -62,9 +65,7 @@ namespace TowerFall
                 this.noIntro = RiseCore.DebugMode;
         }
 
-        [PatchTFGameMain]
-        [MonoModIgnore]
-        public extern static void orig_Main(string[] args);
+        [MonoModReplace]
         public static void Main(string[] args) 
         {
             var towerFallPath = typeof(TFGame).Assembly.Location;
@@ -172,7 +173,7 @@ namespace TowerFall
 
             try 
             {
-                orig_Main(args);
+                InnerMain(args);
 
                 if (RiseCore.WillRestart) 
                 {
@@ -190,6 +191,83 @@ namespace TowerFall
             Logger.WriteToFile("fortRiseLog.txt");
             Environment.Exit(0);
         }
+
+        [MonoModIfFlag("Steamworks")]
+        [MonoModPatch("TryInit")]
+        [MonoModOriginalName("TryInit")]
+        public static bool TryInit_Steam() 
+        {
+            return SteamClient.Init();
+        }
+
+        [MonoModIfFlag("NoLauncher")]
+        [MonoModPatch("TryInit")]
+        [MonoModOriginalName("TryInit")]
+        public static bool TryInit_NoLauncher() 
+        {
+            return true;
+        }
+
+        [MonoModIgnore]
+        public static extern bool TryInit();
+
+        public static void InnerMain(string[] args) 
+        {
+            bool noIntro = false;
+            bool loadLog = false;
+            foreach (string text in args)
+            {
+                if (text.ToLower(CultureInfo.InvariantCulture) == "nointro" || text.ToLower(CultureInfo.InvariantCulture) == "-nointro")
+                {
+                    noIntro = true;
+                }
+                else if (text.ToLower(CultureInfo.InvariantCulture) == "loadlog" || text.ToLower(CultureInfo.InvariantCulture) == "-loadlog")
+                {
+                    loadLog = true;
+                }
+                else if (text.ToLower(CultureInfo.InvariantCulture) == "noquit" || text.ToLower(CultureInfo.InvariantCulture) == "-noquit")
+                {
+                    MainMenu.NoQuit = true;
+                }
+                else if (text.ToLower(CultureInfo.InvariantCulture) == "nogamepads" || text.ToLower(CultureInfo.InvariantCulture) == "-nogamepads")
+                {
+                    MainMenu.NoGamepads = true;
+                }
+                else if (text.ToLower(CultureInfo.InvariantCulture) == "nogamepadupdates" || text.ToLower(CultureInfo.InvariantCulture) == "-nogamepadupdates")
+                {
+                    MainMenu.NoGamepadUpdates = true;
+                }
+            }
+            if (loadLog)
+            {
+                TFGame.StartLoadLog();
+            }
+            TFGame.WriteLineToLoadLog("Initializing Steam...");
+            if (!TryInit())
+                return;
+            TFGame.WriteLineToLoadLog("Initializing game window...");
+            try
+            {
+                using (patch_TFGame tfgame = new patch_TFGame(noIntro))
+                {
+                    TFGame.WriteLineToLoadLog("Starting game...");
+                    tfgame.InternalRun();
+                }
+            }
+            catch (NoSuitableGraphicsDeviceException)
+            {
+                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "SAVE THIS MESSAGE!", "No suitable graphics card found!", IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                TFGame.Log(ex, false);
+                TFGame.OpenLog();
+            }
+        }
+
+        [MonoModIgnore]
+        [MonoModLinkTo("Monocle.Engine", "InternalRun")]
+        private extern void InternalRun();
 
         protected extern void orig_LoadContent();
 
