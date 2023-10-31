@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -80,19 +79,6 @@ internal static partial class MonoModRules
 
         MonoModRule.Modder.PostProcessors += PostProcessor;
         IsMod = RulesModule == null || !MonoModRule.Modder.Mods.Contains(RulesModule);
-
-        try 
-        {
-            using var fs = File.OpenRead("PatchVersion.txt");
-            using StreamReader sr = new StreamReader(fs);
-            var lines = sr.ReadToEnd().Split('\n');
-            ParseArgs(lines);
-        }
-        catch 
-        {
-            // No-Op
-        }
-
 
         if (IsMod) 
         {
@@ -191,21 +177,6 @@ internal static partial class MonoModRules
 
         foreach (TypeDefinition type in MonoModRule.Modder.Module.Types)
             VisitType(type);
-    }
-
-    public static void ParseArgs(string[] lines) 
-    {
-        foreach (var line in lines) 
-        {
-            var split = line.Split(':');
-            switch (split[0]) 
-            {
-            case "FNA":
-                var isTrue = bool.Parse(split[1]);
-                IsFNA = isTrue;
-                break;
-            }
-        }
     }
 
     public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name) 
