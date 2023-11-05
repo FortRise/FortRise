@@ -23,12 +23,12 @@ public static class HelperExtensions
         return DynamicData.For(obj);
     }
 
-    public static T GetData<T>(this object obj, string name) 
+    public static T DynGetData<T>(this object obj, string name) 
     {
         return DynamicData.For(obj).Get<T>(name);
     }
 
-    public static void SetData(this object obj, string name, object value) 
+    public static void DynSetData(this object obj, string name, object value) 
     {
         DynamicData.For(obj).Set(name, value);
     }
