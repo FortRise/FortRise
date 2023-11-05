@@ -122,7 +122,8 @@ public class FortContent
             png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
             data = data.Substring(indexOfSlash + 1).Replace("Content/", "");
 
-            LoadAtlas(data, png);
+            var atlas = LoadAtlas(data, png);
+            patch_Atlas.MergeAtlas(atlas, TFGame.Atlas, child.Root.Substring(4));
         }
 
         foreach (var spriteDataRes in ResourceSystem.Resources
@@ -352,7 +353,7 @@ public class FortContent
         
         using var data = this[contentPath + "/" + dataPath].Stream;
         using var image = this[contentPath + "/" + imagePath].Stream;
-        var atlas = AtlasExt.CreateAtlas(this, data, image, ext);
+        var atlas = AtlasExt.CreateAtlas(data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);
         return atlas;
@@ -393,7 +394,7 @@ public class FortContent
         
         using var data = dataRes.Stream;
         using var image = this[contentPath + "/" + path + ".png"].Stream;
-        var atlas = AtlasExt.CreateAtlas(this, data, image, ext);
+        var atlas = AtlasExt.CreateAtlas(data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);
         return atlas;
