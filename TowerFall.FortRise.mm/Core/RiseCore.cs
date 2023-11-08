@@ -337,22 +337,54 @@ public static partial class RiseCore
                 arg = compiledArgs[cursor];
                 try 
                 {
+                    var argSpan = arg.AsSpan();
+                    var slashSplit = argSpan.SplitLines('/');
+                    byte phase = 0;
+
                     int num = 0;
-                    var span = arg.AsSpan().SplitLines('.');
-                    foreach (var (s, x) in span) 
+                    string towerSet = null;
+                    string levelID = null;
+                    foreach (var (slashSet, _) in slashSplit) 
                     {
-                        if (s[0] == '0') 
+                        switch (phase) 
                         {
-                            num = int.Parse(s[1].ToString());
+                        case 0:
+                            towerSet = slashSet.ToString();
+                            break;
+                        case 1:
+                            levelID = slashSet.ToString();
+                            break;
+                        case 2:
+                            var span = slashSet.SplitLines('.');
+                            foreach (var (s, x) in span) 
+                            {
+                                if (s[0] == '0') 
+                                {
+                                    num = int.Parse(s[1].ToString());
+                                    break;
+                                }
+                                num = int.Parse(s.ToString());
+                                break;
+                            }
                             break;
                         }
-                        num = int.Parse(s.ToString());
-                        break;
+
+                        phase++;
                     }
+                    if (towerSet == null)
+                    {
+                        Logger.Error("[Quick Start] Couldn't quick start as TowerSet is missing");
+                        continue;
+                    }
+                    if (levelID == null)
+                    {
+                        Logger.Error("[Quick Start] Couldn't quick start as LevelID is missing");
+                        continue;
+                    }
+
                     LevelQuickStart = num;
-                    // TODO add arguments for these
                     RiseCore.Events.OnPostInitialize += () => {
-                        TowerRegistry.PlayDarkWorld("Adventure World", "Adventure World/3 - Soar", DarkWorldDifficulties.Legendary, LevelQuickStart);
+                        TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, LevelQuickStart);
                     };
                 }
                 catch (Exception ex) 
