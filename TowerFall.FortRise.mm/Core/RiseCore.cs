@@ -99,7 +99,6 @@ public static partial class RiseCore
     internal static bool NoRichPresence;
     internal static bool DumpResources;
     internal static bool DisableFortMods;
-    internal static int LevelQuickStart;
     internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
@@ -382,9 +381,8 @@ public static partial class RiseCore
                         continue;
                     }
 
-                    LevelQuickStart = num;
                     RiseCore.Events.OnPostInitialize += () => {
-                        TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, LevelQuickStart);
+                        TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
                     };
                 }
                 catch (Exception ex) 
