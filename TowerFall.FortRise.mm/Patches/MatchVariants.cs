@@ -123,7 +123,7 @@ public class patch_MatchVariants : MatchVariants
         var list = orig_GetItemExclusions(customTower);
         foreach (var customVariant in InternalCustomVariants.Values) 
         {
-            if (customVariant && customVariant.ItemExclusions != null) 
+            if (customVariant.Value && customVariant.ItemExclusions != null) 
             {
                 list.AddRange(customVariant.ItemExclusions);
             }
