@@ -85,6 +85,7 @@ public static class Ogmo3ToOel
                 foreach (var entity in layer.Entities) 
                 {
                     var element = xmlDocument.CreateElement(entity.Name);
+                    element.SetAttribute("id", entity.ID.ToString());
                     element.SetAttribute("x", entity.X.ToString());
                     element.SetAttribute("y", entity.Y.ToString());
                     element.SetAttribute("width", entity.Width.ToString());
