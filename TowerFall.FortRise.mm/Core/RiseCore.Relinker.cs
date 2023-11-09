@@ -168,19 +168,33 @@ public static partial class RiseCore
                 if (!string.IsNullOrEmpty(meta.PathZip)) 
                 {
                     using var zipFile = ZipFile.Read(meta.PathZip);
-                    foreach (var entry in zipFile.Entries) 
+                    try 
                     {
-                        if (entry.FileName.StartsWith(meta.NativePath)) 
+                        foreach (var entry in zipFile.Entries) 
                         {
-                            entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                            if (entry.FileName.StartsWith(meta.NativePath)) 
+                            {
+                                entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                            }
                         }
+                    }
+                    catch (IOException) 
+                    {
+                        Logger.Error("[Relinker] Couldn't extract all of the native files as its in used by another process");
                     }
                 }
                 else if (!string.IsNullOrEmpty(meta.PathDirectory))
                 {
-                    foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePath))) 
+                    try 
                     {
-                        File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                        foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePath))) 
+                        {
+                            File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                        }
+                    }
+                    catch (IOException) 
+                    {
+                        Logger.Error("[Relinker] Couldn't copy all of the native files as its in used by another process");
                     }
                 }
                 else
@@ -195,19 +209,33 @@ public static partial class RiseCore
                 if (!string.IsNullOrEmpty(meta.PathZip)) 
                 {
                     using var zipFile = ZipFile.Read(meta.PathZip);
-                    foreach (var entry in zipFile.Entries) 
+                    try 
                     {
-                        if (entry.FileName.StartsWith(meta.NativePathX86)) 
+                        foreach (var entry in zipFile.Entries) 
                         {
-                            entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                            if (entry.FileName.StartsWith(meta.NativePathX86)) 
+                            {
+                                entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                            }
                         }
+                    }
+                    catch (IOException) 
+                    {
+                        Logger.Error("[Relinker] Couldn't extract all of the native files as its in used by another process");
                     }
                 }
                 else if (!string.IsNullOrEmpty(meta.PathDirectory))
                 {
-                    foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePathX86))) 
+                    try 
                     {
-                        File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                        foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePathX86))) 
+                        {
+                            File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
+                        }
+                    }
+                    catch (IOException) 
+                    {
+                        Logger.Error("[Relinker] Couldn't copy all of the native files as its in used by another process");
                     }
                 }
                 else
