@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ionic.Zip;
+using Monocle;
+using TowerFall;
 
 namespace FortRise;
 
@@ -632,7 +634,7 @@ public partial class RiseCore
                 using TextWriter tw = new StreamWriter(file);
 
                 tw.WriteLine("FORTRISE RESOURCE DUMP");
-                tw.WriteLine("VERSION 4.5.0.0");
+                tw.WriteLine("VERSION 4.7.0.0");
                 tw.WriteLine("==============================");
                 foreach (var globalResource in TreeMap) 
                 {
@@ -661,11 +663,35 @@ public partial class RiseCore
                         await DumpResource(resource, line + "\t");
                     }
                 }
-            }
+
+
+                // Dump Atlases
+                DumpAtlas("Atlas", TFGame.Atlas);
+                DumpAtlas("MenuAtlas", TFGame.MenuAtlas);
+                DumpAtlas("BGAtlas", TFGame.BGAtlas);
+                if (GameData.DarkWorldDLC)
+                    DumpAtlas("BossAtlas", TFGame.BossAtlas);
+                }
             catch (Exception e) 
             {
                 Logger.Error("[DUMPRESOURCE]" + e.ToString());
                 throw;
+            }
+        }
+
+        private static void DumpAtlas(string name, Atlas atlas) 
+        {
+            foreach (KeyValuePair<string, Subtexture> texturePair in atlas.SubTextures) 
+            {
+                string key = texturePair.Key;
+                Subtexture value = texturePair.Value;
+
+                using var texture = value.GetTexture2DFromSubtexture();
+                var path = $"DUMP/{name}/{key}.png";
+                if (!Directory.Exists(Path.GetDirectoryName(path)))
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                using var file = File.Create(path);
+                texture.SaveAsPng(file, texture.Width, texture.Height);
             }
         }
     }
