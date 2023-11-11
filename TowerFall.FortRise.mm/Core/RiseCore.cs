@@ -761,66 +761,8 @@ public static partial class RiseCore
                     LevelEntityLoader[name] = loader;
                 }
             }
-            foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
-            {
-                const int offset = 11;
-                if (arrow is null)
-                    continue;
-                var name = arrow.Name;
-                var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
-                var stride = (ArrowTypes)offset + ArrowsRegistry.Count;
-                MethodInfo graphic = type.GetMethod(graphicFn);
 
-                ConstructorInfo ctor = type.GetConstructor(Array.Empty<Type>());
-                ArrowLoader loader = null;
-                if (ctor != null) 
-                {
-                    loader = () => 
-                    {
-                        var invoked = (patch_Arrow)ctor.Invoke(Array.Empty<object>());
-                        invoked.ArrowType = stride;
-                        return invoked;
-                    };
-                }
-                ArrowInfoLoader infoLoader = null;
-                if (graphic == null || !graphic.IsStatic)
-                {
-                    Logger.Log($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
-                    infoLoader = () => {
-                        return ArrowInfo.Create(new Image(TFGame.Atlas["arrows/arrow"]));
-                    };
-                }
-                else 
-                {
-                    infoLoader = () => {
-                        var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
-                        if (string.IsNullOrEmpty(identifier.Name))
-                            identifier.Name = name;
-                        return identifier;
-                    };
-                }
-
-                var pickupObject = new PickupObject() 
-                {
-                    Name = name,
-                    ID = (Pickups)PickupLoaderCount,
-                    Chance = arrow.Chance
-                };
-
-                ArrowsID[name] = stride;
-                ArrowsRegistry[name] = new ArrowObject() 
-                {
-                    Types = stride,
-                    InfoLoader = infoLoader,
-                    PickupType = pickupObject
-                };
-                ArrowNameMap[stride] = name;
-                Arrows[stride] = loader;
-                PickupRegistry[name] = pickupObject;
-                PickupLoader[(Pickups)PickupLoaderCount] 
-                    = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride);
-                PickupLoaderCount++;
-            }
+            FortRise.ArrowsRegistry.Register(type, module);
             foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
             {
                 if (pickup is null)
