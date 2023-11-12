@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace FortRise;
 
+/// <summary>
+/// Patch any towers by deriving from this class.
+/// Name your class with the tower name you want to patch, must not have any spaces.
+/// Make sure that you properly spelled it and it is case sensitive.
+/// </summary>
 public abstract class TowerPatch
 {
     public virtual void VersusPatch(VersusTowerPatchContext ctx) { }
@@ -288,6 +293,7 @@ public class DarkWorldTowerPatchContext : ITowerPatchContext
 /// If you want to patch outside of <see cref="ITowerPatcher.PatchTower(FortRise.OnTower)"/>,
 /// you just create this struct and pass around your Fort Module.
 /// </summary>
+[Obsolete("Create a class with the tower name you want to patch and extends it from FortRise.TowerPatch")]
 public struct OnTower 
 {
     public OnTower(FortModule module) 
