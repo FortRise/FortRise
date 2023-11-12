@@ -763,6 +763,7 @@ public static partial class RiseCore
             }
 
             FortRise.ArrowsRegistry.Register(type, module);
+            FortRise.TowerPatchRegistry.Register(type, module);
             foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
             {
                 if (pickup is null)

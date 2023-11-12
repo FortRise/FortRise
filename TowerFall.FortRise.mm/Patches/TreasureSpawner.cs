@@ -23,6 +23,18 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
     }
 
+    [MonoModLinkTo("TowerFall.TreasureSpawner", "System.Void .ctor(TowerFall.Session,System.Int32[],System.Single,System.Boolean)")]
+    [MonoModIgnore]
+    public void thisctor(Session session, int[] mask, float arrowChance, bool arrowShuffle) {}
+
+    [MonoModConstructor]
+    [MonoModReplace]
+    public void ctor(Session session, patch_VersusTowerData versusTowerData) 
+    {
+        var mask = versusTowerData.ModTreasureMask();
+        thisctor(session, mask, versusTowerData.SpecialArrowRate, versusTowerData.ArrowShuffle);
+    } 
+
     [MonoModConstructor]
     [MonoModReplace]
     public void ctor(Session session, int[] mask, float arrowChance, bool arrowShuffle) 
