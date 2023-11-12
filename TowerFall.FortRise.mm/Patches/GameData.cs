@@ -13,7 +13,7 @@ public static class patch_GameData
         RiseCore.CantRestart = false;
         RiseCore.Events.Invoke_OnBeforeDataLoad();
         orig_Load();
-        RiseCore.ExtendedGameData.Load();
+        ExtendedGameData.Load();
 
         // Assign its LevelID
         foreach (var questTowers in GameData.QuestLevels) 

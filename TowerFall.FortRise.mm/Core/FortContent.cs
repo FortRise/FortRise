@@ -163,7 +163,7 @@ public class FortContent
                     var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
                     var themeID = xmlTheme.Attr("id", xmlTheme.Name);
-                    RiseCore.ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() => 
                     {
                         var towerTheme = new patch_TowerTheme(xmlTheme, child, themeResource);
                         TowerFall.GameData.Themes[child.Root.Substring(4) + themeID] = towerTheme;
@@ -179,7 +179,7 @@ public class FortContent
                 foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG")) 
                 {
                     var bgID = bgs.Attr("id");
-                    RiseCore.ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() => 
                     {
                         TowerFall.GameData.BGs[child.Root.Substring(4) + bgID] = bgs;
                     }, 1);
@@ -196,7 +196,7 @@ public class FortContent
                 {
                     var atlas = tilesets.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
-                    RiseCore.ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() => 
                     {
                         var tilesetID = tilesets.Attr("id", tilesets.Name);
                         TowerFall.GameData.Tilesets[child.Root.Substring(4) + tilesetID] = new patch_TilesetData(tilesets, themeResource);
@@ -211,7 +211,7 @@ public class FortContent
                 using var xmlStream = child.Stream;
                 var xmlMap = patch_Calc.LoadXML(xmlStream)["map"];
                 var map = new MapRendererNode(xmlMap, child);
-                RiseCore.ExtendedGameData.Defer(() => RiseCore.ExtendedGameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
+                ExtendedGameData.Defer(() => ExtendedGameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
                 Logger.Verbose("[MapData] Loaded: " + child.Root.Substring(4) + child.Path);
             }
                 break;
