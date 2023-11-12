@@ -463,6 +463,10 @@ namespace TowerFall
             {
                 yield return 0;
             }
+            foreach (var gameMode in GameModeRegistry.VersusGameModes) 
+            {
+                gameMode.InitializeSoundsInternal();
+            }
 
             FortRise.RiseCore.Events.Invoke_OnPostInitialize();
             Loader.Message = "";

@@ -13,15 +13,6 @@ public static class ArrowsRegistry
     public static Dictionary<Type, ArrowTypes> Types = new();
 
 
-    public static ArrowTypes GetArrow<T>() 
-    where T : Arrow
-    {
-        if (Types.TryGetValue(typeof(T), out var val))
-            return val;
-        return ArrowTypes.Normal;
-    }
-
-
     public static void Register<T>(FortModule module) 
     {
         Register(typeof(T), module);

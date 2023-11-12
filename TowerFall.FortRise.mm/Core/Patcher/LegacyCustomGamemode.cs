@@ -1,4 +1,7 @@
+#pragma warning disable CS0612
+#pragma warning disable CS0618
 using System;
+using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -6,35 +9,56 @@ namespace FortRise;
 // This is a legacy gamemode.
 // Intended used for backward compatibility with CustomRoundLogic
 // DO NOT USE THIS AS AN EXAMPLE
-internal class LegacyCustomGamemode : GameMode
+internal class LegacyCustomGamemode : CustomGameMode
 {
-    private readonly Func<RoundLogic> logic;
-    public override RoundLogic RoundLogic => logic();
-    public override LevelSystem LevelSystem => new VersusLevelSystem(TowerData as VersusTowerData);
+    private RoundLogicType Type;
+    internal RoundLogicLoader LegacyLoader;
 
-    public LegacyCustomGamemode(
-        Session session, LevelData levelData,
-        string roundLogicName, RoundLogicInfo info) :base(session, levelData)
+    public LegacyCustomGamemode(string name, RoundLogicInfo info) : base()
     {
-        logic = () => {
-            var mode = CustomVersusRoundLogic.LookUpModes[roundLogicName];
-            var id = CustomVersusRoundLogic.VersusModes[(int)mode];
-            if (RiseCore.RoundLogicLoader.TryGetValue(id, out var value)) 
-            {
-                return value.Invoke((patch_Session)session, true);
-            }
-            return info.RoundType switch
-            {
-                RoundLogicType.FFA => new LastManStandingRoundLogic(session),
-                RoundLogicType.HeadHunters => new HeadhuntersRoundLogic(session),
-                RoundLogicType.TeamDeatchmatch => new TeamDeathmatchRoundLogic(session),
-                _ => new LastManStandingRoundLogic(session)
-            };
+        Name = info.Name;
+        Icon = info.Icon;
+        ModeType = GameModeType.Versus;
+
+        Type = info.RoundType;
+        ID = name;
+    }
+
+    public override RoundLogic CreateRoundLogic(Session session)
+    {
+        if (LegacyLoader != null) 
+        {
+            return LegacyLoader.Invoke((patch_Session)session, true);
+        }
+        return Type switch
+        {
+            RoundLogicType.FFA => new LastManStandingRoundLogic(session),
+            RoundLogicType.HeadHunters => new HeadhuntersRoundLogic(session),
+            RoundLogicType.TeamDeatchmatch => new TeamDeathmatchRoundLogic(session),
+            _ => new LastManStandingRoundLogic(session)
         };
     }
 
-    public override GameModeInfo Initialize(GameModeBuilder builder)
+    public override LevelSystem GetLevelSystem(LevelData levelData)
     {
-        return builder.Build();
+        return base.GetLevelSystem(levelData);
+    }
+
+    public override void Initialize() {}
+
+    public override Sprite<int> CoinSprite()
+    {
+        if (Type == RoundLogicType.HeadHunters)
+            return DeathSkull.GetSprite();
+        return base.CoinSprite();
+    }
+
+    public override void InitializeSounds()
+    {
+        if (Type == RoundLogicType.HeadHunters) 
+        {
+            EarnedCoinSound = Sounds.sfx_multiSkullEarned; 
+            CoinOffset = 12;
+        }
     }
 }

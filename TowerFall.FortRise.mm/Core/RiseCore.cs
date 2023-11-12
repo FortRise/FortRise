@@ -45,10 +45,8 @@ public static partial class RiseCore
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
-    public static Dictionary<string, RoundLogicLoader> RoundLogicLoader = new();
-    public static Dictionary<string, RoundLogicInfo> RoundLogicIdentifiers = new();
-    // TODO make this public
-    internal static Dictionary<string, GameMode> GameModes = new();
+
+
 
     // Extending enums this way. Please inform me if there's a better way to do this.
     public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
@@ -625,7 +623,7 @@ public static partial class RiseCore
                     continue;
                 }
                 var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
-                RoundLogicIdentifiers.Add(name, identifier);
+                var legacyGameMode = new LegacyCustomGamemode(name, identifier);
                 ctor = type.GetConstructor(new Type[] { typeof(Session), typeof(bool) });
                 if (ctor != null) 
                 {
@@ -645,17 +643,12 @@ public static partial class RiseCore
                     goto Loaded;
                 }
                 Loaded:
-                if (identifier.RoundType == RoundLogicType.FFA)
-                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.LastManStanding);
-                else if (identifier.RoundType == RoundLogicType.TeamDeatchmatch)
-                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.TeamDeathmatch);
-                else
-                    CustomVersusRoundLogic.LookUpModes.Add(name, patch_Modes.HeadHunters);
 
-                CustomVersusRoundLogic.VersusModes.Add(name);
-                RoundLogicLoader[name] = loader;
-                
+                legacyGameMode.LegacyLoader = loader;
+                legacyGameMode.coinSprite = legacyGameMode.CoinSprite();
+                GameModeRegistry.AddToLegacyVersus(name, legacyGameMode);
             }
+            GameModeRegistry.Register(type, module);
             foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
             {
                 if (attrib is null)
@@ -829,7 +822,7 @@ public static partial class RiseCore
         }
         catch (Exception e) 
         {
-            Logger.Log(e.ToString());
+            Logger.Error(e.ToString());
         }
 
         module.AfterLoad();

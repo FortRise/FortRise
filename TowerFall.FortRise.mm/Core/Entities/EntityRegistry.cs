@@ -6,6 +6,9 @@ using TowerFall;
 
 namespace FortRise;
 
+/// <summary>
+/// A class that registers custom entity from types.
+/// </summary>
 public static class EntityRegistry 
 {
     internal static void LoadAllBuiltinEnemies() 

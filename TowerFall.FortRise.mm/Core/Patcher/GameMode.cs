@@ -1,112 +1,69 @@
 using System;
+using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
 namespace FortRise;
 
-internal abstract class GameMode 
+
+public abstract class CustomGameMode 
 {
-    /// <summary>
-    /// A session for this gamemode.
-    /// </summary>
-    public Session Session;
+    public string ID { get; internal set; }
+    internal TowerFall.Modes GameModeInternal;
 
-    /// <summary>
-    /// A tower data used for this gamemode.
-    /// </summary>
-    public LevelData TowerData;
+    public string Name { get => name; set => name = value; }
+    private string name = "Unknown";
+    public Color NameColor { get => nameColor; set => nameColor = value; }
+    private Color nameColor = Color.White;
+    public Subtexture Icon { get => icon; set => icon = value; }
+    private Subtexture icon = TFGame.MenuAtlas["gameModes/lastManStanding"];
+    public GameModeType ModeType { get => type; set => type = value; }
+    private GameModeType type;
 
-    /// <summary>
-    /// A property used to instantiate the RoundLogic. Use the one that you defined or use `new LastManStandingRoundLogic(Session)` as default.
-    /// </summary>
-    public abstract RoundLogic RoundLogic { get; }
+    public bool TeamMode { get => teamMode; set => teamMode = value; }
+    private bool teamMode;
 
-    /// <summary>
-    /// A property used to instantiate the level system. Use the one that you defined or use `new VersusLevelSystem(TowerData as VersusTowerData)` as default.
-    /// </summary> 
-    public abstract LevelSystem LevelSystem { get; }
+    public int CoinOffset { get => coinOffset; set => coinOffset = value; }
+    private int coinOffset = 10;
 
-    public GameModeInfo Info;
+    public SFX EarnedCoinSound { get => earnedCoinSound; set => earnedCoinSound = value; }
+    private SFX earnedCoinSound = Sounds.sfx_multiCoinEarned;
 
-    public GameMode(Session session, LevelData towerData) 
+    public SFX LoseCoinSound { get => loseCoinSound; set => loseCoinSound = value; }
+    private SFX loseCoinSound = Sounds.sfx_multiSkullNegative;
+    internal Sprite<int> coinSprite;
+
+    internal void InitializeSoundsInternal() 
     {
-        Session = session;
-        TowerData = towerData;
+        earnedCoinSound = Sounds.sfx_multiCoinEarned;
+        loseCoinSound = Sounds.sfx_multiSkullNegative;
+        InitializeSounds();
     }
 
-    /// <summary>
-    /// This is where you initialize your gamemode to specify the name, icon, and the mode.
-    /// </summary>
-    public abstract GameModeInfo Initialize(GameModeBuilder builder);
-
-
-    public enum GameModeType { Versus, CoOp }
-}
-
-internal struct GameModeInfo 
-{
-    public string Name;
-    public Subtexture Icon;
-    public GameMode.GameModeType GameMode;
-
-    public GameModeInfo(string name, Subtexture icon, GameMode.GameModeType gameMode) 
+    public CustomGameMode() 
     {
-        Name = name;
-        Icon = icon;
-        GameMode = gameMode;
+        ID = GetType().Name;
     }
-}
 
+    public abstract void Initialize();
+    public abstract void InitializeSounds();
 
-/// <summary>
-/// An attribute used to register your own custom game mode.
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public sealed class CustomGameModeAttribute : Attribute 
-{
-    public string Name;
+    public abstract RoundLogic CreateRoundLogic(Session session);
+    
 
-    public CustomGameModeAttribute(string name) 
+    public virtual LevelSystem GetLevelSystem(LevelData levelData) 
     {
-        Name = name;
+        if (ModeType == GameModeType.Versus) 
+        {
+            return new VersusLevelSystem(levelData as VersusTowerData);
+        }
+        return new QuestLevelSystem(levelData as QuestLevelData);
+    }
+
+    public virtual Sprite<int> CoinSprite() 
+    {
+        return VersusCoinButton.GetCoinSprite();
     }
 }
 
-/// <summary>
-/// A class where you can initialize your GameMode accordingly. Use `Initialize` after you are done.
-/// </summary>
-internal class GameModeBuilder 
-{
-    public string GameModeName;
-    public GameMode.GameModeType Type;
-    public Subtexture GameModeIcon;
-
-    public GameModeBuilder Name(string name) 
-    {
-        GameModeName = name;
-        return this;
-    }
-
-    public GameModeBuilder Icon(Subtexture texture) 
-    {
-        GameModeIcon = texture;
-        return this;
-    }
-
-    public GameModeBuilder Versus() 
-    {
-        Type = GameMode.GameModeType.Versus;
-        return this;
-    }
-
-    public GameModeBuilder CoOp() 
-    {
-        Type = GameMode.GameModeType.CoOp;
-        return this;
-    }
-
-    public GameModeInfo Build() 
-    {
-        return new GameModeInfo(GameModeName, GameModeIcon, Type);
-    }
-}
+public enum GameModeType { Versus, CoOp }
