@@ -13,6 +13,7 @@ namespace TowerFall
 {
     public class patch_VersusStart : VersusStart
     {
+        private bool tweeningOut;
         private Session session;
         public patch_VersusStart(Session session) : base(session)
         {
@@ -33,6 +34,68 @@ namespace TowerFall
             displayField.DynSetData("modeColor", customGameMode.NameColor);
             Add(outlineText);
             return outlineText;
+        }
+
+        [MonoModReplace]
+        private IEnumerator VariantsSequence(Subtexture[] variants)
+        {
+            var variantImage = new Entity(this.Position, base.LayerIndex) {
+                Depth = base.Depth - 1
+            };
+
+            Scene.Add<Entity>(variantImage);
+            var vector = new Vector2(0f, 50f);
+            var positions = new Vector2[variants.Length];
+            var images = new OutlineImage[variants.Length];
+            for (int i = 0; i < variants.Length; i++)
+            {
+                int x = i % 14;
+                int y = i / 14;
+                float num3 = (float)(-(Math.Min(14, variants.Length - y * 14) - 1) * 18 / 2);
+                positions[i] = vector + new Vector2(num3 + (x * 18), (y * 18));
+            }
+            yield return 5;
+            int index = 0;
+            for (int i = 0; i < variants.Length; i = index + 1)
+            {
+                yield return 1;
+                var image = new OutlineImage(variants[i]);
+                image.CenterOrigin();
+                image.Position = positions[i];
+                image.Scale = Vector2.Zero;
+                variantImage.Add(image);
+                images[i] = image;
+                Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.BackOut, 12, true);
+                tween.OnUpdate = t =>
+                {
+                    image.Scale = Vector2.One * t.Eased;
+                };
+                Add(tween);
+                index = i;
+            }
+            while (!this.tweeningOut)
+                yield return null;
+
+            var coroutine = new Coroutine(VariantTweenOutSequence(variants, images, index, variantImage));
+            variantImage.Add(coroutine);
+        }
+
+        private IEnumerator VariantTweenOutSequence(Subtexture[] variants, OutlineImage[] images, int index, Entity variantImage) 
+        {
+            var subIndex = index;
+            for (int i = 0; i < variants.Length; i = subIndex + 1)
+            {
+                OutlineImage image = images[i];
+                Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.BackIn, 8, true);
+                tween.OnUpdate = t => {
+                    image.Scale = Vector2.One * (1f - t.Eased);
+                };
+                variantImage.Add(tween);
+                yield return 1;
+                subIndex = i;
+            }
+            yield return 10;
+            variantImage.RemoveSelf();
         }
     }
 }
