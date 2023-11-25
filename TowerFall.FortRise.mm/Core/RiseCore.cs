@@ -41,6 +41,10 @@ public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveM
 /// </summary>
 public static partial class RiseCore 
 {
+    /// <summary>
+    /// A TowerFall root directory.
+    /// </summary>
+    public static string GameRootPath { get; internal set; }
     internal static long PickupLoaderCount = 21;
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
@@ -124,8 +128,28 @@ public static partial class RiseCore
         }
     }
 
-    internal static void Start() 
+    internal static bool Start() 
     {
+        GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
+
+        if (!Directory.Exists(Path.Combine(GameRootPath, "Content"))) 
+        {
+            // Try changing the path if it doesn't exists.
+            var parent = new DirectoryInfo(GameRootPath).Parent.ToString();
+            GameRootPath = Path.Combine(parent, "TowerFall");
+            Logger.Info(parent);
+            Logger.Info(GameRootPath);
+        }
+        if (!Directory.Exists(Path.Combine(GameRootPath, "Content"))) 
+        {
+            // let's not run the game.
+            return false;
+        }
+        Logger.Info(GameRootPath);
+
+        patch_Calc.LOADPATH = Path.Combine(GameRootPath, Calc.LOADPATH);
+        patch_Calc.DW_LOADPATH = Path.Combine(GameRootPath, Calc.DW_LOADPATH);
+
         Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
         var directory = Directory.GetDirectories("Mods");
         foreach (var dir in directory) 
@@ -176,13 +200,14 @@ public static partial class RiseCore
                 Environment.SetEnvironmentVariable(val.Key, val.Value);
             }
         }
+
+        return true;
     }
 
     internal static void ModuleStart() 
     {
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
-        GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
         if (!Directory.Exists("Mods"))
             Directory.CreateDirectory("Mods");
 

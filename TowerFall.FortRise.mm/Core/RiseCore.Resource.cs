@@ -447,7 +447,7 @@ public partial class RiseCore
 
     public class AdventureGlobalLevelResource : FolderModResource
     {
-        public AdventureGlobalLevelResource() : base("Content/Mod/Adventure")
+        public AdventureGlobalLevelResource() : base(Path.Combine(Calc.LOADPATH, "Mod", "Adventure"))
         {
         }
 

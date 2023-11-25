@@ -17,10 +17,7 @@ namespace FortRise;
 
 public static partial class RiseCore 
 {
-    /// <summary>
-    /// A TowerFall root directory.
-    /// </summary>
-    public static string GameRootPath { get; internal set; }
+
     /// <summary>
     /// A TowerFall checksum executable.
     /// </summary>

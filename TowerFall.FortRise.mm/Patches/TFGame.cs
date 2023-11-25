@@ -116,9 +116,20 @@ namespace TowerFall
                 }
             }
 
-            FortRise.RiseCore.Start();
+            if (!FortRise.RiseCore.Start()) 
+            {
+                SDL2.SDL.SDL_ShowSimpleMessageBox(
+                    SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, 
+                    "CONTENT NOT FOUND",
+                    "TowerFall Content cannot be found elsewhere.", IntPtr.Zero);
+                return;
+            }
             RiseCore.ParseArgs(args);
             var patchFile = "PatchVersion.txt";
+            if (!File.Exists(patchFile)) 
+            {
+                patchFile = Path.Combine(RiseCore.GameRootPath, "PacthVersion.txt");
+            }
             if (File.Exists(patchFile)) 
             {
                 try 
@@ -170,6 +181,7 @@ namespace TowerFall
                     Logger.Error(e.ToString());
                 }
             }
+
 
             try 
             {
@@ -246,6 +258,8 @@ namespace TowerFall
             if (!TryInit())
                 return;
             TFGame.WriteLineToLoadLog("Initializing game window...");
+
+            Logger.Info("[FortRise] TF Content Path is located in: " + Calc.LOADPATH);
             try
             {
                 using (patch_TFGame tfgame = new patch_TFGame(noIntro))
