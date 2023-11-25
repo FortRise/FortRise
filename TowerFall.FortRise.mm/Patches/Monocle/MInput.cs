@@ -1,11 +1,31 @@
+using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoMod;
-using Steamworks;
 
 namespace Monocle;
+
+[MonoModPatch("MInput")]
+[MonoModIfFlag("OS:Windows")]
+public static class DInputRemoval 
+{
+    [MonoModRemove]
+    private static object DirectInput;
+    [MonoModRemove]
+    public static List<MInput.JoystickData> Joysticks;
+
+    [MonoModReplace]
+    public static string[] LogJoysticks()
+    {
+        return Array.Empty<string>();
+    }
+
+    [MonoModPatch("JoystickData")]
+    [MonoModRemove]
+    public class JoystickData {}
+} 
 
 public static class patch_MInput 
 {
