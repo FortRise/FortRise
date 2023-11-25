@@ -45,12 +45,30 @@ public abstract class CustomGameMode
         ID = GetType().Name;
     }
 
+    /// <summary>
+    /// Initialize the fields you need to initialize such as Name, Icon and ModeType. 
+    /// <br/>
+    /// For initializing SFX, <see cref="FortRise.CustomGameMode.InitializeSounds"/>.
+    /// </summary>
     public abstract void Initialize();
+
+    /// <summary>
+    /// Initialize your SFX here such as <see cref="FortRise.CustomGameMode.EarnedCoinSound"/> 
+    /// and <see cref="FortRise.CustomGameMode.LoseCoinSound"/>.
+    /// </summary>
     public abstract void InitializeSounds();
 
+    /// <summary>
+    /// Instantiate your round logic here to create your own logic for your gamemode.
+    /// You can either use the vanilla round logic or derived atleast one of it with its different behaviour.
+    /// <param name="session">A game session needed to be passed for round logic</param>
+    /// </summary>
     public abstract RoundLogic CreateRoundLogic(Session session);
     
-
+    /// <summary>
+    /// Instatiate your own level system here to create a custom level system.
+    /// <param name="levelData">A data needed to be passed for level systems</param>
+    /// </summary>
     public virtual LevelSystem GetLevelSystem(LevelData levelData) 
     {
         if (ModeType == GameModeType.Versus) 
@@ -60,10 +78,25 @@ public abstract class CustomGameMode
         return new QuestLevelSystem(levelData as QuestLevelData);
     }
 
+    /// <summary>
+    /// A sprite to used for points system. Default is the coin (Last Man Standing or TDM).
+    /// <br/>
+    /// To change it to skull, override this function and return UseSkullSprite()
+    /// </summary>
     public virtual Sprite<int> CoinSprite() 
     {
         return VersusCoinButton.GetCoinSprite();
     }
+
+    /// <summary>
+    /// A ready to use skull sprite with offset adjusted as well.
+    /// </summary>
+    public Sprite<int> UseSkullSprite() 
+    {
+        CoinOffset = 12;
+        return DeathSkull.GetSprite();
+    }
 }
+
 
 public enum GameModeType { Versus, CoOp }
