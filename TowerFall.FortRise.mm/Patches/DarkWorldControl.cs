@@ -156,10 +156,14 @@ namespace TowerFall
 
         private void PlayBossMusic() 
         {
-            var boss = Scene.Layers[0].GetFirst<patch_DarkWorldBoss>();
-            if (boss is not null) 
+            foreach (var layer in Scene.Layers.Values) 
             {
-                Music.Play(boss.BossMusic);
+                var boss = layer.GetFirst<patch_DarkWorldBoss>();
+                if (boss is not null) 
+                {
+                    Music.Play(boss.BossMusic);
+                    return;
+                }
             }
         }
     }
