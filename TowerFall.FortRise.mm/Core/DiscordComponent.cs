@@ -14,6 +14,8 @@ public class DiscordComponent : GameComponent
     private Discord.Activity NextPresence;
     private bool dirty;
 
+    private const string FortRiseIcon = "https://i.imgur.com/jMyu0Hl.png";
+
     public DiscordComponent(Game game) : base(game)
     {
         UpdateOrder = -50000;
@@ -86,7 +88,7 @@ public class DiscordComponent : GameComponent
             State = "Enemies: " + logic.GauntletCounter.Amount + " | " + "Players: " + TFGame.PlayerAmount
         };
         NextPresence.Assets.LargeText = "FortRise";
-        NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
+        NextPresence.Assets.LargeImage = FortRiseIcon;
         NextPresence.Assets.SmallImage = GetQuestDifficulty(logic.Session.MatchSettings);
         NextPresence.Assets.SmallText = "TowerFall";
 
@@ -108,7 +110,7 @@ public class DiscordComponent : GameComponent
             State = "Players: " + TFGame.PlayerAmount
         };
         NextPresence.Assets.LargeText = "FortRise";
-        NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
+        NextPresence.Assets.LargeImage = FortRiseIcon;
         NextPresence.Assets.SmallImage = GetQuestDifficulty(control.Level.Session.MatchSettings);
         NextPresence.Assets.SmallText = "Quest";
 
@@ -122,7 +124,7 @@ public class DiscordComponent : GameComponent
         };
 
         NextPresence.Assets.LargeText = "FortRise";
-        NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
+        NextPresence.Assets.LargeImage = FortRiseIcon;
         NextPresence.Assets.SmallImage = GetMap(scene.Mode);
         NextPresence.Assets.SmallText = scene.Mode.ToString();
 
@@ -148,7 +150,7 @@ public class DiscordComponent : GameComponent
         };
 
         NextPresence.Assets.LargeText = "FortRise";
-        NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
+        NextPresence.Assets.LargeImage = FortRiseIcon;
         NextPresence.Assets.SmallImage = "versus";
         NextPresence.Assets.SmallText = "TowerFall";
 
@@ -343,7 +345,7 @@ public class DiscordComponent : GameComponent
         }
 
         NextPresence.Assets.LargeText = "FortRise";
-        NextPresence.Assets.LargeImage = "https://i.imgur.com/nNc3UG2.png";
+        NextPresence.Assets.LargeImage = FortRiseIcon;
 
         dirty = true;
     }
