@@ -18,7 +18,7 @@ public class patch_JumpPad : JumpPad
     public override void Added()
     {
         base.Added();
-        if (Scene.HasBegun) 
+        if (Scene.HasBegun && surfaceEntities == null) 
         {
             var x = 0f;
 			Func<SnowClump, bool> findSnowClump = s => s.X == x && s.Y == Y;
