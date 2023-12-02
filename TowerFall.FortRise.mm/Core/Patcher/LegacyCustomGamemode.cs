@@ -1,6 +1,5 @@
 #pragma warning disable CS0612
 #pragma warning disable CS0618
-using System;
 using Monocle;
 using TowerFall;
 
