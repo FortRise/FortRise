@@ -81,7 +81,8 @@ public class VariantManager : IDisposable
             coopValue = 1;
         }
         var title = GetCustomVariantTitle(info.Name);
-        var variant = new Variant(info.Icon, title, description, itemExclusions, perPlayer, 
+        var icon = info.Icon ?? GetVariantIconFromName(info.Name);
+        var variant = new Variant(icon, title, description, itemExclusions, perPlayer, 
             useHeader, null, scrollEffect, hidden, flag, tournamentRule1v, 
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
         if (flag)
@@ -188,6 +189,20 @@ public class VariantManager : IDisposable
     }
 
     /// <summary>
+    /// Get a variant icon from name within the context. 
+    /// Note that you should only use this on the 
+    ///<see cref="FortRise.FortModule.OnVariantsRegister(VariantManager, bool)"/>, or else
+    /// you will get a possible error.
+    /// </summary>
+    /// <param name="variantName">A name of the variant</param>
+    /// <returns>A <see cref="Monocle.Subtexture"/> from the atlas</returns>
+    public Subtexture GetVariantIconFromName(string variantName)
+    {
+        return TFGame.Atlas[CurrentContext + "/" + 
+            "variants/" + variantName[0].ToString().ToLowerInvariant() + variantName.Substring(1)];
+    }
+
+    /// <summary>
     /// Use to link the variants and you won't be able to select both of these variants anymore.
     /// Only one of the variants can be selected.
     /// </summary>
@@ -272,6 +287,16 @@ public struct CustomVariantInfo
     /// </summary>
     public Pickups[] Exclusions;
 
+    public CustomVariantInfo(string name, CustomVariantFlags flag = CustomVariantFlags.None) 
+    {
+        Name = name;
+        Icon = null;
+        Flags = flag;
+        Description = string.Empty;
+        Exclusions = null;
+        Header = null;
+    }
+
     public CustomVariantInfo(string name, Subtexture texture, CustomVariantFlags flag = CustomVariantFlags.None) 
     {
         Name = name;
@@ -292,10 +317,30 @@ public struct CustomVariantInfo
         Header = null;
     }
 
+    public CustomVariantInfo(string name, CustomVariantFlags flags = CustomVariantFlags.None, params Pickups[] exclusions) 
+    {
+        Name = name;
+        Icon = null;
+        Flags = flags;
+        Description = string.Empty;
+        Exclusions = exclusions;
+        Header = null;
+    }
+
     public CustomVariantInfo(string name, Subtexture icon, string description, CustomVariantFlags flags = CustomVariantFlags.None) 
     {
         Name = name;
         Icon = icon;
+        Flags = flags;
+        Description = description;
+        Exclusions = null;
+        Header = null;
+    }
+
+    public CustomVariantInfo(string name, string description, CustomVariantFlags flags = CustomVariantFlags.None) 
+    {
+        Name = name;
+        Icon = null;
         Flags = flags;
         Description = description;
         Exclusions = null;
@@ -312,10 +357,30 @@ public struct CustomVariantInfo
         Header = null;
     }
 
+    public CustomVariantInfo(string name, string description, CustomVariantFlags flags, params Pickups[] exclusions) 
+    {
+        Name = name;
+        Icon = null;
+        Flags = flags;
+        Description = description;
+        Exclusions = exclusions;
+        Header = null;
+    }
+
     public CustomVariantInfo(string name, Subtexture icon, string description, string header, CustomVariantFlags flags, params Pickups[] exclusions) 
     {
         Name = name;
         Icon = icon;
+        Flags = flags;
+        Description = description;
+        Exclusions = exclusions;
+        Header = header;
+    }
+
+    public CustomVariantInfo(string name, string description, string header, CustomVariantFlags flags, params Pickups[] exclusions) 
+    {
+        Name = name;
+        Icon = null;
         Flags = flags;
         Description = description;
         Exclusions = exclusions;
