@@ -18,6 +18,7 @@ if [ $? -ne 0 ]; then
 	echo
 	echo -e "Failed to build the mod rules!"
 	echo
+	read -p "Press enter to continue!"
 	exit 1
 fi
 # Proceed if succeed
