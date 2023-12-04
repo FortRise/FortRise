@@ -10,11 +10,19 @@ public abstract class CustomGameMode
     public string ID { get; internal set; }
     internal TowerFall.Modes GameModeInternal;
 
-    public string Name { get => name; set => name = value; }
-    private string name = "Unknown";
+    public string Name 
+    { 
+        get => name ?? GetType().Name; 
+        set => name = value; 
+    }
+    private string name;
     public Color NameColor { get => nameColor; set => nameColor = value; }
     private Color nameColor = Color.White;
-    public Subtexture Icon { get => icon; set => icon = value; }
+    public Subtexture Icon 
+    { 
+        get => icon; 
+        set => icon = value; 
+    }
     private Subtexture icon = TFGame.MenuAtlas["gameModes/lastManStanding"];
     public GameModeType ModeType { get => type; set => type = value; }
     private GameModeType type;
@@ -56,6 +64,12 @@ public abstract class CustomGameMode
     /// and <see cref="FortRise.CustomGameMode.LoseCoinSound"/>.
     /// </summary>
     public abstract void InitializeSounds();
+
+    /// <summary>
+    /// Initialize your game mode state here
+    /// <param name="session">A game session that you can access if you need to modify some parts of it</param>
+    /// </summary>
+    public virtual void StartGame(Session session) {}
 
     /// <summary>
     /// Instantiate your round logic here to create your own logic for your gamemode.
