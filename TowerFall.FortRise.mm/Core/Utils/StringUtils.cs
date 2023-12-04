@@ -8,6 +8,53 @@ namespace FortRise;
 /// </summary>
 public static class StringUtils
 {
+    ///<summary>
+    /// Add spaces to the text from capital letters. (ex. LastManStanding -> Last Man Standing).
+    /// <param name="characters">An input text to transform with</param>
+    /// <returns>A text with spaced between capital letters</returns>
+    ///</summary>
+    public static string SeparateCases(string characters) 
+    {
+        return SeparateCases(characters.AsSpan());
+    }
+
+    ///<summary>
+    /// Add spaces to the text from capital letters. (ex. LastManStanding -> Last Man Standing).
+    /// <param name="characters">A span containing the pointer to string</param>
+    /// <returns>A text with spaced between capital letters</returns>
+    ///</summary>
+    public static string SeparateCases(ReadOnlySpan<char> characters) 
+    {
+        int upper = 0;
+        for (int i = 1; i < characters.Length; i++) 
+        {
+            if (char.IsUpper(characters[i])) 
+                upper++;
+        }
+
+        Span<char> dest = stackalloc char[characters.Length + upper];
+
+        int offset = 0;
+        for (int i = 0; i < characters.Length; i++) 
+        {
+            if (i == 0) 
+            {
+                dest[i] = characters[i];
+                continue;
+            }
+
+            if (i < characters.Length - 1 && char.IsUpper(characters[i + 1])) 
+            {
+                dest[i + offset] = characters[i];
+                dest[i + offset + 1] = ' ';
+                offset++;
+                continue;
+            }
+            dest[i + offset] = characters[i];
+        }
+        return dest.ToString();
+    } 
+
     /// <summary>
     /// Transform the text into a title case (ex. sacred ground -> Sacred Ground) 
     /// </summary>
@@ -25,7 +72,6 @@ public static class StringUtils
     /// <returns>A title cased text</returns>
     public static string ToTitleCase(ReadOnlySpan<char> characters) 
     {
-
         Span<char> s = stackalloc char[characters.Length];
         characters.ToLowerInvariant(s);
         bool capital = true;

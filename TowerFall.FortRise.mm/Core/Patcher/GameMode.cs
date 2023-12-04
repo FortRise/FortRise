@@ -12,7 +12,7 @@ public abstract class CustomGameMode
 
     public string Name 
     { 
-        get => name ?? GetType().Name; 
+        get => name ?? StringUtils.SeparateCases(GetType().Name); 
         set => name = value; 
     }
     private string name;
