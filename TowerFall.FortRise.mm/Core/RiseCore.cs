@@ -601,10 +601,19 @@ public static partial class RiseCore
         }
     }
 
-    internal static void RegisterAllMods() 
+    internal static void ModsAfterLoad() 
     {
         foreach (var mod in InternalFortModules) 
         {
+            mod.AfterLoad();
+        }
+    }
+
+    internal static void RegisterMods() 
+    {
+        foreach (var mod in InternalFortModules) 
+        {
+            TowerFall.Loader.Message = ("Registering " + mod.Name + " Features").ToUpperInvariant();
             mod.Register();
         }
     }

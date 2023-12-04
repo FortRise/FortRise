@@ -299,7 +299,7 @@ namespace TowerFall
         protected override void Initialize() 
         {
             orig_LoadContent();
-            FortRise.RiseCore.RegisterAllMods();
+            FortRise.RiseCore.ModsAfterLoad();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             patch_Arrow.ExtendArrows();
             patch_TreasureSpawner.ExtendTreasures();
@@ -342,6 +342,8 @@ namespace TowerFall
                 {
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
+
+                    FortRise.RiseCore.RegisterMods();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
