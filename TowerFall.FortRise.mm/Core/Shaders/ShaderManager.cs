@@ -21,7 +21,7 @@ public static class ShaderManager
         shaderResource.Init(effect, passName);
         id = Shaders.Count;
         Shaders.Add(shaderResource);
-        ShadersLookup.Add(fxRes.RootPath, id);
+        ShadersLookup[fxRes.RootPath] = id;
         return shaderResource;
     }
 }
