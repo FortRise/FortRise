@@ -8,8 +8,8 @@ namespace FortRise;
 /// </summary>
 public static class StringUtils
 {
-    ///<summary cref="FortRise.StringUtils.SeparateCases(ReadOnlySpan{char})">
-    /// <inheritdoc cref="FortRise.StringUtils.SeparateCases(ReadOnlySpan{char})"/>
+    ///<summary>
+    /// Add spaces to the text from capital letters. (ex. LastManStanding -> Last Man Standing).
     ///</summary>
     /// <param name="characters">An input text to transform with</param>
     /// <returns>A text with spaced between capital letters</returns>
@@ -56,7 +56,7 @@ public static class StringUtils
     } 
 
     /// <summary>
-    ///  <inheritdoc cref="FortRise.StringUtils.ToTitleCase(ReadOnlySpan{char})"/>
+    /// Transform the text into a title case (ex. sacred ground -> Sacred Ground) 
     /// </summary>
     /// <param name="characters">An input text to transform with</param>
     /// <returns>A title cased text</returns>

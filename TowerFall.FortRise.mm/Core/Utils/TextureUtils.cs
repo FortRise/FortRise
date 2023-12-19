@@ -21,18 +21,17 @@ public static class TextureUtils
         var subTexWidth = texture.Width;
 
         fixed (Color* rawTex = tex2Ddata) 
+        fixed (Color* rawSubTex = subTexData) 
         {
-            fixed (Color* rawSubTex = subTexData) 
+            for (int y = height - 1; y > -1; y--) 
             {
-                for (int y = height - 1; y > -1; y--) 
+                for (int x = width - 1; x > -1; x--) 
                 {
-                    for (int x = width - 1; x > -1; x--) 
-                    {
-                        rawSubTex[y * subTexWidth + x] = rawTex[(subY + y) * texWidth + subX + x];
-                    }
+                    rawSubTex[y * subTexWidth + x] = rawTex[(subY + y) * texWidth + subX + x];
                 }
             }
         }
+        
         var output = new Texture2D(TFGame.Instance.GraphicsDevice, texture.Width, texture.Height);
         output.SetData(subTexData);
         return output;
