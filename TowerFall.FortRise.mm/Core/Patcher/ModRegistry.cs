@@ -19,4 +19,12 @@ public static class ModRegisters
             return val;
         return ArrowTypes.Normal;
     }
+
+    public static Pickups PickupType<T>() 
+    where T : Pickup
+    {
+        if (PickupsRegistry.Types.TryGetValue(typeof(T), out var val))
+            return val;
+        return Pickups.Arrows;
+    }
 }

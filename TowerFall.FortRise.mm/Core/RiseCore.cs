@@ -791,46 +791,7 @@ public static partial class RiseCore
 
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
-            foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
-            {
-                if (pickup is null)
-                    continue;
-                var pickupName = pickup.Name;
-                var stride = PickupLoaderCount;
-                ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Vector2), typeof(Vector2) });
-                PickupLoader loader = null;
-
-                if (ctor != null) 
-                {
-                    loader = (pos, targetPos, idx) => 
-                    {
-                        var custom = (Pickup)ctor.Invoke(new object[2] { pos, targetPos });
-                        if (custom is CustomOrbPickup customOrb) 
-                        {
-                            var info = customOrb.CreateInfo();
-                            customOrb.Sprite = info.Sprite;
-                            customOrb.LightColor = info.Color.Invert();
-                            customOrb.Collider = info.Hitbox;
-                            customOrb.Border.Color = info.Color;
-                            customOrb.Sprite.Play(0);
-                            customOrb.Add(customOrb.Sprite);
-                        }
-
-                        return custom;
-                    };
-                }
-
-                var pickupObject = new PickupObject() 
-                {
-                    Name = pickupName,
-                    ID = (Pickups)PickupLoaderCount,
-                    Chance = pickup.Chance
-                };
-
-                PickupRegistry[pickupName] = pickupObject;
-                PickupLoader[(Pickups)PickupLoaderCount] = loader;
-                PickupLoaderCount++;
-            }
+            FortRise.PickupsRegistry.Register(type, module);
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
             {
                 if (dwBoss is null)
