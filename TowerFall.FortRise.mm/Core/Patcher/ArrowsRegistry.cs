@@ -25,7 +25,7 @@ public static class ArrowsRegistry
             const int offset = 11;
             if (type is null)
                 return;
-            var name = arrow.Name;
+            var name = arrow.Name ?? $"{type.Namespace}.{type.Name}";
             var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
             var stride = (ArrowTypes)offset + RiseCore.ArrowsRegistry.Count;
             MethodInfo graphic = type.GetMethod(graphicFn);

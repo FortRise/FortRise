@@ -259,7 +259,6 @@ namespace TowerFall
                 return;
             TFGame.WriteLineToLoadLog("Initializing game window...");
 
-            Logger.Info("[FortRise] TF Content Path is located in: " + Calc.LOADPATH);
             try
             {
                 using (patch_TFGame tfgame = new patch_TFGame(noIntro))
@@ -488,8 +487,8 @@ namespace TowerFall
             Loader.Message = "";
             if (SaveData.NewDataCreated && MainMenu.LoadError == null)
             {
-                Saver saver = new Saver(true, null);
-                Engine.Instance.Scene.Add<Saver>(saver);
+                Saver saver = new Saver(true);
+                Engine.Instance.Scene.Add(saver);
                 saver.CanHandleError = true;
                 while (!saver.Finished)
                 {
@@ -497,7 +496,7 @@ namespace TowerFall
                 }
                 saver = null;
             }
-            MainMenu.PlayMenuMusic(false, false);
+            MainMenu.PlayMenuMusic();
             Engine.ConsoleEnabled = SaveData.Instance.Options.DevConsole;
             if (SaveData.Instance.Unlocks.Ascension)
             {
