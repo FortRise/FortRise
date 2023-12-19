@@ -1,6 +1,8 @@
 using System;
 using Monocle;
 using FortRise;
+using TowerFall;
+using Microsoft.Xna.Framework;
 
 namespace FortRise 
 {
@@ -22,6 +24,83 @@ namespace FortRise
             Name = name;
             GraphicPickupInitializer = graphicPickupFn;
             Chance = chance;
+        }
+    }
+
+    internal abstract class CustomArrowPickup : Pickup
+    {
+        public ArrowTypes ArrowType { get => arrowType; set => arrowType = value; }
+		public GraphicsComponent Graphic { get => graphic; set => graphic = value; }
+        public SFX PickupSound { get => pickupSound; set => pickupSound = value; }
+
+        private ArrowTypes arrowType;
+        private GraphicsComponent graphic;
+        private SFX pickupSound;
+
+
+        public CustomArrowPickup(Vector2 position, Vector2 targetPosition) : base(position, targetPosition) 
+        {
+            Tag(GameTags.PlayerCollectible);
+        }
+
+        public abstract void Initialize();
+
+        public virtual void Defaults() 
+        {
+            arrowType = ArrowTypes.Normal;
+            Initialize();
+
+            Collider ??= new Hitbox(16f, 16f, -8f, -8f);
+
+            graphic ??= new Monocle.Image(TFGame.Atlas["pickups/arrowPickup"], null);
+            graphic.CenterOrigin();
+            pickupSound ??= Sounds.pu_plus2Arrows;
+            Add(Graphic);
+        }
+
+        public virtual void PlaySound() 
+        {
+            pickupSound.Play(base.X, 1f);
+        }
+
+        public override void DoPlayerCollect(Player player)
+        {
+            player.CollectArrows(new ArrowTypes[] { arrowType, arrowType });
+            PlaySound();
+        }
+
+        public override void OnPlayerCollide(Player player)
+        {
+			if (player.CollectArrows(new ArrowTypes[] { arrowType, arrowType }))
+			{
+				DoCollectStats(player.PlayerIndex);
+				RemoveSelf();
+				Color first = Arrow.Colors[(int)arrowType];
+				Color second = Arrow.ColorsB[(int)arrowType];
+				Level.Add(new FloatText(Position + new Vector2(0f, -10f), Arrow.Names[(int)arrowType], first, second, 1f));
+				Level.Add(new FloatText(Position + new Vector2(0f, -3f), "ARROWS", first, second, 1f));
+				Level.Add(Cache.Create<LightFade>().Init(this));
+				PlaySound();
+			}
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            graphic.Position = DrawOffset;
+        }
+
+        public override void Render()
+        {
+            DrawGlow();
+            graphic.DrawOutline(1);
+            base.Render();
+        }
+
+        public override void TweenUpdate(float t)
+        {
+            base.TweenUpdate(t);
+            graphic.Scale = Vector2.One * t;
         }
     }
 }
