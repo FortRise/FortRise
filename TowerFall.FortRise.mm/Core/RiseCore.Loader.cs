@@ -169,7 +169,9 @@ public static partial class RiseCore
                         var content = modResource.Content;
                         luaModule.Content = content;
                         ModuleGuids.Add(luaModule.ID);
-                        luaModule.Register();
+                        luaModule.InternalLoad();
+                        lock (InternalFortModules) 
+                            InternalFortModules.Add(luaModule);
                         Logger.Info($"[Loader] {luaModule.ID}: {luaModule.Name} Lua Registered.");
                     }
                 }

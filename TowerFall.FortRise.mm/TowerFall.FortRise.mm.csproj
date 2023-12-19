@@ -38,6 +38,9 @@
     <EmbeddedResource Include="Content\Atlas\**\*">
       <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="Content\Scripts\fort.lua">
+      <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
