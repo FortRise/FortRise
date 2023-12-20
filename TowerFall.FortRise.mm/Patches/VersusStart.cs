@@ -111,7 +111,7 @@ namespace MonoMod
         {
             var moveNext = method.GetEnumeratorMoveNext();
             new ILContext(moveNext).Invoke(ctx => {
-                var localsName = IsWindows ? "<>8__1" : "CS$<>8__locals1";
+                var localsName = IsWindows ? "<>8__1" : "CS$<>8__localsa";
                 var this8__1 = ctx.Method.DeclaringType.FindField(localsName);
                 var this__4 = ctx.Method.DeclaringType.FindField("<>4__this");
                 var CustomModeText = this__4.FieldType.Resolve().FindMethod("Monocle.OutlineText CustomModeText(System.Object)");
@@ -119,6 +119,13 @@ namespace MonoMod
 
                 cursor.GotoNext(instr => instr.MatchLdnull());
                 cursor.GotoNext(instr => instr.MatchLdnull());
+
+                // There is 4 ldnull in Linux/OSX, so we do this to correctly patch it
+                if (!IsWindows) 
+                {
+                    cursor.GotoNext(instr => instr.MatchLdnull());
+                    cursor.GotoNext(instr => instr.MatchLdnull());
+                }
 
                 // Let's replace null with 'this'
                 cursor.Next.OpCode = OpCodes.Ldarg_0;
