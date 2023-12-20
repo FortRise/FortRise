@@ -132,24 +132,6 @@ public static partial class RiseCore
     {
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
-        if (!Directory.Exists(Path.Combine(GameRootPath, "Content"))) 
-        {
-            // Try changing the path if it doesn't exists.
-            var parent = new DirectoryInfo(GameRootPath).Parent.ToString();
-            GameRootPath = Path.Combine(parent, "TowerFall");
-            Logger.Info(parent);
-            Logger.Info(GameRootPath);
-        }
-        if (!Directory.Exists(Path.Combine(GameRootPath, "Content"))) 
-        {
-            // let's not run the game.
-            return false;
-        }
-        Logger.Info(GameRootPath);
-
-        patch_Calc.LOADPATH = Path.Combine(GameRootPath, Calc.LOADPATH);
-        patch_Calc.DW_LOADPATH = Path.Combine(GameRootPath, Calc.DW_LOADPATH);
-
         Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
         var directory = Directory.GetDirectories("Mods");
         foreach (var dir in directory) 
