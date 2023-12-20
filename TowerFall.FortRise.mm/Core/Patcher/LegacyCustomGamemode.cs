@@ -21,6 +21,7 @@ internal class LegacyCustomGamemode : CustomGameMode
 
         Type = info.RoundType;
         ID = name;
+        TeamMode = info.RoundType == RoundLogicType.TeamDeatchmatch;
     }
 
     public override RoundLogic CreateRoundLogic(Session session)
