@@ -29,7 +29,7 @@ public class MapRendererNode : CompositeComponent
             Logger.Error($"[MAP RENDERER][{mod.Root}] Atlas path {atlasPath} not found!");
             return;
         }
-        if (!mod.Source.Content.SpriteDatas.TryGetValue(atlasPath, out var spriteData)) 
+        if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataPath, out var spriteData)) 
         {
             Logger.Warning($"[MAP RENDERER][{mod.Root}] SpriteData path {spriteDataPath} not found!");
         }
