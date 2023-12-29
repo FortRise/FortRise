@@ -55,6 +55,13 @@ public static class ArrowsRegistry
                     var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
                     if (string.IsNullOrEmpty(identifier.Name))
                         identifier.Name = name;
+                    
+                    var trimmedName = identifier.Name.Trim();
+                    if (trimmedName.EndsWith("Arrows") || trimmedName.EndsWith("Arrow")) 
+                    {
+                        trimmedName = trimmedName.Replace("Arrows", "").Trim();
+                    }
+                    identifier.Name = trimmedName;
                     return identifier;
                 };
             }
@@ -78,6 +85,7 @@ public static class ArrowsRegistry
             RiseCore.PickupRegistry[name] = pickupObject;
             RiseCore.PickupLoader[(Pickups)RiseCore.PickupLoaderCount] 
                 = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride);
+            PickupsRegistry.Types.Add(type, (Pickups)RiseCore.PickupLoaderCount);
             RiseCore.PickupLoaderCount++;
             Types.Add(type, stride);
         }

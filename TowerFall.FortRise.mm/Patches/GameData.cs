@@ -56,7 +56,6 @@ public static class patch_GameData
         TowerRegistry.LoadVersus();
         TowerRegistry.LoadTrials();
 
-        TowerPatchRegistry.Initialize();
 
         patch_MapScene.FixedStatic();
         RiseCore.Events.Invoke_OnAfterDataLoad();

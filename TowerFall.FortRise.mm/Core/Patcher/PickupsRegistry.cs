@@ -58,6 +58,7 @@ public static class PickupsRegistry
 
             RiseCore.PickupRegistry[pickupName] = pickupObject;
             RiseCore.PickupLoader[(Pickups)RiseCore.PickupLoaderCount] = loader;
+            Types.Add(type, (Pickups)RiseCore.PickupLoaderCount);
             RiseCore.PickupLoaderCount++;
         }
     }

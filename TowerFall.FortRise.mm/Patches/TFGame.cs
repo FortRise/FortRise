@@ -300,8 +300,6 @@ namespace TowerFall
             orig_LoadContent();
             FortRise.RiseCore.ModsAfterLoad();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
-            patch_Arrow.ExtendArrows();
-            patch_TreasureSpawner.ExtendTreasures();
             orig_Initialize();
             FortRise.RiseCore.LogAllTypes();
         }
@@ -343,6 +341,12 @@ namespace TowerFall
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
                     FortRise.RiseCore.RegisterMods();
+                    patch_TreasureSpawner.ExtendTreasures();
+                    patch_Arrow.ExtendArrows();
+                    Loader.Message = "INITIALIZING LEVEL DATA";
+                    Logger.Log("[LOAD] ...Level Data");
+                    GameData.Load();
+                    TowerPatchRegistry.Initialize();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
@@ -355,9 +359,7 @@ namespace TowerFall
                     Loader.Message = "INITIALIZING ARCHER DATA";
                     Logger.Log("[LOAD] ...Archer Data");
                     ArcherData.Initialize();
-                    Loader.Message = "INITIALIZING LEVEL DATA";
-                    Logger.Log("[LOAD] ...Level Data");
-                    GameData.Load();
+
                     Loader.Message = "INITIALIZING DEFAULT SESSION";
                     TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
                     MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();
