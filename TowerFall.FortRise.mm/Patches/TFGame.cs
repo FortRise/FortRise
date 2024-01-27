@@ -66,6 +66,7 @@ namespace TowerFall
         }
 
         [MonoModReplace]
+        [STAThread]
         public static void Main(string[] args) 
         {
             var towerFallPath = typeof(TFGame).Assembly.Location;
