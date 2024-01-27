@@ -132,6 +132,9 @@ public static partial class RiseCore
     {
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
+        if (!Directory.Exists("Mods"))
+            Directory.CreateDirectory("Mods");
+
         Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
         var directory = Directory.GetDirectories("Mods");
         foreach (var dir in directory) 
@@ -190,8 +193,6 @@ public static partial class RiseCore
     {
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
-        if (!Directory.Exists("Mods"))
-            Directory.CreateDirectory("Mods");
 
          new NoModule(new ModuleMetadata() {
             Name = "FortRise",
