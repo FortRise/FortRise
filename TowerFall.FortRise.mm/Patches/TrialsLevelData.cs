@@ -1,7 +1,6 @@
 using System.Xml;
 using Microsoft.Xna.Framework;
 using MonoMod;
-using FortRise.Adventure;
 
 namespace TowerFall;
 

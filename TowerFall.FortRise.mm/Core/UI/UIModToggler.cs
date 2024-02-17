@@ -71,8 +71,8 @@ public class UIModToggler : FortRiseUI
                 string metaPath = null;
                 if (zipFile.ContainsEntry("meta.json")) 
                     metaPath = "meta.json";
-                else if (zipFile.ContainsEntry("meta.xml")) 
-                    metaPath = "meta.xml";
+                else if (zipFile.ContainsEntry("meta.hjson")) 
+                    metaPath = "meta.hjson";
                 else 
                     continue;
 
@@ -86,11 +86,14 @@ public class UIModToggler : FortRiseUI
         }
 
         files = Directory.GetDirectories("Mods");
+
         foreach (var dir in files) 
         {
             var folderName = Path.GetFileName(dir);
             var metaPath = Path.Combine(dir, "meta.json");
-            if (!File.Exists(metaPath)) 
+            if (!File.Exists(metaPath))
+                metaPath = Path.Combine(dir, "meta.hjson");
+            if (!File.Exists(metaPath))
                 continue;
             var metadata = loadedMetadata.Where(meta => meta.PathDirectory == dir).FirstOrDefault();
             if (metadata == null) 
