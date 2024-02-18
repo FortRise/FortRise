@@ -29,7 +29,7 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.7.31.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <PackageReference Include="DotNetZip.Reduced" Version="1.9.1.8" />
+    <PackageReference Include="DotNetZip" Version="1.15.0" />
     <PackageReference Include="KeraLua" Version="1.0.22" />
     <PackageReference Include="NLua" Version="1.4.25" />
   </ItemGroup>
@@ -63,6 +63,12 @@
     <Reference Include="Steamworks.NET">
       <HintPath>..\lib-stripped\Steamworks.NET.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+      <Reference Include="I18N">
+      <HintPath>..\lib-I18N\I18N.dll</HintPath>
+    </Reference>
+    <Reference Include="I18N.West">
+      <HintPath>..\lib-I18N\I18N.West.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
