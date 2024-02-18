@@ -465,7 +465,7 @@ public partial class RiseCore
                 var fileResource = new GlobalLevelResource(this, simplifiedPath, filePath);
                 Add(simplifiedPath, fileResource);
             }
-            var folders = Directory.EnumerateDirectories(FolderDirectory).ToList();
+            var folders = Directory.GetDirectories(FolderDirectory);
             foreach (var folder in folders) 
             {
                 var fixedFolder = folder.Replace('\\', '/');
@@ -479,6 +479,7 @@ public partial class RiseCore
         public void Lookup(string prefix, string path, string modDirectory, GlobalLevelResource folderResource) 
         {
             var files = Directory.GetFiles(path);
+            Array.Sort(files);
             for (int i = 0; i < files.Length; i++) 
             {
                 var filePath = files[i].Replace('\\', '/');
@@ -489,7 +490,8 @@ public partial class RiseCore
                 Add(simplifiedPath, fileResource);
                 folderResource.Childrens.Add(fileResource);
             }
-            var folders = Directory.EnumerateDirectories(path).ToList();
+            var folders = Directory.GetDirectories(path);
+            Array.Sort(folders);
             foreach (var folder in folders) 
             {
                 var fixedFolder = folder.Replace('\\', '/');
@@ -518,6 +520,7 @@ public partial class RiseCore
         public override void Lookup(string prefix)
         {
             var files = Directory.GetFiles(FolderDirectory);
+            Array.Sort(files);
             for (int i = 0; i < files.Length; i++) 
             {
                 var filePath = files[i].Replace('\\', '/');
@@ -527,7 +530,8 @@ public partial class RiseCore
                 var fileResource = new FileResource(this, simplifiedPath, filePath);
                 Add(simplifiedPath, fileResource);
             }
-            var folders = Directory.EnumerateDirectories(FolderDirectory).ToList();
+            var folders = Directory.GetDirectories(FolderDirectory);
+            Array.Sort(folders);
             foreach (var folder in folders) 
             {
                 var fixedFolder = folder.Replace('\\', '/');
@@ -543,6 +547,7 @@ public partial class RiseCore
         public void Lookup(string prefix, string path, string modDirectory, FileResource folderResource) 
         {
             var files = Directory.GetFiles(path);
+            Array.Sort(files);
             for (int i = 0; i < files.Length; i++) 
             {
                 var filePath = files[i].Replace('\\', '/');
@@ -553,7 +558,8 @@ public partial class RiseCore
                 Add(simplifiedPath, fileResource);
                 folderResource.Childrens.Add(fileResource);
             }
-            var folders = Directory.EnumerateDirectories(path).ToList();
+            var folders = Directory.GetDirectories(path);
+            Array.Sort(folders);
             foreach (var folder in folders) 
             {
                 var fixedFolder = folder.Replace('\\', '/');
