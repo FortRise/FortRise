@@ -73,6 +73,10 @@ namespace TowerFall
         [STAThread]
         public static void Main(string[] args) 
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
             var towerFallPath = typeof(TFGame).Assembly.Location;
             bool vanillaLaunch = false;
             foreach (var arg in args) 
