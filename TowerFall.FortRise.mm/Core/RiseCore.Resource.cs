@@ -397,7 +397,10 @@ public partial class RiseCore
         public override void Lookup(string prefix) 
         {
             var folders = new Dictionary<string, ZipResource>();
-            foreach (var entry in zipFile.Entries) 
+
+            var entries = zipFile.Entries.OrderBy(f => f.FileName);
+
+            foreach (var entry in entries) 
             {
                 var fileName = entry.FileName.Replace('\\', '/');
 
