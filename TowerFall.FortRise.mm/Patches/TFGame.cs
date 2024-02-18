@@ -287,7 +287,7 @@ namespace TowerFall
 
         protected override void LoadContent()
         {
-            FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content\\Atlas\\menuatlas.xml", "Content\\Atlas\\menuatlas.png");
+            FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
             foreach (var mods in RiseCore.InternalMods) 
             {
                 mods.Content.LoadResources();

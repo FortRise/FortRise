@@ -45,18 +45,9 @@ public static partial class RiseCore
 
         internal static void Initialize() 
         {
-            try 
-            {
-                Context = new NLua.Lua();
-            }
-            catch (Exception e)
-            {
-                Logger.Error("[LUA] Failed to load Lua context. Lua mods might not work!");
-                Logger.Error(e);
-                return;
-            }
+            Context = new NLua.Lua();
             var assembly = typeof(Lua).Assembly;
-            using Stream luaStream = assembly.GetManifestResourceStream("Content\\Scripts\\fort.lua");
+            using Stream luaStream = assembly.GetManifestResourceStream("Content.Scripts.fort.lua");
             using TextReader sr = new StreamReader(luaStream);
             var texts = sr.ReadToEnd();
             var table = Context.DoString(texts, "fort");

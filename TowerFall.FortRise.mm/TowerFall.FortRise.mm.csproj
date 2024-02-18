@@ -35,11 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Content\Atlas\**\*">
-      <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
+    <EmbeddedResource Include="Content\Atlas\menuatlas.png">
+      <LogicalName>Content.Atlas.menuatlas.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Content\Atlas\menuatlas.xml">
+      <LogicalName>Content.Atlas.menuatlas.xml</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Content\Scripts\fort.lua">
-      <LogicalName>%(EmbeddedResource.Identity)</LogicalName>
+      <LogicalName>Content.Scripts.fort.lua</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 
