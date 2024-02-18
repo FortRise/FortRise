@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -30,6 +31,9 @@ namespace TowerFall
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetDllDirectory(string lpPathName);
+
+        [DllImport("libc", SetLastError = true)]
+        public static extern int mprotect(IntPtr ptr, nuint len, int prot);
     }
 
     public partial class patch_TFGame : TFGame
@@ -182,7 +186,29 @@ namespace TowerFall
                     Logger.Error(e.ToString());
                 }
             }
+            TFGame.WriteLineToLoadLog("Initializing Steam...");
+            if (!TryInit())
+                goto Exit;
 
+            // execheap
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+            {
+                const int PROT_READ = 1, PROT_WRITE = 2, PROT_EXEC = 4;
+
+                //Allocate a bit of memory on the heap
+                IntPtr heapAlloc = Marshal.AllocHGlobal(123);
+                IntPtr heapPage = new IntPtr(heapAlloc.ToInt64() & ~0xfff);
+
+                //Try to make it executable
+                if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "SELinux execheap probe failed! Please ensure Everest has this permission, then try again");
+
+                //Cleanup
+                if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE) < 0)
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to revert memory permissions after SELinux execheap probe");
+
+                Marshal.FreeHGlobal(heapAlloc);
+            }
 
             try 
             {
@@ -255,9 +281,7 @@ namespace TowerFall
             {
                 TFGame.StartLoadLog();
             }
-            TFGame.WriteLineToLoadLog("Initializing Steam...");
-            if (!TryInit())
-                return;
+
             TFGame.WriteLineToLoadLog("Initializing game window...");
 
             try
