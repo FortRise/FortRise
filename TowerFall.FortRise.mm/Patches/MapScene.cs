@@ -329,6 +329,32 @@ namespace TowerFall
             };
         }
 
+#region Linux/OSX
+        [MonoModPatch("<GetRandomVersusTower>b__0")]
+        [MonoModReplace]
+        internal bool GetRandomVersusTowerb__0(MapButton b)
+        {
+            return !(b is VersusMapButton or AdventureMapButton);
+        }
+
+        [MonoModPatch("<GetRandomVersusTower>b__1")]
+        [MonoModReplace]
+        internal bool GetRandomVersusTowerb__1(MapButton b)
+        {
+            return b is VersusMapButton && !(b as VersusMapButton).NoRandom;
+        }
+
+        [MonoModPatch("<GetRandomVersusTower>b__2")]
+        [MonoModReplace]
+        internal bool GetRandomVersusTowerb__2(MapButton b)
+        {
+            if (b is not VersusMapButton)
+                return false;
+            return (b as VersusMapButton).NoRandom;
+        }
+#endregion
+
+#region Windows
         [MonoModPatch("<>c")]
         public class GetRandomVersusTower_c 
         {
@@ -355,6 +381,7 @@ namespace TowerFall
                 return (b as VersusMapButton).NoRandom;
             }
         }
+#endregion
     }
 
     public static class MapSceneExt 
