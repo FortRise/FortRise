@@ -77,6 +77,10 @@ public abstract class ModuleSettings
             {
                 field.SetValue(this, json[val.Key].AsSingle);
             }
+            else if (field.FieldType == typeof(string)) 
+            {
+                field.SetValue(this, json[val.Key].AsString);
+            }
         }
     }
 }

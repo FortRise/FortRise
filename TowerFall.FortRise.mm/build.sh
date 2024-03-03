@@ -1,15 +1,17 @@
-#!usr/bin/bash
+#!/bin/bash
+Path="$1"
 
 FileCopy() {
-	File="$1"
-	Destination="../../../../../../Installer-Framework/$1"
+	File="./$1"
+	Destination="$Path/Installer-Framework/$1"
 	echo "Copying $File to $Destination"
 	cp $File $Destination
 
-	Destination="../../../../Installer/lib-framework/$1"
-	echo "Copying $File to $Destination"
-	cp $File $Destination
+	# Destination="$Path/Installer/lib-framework/"
+	# echo "Copying $File to $Destination"
+	# cp $File $Destination
 }
+
 
 dotnet build -c Release
 
@@ -30,13 +32,12 @@ FileCopy "TowerFall.FortRise.mm.pdb"
 FileCopy "TowerFall.FortRise.mm.xml"
 
 echo "Proceeding to backup the original TowerFall"
-cd "../../../../../../orig"
+cd "$Path/fortOrig"
 cp "TowerFall.exe" "../TowerFall.exe"
 cd "../Installer-Framework"
 
 echo "Patching TowerFall with installer"
-./Installer.NoAnsi.exe --patch "../"
-cd "../MonoMod/TowerFallMM"
+./Installer.NoAnsi.bin.x86_64 --patch "../"
 
 echo
 echo "Success!"

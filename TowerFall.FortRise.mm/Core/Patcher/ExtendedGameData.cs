@@ -27,6 +27,7 @@ public static class ExtendedGameData
         }
     }
 
+    // Had to defer stuff to load the vanilla game data first
     public static void Defer(Action action, int index) 
     {
         switch (index) 
