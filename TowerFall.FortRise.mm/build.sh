@@ -1,5 +1,5 @@
 #!/bin/bash
-Path="$1"
+Path="$(realpath $1)"
 
 FileCopy() {
 	File="./$1"
@@ -7,9 +7,9 @@ FileCopy() {
 	echo "Copying $File to $Destination"
 	cp $File $Destination
 
-	# Destination="$Path/Installer/lib-framework/"
-	# echo "Copying $File to $Destination"
-	# cp $File $Destination
+	Destination="../../../../Installer/lib-framework/$1"
+	echo "Copying $File to $Destination"
+	cp $File $Destination
 }
 
 
