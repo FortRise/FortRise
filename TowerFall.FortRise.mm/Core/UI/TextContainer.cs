@@ -193,7 +193,7 @@ public class TextContainer : MenuItem
         {
             if (item.Visible) 
             {
-                item.Render(position + new Vector2(0, item.SelectedWiggler.Value * 4f), Selected && Current == item);
+                item.Render(position + new Vector2(item.SelectedWiggler.Value * 4f, 0), Selected && Current == item);
                 position.Y += item.LineOffset;
             }
         }
@@ -306,6 +306,7 @@ public class TextContainer : MenuItem
 
         public abstract bool CanLeft { get; }
         public abstract bool CanRight { get; }
+        public virtual bool HasArrows { get => true; }
 
         public Option(string text) 
         {
@@ -361,7 +362,7 @@ public class TextContainer : MenuItem
             Color color = (base.Selected ? SelectedColor : NotSelectedColor);
             Draw.OutlineTextJustify(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * this.SelectedWiggler.Value, 0f), color, Color.Black, new Vector2(1f, 0.5f), 1f);
 
-            if (Selected) 
+            if (Selected && HasArrows) 
             {
                 LeftArrow.Position = position + vector + Vector2.UnitX * (-20f + -3f * sine.Value + ((WiggleDir == -1) ? ValueWiggler.Value * -2f : 0f));
                 RightArrow.Position = position + vector + Vector2.UnitX * (20f + 3f * sine.Value + ((WiggleDir == 1) ? ValueWiggler.Value * 2f : 0f));
@@ -472,6 +473,7 @@ public class TextContainer : MenuItem
     public class SelectionOption : Option<(string, int)>
     {
         public string[] Options;
+        public override bool HasArrows => false;
         public SelectionOption(string text, string[] options) : base(text)
         {
             Options = options.Select(x => x.ToUpperInvariant()).ToArray();
