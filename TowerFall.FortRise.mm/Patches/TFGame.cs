@@ -293,7 +293,7 @@ namespace TowerFall
                 using (patch_TFGame tfgame = new patch_TFGame(noIntro))
                 {
                     TFGame.WriteLineToLoadLog("Starting game...");
-                    tfgame.InternalRun();
+                    tfgame.Run();
                 }
             }
             catch (NoSuitableGraphicsDeviceException)
@@ -307,9 +307,9 @@ namespace TowerFall
             }
         }
 
-        [MonoModIgnore]
-        [MonoModLinkTo("Monocle.Engine", "InternalRun")]
-        private extern void InternalRun();
+        // [MonoModIgnore]
+        // [MonoModLinkTo("Monocle.Engine", "InternalRun")]
+        // private extern void InternalRun();
 
         protected extern void orig_LoadContent();
 
@@ -535,23 +535,6 @@ namespace TowerFall
             }
             patch_TFGame.Loaded = true;
             yield break;
-        }
-    }
-}
-
-namespace MonoMod 
-{
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTFGameMain))]
-    internal class PatchTFGameMain : Attribute {}
-    internal static partial class MonoModRules 
-    {
-        public static void PatchTFGameMain(ILContext ctx, CustomAttribute attrib) 
-        {
-            var InternalRun = ctx.Module.GetType("Monocle.Engine").FindMethod("System.Void InternalRun()");
-            var cursor = new ILCursor(ctx);
-
-            cursor.GotoNext(instr => instr.MatchCallOrCallvirt("Microsoft.Xna.Framework.Game", "Run"));
-            cursor.Next.Operand = InternalRun;
         }
     }
 }
