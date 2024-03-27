@@ -245,6 +245,15 @@ public static partial class RiseCore
             return null;
         };
 
+        try 
+        {
+            Lua.Initialize();
+        }
+        catch (Exception e)
+        {
+            Logger.Error("[LUA] Failed to load Lua context. Lua mods might not work!");
+            Logger.Error(e);
+        }
         AtlasReader.Initialize();
         RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         Loader.InitializeMods();
@@ -612,7 +621,8 @@ public static partial class RiseCore
 
         module.LoadContent();
         module.Enabled = true;
-
+        if (module is LuaModule)
+            return;
         try 
         {
         foreach (var type in module.GetType().Assembly.GetTypes()) 
