@@ -6,10 +6,10 @@
     "configurations": [
         {
             "name": "Launch",
-            "type": "coreclr",
+            "type": "mono",
             "request": "launch",
-            "program": "${workspaceRoot}/../../TowerFall.dll",
-            "cwd": "${workspaceRoot}/../../"
+            "program": "${workspaceRoot}/../TowerFall.exe",
+            "cwd": "${workspaceRoot}/../"
         },
         {
             "name": "Attach",
