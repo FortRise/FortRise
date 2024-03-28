@@ -45,7 +45,7 @@ public class Installer : MarshalByRefObject
             fnaLibs = new string[] {
                 "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
-                "libvulkan.1.dylib", "discord_game_sdk.dylib"
+                "libvulkan.1.dylib", "libdiscord_game_sdk.dylib"
             };
             break;
         case PlatformID.Unix:
@@ -53,7 +53,7 @@ public class Installer : MarshalByRefObject
             FNACopy = CopyFNAFiles_Linux;
             fnaLibs = new string[] {
                 "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
-                "libSDL2-2.0.so.0", "libtheorafile.so", "discord_game_sdk.so"
+                "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so"
             };
             break;
         default:
