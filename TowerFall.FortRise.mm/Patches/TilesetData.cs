@@ -1,6 +1,5 @@
 using System.IO;
 using System.Xml;
-using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;

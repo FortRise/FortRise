@@ -9,15 +9,13 @@ using System.Threading;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Mono.Cecil;
 using Monocle;
 using MonoMod;
-using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using SDL2;
 
-namespace TowerFall 
+namespace TowerFall
 {
     internal static class NativeMethods 
     {
