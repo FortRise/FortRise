@@ -97,6 +97,39 @@ public class ConsoleWindow
     }
 }
 
+public class LinuxConsole : IConsole
+{
+    public TextWriter StdOut { get; private set; }
+
+    public TextWriter ConsoleOut { get; private set; }
+
+    public bool ConsoleActive { get; private set; }
+
+    public void Attach()
+    {
+        if (ConsoleActive) 
+        {
+            ConsoleOut = Console.Out;
+            StdOut = new StreamWriter(Console.OpenStandardOutput());
+            return;
+        }
+        StdOut = Console.Out;
+    }
+
+    public void Detach()
+    {
+        ConsoleOut?.Dispose();
+        ConsoleOut = null;
+        StdOut?.Dispose();
+        StdOut = null;
+    }
+
+    public void Initialize(bool isActive)
+    {
+
+    }
+}
+
 public class WindowConsole : IConsole
 {
     public TextWriter StdOut { get; private set; }

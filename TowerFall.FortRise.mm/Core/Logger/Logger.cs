@@ -24,6 +24,7 @@ public static class Logger
     public static void DetachConsole() 
     {
         consoleWindow?.Detach();
+        consoleWindow = null;
     }
 
     private static void LogInternal(LogLevel level, string message, int lineNumber) 
@@ -43,7 +44,13 @@ public static class Logger
         var text = $"{logName} Ln: {lineNumber} {message}";
 
         builder.AppendLine(text);
-        Engine.Instance?.Commands?.Log(text);
+        try 
+        {
+            Engine.Instance?.Commands?.Log(text);
+        }
+        catch (ArgumentOutOfRangeException) 
+        {
+        }
         if (consoleWindow != null)
             WriteLine(consoleWindow, text, level);
         if (level == LogLevel.Assert)
