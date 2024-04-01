@@ -70,6 +70,11 @@ public partial class RiseCore
             Source = resource;
         }
 
+        public bool Contains(string path) 
+        {
+            return RiseCore.ResourceTree.IsExist(this, path);
+        }
+
         public virtual void AssignType() 
         {
             var path = Path;
@@ -610,17 +615,17 @@ public partial class RiseCore
 
         public static bool TryGetValue(string path, out RiseCore.Resource res) 
         {
-            return TreeMap.TryGetValue(path, out res);
+            return TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
         }
 
         public static bool IsExist(string path) 
         {
-            return TreeMap.ContainsKey(path);
+            return TreeMap.ContainsKey(path.Replace('\\', '/'));
         }
 
         public static bool IsExist(Resource resource, string path) 
         {
-            return TreeMap.ContainsKey(resource.Root + path);
+            return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
 
         public static void LoopThroughModsContent(Action<FortContent> modsAction) 
