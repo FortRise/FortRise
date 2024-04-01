@@ -44,6 +44,8 @@ public class FortContent
 
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
+    
+    public string MetadataPath => $"mod:{ResourceSystem.Metadata.Name}";
 
 
     public RiseCore.Resource this[string path] 
@@ -224,6 +226,7 @@ public class FortContent
 
     public bool IsResourceExist(string path) 
     {
+        path = path.Replace('\\', '/');
         if (MapResource.ContainsKey(path))
             return true;
         return false;
@@ -231,11 +234,13 @@ public class FortContent
 
     public bool TryGetValue(string path, out RiseCore.Resource value) 
     {
+        path = path.Replace('\\', '/');
         return MapResource.TryGetValue(path, out value);
     }
 
     public RiseCore.Resource GetValue(string path) 
     {
+        path = path.Replace('\\', '/');
         return MapResource[path];
     }
 
@@ -255,6 +260,7 @@ public class FortContent
 
     public IEnumerable<string> EnumerateFilesString(string path) 
     {
+        path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder)) 
         {
             for (int i = 0; i < folder.Childrens.Count; i++)
@@ -266,6 +272,7 @@ public class FortContent
 
     public IEnumerable<RiseCore.Resource> EnumerateFiles(string path) 
     {
+        path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder)) 
         {
             return folder.Childrens;
@@ -275,6 +282,7 @@ public class FortContent
 
     public IEnumerable<RiseCore.Resource> EnumerateFiles(string path, string filterExt) 
     {
+        path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder)) 
         {
             // FIXME Need improvements, this is not what I want!!!
@@ -290,6 +298,7 @@ public class FortContent
 
     public string[] GetResourcesPath(string path) 
     {
+        path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder)) 
         {
             string[] childrens = new string[folder.Childrens.Count];
@@ -305,12 +314,14 @@ public class FortContent
     public T LoadShader<T>(string path, string passName, out int id) 
     where T : ShaderResource, new()
     {
+        path = path.Replace('\\', '/');
         var shaderPath = contentPath + "/" + path;
         return ShaderManager.AddShader<T>(this[shaderPath], passName, out id);
     }
 
     public TrackInfo LoadMusic(string path) 
     {
+        path = path.Replace('\\', '/');
         var musicPath = contentPath + "/" + path;
         var musicResource = this[musicPath];
         using var musicStream = musicResource.Stream;
@@ -321,6 +332,7 @@ public class FortContent
 
     public RiseCore.Resource[] GetResources(string path) 
     {
+        path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder)) 
         {
             return folder.Childrens.ToArray();
@@ -366,6 +378,7 @@ public class FortContent
     /// <returns>An atlas of an image.</returns>
     public patch_Atlas LoadAtlas(string path) 
     {
+        path = path.Replace('\\', '/');
         var ext = Path.GetExtension(path);
         var atlasID = path;
         if (!string.IsNullOrEmpty(ext)) 
@@ -404,17 +417,18 @@ public class FortContent
     /// Load SpriteData from a mod Content path. 
     /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
     /// </summary>
-    /// <param name="filename">A path to the SpriteData xml.</param>
+    /// <param name="path">A path to the SpriteData xml.</param>
     /// <param name="atlas">An atlas which the spriteData will use.</param>
     /// <returns>A SpriteData instance to be use for sprite</returns>
-    public patch_SpriteData LoadSpriteData(string filename, patch_Atlas atlas) 
+    public patch_SpriteData LoadSpriteData(string path, patch_Atlas atlas) 
     {
-        if (spriteDatas.TryGetValue(filename, out var spriteDataExist)) 
+        path = path.Replace('\\', '/');
+        if (spriteDatas.TryGetValue(path, out var spriteDataExist)) 
             return spriteDataExist;
         
-        using var xml = this[contentPath + "/" + filename].Stream;
+        using var xml = this[contentPath + "/" + path].Stream;
         var spriteData = SpriteDataExt.CreateSpriteData(this, xml, atlas);
-        spriteDatas.Add(filename, spriteData);
+        spriteDatas.Add(path, spriteData);
         return spriteData;
     }
 
@@ -423,19 +437,20 @@ public class FortContent
     /// The SpriteData must have an attribute called "atlas" referencing the atlas path that exists to use to succeed.
     /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
     /// </summary>
-    /// <param name="filename">A path to the SpriteData xml.</param>
+    /// <param name="path">A path to the SpriteData xml.</param>
     /// <param name="result">A SpriteData instance to be use for sprite if it succeed, else null</param>
     /// <returns>true if it succeed, else false</returns>
-    public bool TryLoadSpriteData(string filename, out patch_SpriteData result)
+    public bool TryLoadSpriteData(string path, out patch_SpriteData result)
     {
-        var id = filename.Replace(".xml", "");
+        path = path.Replace('\\', '/');
+        var id = path.Replace(".xml", "");
         if (spriteDatas.TryGetValue(id, out var spriteDataExist))
         {
             result = spriteDataExist;
             return true;
         }
 
-        using var xml = this[contentPath + "/" + filename].Stream;
+        using var xml = this[contentPath + "/" + path].Stream;
         if (!SpriteDataExt.TryCreateSpriteData(this, xml, out var data))
         {
             result = null;
@@ -455,6 +470,7 @@ public class FortContent
     /// <returns>A FileStream or ZipStream.</returns>
     public Stream LoadStream(string path) 
     {
+        path = path.Replace('\\', '/');
         return this[contentPath + "/" + path].Stream;
     }
 
@@ -465,6 +481,7 @@ public class FortContent
     /// <returns>A raw Texture2D that can be use for low-level texture access.</returns>
     public XNAGraphics::Texture2D LoadRawTexture2D(string path) 
     {
+        path = path.Replace('\\', '/');
         using var stream = LoadStream(path);
         var tex2D = XNAGraphics::Texture2D.FromStream(Engine.Instance.GraphicsDevice, stream);
         return tex2D;
@@ -477,6 +494,7 @@ public class FortContent
     /// <returns>A Monocle Texture</returns>
     public Texture LoadTexture(string path) 
     {
+        path = path.Replace('\\', '/');
         var tex2D = LoadRawTexture2D(path);
         var tex = new Texture(tex2D);
         return tex;
@@ -489,6 +507,7 @@ public class FortContent
     /// <returns>A text inside of a file</returns>
     public string LoadText(string path) 
     {
+        path = path.Replace('\\', '/');
         using var stream = this[contentPath + "/" + path].Stream;
         using TextReader sr = new StreamReader(stream);
         return sr.ReadToEnd();
@@ -501,44 +520,49 @@ public class FortContent
     /// <returns>A <see cref="System.Xml.XmlDocument"/></returns>
     public XmlDocument LoadXML(string path) 
     {
+        path = path.Replace('\\', '/');
         using var stream = this[contentPath + "/" + path].Stream;
         return patch_Calc.LoadXML(stream);
     }
 
-    public SFX LoadSFX(string fileName, bool obeysMasterPitch = true) 
+    public SFX LoadSFX(string path, bool obeysMasterPitch = true) 
     {
-        if (sfxes.TryGetValue(fileName, out var val))
+        path = path.Replace('\\', '/');
+        if (sfxes.TryGetValue(path, out var val))
             return val;
-        using var stream = this[contentPath + "/" + fileName].Stream;
+        using var stream = this[contentPath + "/" + path].Stream;
         return SFXExt.CreateSFX(this, stream, obeysMasterPitch);
     }
 
-    public patch_SFXInstanced LoadSFXInstance(string fileName, int instances = 2, bool obeysMasterPitch = true) 
+    public patch_SFXInstanced LoadSFXInstance(string path, int instances = 2, bool obeysMasterPitch = true) 
     {
-        if (sfxes.TryGetValue(fileName, out var val))
+        path = path.Replace('\\', '/');
+        if (sfxes.TryGetValue(path, out var val))
             return (patch_SFXInstanced)val;
-        using var stream = this[contentPath + "/" + fileName].Stream;
+        using var stream = this[contentPath + "/" + path].Stream;
         return SFXInstancedExt.CreateSFXInstanced(this, stream, instances, obeysMasterPitch);
     }
 
-    public patch_SFXLooped LoadSFXLooped(string fileName, bool obeysMasterPitch = true) 
+    public patch_SFXLooped LoadSFXLooped(string path, bool obeysMasterPitch = true) 
     {
-        if (sfxes.TryGetValue(fileName, out var val))
+        path = path.Replace('\\', '/');
+        if (sfxes.TryGetValue(path, out var val))
             return (patch_SFXLooped)val;
-        using var stream = this[contentPath + "/" + fileName].Stream;
+        using var stream = this[contentPath + "/" + path].Stream;
         return SFXLoopedExt.CreateSFXLooped(this, stream, obeysMasterPitch);
     }
 
-    public patch_SFXVaried LoadSFXVaried(string fileName, int amount, bool obeysMasterPitch = true) 
+    public patch_SFXVaried LoadSFXVaried(string path, int amount, bool obeysMasterPitch = true) 
     {
-        if (sfxes.TryGetValue(fileName, out var val))
+        path = path.Replace('\\', '/');
+        if (sfxes.TryGetValue(path, out var val))
             return (patch_SFXVaried)val;
         var currentExtension = Path.GetExtension(".wav");
-        fileName = fileName.Replace(currentExtension, "");
+        path = path.Replace(currentExtension, "");
         var stream = new Stream[amount];
         for (int i = 0; i < amount; i++) 
         {
-            stream[i] = this[contentPath + "/" + fileName + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
+            stream[i] = this[contentPath + "/" + path + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
         }
         return SFXVariedExt.CreateSFXVaried(this, stream, amount, obeysMasterPitch);
     }
