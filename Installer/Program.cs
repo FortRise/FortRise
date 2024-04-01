@@ -24,8 +24,12 @@ internal class Program
         }
         if (!File.Exists(Path.Combine(args[1], "TowerFall.exe")))
         {
-            Console.WriteLine("TowerFall.exe not found in this directory: " + args[1]);
-            return;
+            args[1] = args[1].Replace("TowerFall.exe", "");
+            if (!File.Exists(args[1]))
+            {
+                Console.WriteLine("TowerFall.exe not found in this directory: " + args[1]);
+                return;
+            }
         }
         try
         {
