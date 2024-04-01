@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using FortRise;
+using FortRise.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
@@ -50,9 +51,9 @@ public class patch_Atlas : Atlas
         }
     }
 
-    public static void MergeAtlas(patch_Atlas atlas, Atlas destination, string prefix) 
+    public static void MergeAtlas(patch_Atlas source, Atlas destination, string prefix) 
     {
-        foreach (var subTexture in atlas.SubTextures) 
+        foreach (var subTexture in source.SubTextures) 
         {
             destination.SubTextures.Add(prefix + subTexture.Key, subTexture.Value);
         }
@@ -244,26 +245,18 @@ public static class AtlasExt
 
     public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, ContentAccess access = ContentAccess.Root)
     {
-        switch (access) 
+        if (access == ContentAccess.Content) 
         {
-        case ContentAccess.Content: 
             xmlPath = Calc.LOADPATH + xmlPath;
             imagePath =  Calc.LOADPATH + imagePath;
-            break;
-        case ContentAccess.ModContent:
-            {
-                if (content == null) 
-                {
-                    Logger.Error("[Atlas] You cannot use AtlasExt.CreateAtlas while FortContent is null");
-                    return null;
-                }
-                using var xmlStream = content[xmlPath].Stream;
-                using var imageStream = content[imagePath].Stream;
-                return AtlasExt.CreateAtlas(xmlStream, imageStream);
-            }
         }
-        using var rootXmlStream = File.OpenRead(xmlPath);
-        using var rootImageStream = File.OpenRead(imagePath);
+        else if (content != null) 
+        {
+            xmlPath = Path.Combine(content.MetadataPath, xmlPath);
+            imagePath = Path.Combine(content.MetadataPath, imagePath);
+        }
+        using var rootXmlStream = ModFs.OpenRead(xmlPath);
+        using var rootImageStream = ModFs.OpenRead(imagePath);
         return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
     }
 
