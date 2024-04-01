@@ -20,6 +20,9 @@ It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (cr
 + + `Installer.NoAnsi.bin.osx` for Mac and `Installer.NoAnsi.bin.x86_64` for Linux.
 + Wait for it to patch.
 + And, it's done! Launch TowerFall and it should have a mods section in main menu.
+> [!NOTE]
+> Installer.NoAnsi.exe must run through a terminal or a command prompt. It means, you must go to the directory where the Installer.NoAnsi.exe is on by
+running `cd` command in the terminal.
 
 ## Mod Installation
 + For installing a mod, you must create a directory called `Mods`.
@@ -34,6 +37,10 @@ For creating mods, check out [Creating Mods in the wiki](https://github.com/Terr
 ## Troubleshooting
 ### The game crashes before it even loads! (Windows only)
 If the game crashes before loading, or you see an error in the log file that says `An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework.` on Windows, right click for each DLLs on the root directory, click Properties, and hit the unblock checkbox at the bottom. You might also need to unblock every DLLs of the mod you've installed inside of the Mods folder.
+### Pyrgos does not launch
+If you are on Windows, you might not have Webview2 installed on your system. Pyrgos relies on Webview2 for UI. If you do not want to install Webview2, you better
+go off using the CLI Installer instead. If your pc has it and it still does not work, you can report it into the official TowerFall Discord server under the
+`#modding` channel.
 ### Join the official TowerFall Discord Server, we can help you here!
 <a href="https://discord.gg/m25mWsSv8P">
  <img alt="TowerFall" src="https://discordapp.com/api/guilds/248961953656078337/embed.png?style=banner2" />
