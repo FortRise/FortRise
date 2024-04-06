@@ -816,10 +816,6 @@ public static partial class RiseCore
         {
             return new WindowConsole();
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
-        {
-            return new LinuxConsole();
-        }
         return null;
     }
 
