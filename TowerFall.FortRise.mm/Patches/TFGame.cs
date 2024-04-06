@@ -203,7 +203,7 @@ namespace TowerFall
 
                 //Try to make it executable
                 if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "SELinux execheap probe failed! Please ensure Everest has this permission, then try again");
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "SELinux execheap probe failed! Please ensure FortRise has this permission, then try again");
 
                 //Cleanup
                 if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE) < 0)
