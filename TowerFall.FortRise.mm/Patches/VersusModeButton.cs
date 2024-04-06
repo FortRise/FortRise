@@ -10,7 +10,7 @@ public class patch_VersusModeButton : VersusModeButton
 {
     public static event Action ModeSwitch;
     private Wiggler iconWiggler;
-    private static int currentIndex;
+    internal static int currentIndex;
     public patch_VersusModeButton(Vector2 position, Vector2 tweenFrom) : base(position, tweenFrom)
     {
     }

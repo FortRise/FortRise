@@ -6,6 +6,7 @@ namespace TowerFall;
 
 public class patch_MatchSettings : MatchSettings
 {
+    private static int lastPlayers;
     public bool IsCustom;
     public string CurrentModeName;
     public patch_Modes Mode;
@@ -63,4 +64,28 @@ public class patch_MatchSettings : MatchSettings
     }
 
     public enum patch_MatchLengths { Instant, Quick, Standard, Epic, Custom }
+
+    public void CleanSettingsVersus()
+    {
+        if (!IsCustom) 
+        {
+            orig_CleanSettingsVersus();
+            if (Mode == patch_Modes.LastManStanding)
+                patch_VersusModeButton.currentIndex = 0;
+            else if (Mode == patch_Modes.HeadHunters)
+                patch_VersusModeButton.currentIndex = 1;
+            else
+                patch_VersusModeButton.currentIndex = 2;
+            return;
+        }
+        if (lastPlayers != TFGame.PlayerAmount) 
+        {
+            Variants.Clean(lastPlayers);
+        }
+        lastPlayers = TFGame.PlayerAmount;
+    }
+
+    [MonoModIgnore]
+    private extern void orig_CleanSettingsVersus();
+    
 }
