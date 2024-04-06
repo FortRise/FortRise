@@ -12,10 +12,10 @@ public class ConsoleWindow
 {
     private const int STD_OUTPUT_HANDLE = -11;
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AllocConsole();
+    internal static extern bool AllocConsole();
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool FreeConsole();
+    internal static extern bool FreeConsole();
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr GetStdHandle(int nStdHandle);

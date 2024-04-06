@@ -18,7 +18,7 @@ public static class Logger
     public static void AttachConsole(IConsole window) 
     {
         consoleWindow = window;
-        consoleWindow.Attach();
+        consoleWindow?.Attach();
     }
 
     public static void DetachConsole() 
