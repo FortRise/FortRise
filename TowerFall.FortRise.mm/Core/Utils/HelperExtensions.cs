@@ -28,8 +28,23 @@ public static class HelperExtensions
         return DynamicData.For(obj).Get<T>(name);
     }
 
+    public static T DynGetData<TTarget, T>(this TTarget obj, string name) 
+    where TTarget : class
+    {
+        using var dyn = new DynData<TTarget>(obj);
+        return dyn.Get<T>(name);
+        
+    }
+
     public static void DynSetData(this object obj, string name, object value) 
     {
         DynamicData.For(obj).Set(name, value);
+    }
+
+    public static void DynSetData<T>(this T obj, string name, object value) 
+    where T : class
+    {
+        using var dyn = new DynData<T>(obj);
+        dyn.Set(name, value);
     }
 }
