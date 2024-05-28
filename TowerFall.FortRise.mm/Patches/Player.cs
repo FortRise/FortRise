@@ -29,7 +29,7 @@ namespace TowerFall
 
         public PlayerCorpse Die(DeathCause deathCause, int killerIndex, bool brambled = false, bool laser = false) 
         {
-            PlayerCorpse corpsed = Die(deathCause, killerIndex, brambled, laser);
+            PlayerCorpse corpsed = orig_Die(deathCause, killerIndex, brambled, laser);
             RiseCore.Events.Player.Invoke_OnPlayerDie(this, PlayerIndex, deathCause, killerIndex, brambled, laser);
             return corpsed;
         }
