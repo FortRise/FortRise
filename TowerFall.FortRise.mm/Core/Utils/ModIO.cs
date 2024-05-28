@@ -117,7 +117,6 @@ public static class ModIO
                 childs.Add(r);
             }
         }
-        // FIXME: performance improvemnts
         string[] directories = new string[childs.Count];
         for (int i = 0; i < childs.Count; i++) 
         {

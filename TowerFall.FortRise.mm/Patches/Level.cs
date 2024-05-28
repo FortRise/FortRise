@@ -311,7 +311,7 @@ namespace TowerFall
         public void Activate(ShaderFilter filter) 
         {
             ActiveShaders.Add(filter);
-            filter.Activated(new ShaderFilter.LevelRenderData { 
+            filter.InternalActivated(new ShaderFilter.LevelRenderData { 
                 ForegroundRenderTarget = foregroundRenderTarget,
                 BGTiles = BGTiles,
                 SolidTiles = Tiles,
