@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 
 namespace TowerFall;
@@ -11,5 +12,6 @@ public class patch_Enemy : Enemy
     /// <summary>
     /// Additional initialization method after the constructor was called.
     /// </summary>
+    [Obsolete("Just use a constructor")]
     public virtual void Load() {}
 }
