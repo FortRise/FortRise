@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Xml;
 using Monocle;
 
+// I am using namespace now for transition with FortRise 5
 namespace FortRise.IO;
 
-public static class ModFs 
+public static class ModIO 
 {
     public static bool IsFolder(RiseCore.Resource resource) 
     {
@@ -43,9 +44,19 @@ public static class ModFs
         return RiseCore.ResourceTree.IsExist(path) || Directory.Exists(path) || File.Exists(path);
     }
 
+    public static bool IsFileExists(string path) 
+    {
+        return RiseCore.ResourceTree.IsExist(path) || File.Exists(path);
+    }
+
+    public static bool IsDirectoryExists(string path) 
+    {
+        return RiseCore.ResourceTree.IsExist(path) || Directory.Exists(path);
+    }
+
     public static XmlDocument LoadXml(RiseCore.Resource resource) 
     {
-        var text = ModFs.OpenRead(resource);
+        var text = ModIO.OpenRead(resource);
         return patch_Calc.LoadXML(text);
     }
 
@@ -53,7 +64,7 @@ public static class ModFs
     {
         if (RiseCore.ResourceTree.TryGetValue(path, out var resource)) 
         {
-            return ModFs.LoadXml(resource);
+            return ModIO.LoadXml(resource);
         }
         return Calc.LoadXML(path);
     }
@@ -62,36 +73,59 @@ public static class ModFs
     {
         if (RiseCore.ResourceTree.TryGetValue(path, out var res)) 
         {
-            // FIXME: performance improvemnts
-            var childs = res.Childrens.Where(x => x.ResourceType != typeof(RiseCore.ResourceTypeFolder)).ToList();
-            string[] folders = new string[childs.Count];
-            for (int i = 0; i < childs.Count; i++) 
-            {
-                var child = childs[i];
-                folders[i] = child.RootPath;
-            }
-
-            return folders;
+            return GetFiles(res);
         }
         return Directory.GetFiles(path);
+    }
+
+    public static string[] GetFiles(RiseCore.Resource res) 
+    {
+        List<RiseCore.Resource> childs = new List<RiseCore.Resource>();
+        foreach (var r in res.Childrens) 
+        {
+            if (r.ResourceType == typeof(RiseCore.ResourceTypeFile)) 
+            {
+                childs.Add(r);
+            }
+        }
+        string[] files = new string[childs.Count];
+        for (int i = 0; i < childs.Count; i++) 
+        {
+            var child = childs[i];
+            files[i] = child.RootPath;
+        }
+
+        return files;
     }
 
     public static string[] GetDirectories(string path) 
     {
         if (RiseCore.ResourceTree.TryGetValue(path, out var res)) 
         {
-            // FIXME: performance improvemnts
-            var childs = res.Childrens.Where(x => x.ResourceType == typeof(RiseCore.ResourceTypeFolder)).ToList();
-            string[] folders = new string[childs.Count];
-            for (int i = 0; i < childs.Count; i++) 
-            {
-                var child = childs[i];
-                folders[i] = child.RootPath;
-            }
-
-            return folders;
+            return GetDirectories(res);
         }
         return Directory.GetDirectories(path);
+    }
+
+    public static string[] GetDirectories(RiseCore.Resource res) 
+    {
+        List<RiseCore.Resource> childs = new List<RiseCore.Resource>();
+        foreach (var r in res.Childrens) 
+        {
+            if (r.ResourceType == typeof(RiseCore.ResourceTypeFolder)) 
+            {
+                childs.Add(r);
+            }
+        }
+        // FIXME: performance improvemnts
+        string[] directories = new string[childs.Count];
+        for (int i = 0; i < childs.Count; i++) 
+        {
+            var child = childs[i];
+            directories[i] = child.RootPath;
+        }
+
+        return directories;
     }
 
     public static Stream OpenRead(RiseCore.Resource resource) 
@@ -143,39 +177,3 @@ public static class ModFs
         RiseCore.ResourceTree.LoopThroughModsContent(contentCallback);
     }
 }
-
-public static class ExampleAPI 
-{
-    static FortContent Content;
-    public static void FortRiseIO() 
-    {
-        using TextReader reader = ModFs.OpenText("Text.txt");
-        string x = reader.ReadToEnd(); // returns a string
-
-        using TextReader reader2 = ModFs.OpenText("mod:WiderSetMod/Content/Text.txt");
-        string z = reader.ReadToEnd(); // returns a string
-
-        // Mimicing how ArcherLoader loads its archer, but inside the Mods' Content instead.
-        ModFs.LoopAllModsContent(x => {
-            string path = Path.Combine(x.MetadataPath, "Content", "Archers");
-
-            string[] archerDirectories = ModFs.GetDirectories(path);
-
-            foreach (var archer in archerDirectories) 
-            {
-                var archerDataXmlPath = Path.Combine(archer, "archerData.xml");
-                var archerDataXml = ModFs.LoadXml(archerDataXmlPath);
-
-
-                // Some process.
-            }
-        });
-    }
-
-    public static void SystemIO() 
-    {
-        using TextReader reader = File.OpenText("Text.txt");
-        string x = reader.ReadToEnd(); // returns a string
-    }
-}
-

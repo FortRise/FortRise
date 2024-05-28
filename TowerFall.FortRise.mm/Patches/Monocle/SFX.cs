@@ -36,13 +36,13 @@ public class patch_SFX : SFX
     {
         thisctor(obeysMasterPitch);
         string path = Audio.LOAD_PREFIX + filename + ".wav";
-        if (!ModFs.IsDirectoryOrFileExists(path)) 
+        if (!ModIO.IsDirectoryOrFileExists(path)) 
         {
             path = filename; // Mods can use .ogg
             if (!Path.HasExtension(path))
                 path += ".wav";
         }
-        using Stream stream = ModFs.OpenRead(path);
+        using Stream stream = ModIO.OpenRead(path);
         try
         {
             Data = SoundEffect.FromStream(stream);

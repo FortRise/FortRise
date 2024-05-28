@@ -255,8 +255,8 @@ public static class AtlasExt
             xmlPath = Path.Combine(content.MetadataPath, xmlPath);
             imagePath = Path.Combine(content.MetadataPath, imagePath);
         }
-        using var rootXmlStream = ModFs.OpenRead(xmlPath);
-        using var rootImageStream = ModFs.OpenRead(imagePath);
+        using var rootXmlStream = ModIO.OpenRead(xmlPath);
+        using var rootImageStream = ModIO.OpenRead(imagePath);
         return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
     }
 
