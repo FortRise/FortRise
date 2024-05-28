@@ -6,6 +6,7 @@ namespace FortRise;
 
 public static class JsonUtils 
 {
+    [Obsolete("This will be removed in FortRise 5")]
     public static Option<Hjson.JsonValue> GetJsonValueOrNone(this Hjson.JsonValue value, string key) 
     {
         if (value.ContainsKey(key))
@@ -51,6 +52,7 @@ public static class JsonUtils
         return new Vector2(value["x"], value["y"]);
     }
 
+    [Obsolete("This will be removed in FortRise 5")]
     public static Option<JsonValue> GetJsonValueOrNone(this JsonValue value, string key) 
     {
         if (value.Contains(key))
@@ -71,6 +73,7 @@ public static class JsonUtils
     }
 }
 
+[Obsolete("This will be removed in FortRise 5")]
 public struct Option<T> 
 {
     public T Wrapped;
