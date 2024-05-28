@@ -45,7 +45,17 @@ public class FortContent
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
     
-    public string MetadataPath => $"mod:{ResourceSystem.Metadata.Name}";
+    public string MetadataPath 
+    {
+        get 
+        {
+            if (ResourceSystem.Metadata == null) 
+            {
+                return "mod:::global:";
+            }
+            return $"mod:{ResourceSystem.Metadata.Name}";
+        }
+    }
 
 
     public RiseCore.Resource this[string path] 
