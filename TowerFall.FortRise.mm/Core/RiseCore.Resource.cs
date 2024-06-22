@@ -194,6 +194,7 @@ public partial class RiseCore
             {
                 ResourceType = typeof(ResourceTypeFile);
             }
+            RiseCore.Events.Invoke_OnResourceAssignType(path, filename, ref ResourceType);
 
             void AssignLevelFile()
             {
