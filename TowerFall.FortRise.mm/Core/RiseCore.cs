@@ -610,7 +610,17 @@ public static partial class RiseCore
         if (module is NoModule)
             return;
 
-        module.LoadContent();
+        try
+        {
+            module.LoadContent();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Register] [{module.Meta.Name}] There was an error trying to load a content.");
+            Logger.Error(ex.ToString());
+            return;
+        }
+
         module.Enabled = true;
 
         try

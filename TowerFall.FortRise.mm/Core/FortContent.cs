@@ -7,6 +7,7 @@ using System.Linq;
 using TowerFall;
 using FortRise.Adventure;
 using System.Xml;
+using FortRise.IO;
 
 namespace FortRise;
 
@@ -14,10 +15,10 @@ namespace FortRise;
 /// A class that holds the whole mod's content and provides an API to create a lookup stream.
 /// </summary>
 /// <remarks>
-/// This class is only use for getting a mod content inside of a module. 
+/// This class is only use for getting a mod content inside of a module.
 /// This will not interact the filesystem outside of the mod content.
 /// </remarks>
-public class FortContent 
+public class FortContent
 {
     public delegate void DataLoaderHandler(RiseCore.Resource resource, string rootPath);
     public static event DataLoaderHandler DataLoader;
@@ -25,7 +26,7 @@ public class FortContent
     /// A property where your default Content lookup is being used. Some methods are relying on this.
     /// </summary>
     /// <value>The <c>ContentPath</c> property represents your Content path.</value>
-    public string ContentPath 
+    public string ContentPath
     {
         get => contentPath;
         set => contentPath = value;
@@ -44,12 +45,12 @@ public class FortContent
 
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
-    
-    public string MetadataPath 
+
+    public string MetadataPath
     {
-        get 
+        get
         {
-            if (ResourceSystem.Metadata == null) 
+            if (ResourceSystem.Metadata == null)
             {
                 return "mod:::global:";
             }
@@ -58,9 +59,9 @@ public class FortContent
     }
 
 
-    public RiseCore.Resource this[string path] 
+    public RiseCore.Resource this[string path]
     {
-        get 
+        get
         {
             var root = $"mod:{ResourceSystem.Metadata.Name}/";
             return RiseCore.ResourceTree.TreeMap[root + path];
@@ -82,22 +83,22 @@ public class FortContent
         ResourceSystem = resource;
     }
 
-    internal void Unload(bool disposeTexture) 
+    internal void Unload(bool disposeTexture)
     {
         Dispose(disposeTexture);
     }
 
-    internal void LoadAudio() 
+    internal void LoadAudio()
     {
-        foreach (var child in ResourceSystem.Resources.Values.Where(x => 
-            x.ResourceType == typeof(RiseCore.ResourceTypeWavFile) || x.ResourceType == typeof(RiseCore.ResourceTypeOggFile))) 
+        foreach (var child in ResourceSystem.Resources.Values.Where(x =>
+            x.ResourceType == typeof(RiseCore.ResourceTypeWavFile) || x.ResourceType == typeof(RiseCore.ResourceTypeOggFile)))
         {
-            if (child.Path.StartsWith("Content/Music")) 
+            if (child.Path.StartsWith("Content/Music"))
             {
                 var path = child.Path.Replace("Content/Music/", "");
 
                 var indexOfSlash = child.Path.IndexOf('/');
-                if (indexOfSlash != -1) 
+                if (indexOfSlash != -1)
                 {
                     using var stream = child.Stream;
                     path = child.Root.Substring(4) + path;
@@ -110,21 +111,21 @@ public class FortContent
         }
     }
 
-    internal void LoadResources() 
+    internal void LoadResources()
     {
-        foreach (var atlasRes in ResourceSystem.Resources.Where(x => 
-            x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas))) 
+        foreach (var atlasRes in ResourceSystem.Resources.Where(x =>
+            x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas)))
         {
             var child = atlasRes.Value;
             var png = child.RootPath;
             if (Path.GetExtension(png) != ".png")
                 continue;
-            
+
             string data = null;
-            foreach (var ext in AtlasReader.InternalReaders.Keys) 
+            foreach (var ext in AtlasReader.InternalReaders.Keys)
             {
                 data = png.Replace(".png", ext);
-                if (!RiseCore.ResourceTree.TreeMap.ContainsKey(data)) 
+                if (!RiseCore.ResourceTree.TreeMap.ContainsKey(data))
                     continue;
                 break;
             }
@@ -139,7 +140,7 @@ public class FortContent
         }
 
         foreach (var spriteDataRes in ResourceSystem.Resources
-            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData))) 
+            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData)))
         {
             var child = spriteDataRes.Value;
             var spriteData = child.RootPath;
@@ -155,27 +156,27 @@ public class FortContent
         }
 
         foreach (var gameDataRes in ResourceSystem.Resources
-            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData))) 
+            .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData)))
         {
             var child = gameDataRes.Value;
             var gameData = child.RootPath;
             if (Path.GetExtension(gameData) != ".xml")
                 continue;
-            
+
             var filename = Path.GetFileName(gameData);
 
-            switch (filename) 
+            switch (filename)
             {
-            case "themeData.xml": 
+            case "themeData.xml":
             {
                 using var xmlStream = child.Stream;
                 var xmlThemes = patch_Calc.LoadXML(xmlStream)["ThemeData"];
-                foreach (XmlElement xmlTheme in xmlThemes) 
+                foreach (XmlElement xmlTheme in xmlThemes)
                 {
                     var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
                     var themeID = xmlTheme.Attr("id", xmlTheme.Name);
-                    ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() =>
                     {
                         var towerTheme = new patch_TowerTheme(xmlTheme, child, themeResource);
                         TowerFall.GameData.Themes[child.Root.Substring(4) + themeID] = towerTheme;
@@ -188,10 +189,10 @@ public class FortContent
             {
                 using var xmlStream = child.Stream;
                 var xmlBGs = patch_Calc.LoadXML(xmlStream)["backgrounds"];
-                foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG")) 
+                foreach (XmlElement bgs in xmlBGs.GetElementsByTagName("BG"))
                 {
                     var bgID = bgs.Attr("id");
-                    ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() =>
                     {
                         TowerFall.GameData.BGs[child.Root.Substring(4) + bgID] = bgs;
                     }, 1);
@@ -204,11 +205,11 @@ public class FortContent
             {
                 using var xmlStream = child.Stream;
                 var xmlTilesets = patch_Calc.LoadXML(xmlStream)["TilesetData"];
-                foreach (XmlElement tilesets in xmlTilesets.GetElementsByTagName("Tileset")) 
+                foreach (XmlElement tilesets in xmlTilesets.GetElementsByTagName("Tileset"))
                 {
                     var atlas = tilesets.Attr("atlas", "Atlas/atlas");
                     var themeResource = ThemeResource.Create(atlas, child);
-                    ExtendedGameData.Defer(() => 
+                    ExtendedGameData.Defer(() =>
                     {
                         var tilesetID = tilesets.Attr("id", tilesets.Name);
                         TowerFall.GameData.Tilesets[child.Root.Substring(4) + tilesetID] = new patch_TilesetData(tilesets, themeResource);
@@ -234,7 +235,7 @@ public class FortContent
         }
     }
 
-    public bool IsResourceExist(string path) 
+    public bool IsResourceExist(string path)
     {
         path = path.Replace('\\', '/');
         if (MapResource.ContainsKey(path))
@@ -242,36 +243,36 @@ public class FortContent
         return false;
     }
 
-    public bool TryGetValue(string path, out RiseCore.Resource value) 
+    public bool TryGetValue(string path, out RiseCore.Resource value)
     {
         path = path.Replace('\\', '/');
         return MapResource.TryGetValue(path, out value);
     }
 
-    public RiseCore.Resource GetValue(string path) 
+    public RiseCore.Resource GetValue(string path)
     {
         path = path.Replace('\\', '/');
         return MapResource[path];
     }
 
     [Obsolete("Use Content.MapResources or Content[\"resourcePath\"] to look for resources")]
-    public string GetContentPath(string content) 
+    public string GetContentPath(string content)
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content", content).Replace("\\", "/");
     }
 
     [Obsolete("Use Content.MapResources or Content[\"resourcePath\"] to look for resources")]
-    public string GetContentPath() 
+    public string GetContentPath()
     {
         var modDirectory = modPath.EndsWith(".dll") ? Path.GetDirectoryName(modPath) : modPath;
         return Path.Combine(modDirectory, "Content").Replace("\\", "/");
     }
 
-    public IEnumerable<string> EnumerateFilesString(string path) 
+    public IEnumerable<string> EnumerateFilesString(string path)
     {
         path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder)) 
+        if (TryGetValue(path, out var folder))
         {
             for (int i = 0; i < folder.Childrens.Count; i++)
             {
@@ -280,20 +281,20 @@ public class FortContent
         }
     }
 
-    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path) 
+    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path)
     {
         path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder)) 
+        if (TryGetValue(path, out var folder))
         {
             return folder.Childrens;
         }
         return Enumerable.Empty<RiseCore.Resource>();
     }
 
-    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path, string filterExt) 
+    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path, string filterExt)
     {
         path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder)) 
+        if (TryGetValue(path, out var folder))
         {
             // FIXME Need improvements, this is not what I want!!!
             filterExt = filterExt.Replace("*", "");
@@ -306,10 +307,10 @@ public class FortContent
         }
     }
 
-    public string[] GetResourcesPath(string path) 
+    public string[] GetResourcesPath(string path)
     {
         path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder)) 
+        if (TryGetValue(path, out var folder))
         {
             string[] childrens = new string[folder.Childrens.Count];
             for (int i = 0; i < folder.Childrens.Count; i++)
@@ -321,7 +322,7 @@ public class FortContent
         return Array.Empty<string>();
     }
 
-    public T LoadShader<T>(string path, string passName, out int id) 
+    public T LoadShader<T>(string path, string passName, out int id)
     where T : ShaderResource, new()
     {
         path = path.Replace('\\', '/');
@@ -329,7 +330,7 @@ public class FortContent
         return ShaderManager.AddShader<T>(this[shaderPath], passName, out id);
     }
 
-    public TrackInfo LoadMusic(string path) 
+    public TrackInfo LoadMusic(string path)
     {
         path = path.Replace('\\', '/');
         var musicPath = contentPath + "/" + path;
@@ -340,10 +341,10 @@ public class FortContent
         return trackInfo;
     }
 
-    public RiseCore.Resource[] GetResources(string path) 
+    public RiseCore.Resource[] GetResources(string path)
     {
         path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder)) 
+        if (TryGetValue(path, out var folder))
         {
             return folder.Childrens.ToArray();
         }
@@ -351,7 +352,7 @@ public class FortContent
     }
 
     [Obsolete("Use LoadAtlas(string xmlPath, string imagePath) instead")]
-    public patch_Atlas LoadAtlas(string xmlPath, string imagePath, bool load = true) 
+    public patch_Atlas LoadAtlas(string xmlPath, string imagePath, bool load = true)
     {
         return LoadAtlas(xmlPath, imagePath);
     }
@@ -362,17 +363,17 @@ public class FortContent
     /// <param name="dataPath">A path to where the xml or json path is.</param>
     /// <param name="imagePath">A path to where the png path is.</param>
     /// <returns>An atlas of an image.</returns>
-    public patch_Atlas LoadAtlas(string dataPath, string imagePath) 
+    public patch_Atlas LoadAtlas(string dataPath, string imagePath)
     {
         var ext = Path.GetExtension(dataPath);
         var atlasID = dataPath + imagePath;
-        if (dataPath.Replace(ext, "") == imagePath.Replace(".png", "")) 
+        if (dataPath.Replace(ext, "") == imagePath.Replace(".png", ""))
         {
             atlasID = dataPath.Replace(ext, "");
         }
-        if (atlases.TryGetValue(atlasID, out var atlasExisted)) 
+        if (atlases.TryGetValue(atlasID, out var atlasExisted))
             return atlasExisted;
-        
+
         using var data = this[contentPath + "/" + dataPath].Stream;
         using var image = this[contentPath + "/" + imagePath].Stream;
         var atlas = AtlasExt.CreateAtlas(data, image, ext);
@@ -386,35 +387,35 @@ public class FortContent
     /// </summary>
     /// <param name="path">A path to where an atlas data name and atlas png name can be match together</param>
     /// <returns>An atlas of an image.</returns>
-    public patch_Atlas LoadAtlas(string path) 
+    public patch_Atlas LoadAtlas(string path)
     {
         path = path.Replace('\\', '/');
         var ext = Path.GetExtension(path);
         var atlasID = path;
-        if (!string.IsNullOrEmpty(ext)) 
+        if (!string.IsNullOrEmpty(ext))
         {
             var idx = path.IndexOf(".");
             path = path.Substring(0, idx);
         }
-        
-        if (atlases.TryGetValue(path, out var atlasExisted)) 
+
+        if (atlases.TryGetValue(path, out var atlasExisted))
             return atlasExisted;
-        
+
         RiseCore.Resource dataRes;
-        if (this.MapResource.TryGetValue(contentPath + "/" + path + ".xml", out var res)) 
+        if (this.MapResource.TryGetValue(contentPath + "/" + path + ".xml", out var res))
         {
             dataRes = res;
         }
-        else if (this.MapResource.TryGetValue(contentPath + "/" + path + ".json", out var res2)) 
+        else if (this.MapResource.TryGetValue(contentPath + "/" + path + ".json", out var res2))
         {
             dataRes = res2;
         }
-        else 
+        else
         {
             Logger.Error($"[ATLAS] No data xml or json found in this path {path}");
             return null;
         }
-        
+
         using var data = dataRes.Stream;
         using var image = this[contentPath + "/" + path + ".png"].Stream;
         var atlas = AtlasExt.CreateAtlas(data, image, ext);
@@ -424,18 +425,18 @@ public class FortContent
     }
 
     /// <summary>
-    /// Load SpriteData from a mod Content path. 
+    /// Load SpriteData from a mod Content path.
     /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
     /// </summary>
     /// <param name="path">A path to the SpriteData xml.</param>
     /// <param name="atlas">An atlas which the spriteData will use.</param>
     /// <returns>A SpriteData instance to be use for sprite</returns>
-    public patch_SpriteData LoadSpriteData(string path, patch_Atlas atlas) 
+    public patch_SpriteData LoadSpriteData(string path, patch_Atlas atlas)
     {
         path = path.Replace('\\', '/');
-        if (spriteDatas.TryGetValue(path, out var spriteDataExist)) 
+        if (spriteDatas.TryGetValue(path, out var spriteDataExist))
             return spriteDataExist;
-        
+
         using var xml = this[contentPath + "/" + path].Stream;
         var spriteData = SpriteDataExt.CreateSpriteData(this, xml, atlas);
         spriteDatas.Add(path, spriteData);
@@ -478,7 +479,7 @@ public class FortContent
     /// </summary>
     /// <param name="path">A path to file.</param>
     /// <returns>A FileStream or ZipStream.</returns>
-    public Stream LoadStream(string path) 
+    public Stream LoadStream(string path)
     {
         path = path.Replace('\\', '/');
         return this[contentPath + "/" + path].Stream;
@@ -489,7 +490,7 @@ public class FortContent
     /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
     /// </summary>
     /// <returns>A raw Texture2D that can be use for low-level texture access.</returns>
-    public XNAGraphics::Texture2D LoadRawTexture2D(string path) 
+    public XNAGraphics::Texture2D LoadRawTexture2D(string path)
     {
         path = path.Replace('\\', '/');
         using var stream = LoadStream(path);
@@ -502,7 +503,7 @@ public class FortContent
     /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
     /// </summary>
     /// <returns>A Monocle Texture</returns>
-    public Texture LoadTexture(string path) 
+    public Texture LoadTexture(string path)
     {
         path = path.Replace('\\', '/');
         var tex2D = LoadRawTexture2D(path);
@@ -511,11 +512,11 @@ public class FortContent
     }
 
     /// <summary>
-    /// Load text inside of a file 
+    /// Load text inside of a file
     /// </summary>
     /// <param name="path">A path to a file</param>
     /// <returns>A text inside of a file</returns>
-    public string LoadText(string path) 
+    public string LoadText(string path)
     {
         path = path.Replace('\\', '/');
         using var stream = this[contentPath + "/" + path].Stream;
@@ -528,14 +529,14 @@ public class FortContent
     /// </summary>
     /// <param name="path">A path to a file</param>
     /// <returns>A <see cref="System.Xml.XmlDocument"/></returns>
-    public XmlDocument LoadXML(string path) 
+    public XmlDocument LoadXML(string path)
     {
         path = path.Replace('\\', '/');
         using var stream = this[contentPath + "/" + path].Stream;
         return patch_Calc.LoadXML(stream);
     }
 
-    public SFX LoadSFX(string path, bool obeysMasterPitch = true) 
+    public SFX LoadSFX(string path, bool obeysMasterPitch = true)
     {
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
@@ -544,7 +545,7 @@ public class FortContent
         return SFXExt.CreateSFX(this, stream, obeysMasterPitch);
     }
 
-    public patch_SFXInstanced LoadSFXInstance(string path, int instances = 2, bool obeysMasterPitch = true) 
+    public patch_SFXInstanced LoadSFXInstance(string path, int instances = 2, bool obeysMasterPitch = true)
     {
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
@@ -553,7 +554,7 @@ public class FortContent
         return SFXInstancedExt.CreateSFXInstanced(this, stream, instances, obeysMasterPitch);
     }
 
-    public patch_SFXLooped LoadSFXLooped(string path, bool obeysMasterPitch = true) 
+    public patch_SFXLooped LoadSFXLooped(string path, bool obeysMasterPitch = true)
     {
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
@@ -562,7 +563,7 @@ public class FortContent
         return SFXLoopedExt.CreateSFXLooped(this, stream, obeysMasterPitch);
     }
 
-    public patch_SFXVaried LoadSFXVaried(string path, int amount, bool obeysMasterPitch = true) 
+    public patch_SFXVaried LoadSFXVaried(string path, int amount, bool obeysMasterPitch = true)
     {
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
@@ -570,7 +571,7 @@ public class FortContent
         var currentExtension = Path.GetExtension(".wav");
         path = path.Replace(currentExtension, "");
         var stream = new Stream[amount];
-        for (int i = 0; i < amount; i++) 
+        for (int i = 0; i < amount; i++)
         {
             stream[i] = this[contentPath + "/" + path + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
         }
@@ -580,9 +581,9 @@ public class FortContent
     public void Dispose(bool disposeTexture)
     {
         ResourceSystem.Dispose();
-        if (disposeTexture) 
+        if (disposeTexture)
         {
-            foreach (var atlas in atlases) 
+            foreach (var atlas in atlases)
             {
                 atlas.Value.Texture2D.Dispose();
             }
