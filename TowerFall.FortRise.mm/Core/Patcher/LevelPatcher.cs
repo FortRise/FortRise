@@ -250,33 +250,31 @@ public class DarkWorldTowerPatchContext : ITowerPatchContext
     }
 
 
-    public void AddTreasure(Pickups pickup, DarkWorldDifficulties difficulty, int level) 
+    public void AddTreasure(int level, Pickups pickup, DarkWorldDifficulties difficulty) 
     {
         for (int i = 0; i < 4; i++) 
         {
-            AddTreasure(pickup, i, difficulty, level);
+            AddTreasure(level, pickup, i, difficulty);
         }
     }
 
-    public void AddTreasure(string pickup, DarkWorldDifficulties difficulty, int level) 
+    public void AddTreasure(int level, string pickup, DarkWorldDifficulties difficulty) 
     {
         var realPickup = RiseCore.PickupRegistry[pickup].ID;
-        AddTreasure(realPickup, difficulty, level);
+        AddTreasure(level, realPickup, difficulty);
     }
 
     public void AddTreasure(
-        string pickup, int playerAmount,
-        DarkWorldDifficulties difficulty,
-        int level) 
+        int level, string pickup, int playerAmount,
+        DarkWorldDifficulties difficulty) 
     {
         var realPickup = RiseCore.PickupRegistry[pickup].ID;
-        AddTreasure(realPickup, playerAmount, difficulty, level);
+        AddTreasure(level, realPickup, playerAmount, difficulty);
     }
 
     public void AddTreasure(
-        Pickups pickup, int playerAmount, 
-        DarkWorldDifficulties difficulty,
-        int level) 
+        int level, Pickups pickup, int playerAmount, 
+        DarkWorldDifficulties difficulty) 
     {
         var diff = difficulty switch 
         {
