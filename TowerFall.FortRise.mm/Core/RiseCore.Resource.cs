@@ -10,7 +10,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public partial class RiseCore 
+public partial class RiseCore
 {
     public sealed class ResourceTypeFile {}
     public sealed class ResourceTypeFolder {}
@@ -49,9 +49,9 @@ public partial class RiseCore
     private static char[] SplitSeparator = new char[1] { '/' };
 
     /// <summary>
-    /// A class that contains a path and stream to your resource works both on folder and zip. 
+    /// A class that contains a path and stream to your resource works both on folder and zip.
     /// </summary>
-    public abstract class Resource 
+    public abstract class Resource
     {
         public string FullPath;
         public string Path;
@@ -63,149 +63,149 @@ public partial class RiseCore
 
         public abstract Stream Stream { get; }
 
-        public Resource(ModResource resource, string path, string fullPath) 
+        public Resource(ModResource resource, string path, string fullPath)
         {
             FullPath = fullPath;
             Path = path;
             Source = resource;
         }
 
-        public bool Contains(string path) 
+        public bool Contains(string path)
         {
             return RiseCore.ResourceTree.IsExist(this, path);
         }
 
-        public virtual void AssignType() 
+        public virtual void AssignType()
         {
             var path = Path;
             var filename = System.IO.Path.GetFileName(path);
 
-            if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png")) 
+            if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png"))
             {
-                foreach (var ext in AtlasReader.InternalReaders.Keys) 
+                foreach (var ext in AtlasReader.InternalReaders.Keys)
                 {
-                    if (ResourceTree.IsExist(this, path.Replace(".png", ext))) 
+                    if (ResourceTree.IsExist(this, path.Replace(".png", ext)))
                     {
                         ResourceType = typeof(ResourceTypeAtlas);
                     }
                 }
             }
-            else if (path.EndsWith(".dll")) 
+            else if (path.EndsWith(".dll"))
             {
                 ResourceType = typeof(ResourceTypeAssembly);
             }
-            else if (path.StartsWith("Content/Atlas/GameData") && filename.EndsWith(".xml")) 
+            else if (path.StartsWith("Content/Atlas/GameData") && filename.EndsWith(".xml"))
             {
                 ResourceType = typeof(ResourceTypeGameData);
             }
-            else if (path.StartsWith("Content/Atlas/SpriteData") && filename.EndsWith(".xml")) 
+            else if (path.StartsWith("Content/Atlas/SpriteData") && filename.EndsWith(".xml"))
             {
                 ResourceType = typeof(ResourceTypeSpriteData);
             }
-            else if (path.StartsWith("Content/Levels/DarkWorld")) 
+            else if (path.StartsWith("Content/Levels/DarkWorld"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeDarkWorldTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Content/Levels/Versus")) 
+            else if (path.StartsWith("Content/Levels/Versus"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeVersusTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Content/Levels/Quest")) 
+            else if (path.StartsWith("Content/Levels/Quest"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeQuestTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Content/Levels/Trials")) 
+            else if (path.StartsWith("Content/Levels/Trials"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeTrialsTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Content/Music")) 
+            else if (path.StartsWith("Content/Music"))
             {
-                if (path.EndsWith(".xgs")) 
+                if (path.EndsWith(".xgs"))
                 {
                     ResourceType = typeof(ResourceTypeAudioEngine);
                 }
-                else if (path.EndsWith(".xsb")) 
+                else if (path.EndsWith(".xsb"))
                 {
                     ResourceType = typeof(ResourceTypeSoundBank);
                 }
-                else if (path.EndsWith("xwb")) 
+                else if (path.EndsWith("xwb"))
                 {
                     ResourceType = typeof(ResourceTypeWaveBank);
                 }
-                else if (path.EndsWith(".wav")) 
+                else if (path.EndsWith(".wav"))
                 {
                     ResourceType = typeof(ResourceTypeWavFile);
                 }
-                else if (path.EndsWith(".ogg")) 
+                else if (path.EndsWith(".ogg"))
                 {
                     ResourceType = typeof(ResourceTypeOggFile);
                 }
                 // FIXME fix normal file
-                else 
+                else
                 {
                     ResourceType = typeof(ResourceTypeFile);
                 }
             }
-            else if (path.StartsWith("Content/SFX")) 
+            else if (path.StartsWith("Content/SFX"))
             {
-                if (path.EndsWith(".wav")) 
+                if (path.EndsWith(".wav"))
                 {
                     ResourceType = typeof(ResourceTypeWavFile);
                 }
-                else if (path.EndsWith(".ogg")) 
+                else if (path.EndsWith(".ogg"))
                 {
                     ResourceType = typeof(ResourceTypeOggFile);
                 }
                 // FIXME fix normal file
-                else 
+                else
                 {
                     ResourceType = typeof(ResourceTypeFile);
                 }
             }
-            else if (path.EndsWith(".xml")) 
+            else if (path.EndsWith(".xml"))
             {
                 ResourceType = typeof(ResourceTypeXml);
             }
-            else if (path.EndsWith(".fxb")) 
+            else if (path.EndsWith(".fxb"))
             {
                 ResourceType = typeof(ResourceTypeEffects);
             }
-            else if (Childrens.Count != 0) 
+            else if (Childrens.Count != 0)
             {
                 ResourceType = typeof(ResourceTypeFolder);
             }
-            else 
+            else
             {
                 ResourceType = typeof(ResourceTypeFile);
             }
 
-            void AssignLevelFile() 
+            void AssignLevelFile()
             {
-                if (path.EndsWith(".json")) 
+                if (path.EndsWith(".json"))
                 {
                     ResourceType = typeof(ResourceTypeJson);
                 }
-                else if (path.EndsWith(".hjson")) 
+                else if (path.EndsWith(".hjson"))
                 {
                     ResourceType = typeof(ResourceTypeHJson);
                 }
-                else if (path.EndsWith(".oel")) 
+                else if (path.EndsWith(".oel"))
                 {
                     ResourceType = typeof(ResourceTypeOel);
                 }
@@ -219,9 +219,9 @@ public partial class RiseCore
         {
         }
 
-        public override Stream Stream 
+        public override Stream Stream
         {
-            get 
+            get
             {
                 if (!File.Exists(FullPath))
                     return null;
@@ -239,7 +239,7 @@ public partial class RiseCore
             Entry = entry;
         }
 
-        public override Stream Stream 
+        public override Stream Stream
         {
             get => Entry.ExtractStream();
         }
@@ -256,60 +256,60 @@ public partial class RiseCore
         {
             var path = Path;
             var filename = System.IO.Path.GetFileName(path);
-            
-            if (path.StartsWith("DarkWorld")) 
+
+            if (path.StartsWith("DarkWorld"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeDarkWorldTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Versus")) 
+            else if (path.StartsWith("Versus"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeVersusTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Quest")) 
+            else if (path.StartsWith("Quest"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeQuestTowerFolder);
                 }
                 else AssignLevelFile();
             }
-            else if (path.StartsWith("Trials")) 
+            else if (path.StartsWith("Trials"))
             {
-                if (ResourceTree.IsExist(this, path + "/tower.xml")) 
+                if (ResourceTree.IsExist(this, path + "/tower.xml"))
                 {
                     ResourceType = typeof(ResourceTypeTrialsTowerFolder);
                 }
                 else AssignLevelFile();
             }
 
-            else if (path.EndsWith(".xml")) 
+            else if (path.EndsWith(".xml"))
             {
                 ResourceType = typeof(ResourceTypeXml);
             }
-            else if (Childrens.Count != 0) 
+            else if (Childrens.Count != 0)
             {
                 ResourceType = typeof(ResourceTypeFolder);
             }
-            else 
+            else
             {
                 ResourceType = typeof(ResourceTypeFile);
             }
 
-            void AssignLevelFile() 
+            void AssignLevelFile()
             {
-                if (path.EndsWith(".json")) 
+                if (path.EndsWith(".json"))
                 {
                     ResourceType = typeof(ResourceTypeJson);
                 }
-                else if (path.EndsWith(".oel")) 
+                else if (path.EndsWith(".oel"))
                 {
                     ResourceType = typeof(ResourceTypeOel);
                 }
@@ -324,29 +324,29 @@ public partial class RiseCore
         public Dictionary<string, Resource> Resources = new();
         private bool disposedValue;
 
-        public ModResource(ModuleMetadata metadata) 
+        public ModResource(ModuleMetadata metadata)
         {
             Metadata = metadata;
             Content = new FortContent(Metadata, this);
         }
 
-        public ModResource(string path) 
+        public ModResource(string path)
         {
             Content = new FortContent(path, this);
         }
 
 
-        public void Add(string path, Resource resource) 
+        public void Add(string path, Resource resource)
         {
             var rootName = (Metadata is not null ? Metadata.Name : "::global::");
             var rootPath = resource.Root = $"mod:{rootName}/";
 
             Logger.Verbose("[RESOURCE] Loaded On:" + rootPath);
             Logger.Verbose("[RESOURCE] Loaded:" + path);
-            if (Resources.ContainsKey(path)) 
+            if (Resources.ContainsKey(path))
                 return;
 
-            
+
             Resources.Add(path, resource);
             RiseCore.ResourceTree.TreeMap.Add($"{rootPath}{path}", resource);
         }
@@ -399,19 +399,19 @@ public partial class RiseCore
         }
 
 
-        public override void Lookup(string prefix) 
+        public override void Lookup(string prefix)
         {
             var folders = new Dictionary<string, ZipResource>();
 
             var entries = zipFile.Entries.OrderBy(f => f.FileName);
 
-            foreach (var entry in entries) 
+            foreach (var entry in entries)
             {
                 var fileName = entry.FileName.Replace('\\', '/');
 
-                if (entry.IsDirectory)  
+                if (entry.IsDirectory)
                 {
-                    if (BlacklistedCommonFolders.Contains(fileName)) 
+                    if (BlacklistedCommonFolders.Contains(fileName))
                         continue;
                     var file = fileName.Remove(fileName.Length - 1);
                     var zipResource = new ZipResource(this, file, prefix + file, entry);
@@ -420,18 +420,18 @@ public partial class RiseCore
                     var split = file.Split(SplitSeparator);
                     Array.Resize(ref split, split.Length - 1);
                     var newPath = CombineAllPath(split);
-                    if (folders.TryGetValue(newPath, out var resource)) 
+                    if (folders.TryGetValue(newPath, out var resource))
                     {
                         resource.Childrens.Add(zipResource);
                     }
                 }
-                else 
+                else
                 {
-                    if (BlacklistedExtension.Contains(Path.GetExtension(fileName))) 
+                    if (BlacklistedExtension.Contains(Path.GetExtension(fileName)))
                         continue;
                     var zipResource = new ZipResource(this, fileName, prefix + fileName, entry);
                     Add(fileName, zipResource);
-                    if (folders.TryGetValue(Path.GetDirectoryName(fileName).Replace('\\', '/'), out var resource)) 
+                    if (folders.TryGetValue(Path.GetDirectoryName(fileName).Replace('\\', '/'), out var resource))
                     {
                         resource.Childrens.Add(zipResource);
                     }
@@ -439,10 +439,10 @@ public partial class RiseCore
             }
         }
 
-        private static string CombineAllPath(string[] paths) 
+        private static string CombineAllPath(string[] paths)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < paths.Length; i++) 
+            for (int i = 0; i < paths.Length; i++)
             {
                 var path = paths[i];
                 sb.Append(path);
@@ -464,34 +464,34 @@ public partial class RiseCore
             if (!Directory.Exists(FolderDirectory))
                 Directory.CreateDirectory(FolderDirectory);
             var files = Directory.GetFiles(FolderDirectory);
-            for (int i = 0; i < files.Length; i++) 
+            for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
                     continue;
                 var simplifiedPath = filePath.Replace(FolderDirectory + '/', "");
                 var fileResource = new GlobalLevelResource(this, simplifiedPath, filePath);
                 Add(simplifiedPath, fileResource);
             }
             var folders = Directory.GetDirectories(FolderDirectory);
-            foreach (var folder in folders) 
+            foreach (var folder in folders)
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(FolderDirectory + '/', "");
                 var newFolderResource = new GlobalLevelResource(this, simpliPath, fixedFolder);
                 Lookup(prefix, folder, FolderDirectory, newFolderResource);
-                Add(fixedFolder, newFolderResource);
+                Add(simpliPath, newFolderResource);
             }
         }
 
-        public void Lookup(string prefix, string path, string modDirectory, GlobalLevelResource folderResource) 
+        public void Lookup(string prefix, string path, string modDirectory, GlobalLevelResource folderResource)
         {
             var files = Directory.GetFiles(path);
             Array.Sort(files);
-            for (int i = 0; i < files.Length; i++) 
+            for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
                     continue;
                 var simplifiedPath = filePath.Replace(modDirectory + '/', "");
                 var fileResource = new GlobalLevelResource(this, simplifiedPath, filePath);
@@ -500,7 +500,7 @@ public partial class RiseCore
             }
             var folders = Directory.GetDirectories(path);
             Array.Sort(folders);
-            foreach (var folder in folders) 
+            foreach (var folder in folders)
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
@@ -529,10 +529,10 @@ public partial class RiseCore
         {
             var files = Directory.GetFiles(FolderDirectory);
             Array.Sort(files);
-            for (int i = 0; i < files.Length; i++) 
+            for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
                     continue;
                 var simplifiedPath = filePath.Replace(FolderDirectory + '/', "");
                 var fileResource = new FileResource(this, simplifiedPath, filePath);
@@ -540,26 +540,26 @@ public partial class RiseCore
             }
             var folders = Directory.GetDirectories(FolderDirectory);
             Array.Sort(folders);
-            foreach (var folder in folders) 
+            foreach (var folder in folders)
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(FolderDirectory + '/', "");
-                if (BlacklistedCommonFolders.Contains(simpliPath)) 
+                if (BlacklistedCommonFolders.Contains(simpliPath))
                     continue;
                 var newFolderResource = new FileResource(this, simpliPath, fixedFolder);
                 Lookup(prefix, folder, FolderDirectory, newFolderResource);
-                Add(fixedFolder, newFolderResource);
+                Add(simpliPath, newFolderResource);
             }
         }
 
-        public void Lookup(string prefix, string path, string modDirectory, FileResource folderResource) 
+        public void Lookup(string prefix, string path, string modDirectory, FileResource folderResource)
         {
             var files = Directory.GetFiles(path);
             Array.Sort(files);
-            for (int i = 0; i < files.Length; i++) 
+            for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath))) 
+                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
                     continue;
                 var simplifiedPath = filePath.Replace(modDirectory + '/', "");
                 var fileResource = new FileResource(this, simplifiedPath, filePath);
@@ -568,11 +568,11 @@ public partial class RiseCore
             }
             var folders = Directory.GetDirectories(path);
             Array.Sort(folders);
-            foreach (var folder in folders) 
+            foreach (var folder in folders)
             {
                 var fixedFolder = folder.Replace('\\', '/');
                 var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
-                if (BlacklistedCommonFolders.Contains(simpliPath)) 
+                if (BlacklistedCommonFolders.Contains(simpliPath))
                     continue;
                 var newFolderResource = new FileResource(this, simpliPath, prefix + simpliPath);
                 Lookup(prefix, folder, modDirectory, newFolderResource);
@@ -582,18 +582,18 @@ public partial class RiseCore
         }
     }
 
-    public static class ResourceTree 
+    public static class ResourceTree
     {
         public static Dictionary<string, Resource> TreeMap = new();
         public static List<ModResource> ModResources = new();
 
 
-        public static void AddMod(ModuleMetadata metadata, ModResource resource) 
+        public static void AddMod(ModuleMetadata metadata, ModResource resource)
         {
             var name = (metadata is not null ? metadata.Name : "::global::");
             var prefixPath = $"mod:{name}/";
 
-            if (TreeMap.ContainsKey(prefixPath)) 
+            if (TreeMap.ContainsKey(prefixPath))
             {
                 Logger.Warning($"[RESOURCE] Conflicting mod asset name found: {prefixPath}");
                 return;
@@ -605,32 +605,32 @@ public partial class RiseCore
             ModResources.Add(resource);
         }
 
-        internal static void Initialize(ModResource resource) 
+        internal static void Initialize(ModResource resource)
         {
-            foreach (var res in resource.Resources.Values) 
+            foreach (var res in resource.Resources.Values)
             {
                 res.AssignType();
             }
         }
 
-        public static bool TryGetValue(string path, out RiseCore.Resource res) 
+        public static bool TryGetValue(string path, out RiseCore.Resource res)
         {
             return TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
         }
 
-        public static bool IsExist(string path) 
+        public static bool IsExist(string path)
         {
             return TreeMap.ContainsKey(path.Replace('\\', '/'));
         }
 
-        public static bool IsExist(Resource resource, string path) 
+        public static bool IsExist(Resource resource, string path)
         {
             return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
 
-        public static void LoopThroughModsContent(Action<FortContent> modsAction) 
+        public static void LoopThroughModsContent(Action<FortContent> modsAction)
         {
-            foreach (var mod in ModResources) 
+            foreach (var mod in ModResources)
             {
                 if (mod.Content == null)
                     continue;
@@ -638,9 +638,9 @@ public partial class RiseCore
             }
         }
 
-        public static async Task DumpAll() 
+        public static async Task DumpAll()
         {
-            try 
+            try
             {
                 if (!Directory.Exists("DUMP"))
                     Directory.CreateDirectory("DUMP");
@@ -650,7 +650,7 @@ public partial class RiseCore
                 tw.WriteLine("FORTRISE RESOURCE DUMP");
                 tw.WriteLine("VERSION 4.7.0.0");
                 tw.WriteLine("==============================");
-                foreach (var globalResource in TreeMap) 
+                foreach (var globalResource in TreeMap)
                 {
                     await tw.WriteLineAsync("Global File Path: " + globalResource.Key);
                     await tw.WriteLineAsync("Source: ");
@@ -659,20 +659,20 @@ public partial class RiseCore
                     await tw.WriteLineAsync("\t Root: " + globalResource.Value.Root);
                     await tw.WriteLineAsync("\t Type: " + globalResource.Value.ResourceType?.Name ?? "EmptyType");
                     await tw.WriteLineAsync("\t Childrens: ");
-                    foreach (var child in globalResource.Value.Childrens) 
+                    foreach (var child in globalResource.Value.Childrens)
                     {
                         await DumpResource(child, "\t");
                     }
                 }
 
-                async Task DumpResource(Resource childResource, string line) 
+                async Task DumpResource(Resource childResource, string line)
                 {
                     await tw.WriteLineAsync(line + "\t FullPath: " + childResource.FullPath);
                     await tw.WriteLineAsync(line + "\t Path: " + childResource.Path);
                     await tw.WriteLineAsync(line + "\t Root: " + childResource.Root);
                     await tw.WriteLineAsync(line + "\t Type: " + childResource.ResourceType?.Name ?? "EmptyType");
                     await tw.WriteLineAsync(line + "\t Childrens: ");
-                    foreach (var resource in childResource.Childrens) 
+                    foreach (var resource in childResource.Childrens)
                     {
                         await DumpResource(resource, line + "\t");
                     }
@@ -686,16 +686,16 @@ public partial class RiseCore
                 if (GameData.DarkWorldDLC)
                     DumpAtlas("BossAtlas", TFGame.BossAtlas);
                 }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 Logger.Error("[DUMPRESOURCE]" + e.ToString());
                 throw;
             }
         }
 
-        private static void DumpAtlas(string name, Atlas atlas) 
+        private static void DumpAtlas(string name, Atlas atlas)
         {
-            foreach (KeyValuePair<string, Subtexture> texturePair in atlas.SubTextures) 
+            foreach (KeyValuePair<string, Subtexture> texturePair in atlas.SubTextures)
             {
                 string key = texturePair.Key;
                 Subtexture value = texturePair.Value;
