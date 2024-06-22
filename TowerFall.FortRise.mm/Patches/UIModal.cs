@@ -31,15 +31,15 @@ public class UIModal : Entity
     private Color fillerColor = Color.White;
     private bool noTitle;
 
-    public int Width 
+    public int Width
     {
         get => width;
-        set 
+        set
         {
             width = value;
-            if (panel == null) 
+            if (panel == null)
                 return;
-            
+
             panel.Width = width;
         }
     }
@@ -51,9 +51,9 @@ public class UIModal : Entity
 
     public Action OnBack;
 
-    public UIModal(int layerIndex = -1) : this(new Vector2(160f, 120f), layerIndex) {}
+    public UIModal(int layerIndex = -1) : this(new Vector2(160f, 120f), layerIndex) { }
 
-    public UIModal(Vector2 position, int layerIndex = -1) : base(position, layerIndex) 
+    public UIModal(Vector2 position, int layerIndex = -1) : base(position, layerIndex)
     {
         confirmCounter = new Counter();
         confirmCounter.Set(10);
@@ -62,7 +62,7 @@ public class UIModal : Entity
         Add(selectionWiggler);
     }
 
-    public UIModal SetPanelWidth(int width) 
+    public UIModal SetPanelWidth(int width)
     {
         Width = width;
         return this;
@@ -120,14 +120,17 @@ public class UIModal : Entity
             }
             if (MenuInput.Confirm)
             {
-                this.optionActions[this.optionIndex]();
+                if (this.optionActions.Count > 0)
+                {
+                    this.optionActions[this.optionIndex]();
+                }
                 if (AutoClose)
                 {
                     RemoveSelf();
                 }
                 return;
             }
-            
+
             if (MenuInput.Back)
             {
                 RemoveSelf();
@@ -141,14 +144,14 @@ public class UIModal : Entity
     {
         Draw.Rect(0, 0, 320, 240, Color.Black * 0.7f);
         base.Render();
-        var pos = Position + new Vector2(0f, -panel.Height /2f - 8f);
+        var pos = Position + new Vector2(0f, -panel.Height / 2f - 8f);
         if (!noTitle)
             Draw.OutlineTextCentered(TFGame.Font, Title, pos, Color.White, 2f);
         int offset = !noTitle ? 20 : 0;
 
         int num = (itemCount - 1) * 14 + offset + offset - 1;
         var value = new Vector2(X, Y - (float)(num / 2) + offset);
-        for (int i = 0; i < fillerNames.Count; i++) 
+        for (int i = 0; i < fillerNames.Count; i++)
         {
             Draw.TextCentered(TFGame.Font, fillerNames[i], value, fillerColor);
             value.Y += 14f;
@@ -179,7 +182,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="index">A start index</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetStartIndex(int index) 
+    public UIModal SetStartIndex(int index)
     {
         optionIndex = index;
         return this;
@@ -190,7 +193,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="optionName">An option name</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetStartIndex(string optionName) 
+    public UIModal SetStartIndex(string optionName)
     {
         var optIndex = optionNames.IndexOf(optionName.ToUpperInvariant());
         optionIndex = optIndex;
@@ -202,7 +205,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="title">A title of the modal you want to set</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetTitle(string title) 
+    public UIModal SetTitle(string title)
     {
         Title = title.ToUpperInvariant();
         return this;
@@ -213,7 +216,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="color">A color of a filler text you want to set</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetFillerColor(Color color) 
+    public UIModal SetFillerColor(Color color)
     {
         fillerColor = color;
         return this;
@@ -224,7 +227,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="color">A color of a selection text you want to set</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetSelectionColor(Color color) 
+    public UIModal SetSelectionColor(Color color)
     {
         SelectionA = color;
         return this;
@@ -235,7 +238,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="color">A color of a alternate selection text you want to set</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetAltSelectionColor(Color color) 
+    public UIModal SetAltSelectionColor(Color color)
     {
         SelectionB = color;
         return this;
@@ -246,7 +249,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="color">A color of an unselected text you want to set</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetColor(Color color) 
+    public UIModal SetColor(Color color)
     {
         NotSelection = color;
         return this;
@@ -257,7 +260,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="hide">A value between true or false to hide the title</param>
     /// <returns>A UIModal context</returns>
-    public UIModal HideTitle(bool hide) 
+    public UIModal HideTitle(bool hide)
     {
         noTitle = hide;
         return this;
@@ -268,7 +271,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="onBack">A function or callback that will be called when the use press `BACK` button</param>
     /// <returns>A UIModal context</returns>
-    public UIModal SetOnBackCallBack(Action onBack) 
+    public UIModal SetOnBackCallBack(Action onBack)
     {
         OnBack = onBack;
         return this;
@@ -295,7 +298,7 @@ public class UIModal : Entity
     /// </summary>
     /// <param name="name">A name of the text in an item</param>
     /// <returns>A UIModal context</returns>
-    public UIModal AddFiller(string name) 
+    public UIModal AddFiller(string name)
     {
         fillerNames.Add(name.ToUpperInvariant());
         itemCount++;

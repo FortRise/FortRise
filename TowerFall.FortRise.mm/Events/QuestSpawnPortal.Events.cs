@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using FortRise;
 using Monocle;
 using Microsoft.Xna.Framework;
 using TowerFall;
