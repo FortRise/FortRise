@@ -121,9 +121,11 @@ public class VariantManager : IDisposable
         ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string name, string header) 
     {
         string variantStartWithName = $"StartWith{name}";
-        var variantInfo = new CustomVariantInfo(variantStartWithName, arrowVariantIcon, 
-            CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom) { Header = header };
-        var variant = AddVariant(variantInfo);
+        var variantInfo = new CustomVariantInfo(variantStartWithName, arrowVariantIcon, CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom) 
+        { 
+            Header = header 
+        };
+        var variant = AddVariant(variantInfo, false);
         string variantPickupName = $"No{name}";
         if (!variantPickupName.EndsWith("Arrows"))
             variantPickupName += " Arrows";
@@ -162,7 +164,8 @@ public class VariantManager : IDisposable
     {
         var variantInfo = new CustomVariantInfo(name, pickupExcludeVariantIcon, 
             CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom, obj.ID) { Header = header };
-        AddVariant(variantInfo);
+        variantInfo.Exclusions = [obj.ID];
+        AddVariant(variantInfo, true);
     }
 
     private static string RemoveSlashes(string name) 
