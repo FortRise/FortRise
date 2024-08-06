@@ -371,10 +371,10 @@ namespace TowerFall
                     FortRise.RiseCore.RegisterMods();
                     patch_TreasureSpawner.ExtendTreasures();
                     patch_Arrow.ExtendArrows();
-                    Loader.Message = "INITIALIZING LEVEL DATA (1 of 2)";
+                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
                     Logger.Log("[LOAD] ...Level Data");
                     GameData.Load();
-                    Loader.Message = "INITIALIZING LEVEL DATA (2 of 2)";
+                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
                     TowerPatchRegistry.Initialize();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
