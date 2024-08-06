@@ -15,6 +15,13 @@ public static partial class RiseCore
     /// </summary>
     public static partial class Events
     {
+        public delegate void PostLoadContentHandler(FortContent content);
+        public static event PostLoadContentHandler OnPostLoadContent;
+        internal static void Invoke_OnPostLoadContent(FortContent content) 
+        {
+            OnPostLoadContent?.Invoke(content);
+        }
+
         public delegate void QuestSpawnWaveHandler(
             QuestControl control, int waveNum,
             List<IEnumerator> groups, int[] floors,
