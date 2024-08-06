@@ -629,13 +629,14 @@ public partial class RiseCore
             return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
 
-        public static void LoopThroughModsContent(Action<FortContent> modsAction)
+        // If you were expecting this feature, please use the RiseCore.Events.OnPostLoadContent event instead.
+        internal static void PostLoadContent()
         {
             foreach (var mod in ModResources)
             {
                 if (mod.Content == null)
                     continue;
-                modsAction(mod.Content);
+                Events.Invoke_OnPostLoadContent(mod.Content);
             }
         }
 

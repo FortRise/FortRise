@@ -173,9 +173,4 @@ public static class ModIO
 
         return File.OpenText(path);
     }
-
-    public static void LoopAllModsContent(Action<FortContent> contentCallback)
-    {
-        RiseCore.ResourceTree.LoopThroughModsContent(contentCallback);
-    }
 }
