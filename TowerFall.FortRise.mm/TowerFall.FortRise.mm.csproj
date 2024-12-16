@@ -29,7 +29,6 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.7.31.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <PackageReference Include="DotNetZip" Version="1.16.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +46,10 @@
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms"/>
+    <Reference Include="DotNetZip">
+      <HintPath>..\lib\DotNetZip.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>
       <Private>False</Private>
