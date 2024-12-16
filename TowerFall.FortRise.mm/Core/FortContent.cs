@@ -437,7 +437,7 @@ public class FortContent
             return spriteDataExist;
 
         using var xml = this[contentPath + "/" + path].Stream;
-        var spriteData = SpriteDataExt.CreateSpriteData(this, xml, atlas);
+        var spriteData = SpriteDataExt.CreateSpriteData(xml, atlas);
         spriteDatas.Add(path, spriteData);
         return spriteData;
     }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using FortRise;
+using FortRise.IO;
 using MonoMod;
 
 namespace Monocle;
@@ -48,16 +49,22 @@ public static class SpriteDataExt
                 return null;
             }
             using var fileStream = content[filename].Stream;
-            return SpriteDataExt.CreateSpriteData(content, fileStream, atlas);
+            return SpriteDataExt.CreateSpriteData(fileStream, atlas);
         }
         }
         using var stream = File.OpenRead(filename);
-        return SpriteDataExt.CreateSpriteData(content, stream, atlas);
+        return SpriteDataExt.CreateSpriteData(stream, atlas);
     }
 
-    public static patch_SpriteData CreateSpriteData(this FortContent content, Stream filename, patch_Atlas atlas)
+    public static patch_SpriteData CreateSpriteData(string filename, patch_Atlas atlas) 
     {
-        XmlDocument xmlDocument = patch_Calc.LoadXML(filename);
+        using var stream = ModIO.OpenRead(filename);
+        return CreateSpriteData(stream, atlas);
+    }
+
+    public static patch_SpriteData CreateSpriteData(Stream stream, patch_Atlas atlas)
+    {
+        XmlDocument xmlDocument = patch_Calc.LoadXML(stream);
         var sprites = new Dictionary<string, XmlElement>();
         foreach (object item in xmlDocument["SpriteData"])
         {

@@ -21,6 +21,19 @@ public class patch_SFXLooped : patch_SFX
     }
 
     [MonoModConstructor]
+    [MonoModReplace]
+    public void ctor(string filename, bool obeysMasterPitch = true) 
+    {
+        base.ctor(filename, obeysMasterPitch);
+        if (base.Data != null)
+        {
+            this.Instance = base.Data.CreateInstance();
+            this.Instance.IsLooped = true;
+            patch_Audio.loopList.Add(this);
+        }
+    }
+
+    [MonoModConstructor]
     public void ctor(Stream stream, bool obeysMasterPitch = true) 
     {
         base.ctor(stream, obeysMasterPitch);
