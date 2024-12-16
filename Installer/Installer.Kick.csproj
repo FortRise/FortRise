@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
-    <AssemblyName>Installer.NoAnsi</AssemblyName>
+    <AssemblyName>Installer</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

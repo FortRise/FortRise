@@ -152,7 +152,6 @@ public static partial class RiseCore
 
                 RiseCore.ResourceTree.AddMod(metadata, modResource);
                 var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
-                var fullLuaPath = Path.Combine(metadata.PathDirectory, "main.lua");
 
                 if (!RiseCore.DisableFortMods)
                 {

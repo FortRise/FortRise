@@ -650,7 +650,7 @@ public partial class RiseCore
                 using TextWriter tw = new StreamWriter(file);
 
                 tw.WriteLine("FORTRISE RESOURCE DUMP");
-                tw.WriteLine("VERSION 4.7.0.0");
+                tw.WriteLine("VERSION 5.0.0.0");
                 tw.WriteLine("==============================");
                 foreach (var globalResource in TreeMap)
                 {

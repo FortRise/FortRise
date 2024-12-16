@@ -6,14 +6,6 @@ namespace FortRise;
 
 public static class JsonUtils 
 {
-    [Obsolete("This will be removed in FortRise 5")]
-    public static Option<Hjson.JsonValue> GetJsonValueOrNone(this Hjson.JsonValue value, string key) 
-    {
-        if (value.ContainsKey(key))
-            return Option<Hjson.JsonValue>.Some(value[key]);
-        return Option<Hjson.JsonValue>.None();
-    }
-
     public static Hjson.JsonValue GetJsonValueOrNull(this Hjson.JsonValue value, string key) 
     {
         if (value.ContainsKey(key))
@@ -52,14 +44,6 @@ public static class JsonUtils
         return new Vector2(value["x"], value["y"]);
     }
 
-    [Obsolete("This will be removed in FortRise 5")]
-    public static Option<JsonValue> GetJsonValueOrNone(this JsonValue value, string key) 
-    {
-        if (value.Contains(key))
-            return Option<JsonValue>.Some(value[key]);
-        return Option<JsonValue>.None();
-    }
-
     public static JsonValue GetJsonValueOrNull(this JsonValue value, string key) 
     {
         if (value.Contains(key))
@@ -71,36 +55,30 @@ public static class JsonUtils
     {
         return new Vector2(value["x"], value["y"]);
     }
-}
 
-[Obsolete("This will be removed in FortRise 5")]
-public struct Option<T> 
-{
-    public T Wrapped;
-
-    private Option(T value) 
+    public static bool TryParseEnum<T>(this JsonObject value, string key, out T result) 
+    where T : struct, Enum
     {
-        Wrapped = value;
-    }
-
-    public bool Unwrap(out T value) 
-    {
-        if (Wrapped != null) 
+        if (value.Contains(key)) 
         {
-            value = Wrapped;
-            return true;
+            var str = value[key];
+            if (Enum.TryParse<T>(str, out result))
+                return true;
+
+            return false;
         }
-        value = default;
+        result = default;
         return false;
     }
 
-    public static Option<T> None() 
+    public static bool TryGetValue(this JsonObject value, string key, out JsonValue result) 
     {
-        return new Option<T>(default);
-    }
-
-    public static Option<T> Some(T value) 
-    {
-        return new Option<T>(value);
+        if (value.Contains(key)) 
+        {
+            result = value[key];
+            return true;
+        }
+        result = null;
+        return false;
     }
 }

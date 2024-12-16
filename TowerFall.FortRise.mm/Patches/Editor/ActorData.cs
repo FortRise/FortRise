@@ -24,22 +24,6 @@ public class patch_ActorData : ActorData
         DataLayers = new();
         orig_Init();
         DataLayers.Add(ActorData.Data);
-        // foreach (var mods in RiseCore.InternalMods)
-        // {
-        //     var content = mods.Content;
-        //     if (!content.TryGetValue("Content/Editor", out var editorResource))
-        //         continue;
-        //     foreach (var resource in editorResource.Childrens)
-        //     {
-        //         if (!Path.GetExtension(resource.Path).Contains("lua"))
-        //             continue;
-                
-        //         using var stream = resource.Stream;
-        //         var luaEntity = (LuaTable)RiseCore.Lua.LoadScript(stream, resource.Path).Call()[0];
-        //         RegisterLuaEntity(luaEntity, content);
-        //     }
-        // }
-        // ActorData.Data = DataLayers[0];
     }
 
 

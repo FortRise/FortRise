@@ -583,43 +583,7 @@ internal static partial class MonoModRules
         method.CustomAttributes.Add(customAttribute);
     }
 
-    private static void ModPostProcessor(MonoModder modder)
-    {
-        var towerfall = ModuleDefinition.ReadModule("TowerFall.exe");
-        foreach (var type in modder.Module.Types)
-        {
-            // a tiny namespace mistake can be a huge problem for compatibility
-            // but I want to be consistent at everything, so old mods using the wrong namespace
-            // will be relinked to a correct namespace
-            towerfall.ReplaceAttribute(modder, type, "TowerFall.CustomArrowsAttribute", "FortRise.CustomArrowsAttribute", "System.String,System.String");
-        }
-    }
-
-    private static void ReplaceAttribute(
-        this ModuleDefinition module,
-        MonoModder modder,
-        TypeDefinition type,
-        string fullnameFrom,
-        string fullnameTo,
-        string args)
-    {
-        var tfArrowAttribute = type.GetCustomAttribute(fullnameFrom);
-        if (tfArrowAttribute is null)
-            return;
-        Console.WriteLine("[FortRise][MOD] " + type.FullName);
-        Console.WriteLine($"[FortRise][MOD] Replacing {fullnameFrom} -> {fullnameTo}");
-        var typeRef = module.GetType("FortRise.CustomArrowsAttribute");
-
-        var frArrowAttributeTypes = modder.Module.ImportReference(typeRef).Resolve();
-        var constructor = frArrowAttributeTypes.FindMethod($"System.Void .ctor({args})");
-        var frArrowAttribute = new CustomAttribute(modder.Module.ImportReference(constructor));
-        foreach (var arg in tfArrowAttribute.ConstructorArguments)
-        {
-            frArrowAttribute.ConstructorArguments.Add(arg);
-        }
-        type.CustomAttributes.Remove(tfArrowAttribute);
-        type.CustomAttributes.Add(frArrowAttribute);
-    }
+    private static void ModPostProcessor(MonoModder modder) {}
 
     private static void PostProcessor(MonoModder modder)
     {

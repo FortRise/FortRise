@@ -37,7 +37,7 @@ public static class AtlasReader
             IAtlasReader instance = (IAtlasReader)Activator.CreateInstance(reader);
             return instance.Read(stream);
         }
-        Logger.Error($"[Atlas Reader] An reader for {ext} does not existed!");
+        Logger.Error($"[Atlas Reader] An reader for {ext} does not existed! Falling back to xml");
         return new XmlAtlasReader().Read(stream);
     }
 
@@ -50,7 +50,7 @@ public static class AtlasReader
             IAtlasReader instance = (IAtlasReader)Activator.CreateInstance(reader);
             return instance.Read(stream);
         }
-        Logger.Error($"[Atlas Reader] An reader for {ext} does not existed!");
+        Logger.Error($"[Atlas Reader] An reader for {ext} does not existed! Falling back to xml");
         return new XmlAtlasReader().Read(stream);
     }
 }

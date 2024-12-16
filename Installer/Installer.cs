@@ -24,10 +24,12 @@ public class Installer : MarshalByRefObject
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
+        "TeuJson.dll", "DotNetZip.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll", "Hjson.dll",
         "DiscordGameSdk.dll", "DiscordGameSdk.pdb", "Fortrise.targets"
     };
+    
+    private static readonly string[] fileDeprecated = {};
 
     private static string[] fnaLibs; 
     private static readonly string modFile = "TowerFall.FortRise.mm.dll";
@@ -43,7 +45,7 @@ public class Installer : MarshalByRefObject
             FNAPath = "MacOS/osx";
             FNACopy = CopyFNAFiles_MacOS;
             fnaLibs = new string[] {
-                "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
+                "libFAudio.0.dylib", "libFNA3D.0.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
                 "libvulkan.1.dylib", "libdiscord_game_sdk.dylib"
             };
@@ -52,7 +54,7 @@ public class Installer : MarshalByRefObject
             FNAPath = "lib64";
             FNACopy = CopyFNAFiles_Linux;
             fnaLibs = new string[] {
-                "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
+                "libFAudio.so.0", "libFNA3D.so.0",
                 "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so"
             };
             break;
@@ -60,7 +62,7 @@ public class Installer : MarshalByRefObject
             FNAPath = "x86";
             FNACopy = CopyFNAFiles_Windows;
             fnaLibs = new string[] {
-                "FAudio.dll", "FNA3D.dll", "lua53.dll",
+                "FAudio.dll", "FNA3D.dll",
                 "SDL2.dll", "libtheorafile.dll", "discord_game_sdk.dll"
             };
             break;
@@ -128,6 +130,17 @@ public class Installer : MarshalByRefObject
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 
+        foreach (var file in fileDeprecated) 
+        {
+            var lib = Path.Combine(path, file);
+            if (!File.Exists(lib)) 
+            {
+                continue;
+            }
+
+            File.Delete(lib);
+        }
+
         Underline($"Moving all of the FNA files on {FNAPath}");
         FNACopy(path);
 
@@ -183,7 +196,7 @@ public class Installer : MarshalByRefObject
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "4.7.6");
+        sb.AppendLine("Installer Version: " + "5.0.0");
 
         var text = sb.ToString();
 

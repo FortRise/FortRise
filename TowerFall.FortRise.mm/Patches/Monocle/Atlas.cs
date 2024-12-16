@@ -17,13 +17,9 @@ public class patch_Atlas : Atlas
     private string xmlPath;
     public string DataPath;
 
-    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load)
-    {
-    }
+    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) {}
 
-    public patch_Atlas() : base(null, null, false)
-    {
-    }
+    public patch_Atlas() : base(null, null, false) {}
 
     public extern void orig_ctor(string xmlPath, string imagePath, bool load);
 
@@ -150,8 +146,6 @@ public class patch_Atlas : Atlas
     {
         this.SubTextures = subTextures;
     }
-
-
     
 
     [MonoModConstructor]
@@ -159,48 +153,6 @@ public class patch_Atlas : Atlas
 
     [MonoModIgnore]
     public extern bool Contains(string name);
-
-
-    [Obsolete("Use the Content.LoadAtlas from your module instead")]
-    public static patch_Atlas Create(string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
-    {
-        switch (access) 
-        {
-        case ContentAccess.Content:
-            xmlPath = Calc.LOADPATH + xmlPath;
-            imagePath = Calc.LOADPATH + imagePath;
-            break;
-        case ContentAccess.ModContent:
-            // try to access the path
-            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.');
-            var modDirectory = Path.Combine("Mods", modName[0]);
-            if (!Directory.Exists(modDirectory)) 
-            {
-                modDirectory = Path.Combine("Mods", modName[1]);
-            }
-            xmlPath = Path.Combine(modDirectory, "Content", xmlPath).Replace("\\", "/");
-            imagePath = Path.Combine(modDirectory, "Content", imagePath).Replace("\\", "/");
-            break;
-        }
-        XmlNodeList elementsByTagName = Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        var atlas = new patch_Atlas() 
-        {
-            xmlPath = xmlPath,
-            ImagePath = imagePath,
-            SubTextures = new Dictionary<string, Subtexture>(elementsByTagName.Count)
-            
-        };
-        foreach (XmlElement item in elementsByTagName)
-        {
-            XmlAttributeCollection attributes = item.Attributes;
-            atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
-        }
-        if (load)
-        {
-            atlas.Load();
-        }
-        return atlas;
-    }
 
     internal void LoadStream(Stream fs) 
     {
@@ -235,12 +187,6 @@ public static class AtlasExt
         atlas.LoadStream(imageStream);
         
         return atlas;
-    }
-
-    [Obsolete("Use AtlasExt.CreateAtlas(this FortContent content, string xmlPath, string imagePath, ContentAccess access) instead.")]
-    public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
-    {
-        return CreateAtlas(content, xmlPath, imagePath, access);
     }
 
     public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, ContentAccess access = ContentAccess.Root)
@@ -280,11 +226,4 @@ public static class AtlasExt
         atlas.LoadStream(imageStream);
         return atlas;
     }
-}
-
-public enum ContentAccess
-{
-    Root,
-    Content,
-    ModContent
 }

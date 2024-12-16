@@ -33,7 +33,6 @@ public class patch_MatchVariants : MatchVariants
         {
             manager.SetContext(mod.Meta);
             mod.OnVariantsRegister(manager, noPerPlayer);
-            mod.OnVariantsRegister(this, noPerPlayer);
         }
 
 

@@ -85,7 +85,7 @@ public static partial class patch_TFCommands
                     commands.RegisterCommand(customAttribute.CommandName, args => {
                         // Don't be so confused about the parameters:
                         // method.Invoke(null, args); 
-                        // and the current one are the not the same!
+                        // and the current one are not the same!
                         method.Invoke(null, new object[] { args });
                     });
                 }

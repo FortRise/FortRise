@@ -219,8 +219,7 @@ public abstract partial class FortModule
     /// Override this function and this is called after all the game data is loaded.
     /// </summary>
     public virtual void Initialize() {}
-    [Obsolete("Use FortModule.OnVariantsRegister(VariantManager, bool) instead")]
-    public virtual void OnVariantsRegister(MatchVariants variants, bool noPerPlayer = false) {}
+
     /// <summary>
     /// Override this function and allows you to add your own variant using the <paramref name="manager"/>.
     /// </summary>

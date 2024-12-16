@@ -29,7 +29,7 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.7.31.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <PackageReference Include="DotNetZip" Version="1.15.0" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,9 +38,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Content\Atlas\menuatlas.xml">
       <LogicalName>Content.Atlas.menuatlas.xml</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Content\Scripts\fort.lua">
-      <LogicalName>Content.Scripts.fort.lua</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

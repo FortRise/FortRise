@@ -566,8 +566,6 @@ public static partial class RiseCore
         foreach (var fortModule in InternalFortModules)
         {
             fortModule.Initialize();
-            if (fortModule is ITowerPatcher patcher)
-                patcher.PatchTower(new OnTower(fortModule));
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
 
@@ -630,49 +628,6 @@ public static partial class RiseCore
             if (type is null)
                 continue;
 
-            // TODO rewrite
-            foreach (var attrib in type.GetCustomAttributes<CustomRoundLogicAttribute>())
-            {
-                if (attrib is null)
-                    continue;
-
-                string name = attrib.Name;
-                RoundLogicLoader loader = null;
-                ConstructorInfo ctor;
-                MethodInfo info;
-                string overriden = attrib.OverrideFunction ?? "Create";
-                info = type.GetMethod(overriden);
-                if (info == null || !info.IsStatic)
-                {
-                    Logger.Error($"[Register] [{module.Meta.Name}] No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
-                    continue;
-                }
-                var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
-                var legacyGameMode = new LegacyCustomGamemode(name, identifier);
-                ctor = type.GetConstructor(new Type[] { typeof(Session), typeof(bool) });
-                if (ctor != null)
-                {
-                    loader = (x, y) => {
-                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x, y });
-                        return roundLogic;
-                    };
-                    goto Loaded;
-                }
-                ctor = type.GetConstructor(new Type[] { typeof(Session) });
-                if (ctor != null)
-                {
-                    loader = (x, y) => {
-                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x });
-                        return roundLogic;
-                    };
-                    goto Loaded;
-                }
-                Loaded:
-
-                legacyGameMode.LegacyLoader = loader;
-                legacyGameMode.coinSprite = legacyGameMode.CoinSprite();
-                GameModeRegistry.AddToLegacyVersus(name, legacyGameMode);
-            }
             GameModeRegistry.Register(type, module);
             foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>())
             {

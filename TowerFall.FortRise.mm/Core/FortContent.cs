@@ -590,3 +590,10 @@ public class FortContent
         }
     }
 }
+
+public enum ContentAccess
+{
+    Root,
+    Content,
+    ModContent
+}

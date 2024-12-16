@@ -96,6 +96,8 @@ public class patch_TreasureSpawner : TreasureSpawner
 
     internal static void ExtendTreasures() 
     {
+        const int GemPickupID = 20;
+
         var treasureCount = 21 + RiseCore.PickupRegistry.Count;
         // We don't need to resize, if left unchanged
         if (treasureCount == 21)
@@ -104,8 +106,8 @@ public class patch_TreasureSpawner : TreasureSpawner
         Array.Resize(ref FullTreasureMask, treasureCount);
         Array.Resize(ref DarkWorldTreasures, treasureCount);
         // We don't want gem to spawn at all
-        DefaultTreasureChances[20] = 0;
-        FullTreasureMask[20] = 0;
+        DefaultTreasureChances[GemPickupID] = 0;
+        FullTreasureMask[GemPickupID] = 0;
 
         // Put every customs pickups including the arrows to be in the treasure pools
         foreach (var pickup in RiseCore.PickupRegistry.Values) 

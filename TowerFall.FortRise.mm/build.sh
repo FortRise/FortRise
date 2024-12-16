@@ -37,7 +37,7 @@ cp "TowerFall.exe" "../TowerFall.exe"
 cd "../Installer-Framework"
 
 echo "Patching TowerFall with installer"
-./Installer.NoAnsi.bin.x86_64 --patch "../"
+./Installer.bin.x86_64 --patch "../"
 
 echo
 echo "Success!"
