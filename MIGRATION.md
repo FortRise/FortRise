@@ -155,7 +155,7 @@ MyModModule.Instance.MySingleAtlas["mytextures"];
 ```
 
 ### New
-Now, you need load your textures inside of your Atlas as long as you put your atlas inside of an Atlas and named both xml and image as atlas.
+Now, you don't need load your textures inside of your Atlas as long as you put your atlas inside of an Atlas and named both xml and image as atlas.
 You can now use the Vanilla `TFGame.Atlas` for looking up followed by the metadata name of your mod.
 
 ```csharp

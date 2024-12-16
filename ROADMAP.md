@@ -41,5 +41,4 @@ These are the following roadmap that are planned or completed:
 - [ ] TowerFall Editor improvement includes loading *.tower files.
 - [ ] Hot Reloading for tower maps (Partially yet, but not perfect).
 - [ ] Net Core Support.
-- [ ] Lua Interpreter.
 - [ ] Rewrite Relinker completely.
