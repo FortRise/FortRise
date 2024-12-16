@@ -15,11 +15,11 @@ public static partial class RiseCore
     /// </summary>
     public static partial class Events
     {
-        public delegate void PostLoadContentHandler(FortContent content);
-        public static event PostLoadContentHandler OnPostLoadContent;
-        internal static void Invoke_OnPostLoadContent(FortContent content) 
+        public delegate void AfterLoadContentHandler(FortContent content);
+        public static event AfterLoadContentHandler OnAfterLoadContent;
+        internal static void Invoke_OnAfterLoadContent(FortContent content) 
         {
-            OnPostLoadContent?.Invoke(content);
+            OnAfterLoadContent?.Invoke(content);
         }
 
         public delegate void QuestSpawnWaveHandler(

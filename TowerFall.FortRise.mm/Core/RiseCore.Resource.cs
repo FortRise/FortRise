@@ -636,7 +636,7 @@ public partial class RiseCore
             {
                 if (mod.Content == null)
                     continue;
-                Events.Invoke_OnPostLoadContent(mod.Content);
+                Events.Invoke_OnAfterLoadContent(mod.Content);
             }
         }
 
