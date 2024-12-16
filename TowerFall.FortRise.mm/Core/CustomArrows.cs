@@ -27,7 +27,7 @@ namespace FortRise
         }
     }
 
-    internal abstract class CustomArrowPickup : Pickup
+    public abstract class CustomArrowPickup : Pickup
     {
         public ArrowTypes ArrowType { get => arrowType; set => arrowType = value; }
 		public GraphicsComponent Graphic { get => graphic; set => graphic = value; }
