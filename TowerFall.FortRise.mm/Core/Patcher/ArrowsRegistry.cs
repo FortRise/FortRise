@@ -9,8 +9,9 @@ namespace FortRise;
 
 public static class ArrowsRegistry
 {
-    public static Dictionary<string, ArrowObject> RegisteredArrows => RiseCore.ArrowsRegistry;
+    public static Dictionary<ArrowTypes, ArrowData> ArrowDatas = new Dictionary<ArrowTypes, ArrowData>();
     public static Dictionary<Type, ArrowTypes> Types = new();
+    public static Dictionary<string, ArrowTypes> StringToTypes = new();
 
 
     public static void Register<T>(FortModule module) 
@@ -27,7 +28,7 @@ public static class ArrowsRegistry
                 return;
             var name = arrow.Name ?? $"{type.Namespace}.{type.Name}";
             var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
-            var stride = (ArrowTypes)offset + RiseCore.ArrowsRegistry.Count;
+            var stride = (ArrowTypes)offset + ArrowDatas.Count;
             MethodInfo graphic = type.GetMethod(graphicFn);
 
             ConstructorInfo ctor = type.GetConstructor(Array.Empty<Type>());
@@ -44,7 +45,7 @@ public static class ArrowsRegistry
             ArrowInfoLoader infoLoader = null;
             if (graphic == null || !graphic.IsStatic)
             {
-                Logger.Log($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                Logger.Warning($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
                 infoLoader = () => {
                     return ArrowInfo.Create(new Image(TFGame.Atlas["arrows/arrow"]));
                 };
@@ -66,27 +67,27 @@ public static class ArrowsRegistry
                 };
             }
 
-            var pickupObject = new PickupObject() 
+            Pickups stridePickup = (Pickups)21 + PickupsRegistry.PickupDatas.Count; 
+            var pickupObject = new PickupData() 
             {
                 Name = name,
-                ID = (Pickups)RiseCore.PickupLoaderCount,
-                Chance = arrow.Chance
+                ID = stridePickup,
+                Chance = arrow.Chance,
+                PickupLoader = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride)
             };
 
-            RiseCore.ArrowsID[name] = stride;
-            RiseCore.ArrowsRegistry[name] = new ArrowObject() 
+            ArrowDatas[stride] = new ArrowData() 
             {
+                ArrowLoader = loader,
                 Types = stride,
                 InfoLoader = infoLoader,
                 PickupType = pickupObject
             };
-            RiseCore.ArrowNameMap[stride] = name;
-            RiseCore.Arrows[stride] = loader;
-            RiseCore.PickupRegistry[name] = pickupObject;
-            RiseCore.PickupLoader[(Pickups)RiseCore.PickupLoaderCount] 
-                = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride);
-            PickupsRegistry.Types.Add(type, (Pickups)RiseCore.PickupLoaderCount);
-            RiseCore.PickupLoaderCount++;
+            StringToTypes[name] = stride;
+
+            PickupsRegistry.StringToTypes[name] = stridePickup;
+            PickupsRegistry.PickupDatas[stridePickup] = pickupObject;
+            PickupsRegistry.Types.Add(type, stridePickup);
             Types.Add(type, stride);
         }
     }

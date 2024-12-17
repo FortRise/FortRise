@@ -103,10 +103,11 @@ public abstract class CustomArrowPickup : Pickup
     }
 }
 
-public class ArrowObject
+public class ArrowData
 {
+    public ArrowLoader ArrowLoader;
     public ArrowTypes Types;
-    public PickupObject PickupType;
+    public PickupData PickupType;
     public ArrowInfoLoader InfoLoader;
 }
 

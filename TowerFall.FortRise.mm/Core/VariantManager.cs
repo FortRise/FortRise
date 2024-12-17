@@ -104,13 +104,13 @@ public class VariantManager : IDisposable
         return variant;
     }
 
-    public void AddArrowVariant(ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon) 
+    public void AddArrowVariant(ArrowData obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon) 
     {
         AddArrowVariant(obj, arrowVariantIcon, arrowExcludeVariantIcon, currentContext);
     }
 
     public void AddArrowVariant(
-        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header)  
+        ArrowData obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header)  
     {
         var customArrowInfo = obj.InfoLoader();
         var name = $"{RemoveSlashes(customArrowInfo.Name)}";
@@ -118,7 +118,7 @@ public class VariantManager : IDisposable
     }
 
     public void AddArrowVariant(
-        ArrowObject obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string name, string header) 
+        ArrowData obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string name, string header) 
     {
         string variantStartWithName = $"StartWith{name}";
         var variantInfo = new CustomVariantInfo(variantStartWithName, arrowVariantIcon, CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom) 
@@ -150,17 +150,17 @@ public class VariantManager : IDisposable
         StartWithVariants.Add((variant, obj.Types));
     }
 
-    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon) 
+    public void AddPickupVariant(PickupData obj, Subtexture pickupExcludeVariantIcon) 
     {
         AddPickupVariant(obj, pickupExcludeVariantIcon, currentContext);
     }
 
-    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon, string header) 
+    public void AddPickupVariant(PickupData obj, Subtexture pickupExcludeVariantIcon, string header) 
     {
         AddPickupVariant(obj, pickupExcludeVariantIcon, $"No{RemoveSlashes(obj.Name)}", header);
     }
 
-    public void AddPickupVariant(PickupObject obj, Subtexture pickupExcludeVariantIcon, string name, string header) 
+    public void AddPickupVariant(PickupData obj, Subtexture pickupExcludeVariantIcon, string name, string header) 
     {
         var variantInfo = new CustomVariantInfo(name, pickupExcludeVariantIcon, 
             CustomVariantFlags.PerPlayer | CustomVariantFlags.CanRandom, obj.ID) { Header = header };

@@ -45,21 +45,10 @@ public static partial class RiseCore
     /// A TowerFall root directory.
     /// </summary>
     public static string GameRootPath { get; internal set; }
-    internal static long PickupLoaderCount = 21;
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
-
-
-    // Extending enums this way. Please inform me if there's a better way to do this.
-    public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
-    [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
-    public static Dictionary<string, ArrowTypes> ArrowsID = new();
-    public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
-    public static Dictionary<string, PickupObject> PickupRegistry = new();
-    public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
-    public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
 
     /// <summary>
     /// Contains a read-only access to all of the Fort Modules.
@@ -818,6 +807,4 @@ public static partial class RiseCore
         }
         return false;
     }
-
-    public static ArrowTypes GetArrowID(string name) => RiseCore.ArrowsRegistry[name].Types;
 }

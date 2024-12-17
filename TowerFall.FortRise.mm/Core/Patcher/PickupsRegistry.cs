@@ -9,7 +9,8 @@ namespace FortRise;
 
 public static class PickupsRegistry 
 {
-    public static Dictionary<string, PickupObject> RegisteredPickups => RiseCore.PickupRegistry;
+    public static Dictionary<Pickups, PickupData> PickupDatas = new Dictionary<Pickups, PickupData>();
+    public static Dictionary<string, Pickups> StringToTypes = new();
     public static Dictionary<Type, Pickups> Types = new();
 
 
@@ -20,12 +21,13 @@ public static class PickupsRegistry
 
     public static void Register(Type type, FortModule module) 
     {
+        const int offset = 21;
         foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
         {
             if (pickup is null)
                 continue;
             var pickupName = pickup.Name ?? $"{type.Namespace}.{type.Name}";
-            var stride = RiseCore.PickupLoaderCount;
+            var stride = (Pickups)offset + PickupDatas.Count;
             ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Vector2), typeof(Vector2) });
             PickupLoader loader = null;
 
@@ -49,17 +51,17 @@ public static class PickupsRegistry
                 };
             }
 
-            var pickupObject = new PickupObject() 
+            var pickupObject = new PickupData() 
             {
                 Name = pickupName,
-                ID = (Pickups)RiseCore.PickupLoaderCount,
-                Chance = pickup.Chance
+                ID = stride,
+                Chance = pickup.Chance,
+                PickupLoader = loader
             };
 
-            RiseCore.PickupRegistry[pickupName] = pickupObject;
-            RiseCore.PickupLoader[(Pickups)RiseCore.PickupLoaderCount] = loader;
-            Types.Add(type, (Pickups)RiseCore.PickupLoaderCount);
-            RiseCore.PickupLoaderCount++;
+            StringToTypes[pickupName] = stride;
+            PickupDatas[stride] = pickupObject;
+            Types.Add(type, stride);
         }
     }
 }

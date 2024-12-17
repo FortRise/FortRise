@@ -28,11 +28,12 @@ public sealed class CustomPickupAttribute : Attribute
     }
 }
 
-public class PickupObject 
+public class PickupData 
 {
     public string Name;
     public Pickups ID;
     public float Chance;
+    public PickupLoader PickupLoader;
 }
 
 

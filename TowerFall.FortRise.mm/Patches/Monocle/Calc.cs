@@ -3,7 +3,6 @@ using System.Xml;
 using System.Reflection;
 using MonoMod;
 using FortRise;
-using TowerFall;
 using System.IO;
 
 namespace Monocle;
@@ -28,7 +27,7 @@ public static class patch_Calc
             return (T)Enum.Parse(typeof(T), str);
         }
         // Try to get the pickup value
-        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
+        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup) 
         {
             return custmPickup;
         }
@@ -44,7 +43,7 @@ public static class patch_Calc
             return true;
         }
         // Try to get the pickup value
-        else if (RiseCore.PickupRegistry.TryGetValue(str, out var s) && s.ID is T custmPickup) 
+        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup) 
         {
             result = custmPickup;
             return true;
@@ -101,21 +100,6 @@ public static class patch_Calc
             array[i] = childs[i];
         }
         return array;
-    }
-
-    public static void IncompatibleWith(this Variant variant, Variant targetVariant) 
-    {
-        variant.Links.Add(targetVariant);
-        targetVariant.Links.Add(variant);
-    }
-
-    public static void IncompatibleWith(this Variant variant, params Variant[] variants) 
-    {
-        foreach (var varia in variants) 
-        {
-            variant.Links.Add(varia);
-            varia.Links.Add(variant);
-        }
     }
 
     [MonoModReplace]

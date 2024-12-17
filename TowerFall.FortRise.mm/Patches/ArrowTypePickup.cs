@@ -21,13 +21,9 @@ public class patch_ArrowTypePickup : ArrowTypePickup
         orig_ctor(position, targetPosition, type);
         if (type <= ArrowTypes.Prism)
             return;
-        if (!RiseCore.ArrowNameMap.TryGetValue(type, out var id)) 
-            return;
-        
-        var info = RiseCore.ArrowsRegistry[id].InfoLoader?.Invoke();
-        if (info == null)
-            return;
-        var value = info.Value;
+
+        var value = ModRegisters.ArrowData(type).InfoLoader();
+
         
         if (value.Animated != null)
         {
@@ -77,12 +73,7 @@ public class patch_ArrowTypePickup : ArrowTypePickup
             Sounds.pu_prismArrow.Play(X, 1f);
             return;
         default:
-            if (!RiseCore.ArrowNameMap.TryGetValue(arrowType, out var id)) 
-                return;
-            var info = RiseCore.ArrowsRegistry[id].InfoLoader?.Invoke();
-            if (info == null)
-                return;
-            var value = info.Value;
+            var value = ModRegisters.ArrowData(arrowType).InfoLoader();
             var sfx = value.PickupSound ?? Sounds.pu_plus2Arrows;
             sfx.Play(X, 1f);
             return;

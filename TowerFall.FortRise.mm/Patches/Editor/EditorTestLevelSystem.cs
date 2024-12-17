@@ -15,7 +15,7 @@ public class patch_EditorTestLevelSystem : EditorTestLevelSystem
     {
         int[] treasureMask = new int[Tower.TreasureMask.Length];
         Array.Copy(Tower.TreasureMask, treasureMask, Tower.TreasureMask.Length);
-        Array.Resize(ref treasureMask, treasureMask.Length + RiseCore.PickupRegistry.Count + 1);
+        Array.Resize(ref treasureMask, treasureMask.Length + PickupsRegistry.PickupDatas.Count + 1);
         return new TreasureSpawner(session, treasureMask, Tower.TreasureArrowChance, false);
     }
 }

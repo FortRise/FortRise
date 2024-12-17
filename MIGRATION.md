@@ -129,6 +129,41 @@ public override void OnVariantsRegister(VariantManager variants, bool noPerPlaye
 }
 ```
 
+## Arrow and Pickup Registry Changes
+RiseCore for some reason hold these variables before for no good reason. So the change has made to be more
+consistent.
+
+### Old
+```csharp
+FortRise.RiseCore.PickupLoader
+FortRise.RiseCore.PickupRegistry
+
+FortRise.RiseCore.ArrowsRegistry
+FortRise.RiseCore.ArrowsID
+FortRise.RiseCore.Arrows
+FortRise.RiseCore.ArrowNameMap
+```
+There's also a method that can be used to get an arrow type id, but this is also has been removed.
+```csharp
+FortRise.RiseCore.GetArrowID(String);
+```
+
+### New
+This is what you should be using now.
+```csharp
+FortRise.ModRegisters.ArrowData<T>()
+FortRise.ModRegisters.ArrowType<T>()
+FortRise.ModRegisters.PickupData<T>()
+FortRise.ModRegisters.PickupType<T>()
+```
+For simplicity sake, I did not include the other function signature which takes string instead of T. Making it much easier
+to migrate it.
+
+You can still access the specific Registers as well like `PickupRegistry` and `ArrowRegistry` which contains the under the hood
+implementation of these `ModRegisters`.
+
+
+
 # Optional Migration
 These migrations are optional and is not needed to be migrated. Although it covers a good practices on what you should do to
 modding with this mod loader.
@@ -166,10 +201,11 @@ TFGame.Atlas["MyMod/mytextures"];
 # Renamed APIs
 These following methods and classes are renamed on v5.0. It could be a namespace changed, or causes by full reworked of the APIs.
 + TowerFall.UIModal -> FortRise.UIModal
-+ TowerFall.ArrowObject -> FortRise.ArrowObject
++ TowerFall.ArrowObject -> FortRise.ArrowData
 + TowerFall.ArrowInfo -> FortRise.ArrowInfo
 + TowerFall.CustomArrowsAttribute -> FortRise.CustomArrowsAttribute
 + TowerFall.ContentAccess -> FortRise.ContentAccess
++ FortRise.PickupObject -> FortRise.PickupData
 
 # Removed APIs
 These following methods and classes are removed on v5.0. If you needed these features, feel free to backport it inside your mods.
@@ -185,6 +221,8 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + TowerFall.UploadMapButton
 + TowerFall.Atlas.Create
 + TowerFall.SpriteData.Create
++ Towerfall.GotoAdventureButton
++ Monocle.Calc.IncompatibleWith
 
 ### With signatures
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)

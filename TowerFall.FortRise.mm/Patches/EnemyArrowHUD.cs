@@ -18,14 +18,11 @@ public class patch_EnemyArrowHUD : EnemyArrowHUD
     public void ctor(Enemy enemy) 
     {
         orig_ctor(enemy);
-        Array.Resize(ref images, Arrow.ARROW_TYPES + RiseCore.ArrowsRegistry.Count);
-        foreach (var arrowObj in RiseCore.ArrowsRegistry.Values) 
+        Array.Resize(ref images, Arrow.ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count);
+        foreach (var arrowObj in ArrowsRegistry.ArrowDatas.Values) 
         {
             var arrow = arrowObj.Types;
-            var info = arrowObj.InfoLoader?.Invoke();
-            if (info == null)
-                return;
-            var value = info.Value;
+            var value = arrowObj.InfoLoader();
             images[(int)arrow] = value.HUD ?? TFGame.Atlas["player/arrowHUD/arrow"];
         }
     }

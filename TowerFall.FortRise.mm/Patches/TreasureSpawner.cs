@@ -98,7 +98,7 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         const int GemPickupID = 20;
 
-        var treasureCount = 21 + RiseCore.PickupRegistry.Count;
+        var treasureCount = 21 + PickupsRegistry.PickupDatas.Count;
         // We don't need to resize, if left unchanged
         if (treasureCount == 21)
             return;
@@ -110,7 +110,7 @@ public class patch_TreasureSpawner : TreasureSpawner
         FullTreasureMask[GemPickupID] = 0;
 
         // Put every customs pickups including the arrows to be in the treasure pools
-        foreach (var pickup in RiseCore.PickupRegistry.Values) 
+        foreach (var pickup in PickupsRegistry.PickupDatas.Values) 
         {
             var id = pickup.ID;
             var chance = pickup.Chance;
@@ -125,7 +125,7 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         var arrow = orig_GetRandomArrowType(includeDefaultArrows);
         var list = new List<ArrowTypes> { arrow };
-        foreach (var customArrow in RiseCore.ArrowsRegistry.Values)
+        foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values)
         {
             if (Exclusions.Contains(customArrow.PickupType.ID))
                 continue;
@@ -140,7 +140,7 @@ public class patch_TreasureSpawner : TreasureSpawner
     public List<Pickups> GetArrowShufflePickups() 
     {
         var list = orig_GetArrowShufflePickups();
-        foreach (var customArrow in RiseCore.ArrowsRegistry.Values)
+        foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values)
         {
             if (Exclusions.Contains(customArrow.PickupType.ID))
                 continue;

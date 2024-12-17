@@ -260,7 +260,7 @@ public class DarkWorldTowerPatchContext : ITowerPatchContext
 
     public void AddTreasure(int level, string pickup, DarkWorldDifficulties difficulty) 
     {
-        var realPickup = RiseCore.PickupRegistry[pickup].ID;
+        var realPickup = PickupsRegistry.StringToTypes[pickup];
         AddTreasure(level, realPickup, difficulty);
     }
 
@@ -268,7 +268,7 @@ public class DarkWorldTowerPatchContext : ITowerPatchContext
         int level, string pickup, int playerAmount,
         DarkWorldDifficulties difficulty) 
     {
-        var realPickup = RiseCore.PickupRegistry[pickup].ID;
+        var realPickup = PickupsRegistry.StringToTypes[pickup];
         AddTreasure(level, realPickup, playerAmount, difficulty);
     }
 
