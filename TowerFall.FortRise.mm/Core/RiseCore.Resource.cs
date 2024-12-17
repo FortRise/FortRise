@@ -629,8 +629,8 @@ public partial class RiseCore
             return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
 
-        // If you were expecting this feature, please use the RiseCore.Events.OnPostLoadContent event instead.
-        internal static void PostLoadContent()
+        // If you were expecting this feature, please use the RiseCore.Events.OnAfterLoadContent event instead.
+        internal static void AfterLoadContent()
         {
             foreach (var mod in ModResources)
             {
