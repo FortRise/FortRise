@@ -15,6 +15,7 @@ namespace Monocle;
 public class patch_Atlas : Atlas
 {
     private string xmlPath;
+    internal HashSet<string> injectedAtlas = new HashSet<string>();
     public string DataPath;
 
     public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) {}
@@ -26,6 +27,7 @@ public class patch_Atlas : Atlas
     [MonoModConstructor]
     public void ctor(string xmlPath, string imagePath, bool load) 
     {
+        injectedAtlas = new HashSet<string>();
         orig_ctor(xmlPath, imagePath, load);
 
         TaggedSubTextures = new();
@@ -47,12 +49,14 @@ public class patch_Atlas : Atlas
         }
     }
 
-    public static void MergeAtlas(patch_Atlas source, Atlas destination, string prefix) 
+    public static void MergeAtlas(RiseCore.Resource resource, patch_Atlas source, Atlas destination, string prefix) 
     {
         foreach (var subTexture in source.SubTextures) 
         {
             destination.SubTextures.Add(prefix + subTexture.Key, subTexture.Value);
         }
+
+        destination.GetAllInjectedAtlas().Add(resource.Root + resource.Path);
     }
 
     public void Digest(RiseCore.Resource resource) 
@@ -63,7 +67,6 @@ public class patch_Atlas : Atlas
         var xmlPath = pngPath.Replace(".png", ".xml");
         if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xmlPath)) 
             return;
-        
         using var xmlStream = RiseCore.ResourceTree.TreeMap[xmlPath].Stream;
         using var imageStream = RiseCore.ResourceTree.TreeMap[pngPath].Stream;
 
@@ -149,7 +152,10 @@ public class patch_Atlas : Atlas
     
 
     [MonoModConstructor]
-    internal void ctor() {}
+    internal void ctor() 
+    {
+        injectedAtlas = new HashSet<string>();
+    }
 
     [MonoModIgnore]
     public extern bool Contains(string name);
@@ -232,5 +238,10 @@ public static class AtlasExt
         patch_Atlas atlas = AtlasReader.Read(jsonStream, ".json");
         atlas.LoadStream(imageStream);
         return atlas;
+    }
+
+    internal static HashSet<string> GetAllInjectedAtlas(this Atlas atlas)
+    {
+        return ((patch_Atlas)atlas).injectedAtlas;
     }
 }

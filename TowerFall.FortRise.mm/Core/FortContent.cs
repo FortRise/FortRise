@@ -135,7 +135,7 @@ public class FortContent
             data = data.Substring(indexOfSlash + 1).Replace("Content/", "");
 
             var atlas = LoadAtlas(data, png);
-            patch_Atlas.MergeAtlas(atlas, TFGame.Atlas, child.Root.Substring(4));
+            patch_Atlas.MergeAtlas(child, atlas, TFGame.Atlas, child.Root.Substring(4));
         }
 
         foreach (var spriteDataRes in ResourceSystem.Resources

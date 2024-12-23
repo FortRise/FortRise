@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using FortRise.IO;
 using Ionic.Zip;
 using Monocle;
 using TowerFall;
@@ -682,11 +684,11 @@ public partial class RiseCore
 
 
                 // Dump Atlases
-                DumpAtlas("Atlas", TFGame.Atlas);
-                DumpAtlas("MenuAtlas", TFGame.MenuAtlas);
-                DumpAtlas("BGAtlas", TFGame.BGAtlas);
+                DumpAtlas("Atlas", TFGame.Atlas, "DarkWorldContent/Atlas/atlas.png");
+                DumpAtlas("MenuAtlas", TFGame.MenuAtlas, "Content/Atlas/menuAtlas.png");
+                DumpAtlas("BGAtlas", TFGame.BGAtlas, "Content/Atlas/bgAtlas.png");
                 if (GameData.DarkWorldDLC)
-                    DumpAtlas("BossAtlas", TFGame.BossAtlas);
+                    DumpAtlas("BossAtlas", TFGame.BossAtlas, "DarkWorldContent/Atlas/bossAtlas.png");
                 }
             catch (Exception e)
             {
@@ -695,19 +697,36 @@ public partial class RiseCore
             }
         }
 
-        private static void DumpAtlas(string name, Atlas atlas)
+        private static void DumpAtlas(string name, Atlas atlas, string vanillaAtlas)
         {
-            foreach (KeyValuePair<string, Subtexture> texturePair in atlas.SubTextures)
+            var injectedAtlases = new HashSet<string>(atlas.GetAllInjectedAtlas());
+            injectedAtlases.Add(vanillaAtlas);
+            foreach (var path in injectedAtlases) 
             {
-                string key = texturePair.Key;
-                Subtexture value = texturePair.Value;
+                var pngPath = path;
+                var xmlPath = path.Replace(".png", ".xml");
 
-                using var texture = value.GetTexture2DFromSubtexture();
-                var path = $"DUMP/{name}/{key}.png";
-                if (!Directory.Exists(Path.GetDirectoryName(path)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                using var file = File.Create(path);
-                texture.SaveAsPng(file, texture.Width, texture.Height);
+                using var pngStream = ModIO.OpenRead(pngPath);
+                var atlasXml = ModIO.LoadXml(xmlPath);
+
+                using CPUImage image = new CPUImage(pngStream);
+                var subTextures = atlasXml["TextureAtlas"].GetElementsByTagName("SubTexture");
+                foreach (XmlElement subTexture in subTextures) 
+                {
+                    var attrib = subTexture.Attributes;
+                    string key = attrib["name"].Value;
+                    var dumpPath = $"DUMP/{name}/{key}.png";
+
+                    if (!Directory.Exists(Path.GetDirectoryName(dumpPath)))
+                        Directory.CreateDirectory(Path.GetDirectoryName(dumpPath));
+
+                    var x = Convert.ToInt32(attrib["x"].Value);
+                    var y = Convert.ToInt32(attrib["y"].Value);
+                    var width = Convert.ToInt32(attrib["width"].Value);
+                    var height = Convert.ToInt32(attrib["height"].Value);
+                    using var newImage = image.GetRegion(x, y, width, height);
+                    newImage.SavePNG(dumpPath, width, height);
+                }
             }
         }
     }
