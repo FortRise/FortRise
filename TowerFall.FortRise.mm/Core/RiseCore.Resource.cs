@@ -684,11 +684,19 @@ public partial class RiseCore
 
 
                 // Dump Atlases
-                DumpAtlas("Atlas", TFGame.Atlas, "DarkWorldContent/Atlas/atlas.png");
+                if (GameData.DarkWorldDLC) 
+                {
+                    DumpAtlas("BossAtlas", TFGame.BossAtlas, "DarkWorldContent/Atlas/bossAtlas.png");
+                    DumpAtlas("Atlas", TFGame.Atlas, "DarkWorldContent/Atlas/atlas.png");
+                }
+                else 
+                {
+                    DumpAtlas("Atlas", TFGame.Atlas, "Content/Atlas/atlas.png");
+                }
+
                 DumpAtlas("MenuAtlas", TFGame.MenuAtlas, "Content/Atlas/menuAtlas.png");
                 DumpAtlas("BGAtlas", TFGame.BGAtlas, "Content/Atlas/bgAtlas.png");
-                if (GameData.DarkWorldDLC)
-                    DumpAtlas("BossAtlas", TFGame.BossAtlas, "DarkWorldContent/Atlas/bossAtlas.png");
+
                 }
             catch (Exception e)
             {
@@ -709,13 +717,19 @@ public partial class RiseCore
                 using var pngStream = ModIO.OpenRead(pngPath);
                 var atlasXml = ModIO.LoadXml(xmlPath);
 
+                string pathName = name;
+                if (path.StartsWith("mod:")) 
+                {
+                    pathName = Path.Combine(name, path.Substring(4, path.IndexOf('/') - 4));
+                }
+
                 using CPUImage image = new CPUImage(pngStream);
                 var subTextures = atlasXml["TextureAtlas"].GetElementsByTagName("SubTexture");
                 foreach (XmlElement subTexture in subTextures) 
                 {
                     var attrib = subTexture.Attributes;
                     string key = attrib["name"].Value;
-                    var dumpPath = $"DUMP/{name}/{key}.png";
+                    var dumpPath = $"DUMP/{pathName}/{key}.png";
 
                     if (!Directory.Exists(Path.GetDirectoryName(dumpPath)))
                         Directory.CreateDirectory(Path.GetDirectoryName(dumpPath));
