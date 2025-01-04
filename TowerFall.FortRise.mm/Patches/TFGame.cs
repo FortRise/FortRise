@@ -367,7 +367,7 @@ namespace TowerFall
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
-                    RiseCore.ResourceTree.AfterLoadContent();
+                    RiseCore.ResourceTree.AfterModdedLoadContent();
                     FortRise.RiseCore.RegisterMods();
                     patch_TreasureSpawner.ExtendTreasures();
                     patch_Arrow.ExtendArrows();

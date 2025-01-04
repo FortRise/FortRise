@@ -631,14 +631,14 @@ public partial class RiseCore
             return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
 
-        // If you were expecting this feature, please use the RiseCore.Events.OnAfterLoadContent event instead.
-        internal static void AfterLoadContent()
+        // If you were expecting this feature, please use the RiseCore.Events.OnAfterModdedLoadContent event instead.
+        internal static void AfterModdedLoadContent()
         {
             foreach (var mod in ModResources)
             {
                 if (mod.Content == null)
                     continue;
-                Events.Invoke_OnAfterLoadContent(mod.Content);
+                Events.Invoke_OnAfterModdedLoadContent(mod.Content);
             }
         }
 
