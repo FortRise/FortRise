@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SDL2;
 
 namespace FortRise;
@@ -25,6 +26,7 @@ public class CPUImage : IDisposable
     public IntPtr Data => data;
     private IntPtr data;
     private bool useSIMD;
+    private int len;
 
     private bool disposedValue;
 
@@ -43,7 +45,7 @@ public class CPUImage : IDisposable
 
     private unsafe void Load(Stream stream) 
     {
-        var pixelData = FNA3D_ReadImageStream(stream, out int w, out int h, out _);
+        var pixelData = FNA3D_ReadImageStream(stream, out int w, out int h, out len);
 
         Width = w;
         Height = h;
@@ -110,12 +112,12 @@ public class CPUImage : IDisposable
         }
     }
 
-    // public Texture UploadAsTexture(GraphicsDevice device) 
-    // {
-    //     Texture2D texture = new Texture2D(device, Width, Height);
-    //     texture.SetDataPointerEXT(0, null, data, len);
-    //     return texture;
-    // }
+    public Texture UploadAsTexture(GraphicsDevice device) 
+    {
+        Texture2D texture = new Texture2D(device, Width, Height);
+        texture.SetDataPointerEXT(0, null, data, len);
+        return texture;
+    }
 
     public unsafe CPUImage GetRegion(int sx, int sy, int w, int h) 
     {
