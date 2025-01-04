@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using TeuJson;
 
 namespace FortRise;
@@ -16,6 +17,9 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
     public ModuleMetadata[] Dependencies;
     public string NativePath;
     public string NativePathX86;
+
+    public bool IsZipped => !string.IsNullOrEmpty(PathZip);
+    public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
 
     public ModuleMetadata() {}
 

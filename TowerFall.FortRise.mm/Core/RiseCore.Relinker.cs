@@ -162,7 +162,7 @@ public static partial class RiseCore
                 var nativePath = Path.Combine(dirPath, "Natives", $"{asmName}.{meta.Name}");
                 if (!Directory.Exists(nativePath))
                     Directory.CreateDirectory(nativePath);
-                if (!string.IsNullOrEmpty(meta.PathZip)) 
+                if (meta.IsZipped) 
                 {
                     using var zipFile = ZipFile.Read(meta.PathZip);
                     try 
@@ -180,7 +180,7 @@ public static partial class RiseCore
                         Logger.Error("[Relinker] Couldn't extract all of the native files as its in used by another process");
                     }
                 }
-                else if (!string.IsNullOrEmpty(meta.PathDirectory))
+                else if (meta.IsDirectory)
                 {
                     try 
                     {
@@ -194,8 +194,10 @@ public static partial class RiseCore
                         Logger.Error("[Relinker] Couldn't copy all of the native files as its in used by another process");
                     }
                 }
-                else
+                else 
+                {
                     Logger.Error($"[Relinker] Cannot find directory.");
+                }
                 NativeMethods.AddDllDirectory(nativePath);
             }
             else if (!string.IsNullOrEmpty(meta.NativePathX86))
@@ -478,7 +480,7 @@ public static partial class RiseCore
                 }
                 else 
                 {
-                    Logger.Log($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}", Logger.LogLevel.Warning);
+                    Logger.Warning($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
                 }
                 return asm;
             }
@@ -497,7 +499,7 @@ public static partial class RiseCore
 
         private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
         {
-            if (!string.IsNullOrEmpty(meta.PathZip)) 
+            if (meta.IsZipped) 
             {
                 return (mod, main, name, fullname) => 
                 {
@@ -520,11 +522,11 @@ public static partial class RiseCore
                         return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
                     }
 
-                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    Logger.Warning($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
                     return null;
                 };
             }
-            if (!string.IsNullOrEmpty(meta.PathDirectory)) 
+            if (meta.IsDirectory) 
             {
                 return (mod, main, name, fullname) => 
                 {
@@ -540,7 +542,7 @@ public static partial class RiseCore
                         return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));
                     }
                     
-                    Logger.Log($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    Logger.Warning($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
                     return null;
                 };
             }
@@ -575,7 +577,9 @@ public static partial class RiseCore
                 return false;
             for (int i = 0; i < a.Length; i++) 
             {
-                if (a[i].Trim() != b[i].Trim())
+                var left = a[i].AsSpan().Trim();
+                var right = b[i].AsSpan().Trim();
+                if (left != right)
                     return false;
             }
             return true;
