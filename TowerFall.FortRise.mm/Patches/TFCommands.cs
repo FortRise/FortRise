@@ -48,6 +48,11 @@ public static partial class patch_TFCommands
                 return;
             }
             var portals = level.Layers[0].GetList<QuestSpawnPortal>();
+            if (portals.Count == 0) 
+            {
+                commands.Log("No available portal found in this level.");
+                return;
+            }
             portals.Shuffle<QuestSpawnPortal>(); 
             portals[0].AppearAndSpawn(args[0]);
         });
