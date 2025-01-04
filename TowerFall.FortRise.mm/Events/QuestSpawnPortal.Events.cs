@@ -67,7 +67,7 @@ public static partial class RiseCore
                 var colonIndex = name.IndexOf(':');
                 if (colonIndex != -1) 
                 {
-                    var arrowName = name.Substring(colonIndex);
+                    var arrowName = name.Substring(colonIndex + 1);
                     if (ArrowsRegistry.StringToTypes.TryGetValue(arrowName, out var type)) 
                     {
                         return type;
