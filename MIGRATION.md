@@ -4,8 +4,28 @@ FortRise is currently cleaning up its API for the release of v6.0.
 
 FortRise v5.0 might not be a big release, but can improves the development of the mod loader faster than what it was before.
 
+## Table of Contents
+1. [[#Required Migration]]
+    1. [[#Metadata Changes]]
+	2. [[#OnTower API Changes]]
+	3. [[#Custom RoundLogic API Changes]]
+	4. [[#OnVariantRegister Changes]]
+	5. [[#Arrow and Pickup Registry Changes]]
+2. [[#Optional Migration]]
+	1. [[#Using textures with an Atlas]]
+3. [[#Renamed APIs]]
+4. [[#Removed APIs]] 
+
 # Required Migration
 These migrations are required to work in v5.0 and must be changed before it is going to work.
+
+## Metadata Changes
+Metadata is an important step when creating a mod, but something has to change with this design as well.
+FortRise no longer accepts `meta.hjson` since it is not usually used in any way, and just adds another bloat and complexity on the loader.
+
+Second of all, FortRise would no longer accepts names that has a special characters and spaces in it except `.` and `_`. Which means
+you had to change the mod name into a name that could accepts: [Aa-Zz0-9._].
+
 
 ## OnTower API Changes
 OnTower patcher were removed in favor of a new TowerPatch API. If you are using this API correctly, migrating to it will be a breeze.
@@ -156,13 +176,10 @@ FortRise.ModRegisters.ArrowType<T>()
 FortRise.ModRegisters.PickupData<T>()
 FortRise.ModRegisters.PickupType<T>()
 ```
-For simplicity sake, I did not include the other function signature which takes string instead of T. Making it much easier
-to migrate it.
+For simplicity sake of this documentation, I did not include the other function signature which takes string instead of T. 
 
 You can still access the specific Registers as well like `PickupRegistry` and `ArrowRegistry` which contains the under the hood
 implementation of these `ModRegisters`.
-
-
 
 # Optional Migration
 These migrations are optional and is not needed to be migrated. Although it covers a good practices on what you should do to
@@ -206,6 +223,7 @@ These following methods and classes are renamed on v5.0. It could be a namespace
 + TowerFall.CustomArrowsAttribute -> FortRise.CustomArrowsAttribute
 + TowerFall.ContentAccess -> FortRise.ContentAccess
 + FortRise.PickupObject -> FortRise.PickupData
++ FortRise.RiseCore.ParseMetadata -> ModuleMetadata.ParseMetadata
 
 # Removed APIs
 These following methods and classes are removed on v5.0. If you needed these features, feel free to backport it inside your mods.
@@ -222,7 +240,14 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + TowerFall.Atlas.Create
 + TowerFall.SpriteData.Create
 + Towerfall.GotoAdventureButton
++ TowerFall.MatchVariants.AddVariant
++ TowerFall.MatchVariants.GetVariantIconFromName
++ TowerFall.MatchVariants.CreateCustomLinks
++ TowerFall.VariantInfo
++ TowerFall.VariantFlags
 + Monocle.Calc.IncompatibleWith
++ FortRise.RiseCore.ParseMetadataWithJson
++ FortRise.RiseCore.ParseMetadataWithHJson
 
 ### With signatures
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)

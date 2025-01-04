@@ -68,16 +68,13 @@ public class UIModToggler : FortRiseUI
             {
                 using var zipFile = ZipFile.Read(Path.Combine("Mods", filename));
 
-                string metaPath = null;
-                if (zipFile.ContainsEntry("meta.json")) 
-                    metaPath = "meta.json";
-                else if (zipFile.ContainsEntry("meta.hjson")) 
-                    metaPath = "meta.hjson";
-                else 
+                if (!zipFile.ContainsEntry("meta.json"))
+                {
                     continue;
+                }
 
-                using var meta = zipFile[metaPath].ExtractStream();
-                metadata = RiseCore.ParseMetadataWithJson(file, meta, true);
+                using var meta = zipFile["meta.json"].ExtractStream();
+                metadata = ModuleMetadata.ParseMetadata(file, meta, true);
             }
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);
             modsMetadata.Add(filename, metadata);
@@ -92,13 +89,14 @@ public class UIModToggler : FortRiseUI
             var folderName = Path.GetFileName(dir);
             var metaPath = Path.Combine(dir, "meta.json");
             if (!File.Exists(metaPath))
-                metaPath = Path.Combine(dir, "meta.hjson");
-            if (!File.Exists(metaPath))
+            {
                 continue;
+            }
+
             var metadata = loadedMetadata.Where(meta => meta.PathDirectory == dir).FirstOrDefault();
             if (metadata == null) 
             {
-                metadata = RiseCore.ParseMetadataWithJson(dir, metaPath);
+                metadata = ModuleMetadata.ParseMetadata(dir, metaPath);
             }
             var isWhitelisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);

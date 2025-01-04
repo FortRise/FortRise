@@ -50,37 +50,33 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
         return version + name;
     }
 
-    public static ModuleMetadata HJsonToMetadata(Hjson.JsonValue value)
+    public static ModuleMetadata ParseMetadata(string dir, string path)
     {
-        var metadata = new ModuleMetadata();
-        metadata.Name = value["name"];
-        string version = value.ContainsKey("version") ? value["version"] : "1.0.0";
-        metadata.Version = new Version(version);
+        using var jfs = File.OpenRead(path);
+        return ParseMetadata(dir, jfs);
+    }
 
-        string fVersion = value.ContainsKey("required") ? value["required"] : null;
-
-        if (fVersion == null)
-            metadata.FortRiseVersion = RiseCore.FortRiseVersion;
-        else
-            metadata.FortRiseVersion = new Version(fVersion);
-
-        metadata.Description = value.GetJsonValueOrNull("description") ?? string.Empty;
-        metadata.Author = value.GetJsonValueOrNull("author") ?? string.Empty;
-        metadata.DLL = value.GetJsonValueOrNull("dll") ?? string.Empty;
-        metadata.NativePath = value.GetJsonValueOrNull("nativePath") ?? string.Empty;
-        metadata.NativePathX86 = value.GetJsonValueOrNull("nativePathX86") ?? string.Empty;
-        var dep = value.GetJsonValueOrNull("dependencies");
-        if (dep is null)
-            return metadata;
-
-        Hjson.JsonArray asJsonArray = dep as Hjson.JsonArray;
-        int count = asJsonArray.Count;
-        ModuleMetadata[] array = new ModuleMetadata[count];
-        for (int i = 0; i < count; i++)
+    public static ModuleMetadata ParseMetadata(string dirPath, Stream path, bool zip = false)
+    {
+        var json = JsonTextReader.FromStream(path);
+        var metadata = json.Convert<ModuleMetadata>();
+        if (RiseCore.FortRiseVersion < metadata.FortRiseVersion)
         {
-            array[i] = HJsonToMetadata(asJsonArray[i]);
+            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {RiseCore.FortRiseVersion}");
+            return null;
         }
-        metadata.Dependencies = array;
+        string zipPath = "";
+        if (!zip)
+        {
+            metadata.PathDirectory = dirPath;
+        }
+        else
+        {
+            zipPath = dirPath;
+            dirPath = Path.GetDirectoryName(dirPath);
+            metadata.PathZip = zipPath;
+        }
+
         return metadata;
     }
 
