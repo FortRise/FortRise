@@ -1,6 +1,7 @@
 #pragma warning disable CS0618
 using System;
 using System.Reflection;
+using FortRise.Entities;
 using Microsoft.Xna.Framework;
 using MonoMod.Utils;
 using TowerFall;
