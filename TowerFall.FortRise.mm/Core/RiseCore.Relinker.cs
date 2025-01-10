@@ -579,7 +579,7 @@ public static partial class RiseCore
             {
                 var left = a[i].AsSpan().Trim();
                 var right = b[i].AsSpan().Trim();
-                if (left != right)
+                if (!left.SequenceEqual(right))
                     return false;
             }
             return true;
