@@ -59,6 +59,15 @@ public class patch_Atlas : Atlas
         destination.GetAllInjectedAtlas().Add(resource.Root + resource.Path);
     }
 
+    public static void MergeTexture(RiseCore.Resource resource, Subtexture source, Atlas destination, string prefix) 
+    {
+        var pngPath = resource.RootPath;
+        int indexOfSlash = pngPath.IndexOf('/');
+        var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1).Replace("Content/Atlas/atlas/", ""), null);
+        destination.SubTextures.Add(prefix + key, source);
+        destination.GetAllInjectedAtlas().Add(pngPath);
+    }
+
     public void Digest(RiseCore.Resource resource) 
     {
         var pngPath = resource.Root + resource.Path;

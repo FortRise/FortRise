@@ -13,6 +13,7 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	5. [[#Arrow and Pickup Registry Changes]]
 2. [[#Optional Migration]]
 	1. [[#Using textures with an Atlas]]
+    2. [[#Creating an Atlas]]
 3. [[#Renamed APIs]]
 4. [[#Removed APIs]] 
 
@@ -214,6 +215,22 @@ You can now use the Vanilla `TFGame.Atlas` for looking up followed by the metada
 TFGame.Atlas["MyMod/mytextures"];
 ```
 
+## Creating an Atlas
+Before, you had to create your own Atlas which means, you had to merge all of the images into one single image, and map its location and
+size in a single xml file. This is tedious and not so fun to do.
+
+There are many tool to autogenerate your Atlas like [cluttered](https://github.com/Terria-K/cluttered) which helps generating an Atlas for
+you.
+
+Luckily, in FortRise v5.0, there is no need for that. FortRise will now generate an Atlas at load times for you. When generated, it will
+put into one of the Vanilla Atlas such as Atlas, BGAtlas, MenuAtlas, and BossAtlas depending on where you want to put it.
+
+To start creating one, you will need to create a folder called `atlas`, `menuAtlas`, `bgAtlas`, or `bossAtlas` in the Atlas folder
+on your mod's content, choose what you only need.
+
+You can then put an images there like so and you don't need to do much, and that's it. Use the 
+Vanilla Atlas to look for your textures.
+
 
 # Renamed APIs
 These following methods and classes are renamed on v5.0. It could be a namespace changed, or causes by full reworked of the APIs.
@@ -248,6 +265,13 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + Monocle.Calc.IncompatibleWith
 + FortRise.RiseCore.ParseMetadataWithJson
 + FortRise.RiseCore.ParseMetadataWithHJson
++ FortRise.ThemeResource
++ FortRise.FortContent.GetContentPath
 
 ### With signatures
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)
++ TowerFall.TowerTheme.ctor(XmlElement, RiseCore.Resource  FortRise.ThemeResource)
++ TowerFall.TowerTheme.ctor(Hjson.Value, RiseCore.Resource  FortRise.ThemeResource)
++ FortRise.FortContent.ctor(ModuleMetadata, RiseCore.ModResource)
++ FortRise.FortContent.ctor(string, RiseCore.ModResource)
++ FortRise.RiseCore.Resource.ModResource.ctor(string)

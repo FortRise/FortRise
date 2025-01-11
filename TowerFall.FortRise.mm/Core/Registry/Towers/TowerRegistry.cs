@@ -498,7 +498,7 @@ public static class TowerRegistry
             RiseCore.Resource towerResource = null;
             foreach (var child in map.Childrens) 
             {
-                if (child.Path.Contains("tower.xml") || child.Path.Contains("tower.hjson")) 
+                if (child.Path.Contains("tower.xml")) 
                 {
                     towerResource = child;
                 }
@@ -506,42 +506,6 @@ public static class TowerRegistry
             if (towerResource == null)
                 continue;
             
-            if (towerResource.ResourceType == typeof(RiseCore.ResourceTypeHJson)) 
-            {
-                using var hjsonStream = towerResource.Stream;
-                var json = Hjson.HjsonValue.Load(hjsonStream);
-                int id = 0;
-                var arr = new AdventureTrialsTowerData[3];
-
-                foreach (KeyValuePair<string, Hjson.JsonValue> level in json) 
-                {
-                    var trialData = new AdventureTrialsTowerData();
-                    trialData.SetLevelID(path + "-" + id);
-                    trialData.Stats = AdventureModule.SaveData.AdventureTrials.AddOrGet(trialData.GetLevelID());
-                    trialData.SetLevelSet(path);
-                    trialData.Path = map.Root + map.Path + "/" + level.Key;
-                    trialData.Arrows = level.Value.GetJsonValueOrNull("arrows") ?? 3;
-                    trialData.SwitchBlockTimer = level.Value.GetJsonValueOrNull("switchTimer") ?? 200;
-                    trialData.Theme = LoadTheme(level.Value, map);
-                    trialData.Goals = new TimeSpan[3];
-                    trialData.Goals[0] = TimeSpan.FromSeconds(level.Value.GetJsonValueOrNull("gold") ?? 0.3);
-                    trialData.Goals[1] = TimeSpan.FromSeconds(level.Value.GetJsonValueOrNull("diamond") ?? 0.2);
-                    trialData.Goals[2] = TimeSpan.FromSeconds(level.Value.GetJsonValueOrNull("dev") ?? 0.1);
-                    arr[id] = trialData;
-                    id++;
-
-                    trialData.Author = level.Value.GetJsonValueOrNull("author") ?? string.Empty;
-
-                    if (level.Value.ContainsKey("required"))
-                        trialData.RequiredMods = level.Value["required"];
-                    else
-                        trialData.RequiredMods = string.Empty;
-                }
-                TowerRegistry.TrialsAdd(arr);
-                if (arr.Length > 0)
-                    RiseCore.Events.Invoke_OnAdventureTrialsTowerDatasAdd(arr[0].GetLevelSet(), arr);
-                return;
-            }
             {
                 using var xmlStream = towerResource.Stream;
                 var xml = patch_Calc.LoadXML(xmlStream)["tower"];
@@ -579,25 +543,6 @@ public static class TowerRegistry
         }
     }
 
-    private static TowerTheme LoadTheme(Hjson.JsonValue value, RiseCore.Resource map) 
-    {
-        if (value.ContainsKey("theme")) 
-        {
-            var jsonTheme = value["theme"];
-            if (jsonTheme.ContainsKey("Name")) 
-            {
-                var atlas = value.GetJsonValueOrNull("atlas") ?? "Atlas/atlas";
-                var theme = ThemeResource.Create(atlas, map);
-                return new patch_TowerTheme(value["theme"], map, theme);
-            }
-            else 
-            {
-                return GameData.Themes[value["theme"]];
-            }
-        }
-        return TowerTheme.GetDefault();
-    }
-
     private static TowerTheme LoadTheme(XmlElement xml, RiseCore.Resource map) 
     {
         if (xml.HasChild("theme")) 
@@ -605,9 +550,7 @@ public static class TowerRegistry
             var xmlTheme = xml["theme"];
             if (xmlTheme.HasChild("Name")) 
             {
-                var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
-                var theme = ThemeResource.Create(atlas, map);
-                return new patch_TowerTheme(xml["theme"], map, theme);
+                return new patch_TowerTheme(xml["theme"], map);
             }
             else 
             {
@@ -615,23 +558,5 @@ public static class TowerRegistry
             }
         }
         return TowerTheme.GetDefault();
-    }
-}
-
-public struct ThemeResource 
-{
-    public patch_Atlas Atlas;
-
-    public static ThemeResource Create(string atlas, RiseCore.Resource map) 
-    {
-        ThemeResource theme = default;
-        if (map.Source.Content.Atlases.TryGetValue(atlas, out var at)) 
-        {
-            theme = new ThemeResource() 
-            {
-                Atlas = at
-            };
-        }
-        return theme;
     }
 }

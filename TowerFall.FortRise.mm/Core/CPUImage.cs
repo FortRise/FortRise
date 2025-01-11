@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,6 +33,23 @@ public class CPUImage : IDisposable
 
     internal CPUImage() {}
 
+    public unsafe CPUImage(int width, int height) 
+    {
+        Width = width;
+        Height = height;
+        this.len = (int)(width * height * 4);
+        data = SDL.SDL_SIMDAlloc((uint)len);
+
+        byte *ptr = (byte*)data.ToPointer();
+        for (int i = 0; i < len; i += 4) 
+        {
+            ptr[i + 0] = 0;
+            ptr[i + 1] = 0;
+            ptr[i + 2] = 0;
+            ptr[i + 3] = 0;
+        }
+    }
+
     public CPUImage(string path) 
     {
         using FileStream fs = File.OpenRead(path);
@@ -57,37 +75,37 @@ public class CPUImage : IDisposable
         }
     }
 
-    // public unsafe void CopyFrom(ReadOnlySpan<Color> pixels, int x, int y, int srcWidth, int srcHeight)
-    // {
-    //     Rectangle destination = new Rectangle(x, y, srcWidth, srcHeight);
+    public unsafe void CopyFrom(ReadOnlySpan<Color> pixels, int x, int y, int srcWidth, int srcHeight)
+    {
+        Rectangle destination = new Rectangle(x, y, srcWidth, srcHeight);
 
-    //     Rectangle dst = new Rectangle(0, 0, Width, Height).Overlap(destination);
-    //     if (dst.Width <= 0 || dst.Height <= 0) 
-    //     {
-    //         return;
-    //     }
+        Rectangle dst = new Rectangle(0, 0, Width, Height).Overlap(destination);
+        if (dst.Width <= 0 || dst.Height <= 0) 
+        {
+            return;
+        }
 
-    //     Point pixel = new Point(dst.X - destination.X, dst.Y - destination.Y); 
+        Point pixel = new Point(dst.X - destination.X, dst.Y - destination.Y); 
 
-    //     fixed (Color* pixPtr = pixels) 
-    //     {
-    //         Color* dataPtr = (Color*)data.ToPointer();
-    //         int size = dst.Width;
+        fixed (Color* pixPtr = pixels) 
+        {
+            Color* dataPtr = (Color*)data.ToPointer();
+            int size = dst.Width;
 
-    //         for (int yh = 0; yh < dst.Height; yh++) 
-    //         {
-    //             Color* srcPtr = pixPtr + ((pixel.Y + yh) * srcWidth + pixel.X);
-    //             Color* destPtr = dataPtr + ((dst.Y + yh) * Width + dst.X);
+            for (int yh = 0; yh < dst.Height; yh++) 
+            {
+                Color* srcPtr = pixPtr + ((pixel.Y + yh) * srcWidth + pixel.X);
+                Color* destPtr = dataPtr + ((dst.Y + yh) * Width + dst.X);
+                
+                Buffer.MemoryCopy(srcPtr, destPtr, size * 4, size * 4);
+            }
+        }
+    }
 
-    //             NativeMemory.Copy(srcPtr, destPtr, (nuint)(size * 4));
-    //         }
-    //     }
-    // }
-
-    // public unsafe void CopyFrom(Image image, int x, int y) 
-    // {
-    //     CopyFrom(image.Pixels, x, y, image.Width, image.Height);
-    // }
+    public unsafe void CopyFrom(CPUImage image, int x, int y) 
+    {
+        CopyFrom(image.Pixels, x, y, image.Width, image.Height);
+    }
 
     public unsafe void SavePNG(string path, int width, int height) 
     {
@@ -112,7 +130,7 @@ public class CPUImage : IDisposable
         }
     }
 
-    public Texture UploadAsTexture(GraphicsDevice device) 
+    public Texture2D UploadAsTexture(GraphicsDevice device) 
     {
         Texture2D texture = new Texture2D(device, Width, Height);
         texture.SetDataPointerEXT(0, null, data, len);

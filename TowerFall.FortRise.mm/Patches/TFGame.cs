@@ -314,10 +314,6 @@ namespace TowerFall
         protected override void LoadContent()
         {
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
-            foreach (var mods in RiseCore.InternalMods) 
-            {
-                mods.Content.LoadResources();
-            }
         }
 
         protected extern void orig_Initialize();
@@ -367,6 +363,10 @@ namespace TowerFall
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
+                    foreach (var mods in RiseCore.InternalMods) 
+                    {
+                        mods.Content.LoadResources();
+                    }
                     RiseCore.ResourceTree.AfterModdedLoadContent();
                     FortRise.RiseCore.RegisterMods();
                     patch_TreasureSpawner.ExtendTreasures();

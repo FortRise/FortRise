@@ -27,6 +27,10 @@ public partial class RiseCore
     public sealed class ResourceTypeVersusTowerFolder {}
     public sealed class ResourceTypeTrialsTowerFolder {}
     public sealed class ResourceTypeAtlas {}
+    public sealed class ResourceTypeAtlasPng {}
+    public sealed class ResourceTypeMenuAtlasPng {}
+    public sealed class ResourceTypeBGAtlasPng {}
+    public sealed class ResourceTypeBossAtlasPng {}
     public sealed class ResourceTypeSpriteData {}
     public sealed class ResourceTypeGameData {}
     public sealed class ResourceTypeWaveBank {}
@@ -82,7 +86,24 @@ public partial class RiseCore
             var path = Path;
             var filename = System.IO.Path.GetFileName(path);
 
-            if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png"))
+
+            if (path.StartsWith("Content/Atlas/atlas/") && filename.EndsWith(".png"))
+            {
+                ResourceType = typeof(ResourceTypeAtlasPng);
+            }
+            else if (path.StartsWith("Content/Atlas/menuAtlas/") && filename.EndsWith(".png"))
+            {
+                ResourceType = typeof(ResourceTypeMenuAtlasPng);
+            }
+            else if (path.StartsWith("Content/Atlas/bossAtlas/") && filename.EndsWith(".png"))
+            {
+                ResourceType = typeof(ResourceTypeBossAtlasPng);
+            }
+            else if (path.StartsWith("Content/Atlas/bgAtlas/") && filename.EndsWith(".png"))
+            {
+                ResourceType = typeof(ResourceTypeBGAtlasPng);
+            }
+            else if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png"))
             {
                 foreach (var ext in AtlasReader.InternalReaders.Keys)
                 {
@@ -91,6 +112,7 @@ public partial class RiseCore
                         ResourceType = typeof(ResourceTypeAtlas);
                     }
                 }
+
             }
             else if (path.EndsWith(".dll"))
             {
@@ -330,12 +352,12 @@ public partial class RiseCore
         public ModResource(ModuleMetadata metadata)
         {
             Metadata = metadata;
-            Content = new FortContent(Metadata, this);
+            Content = new FortContent(this);
         }
 
-        public ModResource(string path)
+        public ModResource()
         {
-            Content = new FortContent(path, this);
+            Content = new FortContent(this);
         }
 
 
@@ -523,7 +545,7 @@ public partial class RiseCore
             FolderDirectory = metadata.PathDirectory.Replace('\\', '/');
         }
 
-        public FolderModResource(string path) : base(path)
+        public FolderModResource(string path) : base()
         {
             FolderDirectory = path.Replace('\\', '/');
         }
@@ -715,13 +737,27 @@ public partial class RiseCore
                 var xmlPath = path.Replace(".png", ".xml");
 
                 using var pngStream = ModIO.OpenRead(pngPath);
-                var atlasXml = ModIO.LoadXml(xmlPath);
 
                 string pathName = name;
                 if (path.StartsWith("mod:")) 
                 {
                     pathName = Path.Combine(name, path.Substring(4, path.IndexOf('/') - 4));
                 }
+
+                if (!ModIO.IsFileExists(xmlPath)) 
+                {
+                    using CPUImage img = new CPUImage(pngStream);
+                    int indexOfSlash = pngPath.IndexOf('/');
+                    var keyPng = pngPath.Substring(indexOfSlash + 1).Replace("Content/Atlas/atlas/", "");
+                    var dumpPath = $"DUMP/{pathName}/{keyPng}";
+                    if (!Directory.Exists(Path.GetDirectoryName(dumpPath))) 
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(dumpPath));
+                    }
+                    img.SavePNG(dumpPath, img.Width, img.Height);
+                    continue;
+                }
+                var atlasXml = ModIO.LoadXml(xmlPath);
 
                 using CPUImage image = new CPUImage(pngStream);
                 var subTextures = atlasXml["TextureAtlas"].GetElementsByTagName("SubTexture");
