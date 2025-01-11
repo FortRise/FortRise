@@ -419,11 +419,13 @@ internal static partial class MonoModRules
                     var firstLast = il.Body.Instructions[0];
                     il.RemoveAt(il.Body.Instructions.Count - 1);
 
-                    for (int i = 0; i < variant.Fields.Count; i++)
+                    var variants = variant.Fields.Where(x => !x.Name.Contains("k__BackingField")).ToList();
+
+                    for (int i = 0; i < variants.Count; i++)
                     {
-                        var field = variant.Fields[i];
+                        var field = variants[i];
                         var fieldName = variant.FindField(field.Name);
-                        var entry = i == variant.Fields.Count - 1 ?
+                        var entry = i == variants.Count - 1 ?
                             il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldarg_1);
 
                         if (i == 0)
@@ -452,7 +454,6 @@ internal static partial class MonoModRules
             // PostPatch
             if (methd.HasCustomAttribute("MonoMod.PostPatchDisableTempVariant"))
             {
-                var TempDark = tempVariant.FindField("TempAlwaysDark");
                 var Level = modder.Module.GetType("TowerFall.Level");
                 var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
 

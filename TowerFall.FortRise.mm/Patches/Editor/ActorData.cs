@@ -16,7 +16,6 @@ public class patch_ActorData : ActorData
 
     public static void Init() 
     {
-        // Worst object lifetime ever, Devs why?
         if (ActorData.Data != null)
         {
             return;
@@ -27,7 +26,6 @@ public class patch_ActorData : ActorData
     }
 
 
-    // WTH, why?
     [MonoModIgnore]
     private extern static patch_ActorData AddData(string name, string title, Subtexture subtexture, Vector2 origin, int width, int height, bool allowScreenWrap, bool hasNode, bool resizeableX, bool resizeableY, int minWidth, int maxWidth, int minHeight, int maxHeight, int weight, bool darkWorldDLC, Action<Actor, Vector2, float> renderer = null);
 }
