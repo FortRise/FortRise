@@ -58,16 +58,22 @@ Add Custom Archers for Towerfall easily by just Drag n Drop and create Archers w
 TF EX is a mod that attempt to bring netplay to TowerFall (EX as a Fighting game EX move, usually costing meter).
 ![netplay](https://github.com/Fcornaire/TF.EX/blob/main/images/demo.gif)
 
+## [Oops! All Arrows Mod](https://github.com/CoolModder/Towerfall-Redemption/releases/tag/v3.1.0-Arrows)
+### By: [CoolModder](https://github.com/CoolModder)
+Enjoy the chaos of ten new arrows, with more on the way!
+![oops-all-arrows](https://github.com/CoolModder/Towerfall-Redemption/blob/main/giphy.gif)
+
+## [Fallen Champions](https://github.com/dnagl/fallenchampions-mod)
+### By: [dnagl](https://github.com/dnagl)
+Provides an online platform and a custom game modification for automated game tracking and league management.
+![image](https://github.com/user-attachments/assets/9ca854ce-0fb8-45b4-9521-bf8faed88a5f)
+
 ## [Eight-Player Mode (WIP)](https://github.com/Terria-K/EightPlayerMod)
 ### By: [Terria](https://github.com/Terria-K) and [RedDude](https://github.com/RedDude)
 Ported 8P mode as a FortRise mod with wider level set and additional Co-Op wide quest.
 ![eight-player-versus](./img/eight-player-versus.png)
 ![eight-player-quest](./img/eight-player-quest.png)
 
-## [Oops! All Arrows Mod](https://github.com/CoolModder/Towerfall-Redemption/releases/tag/v3.1.0-Arrows)
-### By: [CoolModder](https://github.com/CoolModder)
-Enjoy the chaos of ten new arrows, with more on the way!
-![oops-all-arrows](https://github.com/CoolModder/Towerfall-Redemption/blob/main/giphy.gif)
 
 ## Roadmap
 Check the [roadmap](./ROADMAP.md) for planned features.
