@@ -71,7 +71,7 @@ public class CPUImage : IDisposable
 
         if (data == IntPtr.Zero) 
         {
-            throw new Exception("Failed to load an image.");
+            throw new FailedToLoadImageException();
         }
     }
 
@@ -238,3 +238,5 @@ public class CPUImage : IDisposable
         .GetMethod("WritePNGStream", BindingFlags.Static | BindingFlags.Public)
         .CreateDelegate(typeof(Action<Stream, int, int, int, int, IntPtr>));
 }
+
+public sealed class FailedToLoadImageException : Exception {}

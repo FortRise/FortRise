@@ -61,10 +61,63 @@ public class patch_Atlas : Atlas
 
     public static void MergeTexture(RiseCore.Resource resource, Subtexture source, Atlas destination, string prefix) 
     {
+
         var pngPath = resource.RootPath;
         int indexOfSlash = pngPath.IndexOf('/');
-        var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1).Replace("Content/Atlas/atlas/", ""), null);
-        destination.SubTextures.Add(prefix + key, source);
+        var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1)
+            .Replace("Content/Atlas/atlas/", "")
+            .Replace("Content/Atlas/menuAtlas/", "")
+            .Replace("Content/Atlas/bossAtlas/", "")
+            .Replace("Content/Atlas/bgAtlas", ""), null);
+        
+        var filename = Path.GetFileName(key);
+
+        if (filename.StartsWith("$")) 
+        {
+            int index = filename.IndexOf('[');
+            if (index != -1)
+            {
+                patch_Atlas dest = (patch_Atlas)destination;
+                int lastIndex = filename.LastIndexOf(']');
+                if (lastIndex != -1) 
+                {
+                    var csvTag = filename.Substring(index + 1, lastIndex - index - 1).Replace("_", "/");
+                    var tags = Calc.ReadCSV(csvTag);
+                    var k = key.Replace("$", "");
+                    var limit = k.IndexOf("[");
+                    var actualKey = k.Substring(0, limit);
+
+                    foreach (var tag in tags) 
+                    {
+                        if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                        {
+                            Logger.Log(actualKey);
+                            textures.Add(actualKey, source);
+                        }
+                        else 
+                        {
+                            var newTextures = new Dictionary<string, Subtexture>();
+                            newTextures.Add(actualKey, source);
+                            dest.TaggedSubTextures.Add(tag, newTextures);
+                        }
+                    }
+                }
+                else 
+                {
+                    Logger.Error($"Invalid Tag Syntax '{key}'");
+                    destination.SubTextures[key.Replace("$", "")] = source;
+                }
+            }
+            else 
+            {
+                destination.SubTextures[key.Replace("$", "")] = source;
+            }
+        }
+        else 
+        {
+            destination.SubTextures[prefix + key] = source;
+        }
+
         destination.GetAllInjectedAtlas().Add(pngPath);
     }
 

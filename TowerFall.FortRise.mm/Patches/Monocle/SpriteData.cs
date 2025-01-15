@@ -79,6 +79,24 @@ public static class SpriteDataExt
         return spriteData;
     }
 
+    public static patch_SpriteData CreateSpriteDataFromAtlas(this FortContent content, Stream filename, patch_Atlas atlas)
+    {
+        var xmlElement = patch_Calc.LoadXML(filename)["SpriteData"];
+        var sprites = new Dictionary<string, XmlElement>();
+        
+        foreach (object item in xmlElement)
+        {
+            if (item is XmlElement)
+            {
+                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
+            }
+        }
+        var spriteData = new patch_SpriteData();
+        
+        spriteData.SetAtlasAndSprite(atlas, sprites);
+        return spriteData;
+    }
+
     public static bool TryCreateSpriteData(this FortContent content, Stream filename, out patch_SpriteData data)
     {
         var xmlElement = patch_Calc.LoadXML(filename)["SpriteData"];

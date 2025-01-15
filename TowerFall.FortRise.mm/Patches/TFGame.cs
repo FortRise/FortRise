@@ -343,6 +343,7 @@ namespace TowerFall
             RiseCore.Events.Invoke_Update(gameTime);
             orig_Update(gameTime);
             RiseCore.Events.Invoke_AfterUpdate(gameTime);
+            RiseCore.ResourceReloader.Update();
         }
 
         protected override void Draw(GameTime gameTime)

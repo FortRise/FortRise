@@ -44,6 +44,11 @@ public class FortContent
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
 
+    private FileSystemWatcher watcher;
+    private Dictionary<string, WatchTexture> watchingTexture = new Dictionary<string, WatchTexture>();
+    private string requestedPath;
+    private bool requestReload;
+
     public string MetadataPath
     {
         get
@@ -70,11 +75,63 @@ public class FortContent
     public FortContent(RiseCore.ModResource resource) : base()
     {
         ResourceSystem = resource;
+
+        if (ResourceSystem.Metadata != null && ResourceSystem.Metadata.IsDirectory) 
+        {
+            var dir = Path.Combine(resource.Metadata.PathDirectory, contentPath);
+            if (!Directory.Exists(dir)) 
+            {
+                return;
+            }
+            watcher = new FileSystemWatcher(dir);
+            watcher.EnableRaisingEvents = true;
+            watcher.Changed += OnReload;
+            watcher.IncludeSubdirectories = true;
+        }
+    }
+
+    private void OnReload(object sender, FileSystemEventArgs e)
+    {
+        if (requestReload) // prevents another call
+        {
+            return;
+        }
+        requestReload = true;
+        RiseCore.ResourceReloader.ContentRequestedReload.Enqueue(this);
+        requestedPath = e.FullPath;
     }
 
     internal void Unload(bool disposeTexture)
     {
         Dispose(disposeTexture);
+    }
+
+    internal void Reload() 
+    {
+        requestReload = false;
+
+        if (!watchingTexture.TryGetValue(requestedPath.Replace('\\', '/'), out var watchTexture))
+        {
+            return;
+        }
+
+        if (watchTexture.Type == typeof(RiseCore.ResourceTypeAtlasPng) || 
+            watchTexture.Type == typeof(RiseCore.ResourceTypeBGAtlasPng) ||
+            watchTexture.Type == typeof(RiseCore.ResourceTypeBossAtlasPng) ||
+            watchTexture.Type == typeof(RiseCore.ResourceTypeMenuAtlasPng) ||
+            watchTexture.Type == typeof(RiseCore.ResourceTypeAtlas))
+        {
+            try 
+            {
+                using var resource = ModIO.OpenRead(requestedPath.Replace('\\', '/'));
+                using CPUImage image = new CPUImage(resource);
+                watchTexture.Texture.Texture2D.SetData(image.Pixels.ToArray());
+            }
+            catch (FailedToLoadImageException)
+            {
+                Logger.Error("Failed to load image error, try again!");
+            }
+        }
     }
 
     internal void LoadAudio()
@@ -135,8 +192,13 @@ public class FortContent
             png = png.Substring(indexOfSlash + 1).Replace("Content/", "");
             data = data.Substring(indexOfSlash + 1).Replace("Content/", "");
 
-
             var atlas = LoadAtlas(data, png);
+
+            if (ResourceSystem.Metadata.IsDirectory)
+            {
+                // might be bad, but all we care about is the Texture2D to change data anyway.
+                watchingTexture[child.FullPath] = new WatchTexture(child.ResourceType, new Subtexture(new Texture(atlas.Texture2D)));
+            }
 
             string filename = Path.GetFileNameWithoutExtension(png);
 
@@ -244,10 +306,10 @@ public class FortContent
             {
                 var child = atlasPng.Value;
                 using var stream = child.Stream;
+                var texture = XNAGraphics.Texture2D.FromStream(TFGame.Instance.GraphicsDevice, stream);
+                var subtexture = new Subtexture(new Monocle.Texture(texture));
 
-                var subtexture = new Subtexture(new Monocle.Texture(
-                    XNAGraphics.Texture2D.FromStream(TFGame.Instance.GraphicsDevice, stream))
-                );
+                watchingTexture[child.FullPath] = new WatchTexture(child.ResourceType, subtexture);
 
                 if (child.ResourceType == typeof(RiseCore.ResourceTypeAtlasPng)) 
                 {
@@ -567,12 +629,19 @@ public class FortContent
             return true;
         }
 
+        var filename = Path.GetFileName(id);
+
+        Atlas atlas = filename switch {
+            "spriteData" => TFGame.Atlas,
+            "menuSpriteData" => TFGame.MenuAtlas,
+            "bossSpriteData" => TFGame.BossAtlas,
+            "bgSpriteData" => TFGame.BGAtlas,
+            _ => null
+        };
+
         using var xml = this[contentPath + "/" + path].Stream;
-        if (!SpriteDataExt.TryCreateSpriteData(this, xml, out var data))
-        {
-            result = null;
-            return false;
-        }
+        var data = SpriteDataExt.CreateSpriteDataFromAtlas(this, xml, (patch_Atlas)atlas);
+        
         var spriteData = data;
         spriteDatas.Add(id, spriteData);
         result = spriteData;
@@ -695,6 +764,12 @@ public class FortContent
             }
             atlases.Clear();
         }
+    }
+
+    private struct WatchTexture(Type type, Subtexture texture)
+    {
+        public Type Type = type;
+        public Subtexture Texture = texture;
     }
 }
 
