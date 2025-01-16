@@ -11,11 +11,13 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	3. [[#Custom RoundLogic API Changes]]
 	4. [[#OnVariantRegister Changes]]
 	5. [[#Arrow and Pickup Registry Changes]]
+    6. [[#VanillaAtlas removal]]
 2. [[#Optional Migration]]
 	1. [[#Using textures with an Atlas]]
     2. [[#Creating an Atlas]]
 3. [[#Renamed APIs]]
 4. [[#Removed APIs]] 
+5. [[#Additional Information]]
 
 # Required Migration
 These migrations are required to work in v5.0 and must be changed before it is going to work.
@@ -182,6 +184,19 @@ For simplicity sake of this documentation, I did not include the other function 
 You can still access the specific Registers as well like `PickupRegistry` and `ArrowRegistry` which contains the under the hood
 implementation of these `ModRegisters`.
 
+## VanillaAtlas removal
+To iterate what this is, this feature is for replacing TowerFall's texture directly from the Atlas. This uses a separate directory
+from the Mod's Atlas and it also uses the Atlas format to replace.
+
+For the texture to be replaced, the path of the texture from VanillaAtlas must match from the texture from TowerFall's main Atlas.
+
+This feature has been replaced along with the new redesigned atlas system. First, read this section: [[##Creating an Atlas]], then
+to replace the texture, you must surround the image file with parenthesis `(filename.png)` to replace the texture. Note that the path
+must match to the texture from TowerFall's main Atlas in order to be replaced.
+
+Not surrounding the image file will put the texture into the Mod's atlas and prefixed with the metadata name of a mod 
+which is the intended behavior if you wanna use your own texture to other stuff of your mod.
+
 # Optional Migration
 These migrations are optional and is not needed to be migrated. Although it covers a good practices on what you should do to
 modding with this mod loader.
@@ -255,6 +270,9 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + TowerFall.RoundLogicType
 + TowerFall.UploadMapButton
 + TowerFall.Atlas.Create
++ TowerFall.Atlas.DataPath
++ TowerFall.Atlas.Digest
++ TowerFall.Atlas.MapAllAssets
 + TowerFall.SpriteData.Create
 + Towerfall.GotoAdventureButton
 + TowerFall.MatchVariants.AddVariant
@@ -275,3 +293,8 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + FortRise.FortContent.ctor(ModuleMetadata, RiseCore.ModResource)
 + FortRise.FortContent.ctor(string, RiseCore.ModResource)
 + FortRise.RiseCore.Resource.ModResource.ctor(string)
+
+# Additional Information
+## DotNetZip has been replaced with System.IO.Compression
+Due to the reason that DotNetZip has been discontinued, we replaced the zip library to System.IO.Compression to ensure
+the quality of the dependencies that we are using and reduces the risk of having a vulnerable code in the future.

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
-using Ionic.Zip;
 
 namespace FortRise;
 
@@ -66,17 +66,17 @@ public static partial class RiseCore
 
         public static void LoadZip(string file)
         {
-            using var zipFile = ZipFile.Read(file);
+            using var zipFile = ZipFile.OpenRead(file);
 
             ModuleMetadata moduleMetadata = null;
             string metaFile = "meta.json";
-            if (!zipFile.ContainsEntry(metaFile))
+            var metaZip = zipFile.GetEntry(metaFile);
+            if (metaZip == null)
             {
                 return;
             }
 
-            var entry = zipFile[metaFile];
-            using var memStream = entry.ExtractStream();
+            using var memStream = metaZip.ExtractStream();
 
             moduleMetadata = ModuleMetadata.ParseMetadata(file, memStream, true);
             Loader.LoadMod(moduleMetadata, false);
@@ -134,11 +134,12 @@ public static partial class RiseCore
 
                 if (!RiseCore.DisableFortMods)
                 {
-                    using var zip = new ZipFile(metadata.PathZip);
+                    using var zip = ZipFile.OpenRead(metadata.PathZip);
                     var dllPath = metadata.DLL.Replace('\\', '/');
-                    if (zip.ContainsEntry(dllPath))
+                    var dllMeta = zip.GetEntry(dllPath);
+                    if (dllMeta != null)
                     {
-                        using var dll = zip[dllPath].ExtractStream();
+                        using var dll = dllMeta.ExtractStream();
                         asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
                     }
                 }

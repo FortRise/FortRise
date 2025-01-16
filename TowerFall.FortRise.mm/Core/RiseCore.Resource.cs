@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using FortRise.IO;
-using Ionic.Zip;
 using Monocle;
 using TowerFall;
 
@@ -257,16 +257,25 @@ public partial class RiseCore
 
     public class ZipResource : Resource
     {
-        public ZipEntry Entry;
+        public ZipArchiveEntry Entry;
 
-        public ZipResource(ModResource resource, string path, string fullPath, ZipEntry entry) : base(resource, path, fullPath)
+        public ZipResource(ModResource resource, string path, string fullPath, ZipArchiveEntry entry) : base(resource, path, fullPath)
         {
             Entry = entry;
         }
 
         public override Stream Stream
         {
-            get => Entry.ExtractStream();
+            get 
+            {
+                ZipModResource modSource = (ZipModResource)Source;
+                var entry = modSource.Zip.GetEntry(Path);
+                if (entry == null) 
+                {
+                    throw new KeyNotFoundException($"File {Path} not found in archive {modSource.Metadata.PathZip}");
+                }
+                return entry.ExtractStream();
+            } 
         }
     }
 
@@ -410,17 +419,17 @@ public partial class RiseCore
 
     public class ZipModResource : ModResource
     {
-        private ZipFile zipFile;
+        public ZipArchive Zip;
 
 
         public ZipModResource(ModuleMetadata metadata) : base(metadata)
         {
-            zipFile = new ZipFile(metadata.PathZip);
+            Zip = ZipFile.OpenRead(metadata.PathZip);
         }
 
         internal override void DisposeInternal()
         {
-            zipFile.Dispose();
+            Zip.Dispose();
         }
 
 
@@ -428,13 +437,13 @@ public partial class RiseCore
         {
             var folders = new Dictionary<string, ZipResource>();
 
-            var entries = zipFile.Entries.OrderBy(f => f.FileName);
+            var entries = Zip.Entries.OrderBy(f => f.FullName);
 
             foreach (var entry in entries)
             {
-                var fileName = entry.FileName.Replace('\\', '/');
+                var fileName = entry.FullName.Replace('\\', '/');
 
-                if (entry.IsDirectory)
+                if (entry.IsEntryDirectory())
                 {
                     if (BlacklistedCommonFolders.Contains(fileName))
                         continue;

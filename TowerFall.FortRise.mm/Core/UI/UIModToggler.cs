@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using Ionic.Zip;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TeuJson;
@@ -66,14 +66,15 @@ public class UIModToggler : FortRiseUI
             var metadata = loadedMetadata.Where(meta => meta.PathZip == filename).FirstOrDefault();
             if (metadata == null) 
             {
-                using var zipFile = ZipFile.Read(Path.Combine("Mods", filename));
+                using var zipFile = ZipFile.OpenRead(Path.Combine("Mods", filename));
+                var metaZip = zipFile.GetEntry("meta.json");
 
-                if (!zipFile.ContainsEntry("meta.json"))
+                if (metaZip == null)
                 {
                     continue;
                 }
 
-                using var meta = zipFile["meta.json"].ExtractStream();
+                using var meta = metaZip.ExtractStream();
                 metadata = ModuleMetadata.ParseMetadata(file, meta, true);
             }
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);

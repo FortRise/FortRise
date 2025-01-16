@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Text;
-using Ionic.Zip;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Mdb;
@@ -122,31 +122,6 @@ public static partial class RiseCore
             }
         }
 
-        private static MonoModder modder;
-        public static MonoModder Modder {
-            get {
-                if (modder != null)
-                    return modder;
-
-                modder = new MonoModder() {
-                    CleanupEnabled = false,
-                    RelinkModuleMap = SharedRelinkModuleMap,
-                    RelinkMap = SharedRelinkMap,
-                    DependencyDirs = {
-                        GameRootPath
-                    },
-                    ReaderParameters = {
-                        SymbolReaderProvider = new RelinkerSymbolReaderProvider()
-                    }
-                };
-
-                return modder;
-            }
-            set {
-                modder = value;
-            }
-        }
-
         private static ModuleDefinition runtimeRulesModule;
 
         public static Assembly LoadModAssembly(ModuleMetadata meta, string asmDLL, Stream stream) 
@@ -164,14 +139,14 @@ public static partial class RiseCore
                     Directory.CreateDirectory(nativePath);
                 if (meta.IsZipped) 
                 {
-                    using var zipFile = ZipFile.Read(meta.PathZip);
+                    using var zipFile = ZipFile.OpenRead(meta.PathZip);
                     try 
                     {
                         foreach (var entry in zipFile.Entries) 
                         {
-                            if (entry.FileName.StartsWith(meta.NativePath)) 
+                            if (entry.FullName.StartsWith(meta.NativePath)) 
                             {
-                                entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                                entry.ExtractToFile(nativePath, true);
                             }
                         }
                     }
@@ -207,14 +182,14 @@ public static partial class RiseCore
                     Directory.CreateDirectory(nativePath);
                 if (!string.IsNullOrEmpty(meta.PathZip)) 
                 {
-                    using var zipFile = ZipFile.Read(meta.PathZip);
+                    using var zipFile = ZipFile.OpenRead(meta.PathZip);
                     try 
                     {
                         foreach (var entry in zipFile.Entries) 
                         {
-                            if (entry.FileName.StartsWith(meta.NativePathX86)) 
+                            if (entry.FullName.StartsWith(meta.NativePathX86)) 
                             {
-                                entry.Extract(nativePath, ExtractExistingFileAction.OverwriteSilently);
+                                entry.ExtractToFile(nativePath, true);
                             }
                         }
                     }
@@ -296,11 +271,24 @@ public static partial class RiseCore
                 }
             }
 
+            MonoModder modder = new MonoModder() {
+                CleanupEnabled = false,
+                RelinkModuleMap = SharedRelinkModuleMap,
+                RelinkMap = SharedRelinkMap,
+                DependencyDirs = {
+                    GameRootPath
+                },
+                ReaderParameters = {
+                    SymbolReaderProvider = new RelinkerSymbolReaderProvider()
+                }
+            };
+
+
             var dependencyResolver = GenerateModDependencyResolver(meta);
 
             AssemblyResolveEventHandler resolver = (s, r) => 
             {
-                var dep = dependencyResolver(Modder, Modder.Module, r.Name, r.FullName);
+                var dep = dependencyResolver(modder, modder.Module, r.Name, r.FullName);
                 if (dep != null) 
                 {
                     return dep.Assembly;
@@ -326,9 +314,9 @@ public static partial class RiseCore
             try 
             {
                 currentMetaRelinking = meta;
-                MonoModder modder = Modder;
                 modder.Input = stream;
                 modder.OutputPath = cachedPath;
+                modder.MissingDependencyThrow = false;
                 modder.MissingDependencyResolver = dependencyResolver;
 
                 var metaPath = meta.DLL.Substring(0, meta.DLL.Length - 4) + ".pdb";
@@ -426,11 +414,6 @@ public static partial class RiseCore
                         goto Retry;
                     }
                 }
-                finally 
-                {
-                    modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
-                }
-
 
                 module = modder.Module;
             }
@@ -441,13 +424,11 @@ public static partial class RiseCore
             }
             finally 
             {
-                ((DefaultAssemblyResolver)Modder.AssemblyResolver).ResolveFailure -= resolver;
-                Modder.ReaderParameters.SymbolStream?.Dispose();
-                if (module != Modder.Module)
-                    Modder.Module?.Dispose();
-                Modder.Module = null;
-
-                Modder.ClearCaches(moduleSpecific: true);
+                ((DefaultAssemblyResolver)modder.AssemblyResolver).ResolveFailure -= resolver;
+                modder.ReaderParameters.SymbolStream?.Dispose();
+                if (module != modder.Module)
+                    modder.Module?.Dispose();
+                modder.Module = null;
             }
 
             try 
@@ -458,17 +439,6 @@ public static partial class RiseCore
                 if (!temporaryASM) 
                 {
                     File.WriteAllLines(cachedChecksumPath, checksums);
-                }
-
-                if (Modder != null) 
-                {
-                    foreach (AssemblyNameReference aref in module.AssemblyReferences) 
-                    {
-                        if (Modder.DependencyCache.ContainsKey(aref.FullName))
-                            Logger.Verbose($"[Relinker] dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) found");
-                        else
-                            Logger.Verbose($"[Relinker] dep. {module.Name} -> (({aref.FullName}), ({aref.Name})) NOT FOUND");
-                    }
                 }
 
                 var asm = Assembly.LoadFrom(cachedPath);
@@ -490,10 +460,6 @@ public static partial class RiseCore
                 Logger.Error(e.ToString());
                 return null;
             }
-            finally 
-            {
-                module?.Dispose();
-            }
         }
 
 
@@ -513,11 +479,13 @@ public static partial class RiseCore
                         path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
                     path = path.Replace('\\', '/');
 
-                    using var zip = new ZipFile(meta.PathZip);
+                    using var zip = ZipFile.OpenRead(meta.PathZip);
                     foreach (var entry in zip.Entries) 
                     {
-                        if (entry.FileName != path)
+                        if (entry.FullName != path)
+                        {
                             continue;
+                        }
                         using var memStream = entry.ExtractStream();
                         return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
                     }
@@ -553,10 +521,10 @@ public static partial class RiseCore
         {
             if (!string.IsNullOrEmpty(metadata.PathZip)) 
             {
-                using var zipFile = new ZipFile(metadata.PathZip);
+                using var zipFile = ZipFile.OpenRead(metadata.PathZip);
                 foreach (var entry in zipFile.Entries) 
                 {
-                    if (!name.Contains(entry.FileName))
+                    if (!name.Contains(entry.FullName))
                         continue;
                     return entry.ExtractStream();
                 }

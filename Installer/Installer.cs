@@ -13,7 +13,6 @@ public class Installer : MarshalByRefObject
 
 
     private static readonly string[] fileDependencies = {
-        "I18N.dll", "I18N.West.dll",
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
         "MonoMod.exe", 
@@ -24,7 +23,7 @@ public class Installer : MarshalByRefObject
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "DotNetZip.dll",
+        "TeuJson.dll",
         "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll", "Hjson.dll",
         "DiscordGameSdk.dll", "DiscordGameSdk.pdb", "Fortrise.targets"
     };

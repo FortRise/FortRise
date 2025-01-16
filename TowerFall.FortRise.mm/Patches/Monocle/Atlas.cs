@@ -16,7 +16,6 @@ public class patch_Atlas : Atlas
 {
     private string xmlPath;
     internal HashSet<string> injectedAtlas = new HashSet<string>();
-    public string DataPath;
 
     public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) {}
 
@@ -31,23 +30,8 @@ public class patch_Atlas : Atlas
         orig_ctor(xmlPath, imagePath, load);
 
         TaggedSubTextures = new();
-        DataPath = Path.Combine(Calc.LOADPATH, xmlPath)
-            .Replace(".xml", "")
-            .Replace('\\', '/')
-            .Replace("/Atlas", "/VanillaAtlas");
-        MapAllAssets(this, DataPath);
     }
 
-    public static void MapAllAssets(patch_Atlas atlas, string path) 
-    {
-        if (path.StartsWith("Content/../DarkWorldContent/"))
-            path = path.Replace("Content/../DarkWorldContent/", "Content/");
-        foreach (var resource in RiseCore.ResourceTree.TreeMap.Values
-            .Where(x => x.Path.Contains(path))) 
-        {
-            atlas.Digest(resource);
-        }
-    }
 
     public static void MergeAtlas(RiseCore.Resource resource, patch_Atlas source, Atlas destination, string prefix) 
     {
@@ -61,7 +45,6 @@ public class patch_Atlas : Atlas
 
     public static void MergeTexture(RiseCore.Resource resource, Subtexture source, Atlas destination, string prefix) 
     {
-
         var pngPath = resource.RootPath;
         int indexOfSlash = pngPath.IndexOf('/');
         var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1)
@@ -72,45 +55,37 @@ public class patch_Atlas : Atlas
         
         var filename = Path.GetFileName(key);
 
-        if (filename.StartsWith("$")) 
+        if (filename.StartsWith("(")) 
         {
-            int index = filename.IndexOf('[');
-            if (index != -1)
-            {
-                patch_Atlas dest = (patch_Atlas)destination;
-                int lastIndex = filename.LastIndexOf(']');
-                if (lastIndex != -1) 
-                {
-                    var csvTag = filename.Substring(index + 1, lastIndex - index - 1).Replace("_", "/");
-                    var tags = Calc.ReadCSV(csvTag);
-                    var k = key.Replace("$", "");
-                    var limit = k.IndexOf("[");
-                    var actualKey = k.Substring(0, limit);
+            int index = filename.IndexOf('(');
+            int ending = key.IndexOf(')');
+            var actualKey = key.Substring(0, ending);
 
-                    foreach (var tag in tags) 
-                    {
-                        if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
-                        {
-                            Logger.Log(actualKey);
-                            textures.Add(actualKey, source);
-                        }
-                        else 
-                        {
-                            var newTextures = new Dictionary<string, Subtexture>();
-                            newTextures.Add(actualKey, source);
-                            dest.TaggedSubTextures.Add(tag, newTextures);
-                        }
-                    }
-                }
-                else 
+            var tagPath = Path.ChangeExtension(pngPath, "tag");
+            if (ModIO.IsFileExists(tagPath)) 
+            {
+                patch_Atlas dest = (patch_Atlas)destination;               
+                using var text = ModIO.OpenText(tagPath);
+                var tags = Calc.ReadCSV(text.ReadLine());
+
+                foreach (var tag in tags) 
                 {
-                    Logger.Error($"Invalid Tag Syntax '{key}'");
-                    destination.SubTextures[key.Replace("$", "")] = source;
+                    if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                    {
+                        Logger.Log(actualKey);
+                        textures.Add(actualKey.Replace("(", ""), source);
+                    }
+                    else 
+                    {
+                        var newTextures = new Dictionary<string, Subtexture>();
+                        newTextures.Add(actualKey.Replace("(", ""), source);
+                        dest.TaggedSubTextures.Add(tag, newTextures);
+                    }
                 }
             }
             else 
             {
-                destination.SubTextures[key.Replace("$", "")] = source;
+                destination.SubTextures[actualKey.Replace("(", "")] = source;
             }
         }
         else 
@@ -119,53 +94,6 @@ public class patch_Atlas : Atlas
         }
 
         destination.GetAllInjectedAtlas().Add(pngPath);
-    }
-
-    public void Digest(RiseCore.Resource resource) 
-    {
-        var pngPath = resource.Root + resource.Path;
-        if (Path.GetExtension(pngPath) != ".png")
-            return;
-        var xmlPath = pngPath.Replace(".png", ".xml");
-        if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xmlPath)) 
-            return;
-        using var xmlStream = RiseCore.ResourceTree.TreeMap[xmlPath].Stream;
-        using var imageStream = RiseCore.ResourceTree.TreeMap[pngPath].Stream;
-
-        var baseTexture = new Texture(Texture2D.FromStream(Engine.Instance.GraphicsDevice, imageStream));
-        
-        var subTextures = patch_Calc.LoadXML(xmlStream)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        foreach (XmlElement subTexture in subTextures) 
-        {
-            var attrib = subTexture.Attributes;
-            var x = Convert.ToInt32(attrib["x"].Value);
-            var y = Convert.ToInt32(attrib["y"].Value);
-            var width = Convert.ToInt32(attrib["width"].Value);
-            var height = Convert.ToInt32(attrib["height"].Value);
-            string name = subTexture.HasAttr("mapTo") ? attrib["mapTo"].Value : attrib["name"].Value;
-            
-            Subtexture subTex;
-            if (!subTexture.HasAttr("tag")) 
-            {
-                subTex = new Subtexture(baseTexture, x, y, width, height);
-                SubTextures[name] = subTex;
-                continue;
-            }
-            var tagsCSV = attrib["tag"].Value;
-            var tags = Calc.ReadCSV(tagsCSV);
-            foreach (var tag in tags) 
-            {
-                subTex = new TaggedSubtexture(baseTexture, x, y, width, height, tags);
-                if (TaggedSubTextures.TryGetValue(tag, out var textures)) 
-                {
-                    textures.Add(name, subTex);
-                    continue;
-                }
-                var newTextures = new Dictionary<string, Subtexture>();
-                newTextures.Add(name, subTex);
-                TaggedSubTextures.Add(tag, newTextures);
-            }
-        }
     }
 
     public Dictionary<string, Subtexture> SubTextures { get; private set; }

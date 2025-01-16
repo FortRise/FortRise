@@ -17,7 +17,7 @@ using TowerFall;
 using System.Diagnostics;
 using System.Text;
 using YYProject.XXHash;
-using Ionic.Zip;
+using System.IO.Compression;
 
 namespace FortRise;
 
@@ -161,13 +161,14 @@ public static partial class RiseCore
 
         static void LoadZip(string file)
         {
-            using var zipFile = ZipFile.Read(file);
+            using var zipFile = ZipFile.OpenRead(file);
 
-            if (!zipFile.ContainsEntry("env.json"))
+            var envZip = zipFile.GetEntry("env.json");
+
+            if (envZip == null)
                 return;
 
-            var entry = zipFile["env.json"];
-            using var memStream = entry.ExtractStream();
+            using var memStream = envZip.ExtractStream();
             var value = JsonTextReader.FromStream(memStream);
             foreach (var val in value.Pairs)
             {
@@ -486,9 +487,6 @@ public static partial class RiseCore
             fortModule.Initialize();
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
-
-        Relinker.Modder.Dispose();
-        Relinker.Modder = null;
     }
 
     internal static void ModuleEnd()
