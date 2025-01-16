@@ -32,6 +32,7 @@ namespace TowerFall
             level.AssignTag(levelType);
             var set = this.GetLevelSet();
             level.AssignTag("set=" + set);
+            level.AssignTag("theme=" + ((patch_TowerTheme)(MatchSettings.LevelSystem.Theme)).ID);
             var levelSystem = MatchSettings.LevelSystem;
             switch (levelSystem) 
             {
