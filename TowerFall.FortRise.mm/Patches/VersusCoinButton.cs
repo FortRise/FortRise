@@ -24,6 +24,7 @@ public class patch_VersusCoinButton : VersusCoinButton
     {
         orig_ctor(position, tweenFrom);
         patch_VersusModeButton.ModeSwitch += Switch;
+        Switch();
     }
 
     [MonoModConstructor]
