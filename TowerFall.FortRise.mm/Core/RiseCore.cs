@@ -193,6 +193,7 @@ public static partial class RiseCore
         AdventureModule.InternalLoad();
         AdventureModule.Register();
         EntityRegistry.LoadAllBuiltinEnemies();
+        QuestEventRegistry.LoadAllBuiltinEvents();
         InternalFortModules.Add(AdventureModule);
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
