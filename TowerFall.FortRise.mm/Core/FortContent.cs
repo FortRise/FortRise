@@ -8,6 +8,9 @@ using TowerFall;
 using FortRise.Adventure;
 using System.Xml;
 using FortRise.IO;
+using System.Diagnostics;
+using MonoMod;
+using System.Text.Json;
 
 namespace FortRise;
 
@@ -153,6 +156,123 @@ public class FortContent
                     Logger.Verbose($"[MUSIC] [{child.Root}] Added '{path}' to TrackMap.");
                 }
                 continue;
+            }
+        }
+
+        foreach (var soundRes in ResourceSystem.Resources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeXMLSoundBank)))
+        {
+            var child = soundRes.Value;
+
+            XmlElement soundBank = ModIO.LoadXml(child)["SoundBank"];
+
+            foreach (XmlElement sfx in soundBank)
+            {
+                var id = sfx.Attr("id");
+                var path = Path.Combine(Path.GetDirectoryName(child.Path), id).Replace('\\', '/');
+                var obeysMasterPitch = sfx.AttrBool("obeyMasterPitch", true);
+
+                var checkPath = Path.Combine(child.Root, path);
+
+                if (!ModIO.IsFileExists(checkPath + ".wav"))
+                {
+                    if (ModIO.IsFileExists(checkPath + ".ogg"))
+                    {
+                        path += ".ogg";
+                    }
+                    else 
+                    {
+                        Logger.Error($"This specific id: '{id}' cannot be mapped into any audio file. (.WAV or .OGG)");
+                        continue;
+                    }
+                }
+                else 
+                {
+                    path += ".wav";
+                }
+
+                path = path.Replace("Content/", "");
+
+                switch (sfx.Name)
+                {
+                case "SFX":
+                    var createdSFX = LoadSFX(path, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFX);
+                    break;
+                case "SFXInstanced":
+                    var instances = sfx.AttrInt("instances", 2);
+                    var createdSFXInstanced = LoadSFXInstance(path, instances, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXInstanced);
+                    break;
+                case "SFXVaried":
+                    var amount = sfx.AttrInt("count");
+                    var createdSFXVaried = LoadSFXVaried(path, amount, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXVaried);
+                    break;
+                case "SFXLooped":
+                    var createdSFXLooped = LoadSFXLooped(path, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXLooped);
+                    break;
+                }
+            }
+        }
+
+        foreach (var soundRes in ResourceSystem.Resources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeJSONSoundBank)))
+        {
+            var child = soundRes.Value;
+
+            using var childStream = child.Stream;
+
+            var dict = JsonSerializer.Deserialize<Dictionary<string, SFXSoundBank>>(childStream);
+
+            foreach (var pair in dict)
+            {
+                var id = pair.Key;
+                var path = Path.Combine(Path.GetDirectoryName(child.Path), id).Replace('\\', '/');
+                var obeysMasterPitch = pair.Value.ObeysMasterPitch;
+
+                var checkPath = Path.Combine(child.Root, path);
+
+                if (!ModIO.IsFileExists(checkPath + ".wav"))
+                {
+                    if (ModIO.IsFileExists(checkPath + ".ogg"))
+                    {
+                        path += ".ogg";
+                    }
+                    else 
+                    {
+                        Logger.Error($"This specific id: '{id}' cannot be mapped into any audio file. (.WAV or .OGG)");
+                        continue;
+                    }
+                }
+                else 
+                {
+                    path += ".wav";
+                }
+
+                path = path.Replace("Content/", "");
+                var type = pair.Value.Type.ToLowerInvariant();
+
+                switch (pair.Value.Type)
+                {
+                case "sfx":
+                    var createdSFX = LoadSFX(path, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFX);
+                    break;
+                case "instanced":
+                    var instances = pair.Value.Instances;
+                    var createdSFXInstanced = LoadSFXInstance(path, instances, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXInstanced);
+                    break;
+                case "varied":
+                    var amount = pair.Value.Count;
+                    var createdSFXVaried = LoadSFXVaried(path, amount, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXVaried);
+                    break;
+                case "looped":
+                    var createdSFXLooped = LoadSFXLooped(path, obeysMasterPitch);
+                    patch_Sounds.AddSFX(this, id, createdSFXLooped);
+                    break;
+                }
             }
         }
     }

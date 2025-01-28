@@ -13,9 +13,6 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.5.1.1">
       <IncludeAssets>compile</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="TeuJson" Version="3.1.2">
-      <IncludeAssets>compile</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

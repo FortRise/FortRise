@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Xml;
 using Monocle;
-using TeuJson;
 
 namespace FortRise;
 
@@ -85,14 +85,14 @@ public class JsonAtlasReader : IAtlasReader
         var atlas = new patch_Atlas();
         atlas.SetSubTextures(new Dictionary<string, Subtexture>(20));
 
-        var json = JsonTextReader.FromStream(stream);
-        var frames = json["frames"].AsJsonObject;
-        foreach (var frame in frames.Pairs) 
+        var json = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, JsonElement>>>>(stream);
+        var frames = json["frames"];
+        foreach (var frame in frames) 
         {
             var val = frame.Value;
             atlas.SubTextures.Add(
                 frame.Key,
-                new Subtexture(atlas, val["x"], val["y"], val["width"], val["height"])
+                new Subtexture(atlas, val["x"].GetInt32(), val["y"].GetInt32(), val["width"].GetInt32(), val["height"].GetInt32())
             );
         }
         return atlas;

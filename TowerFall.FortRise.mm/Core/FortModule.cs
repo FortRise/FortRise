@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using TowerFall;
 
 namespace FortRise;
@@ -73,11 +74,25 @@ public abstract partial class FortModule
     internal void SaveData()
     {
         if (InternalSaveData == null)
+        {
             return;
+        }
 
-        var format = InternalSaveData.Save(this).Format;
-        format.SetPath(this);
-        format.Save();
+        try 
+        {
+            var savePath = Path.Combine("Saves", ID, $"{Name}.saveData.json");
+            if (!Directory.Exists(Path.GetDirectoryName(savePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+            }
+
+            var json = JsonSerializer.Serialize(InternalSaveData, SaveDataType);
+            File.WriteAllText(savePath, json);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e.ToString());
+        }
     }
 
     internal void VerifyData()
@@ -90,14 +105,26 @@ public abstract partial class FortModule
 
     internal void LoadData()
     {
-        InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
-        if (InternalSaveData == null)
+        if (SaveDataType == null)
+        {
             return;
+        }
+        var savePath = Path.Combine("Saves", ID, $"{Name}.saveData.json");
+        if (!Directory.Exists(Path.GetDirectoryName(savePath)))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+        }
 
-        var format = InternalSaveData.Formatter;
-        format.SetPath(this);
-        if (format.Load())
-            InternalSaveData.Load(format);
+        if (File.Exists(savePath))
+        {
+            InternalSaveData = (ModuleSaveData)JsonSerializer.Deserialize(File.ReadAllText(savePath), SaveDataType);
+        }
+        else 
+        {
+            InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
+        }
+
+        Logger.Log("BRUH! ITS LOADING!:" + InternalSaveData);
     }
 
     public void LoadSettings()

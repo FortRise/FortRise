@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using TeuJson;
+using System.Text.Json;
 
 namespace FortRise;
 
-public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
+public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
     public string Name;
     public Version Version;
@@ -60,10 +61,10 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
         return ParseMetadata(dir, jfs);
     }
 
-    public static ModuleMetadata ParseMetadata(string dirPath, Stream path, bool zip = false)
+    public static ModuleMetadata ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
-        var json = JsonTextReader.FromStream(path);
-        var metadata = json.Convert<ModuleMetadata>();
+        var metadataJson = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(stream);
+        var metadata = CreateModuleMetadataFromJson(metadataJson);
         if (RiseCore.FortRiseVersion < metadata.FortRiseVersion)
         {
             Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {RiseCore.FortRiseVersion}");
@@ -84,24 +85,34 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>, IDeserialize
         return metadata;
     }
 
-    public void Deserialize(JsonObject value)
+    public static ModuleMetadata CreateModuleMetadataFromJson(Dictionary<string, JsonElement> value)
     {
-        Name = value["name"];
-        Version = new Version(value.GetJsonValueOrNull("version") ?? "1.0.0");
-        var fVersion = value.GetJsonValueOrNull("required");
+        var meta = new ModuleMetadata();
+        meta.Name = value["name"].GetString();
+        meta.Version = new Version(value.GetStringOrNull("version") ?? "1.0.0");
+        var fVersion = value.GetStringOrNull("required");
         if (fVersion == null)
-            FortRiseVersion = RiseCore.FortRiseVersion;
+            meta.FortRiseVersion = RiseCore.FortRiseVersion;
         else
-            FortRiseVersion = new Version(fVersion);
-        Description = value.GetJsonValueOrNull("description") ?? string.Empty;
-        Author = value.GetJsonValueOrNull("author") ?? string.Empty;
-        DLL = value.GetJsonValueOrNull("dll") ?? string.Empty;
-        NativePath = value.GetJsonValueOrNull("nativePath") ?? string.Empty;
-        NativePathX86 = value.GetJsonValueOrNull("nativePathX86") ?? string.Empty;
-        var dep = value.GetJsonValueOrNull("dependencies");
-        if (dep is null)
-            return;
-        Dependencies = dep.ConvertToArray<ModuleMetadata>();
+            meta.FortRiseVersion = new Version(fVersion);
+        meta.Description = value.GetStringOrNull("description") ?? string.Empty;
+        meta.Author = value.GetStringOrNull("author") ?? string.Empty;
+        meta.DLL = value.GetStringOrNull("dll") ?? string.Empty;
+        meta.NativePath = value.GetStringOrNull("nativePath") ?? string.Empty;
+        meta.NativePathX86 = value.GetStringOrNull("nativePathX86") ?? string.Empty;
+
+        // TODO Improve the dependency system
+        // if (value.TryGetValue("dependencies", out var deps))
+        // {
+        //     var list = new List<ModuleMetadata>();
+        //     foreach (var dep in deps.EnumerateArray())
+        //     {
+        //     }
+
+        //     meta.Dependencies = list.ToArray();
+        // }
+
+        return meta;
     }
 
     public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)

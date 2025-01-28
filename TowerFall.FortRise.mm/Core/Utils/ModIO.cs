@@ -172,4 +172,21 @@ public static class ModIO
 
         return File.OpenText(path);
     }
+
+    public static string ReadAllText(string path) 
+    {
+        if (RiseCore.ResourceTree.TryGetValue(path, out var res))
+        {
+            return ReadAllText(res);
+        }
+
+        return File.ReadAllText(path);
+    }
+
+    public static string ReadAllText(RiseCore.Resource resource)
+    {
+        using var fs = resource.Stream;
+        using TextReader tr = new StreamReader(fs);
+        return tr.ReadToEnd();
+    }
 }

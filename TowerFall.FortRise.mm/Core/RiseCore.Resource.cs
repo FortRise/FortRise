@@ -20,7 +20,6 @@ public partial class RiseCore
     public sealed class ResourceTypeAssembly {}
     public sealed class ResourceTypeXml {}
     public sealed class ResourceTypeJson {}
-    public sealed class ResourceTypeHJson {}
     public sealed class ResourceTypeOel {}
     public sealed class ResourceTypeQuestTowerFolder {}
     public sealed class ResourceTypeDarkWorldTowerFolder {}
@@ -35,6 +34,8 @@ public partial class RiseCore
     public sealed class ResourceTypeGameData {}
     public sealed class ResourceTypeWaveBank {}
     public sealed class ResourceTypeSoundBank {}
+    public sealed class ResourceTypeXMLSoundBank {}
+    public sealed class ResourceTypeJSONSoundBank {}
     public sealed class ResourceTypeWavFile {}
     public sealed class ResourceTypeOggFile {}
     public sealed class ResourceTypeAudioEngine {}
@@ -196,6 +197,14 @@ public partial class RiseCore
                 {
                     ResourceType = typeof(ResourceTypeOggFile);
                 }
+                else if (path.EndsWith("SoundBank.xml"))
+                {
+                    ResourceType = typeof(ResourceTypeXMLSoundBank);
+                }
+                else if (path.EndsWith("SoundBank.json"))
+                {
+                    ResourceType = typeof(ResourceTypeJSONSoundBank);
+                }
                 // FIXME fix normal file
                 else
                 {
@@ -226,10 +235,7 @@ public partial class RiseCore
                 {
                     ResourceType = typeof(ResourceTypeJson);
                 }
-                else if (path.EndsWith(".hjson"))
-                {
-                    ResourceType = typeof(ResourceTypeHJson);
-                }
+                
                 else if (path.EndsWith(".oel"))
                 {
                     ResourceType = typeof(ResourceTypeOel);

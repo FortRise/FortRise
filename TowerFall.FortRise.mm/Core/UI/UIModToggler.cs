@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Monocle;
-using TeuJson;
 using TowerFall;
 
 namespace FortRise;
@@ -225,7 +224,7 @@ public class UIModToggler : FortRiseUI
     {
         bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
 
-        var jsonArray = new JsonArray();
+        var jsonArray = new List<string>();
 
         foreach (var blacklisted in blacklistedMods) 
         {

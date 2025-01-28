@@ -12,12 +12,12 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using MonoMod.Utils;
-using TeuJson;
 using TowerFall;
 using System.Diagnostics;
 using System.Text;
 using YYProject.XXHash;
 using System.IO.Compression;
+using System.Text.Json;
 
 namespace FortRise;
 
@@ -103,7 +103,7 @@ public static partial class RiseCore
     {
         try
         {
-            var json = JsonTextReader.FromFile(blackListPath).ConvertToArrayString();
+            var json = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(blackListPath));
             var blacklisted = new HashSet<string>();
             foreach (var j in json)
             {
@@ -152,8 +152,8 @@ public static partial class RiseCore
             var metaPath = Path.Combine(dir, "env.json");
             if (!File.Exists(metaPath))
                 return;
-            var value = JsonTextReader.FromFile(metaPath);
-            foreach (var val in value.Pairs)
+            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metaPath));
+            foreach (var val in value)
             {
                 Environment.SetEnvironmentVariable(val.Key, val.Value);
             }
@@ -169,8 +169,8 @@ public static partial class RiseCore
                 return;
 
             using var memStream = envZip.ExtractStream();
-            var value = JsonTextReader.FromStream(memStream);
-            foreach (var val in value.Pairs)
+            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(memStream);
+            foreach (var val in value)
             {
                 Environment.SetEnvironmentVariable(val.Key, val.Value);
             }
@@ -515,9 +515,10 @@ public static partial class RiseCore
         }
     }
 
-    internal static void WriteBlacklist(JsonValue ctx, string path)
+    internal static void WriteBlacklist(List<string> ctx, string path)
     {
-        JsonTextWriter.WriteToFile(path, ctx);
+        var json = JsonSerializer.Serialize(ctx);
+        File.WriteAllText(path, json);
     }
 
     internal static void Register(this FortModule module)

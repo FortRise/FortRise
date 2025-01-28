@@ -285,6 +285,13 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + FortRise.RiseCore.ParseMetadataWithHJson
 + FortRise.ThemeResource
 + FortRise.FortContent.GetContentPath
++ FortRise.ModuleSaveData.Load
++ FortRise.ModuleSaveData.Save
++ FortRise.ClosedFormat
++ FortRise.SaveDataFormat
++ FortRise.SaveDataFormatExt
++ FortRise.JsonSaveDataFormat
++ FortRise.JsonBinarySaveDataFormat
 
 ### With signatures
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)

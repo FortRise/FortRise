@@ -53,11 +53,13 @@ public static class ErrorHelper
         LastException = exception;
         LastLessDetailedException = exceptionName;
         StoredException[exceptionName] = exception;
+        Logger.Error(exception.ToString());
     }
 
     public static void StoreException(Exception exception) 
     {
         LastException = exception;
+        Logger.Error(exception.ToString());
     }
 
     public static Exception GetLastException() 

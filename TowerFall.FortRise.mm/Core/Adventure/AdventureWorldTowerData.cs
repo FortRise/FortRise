@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Xml;
 using Monocle;
 using MonoMod;
-using TeuJson;
 using TowerFall;
 
 namespace FortRise.Adventure;
@@ -20,13 +20,11 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     public void BuildIcon(RiseCore.Resource icon) 
     {
         using var stream = icon.Stream;
-        var json = JsonConvert.DeserializeFromStream(stream);
-        var layers = json["layers"].AsJsonArray;
-        var solids = layers[0];
-        var grid2D = solids["grid2D"].ConvertToArrayString2D();
-        var bitString = Ogmo3ToOel.Array2DToStraightBitString(grid2D);
-        var x = grid2D.GetLength(1);
-        var y = grid2D.GetLength(0);
+        var json = JsonSerializer.Deserialize<OgmoLevelData>(stream);
+        var solids = json.Layers[0];
+        var bitString = Ogmo3ToOel.Array2DToStraightBitString(solids.Grid2D);
+        var x = solids.Grid2D[0].Length;
+        var y = solids.Grid2D.Length;
         if (x != 16 || y != 16) 
         {
             Logger.Error($"[Adventure] {icon.FullPath}: Invalid icon size, it must be 16x16 dimension or 160x160 in level dimension");

@@ -1,42 +1,21 @@
 using System.Collections.Generic;
-using TeuJson;
+using System.Text.Json.Serialization;
 using TowerFall;
 
 namespace FortRise.Adventure;
 
 public class AdventureModuleSaveData : ModuleSaveData
 {
+    [JsonPropertyName("World")]
+    [JsonInclude]
     public AdventureWorldStats AdventureWorld = new AdventureWorldStats();
+    [JsonPropertyName("Quest")]
+    [JsonInclude]
     public AdventureQuestStats AdventureQuest = new AdventureQuestStats();
+    [JsonPropertyName("Trials")]
+    [JsonInclude]
     public AdventureTrialsStats AdventureTrials = new AdventureTrialsStats();
-    public List<string> LevelLocations = new();
-
-    public AdventureModuleSaveData() : base(new JsonSaveDataFormat())
-    {
-    }
-
-    public override void Load(SaveDataFormat formatter)
-    {
-        var obj = formatter.CastTo<JsonSaveDataFormat>().GetJsonObject();
-        AdventureWorld = JsonConvert.Deserialize<AdventureWorldStats>(obj["World"]) ?? new AdventureWorldStats();
-        AdventureQuest = JsonConvert.Deserialize<AdventureQuestStats>(obj["Quest"]) ?? new AdventureQuestStats();
-        AdventureTrials = JsonConvert.Deserialize<AdventureTrialsStats>(obj["Trials"]) ?? new AdventureTrialsStats();
-        LevelLocations = obj["Locations"].ConvertToListString() ?? new List<string>();
-    }
-
-    public override ClosedFormat Save(FortModule fortModule)
-    {
-        var world = JsonConvert.Serialize(AdventureWorld);
-        var quest = JsonConvert.Serialize(AdventureQuest);
-        var trials = JsonConvert.Serialize(AdventureTrials);
-
-        var jsonObj = new JsonObject 
-        {
-            ["World"] = world,
-            ["Quest"] = quest,
-            ["Trials"] = trials,
-            ["Locations"] = LevelLocations.ConvertToJsonArray(),
-        };
-        return Formatter.Close(jsonObj);
-    }
+    [JsonPropertyName("Locations")]
+    [JsonInclude]
+    public List<string> LevelLocations = new List<string>();
 }

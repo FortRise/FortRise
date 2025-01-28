@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Xml;
 using Microsoft.Xna.Framework;
-using TeuJson;
-using TeuJson.Attributes;
 
 namespace FortRise;
 
@@ -21,7 +22,7 @@ public static class Ogmo3ToOel
     /// <returns>An Ogmo Editor 3 level data</returns>
     public static OgmoLevelData LoadOgmo(string path) 
     {
-        return JsonConvert.DeserializeFromFile<OgmoLevelData>(path);
+        return JsonSerializer.Deserialize<OgmoLevelData>(File.ReadAllText(path));
     }
 
     /// <summary>
@@ -31,7 +32,7 @@ public static class Ogmo3ToOel
     /// <returns>An Ogmo Editor 3 level data</returns>
     public static OgmoLevelData LoadOgmo(Stream stream) 
     {
-        return JsonConvert.DeserializeFromStream<OgmoLevelData>(stream);
+        return JsonSerializer.Deserialize<OgmoLevelData>(stream);
     }
 
     /// <summary>
@@ -102,19 +103,23 @@ public static class Ogmo3ToOel
                         }
                     }
 
-                    foreach (var values in entity.Values?.Pairs) 
+                    if (entity.Values != null)
                     {
-                        var attrib = xmlDocument.CreateAttribute(values.Key);
-                        if (values.Value.IsBoolean) 
+                        foreach (var values in entity.Values) 
                         {
-                            attrib.Value = values.Value.AsBoolean ? "True" : "False";
+                            var attrib = xmlDocument.CreateAttribute(values.Key);
+                            if (values.Value.ValueKind is JsonValueKind.True or JsonValueKind.False) 
+                            {
+                                attrib.Value = values.Value.GetBoolean() ? "True" : "False";
+                            }
+                            else 
+                            {
+                                attrib.Value = values.Value.ToString();
+                            }
+                            element.Attributes.Append(attrib);
                         }
-                        else 
-                        {
-                            attrib.Value = values.Value.ToString();
-                        }
-                        element.Attributes.Append(attrib);
                     }
+
                     entities.AppendChild(element);
                 }
                 break;
@@ -138,15 +143,15 @@ public static class Ogmo3ToOel
     /// </summary>
     /// <param name="array2D">An Array2D to be converted as CSV format</param>
     /// <returns>CSV String</returns>
-    public static string Array2DToCSV(int[,] array2D) 
+    public static string Array2DToCSV(int[][] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < array2D.GetLength(0); x++) 
+        for (int x = 0; x < array2D.Length; x++) 
         {
-            for (int y = 0; y < array2D.GetLength(1); y++) 
+            for (int y = 0; y < array2D[x].Length; y++) 
             {
-                sb.Append(array2D[x, y]);
-                if (x != (array2D.GetLength(1) - 1))
+                sb.Append(array2D[x][y]);
+                if (x != (array2D[x].Length - 1))
                     sb.Append(',');
             }
             sb.AppendLine();
@@ -159,14 +164,14 @@ public static class Ogmo3ToOel
     /// </summary>
     /// <param name="array2D">An Array2D to be converted as bitstring format</param>
     /// <returns>Bit string</returns>
-    public static string Array2DToBitString(string[,] array2D) 
+    public static string Array2DToBitString(string[][] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < array2D.GetLength(0); x++) 
+        for (int x = 0; x < array2D.Length; x++) 
         {
-            for (int y = 0; y < array2D.GetLength(1); y++) 
+            for (int y = 0; y < array2D[x].Length; y++) 
             {
-                sb.Append(array2D[x, y]);
+                sb.Append(array2D[x][y]);
             }
             sb.AppendLine();
         }
@@ -178,14 +183,14 @@ public static class Ogmo3ToOel
     /// </summary>
     /// <param name="array2D">An Array2D to be converted as bitstring format</param>
     /// <returns>Bit string</returns>
-    public static string Array2DToStraightBitString(string[,] array2D) 
+    public static string Array2DToStraightBitString(string[][] array2D) 
     {
         var sb = new StringBuilder();
-        for (int x = 0; x < array2D.GetLength(0); x++) 
+        for (int x = 0; x < array2D.Length; x++) 
         {
-            for (int y = 0; y < array2D.GetLength(1); y++) 
+            for (int y = 0; y < array2D[x].Length; y++) 
             {
-                sb.Append(array2D[x, y]);
+                sb.Append(array2D[x][y]);
             }
         }
         return sb.ToString();
@@ -195,55 +200,55 @@ public static class Ogmo3ToOel
 /// <summary>
 /// Ogmo Editor 3 level data.
 /// </summary>
-public sealed partial class OgmoLevelData : IDeserialize
+public sealed partial class OgmoLevelData
 {
-    [Name("width")]
+    [JsonPropertyName("width")]
     public int Width { get; set; }
-    [Name("height")]
+    [JsonPropertyName("height")]
     public int Height { get; set; }
-    [Name("offsetX")]
+    [JsonPropertyName("offsetX")]
     public int OffsetX { get; set; }
-    [Name("offsetY")]
+    [JsonPropertyName("offsetY")]
     public int OffsetY { get; set; }
-    [Name("layers")]
+    [JsonPropertyName("layers")]
     public OgmoLayer[] Layers { get; set; }
-    [Name("values")]
-    public JsonValue Values { get; set; }
+    [JsonPropertyName("values")]
+    public Dictionary<string, JsonElement> Values { get; set; }
 
 
     public int GetValueInt(string valueName) 
     {
         if (Values == null)
             return 0;
-        return Values[valueName].AsInt32;
+        return Values[valueName].GetInt32();
     }
 
     public bool GetValueBoolean(string valueName) 
     {
         if (Values == null)
             return false;
-        return Values[valueName].AsBoolean;
+        return Values[valueName].GetBoolean();
     }
 
     public float GetValueFloat(string valueName) 
     {
         if (Values == null)
             return 0.0f;
-        return Values[valueName].AsSingle;
+        return Values[valueName].GetSingle();
     }
 
     public Vector2 GetValueVector2(string x, string y) 
     {
         if (Values == null)
             return Vector2.Zero;
-        return new Vector2(Values[x].AsSingle, Values[y].AsSingle);
+        return new Vector2(Values[x].GetSingle(), Values[y].GetSingle());
     }
 
     public string GetValueString(string valueName) 
     {
         if (Values == null)
             return string.Empty;
-        return Values[valueName].AsString;
+        return Values[valueName].GetString();
     }
 
     public T GetValueEnum<T>(string val) 
@@ -251,7 +256,7 @@ public sealed partial class OgmoLevelData : IDeserialize
     {
         if (Values == null)
             return default;
-        if (System.Enum.TryParse<T>(Values[val].AsString, true, out T result)) 
+        if (System.Enum.TryParse<T>(Values[val].GetString(), true, out T result)) 
         {
             return result;
         }
@@ -260,43 +265,43 @@ public sealed partial class OgmoLevelData : IDeserialize
 
 }
 
-public sealed partial class OgmoLayer : IDeserialize
+public sealed partial class OgmoLayer 
 {
-    [Name("name")]
+    [JsonPropertyName("name")]
     public string Name { get; set; } = "";
-    [Name("offsetX")]
+    [JsonPropertyName("offsetX")]
     public int OffsetX { get; set; }
-    [Name("offsetY")]
+    [JsonPropertyName("offsetY")]
     public int OffsetY { get; set; }
-    [Name("gridCellWidth")]
+    [JsonPropertyName("gridCellWidth")]
     public int GridCellWidth { get; set; }
-    [Name("gridCellHeight")]
+    [JsonPropertyName("gridCellHeight")]
     public int GridCellHeight { get; set; }
-    [Name("gridCellsX")]
+    [JsonPropertyName("gridCellsX")]
     public int GridCellsX { get; set; }
-    [Name("gridCellsY")]
+    [JsonPropertyName("gridCellsY")]
     public int GridCellsY { get; set; }
-    [Name("tileset")]
+    [JsonPropertyName("tileset")]
     public string Tileset { get; set; }
 
-    [Name("data2D")]
-    public int[,] Data { get; set; }
+    [JsonPropertyName("data2D")]
+    public int[][] Data { get; set; }
 
-    [Name("grid2D")]
-    public string[,] Grid2D { get; set; }
+    [JsonPropertyName("grid2D")]
+    public string[][] Grid2D { get; set; }
 
-    [Name("grid")]
+    [JsonPropertyName("grid")]
     public string[] Grid { get; set; }
 
-    [Name("entities")]
+    [JsonPropertyName("entities")]
     public OgmoEntity[] Entities { get; set; }
 }
 
-public sealed partial class OgmoNode : IDeserialize
+public sealed partial class OgmoNode 
 {
-    [Name("x")]
+    [JsonPropertyName("x")]
     public float X { get; set; }
-    [Name("y")]
+    [JsonPropertyName("y")]
     public float Y { get; set; }
 
     public Vector2 ToVector2() 
@@ -305,35 +310,35 @@ public sealed partial class OgmoNode : IDeserialize
     }
 }
 
-public sealed partial class OgmoEntity : IDeserialize
+public sealed partial class OgmoEntity 
 {
-    [Name("name")]
+    [JsonPropertyName("name")]
     public string Name { get; set; }
-    [Name("id")]
+    [JsonPropertyName("id")]
     public int ID { get; set; }
-    [Name("x")]
+    [JsonPropertyName("x")]
     public int X { get; set; }
-    [Name("y")]
+    [JsonPropertyName("y")]
     public int Y { get; set; }
-    [Name("originX")]
+    [JsonPropertyName("originX")]
     public int OriginX { get; set; }
-    [Name("originY")]
+    [JsonPropertyName("originY")]
     public int OriginY { get; set; }
-    [Name("width")]
+    [JsonPropertyName("width")]
     public int Width { get; set; }
-    [Name("height")]
+    [JsonPropertyName("height")]
     public int Height { get; set; }
-    [Name("flippedX")]
+    [JsonPropertyName("flippedX")]
     public bool FlippedX { get; set; }
-    [Name("flippedY")]
+    [JsonPropertyName("flippedY")]
     public bool FlippedY { get; set; }
-    [Name("nodes")]
+    [JsonPropertyName("nodes")]
     public OgmoNode[] Nodes { get; set; }
-    [Name("values")]
-    public JsonValue Values { get; set; }
-    [Ignore]
+    [JsonPropertyName("values")]
+    public Dictionary<string, JsonElement> Values { get; set; }
+    [JsonIgnore]
     public Vector2 Position => new(X, Y);
-    [Ignore]
+    [JsonIgnore]
     public Rectangle Size => new(OriginX, OriginY, Width, Height);
 
 
@@ -341,28 +346,28 @@ public sealed partial class OgmoEntity : IDeserialize
     {
         if (Values == null)
             return 0;
-        return Values[valueName].AsInt32;
+        return Values[valueName].GetInt32();
     }
 
     public bool Boolean(string valueName) 
     {
         if (Values == null)
             return false;
-        return Values[valueName].AsBoolean;
+        return Values[valueName].GetBoolean();
     }
 
     public float Float(string valueName) 
     {
         if (Values == null)
             return 0.0f;
-        return Values[valueName].AsSingle;
+        return Values[valueName].GetSingle();
     }
 
     public string String(string valueName) 
     {
         if (Values == null)
             return string.Empty;
-        return Values[valueName].AsString;
+        return Values[valueName].GetString();
     }
 
     public Color Color(string r, string g, string b)
@@ -404,14 +409,14 @@ public sealed partial class OgmoEntity : IDeserialize
     {
         if (Values == null)
             return Microsoft.Xna.Framework.Vector2.Zero;
-        return new Vector2(Values[x].AsSingle, Values[y].AsSingle);
+        return new Vector2(Values[x].GetSingle(), Values[y].GetSingle());
     }
 
     public Point Point(string x, string y) 
     {
         if (Values == null)
             return Microsoft.Xna.Framework.Point.Zero;
-        return new Point(Values[x].AsInt32, Values[y].AsInt32);
+        return new Point(Values[x].GetInt32(), Values[y].GetInt32());
     }
 
     public T Enum<T>(string val) 
@@ -419,7 +424,7 @@ public sealed partial class OgmoEntity : IDeserialize
     {
         if (Values == null)
             return default;
-        if (System.Enum.TryParse<T>(Values[val].AsString, true, out T result)) 
+        if (System.Enum.TryParse<T>(Values[val].GetString(), true, out T result)) 
         {
             return result;
         }
