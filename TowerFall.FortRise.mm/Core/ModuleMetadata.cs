@@ -2,22 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FortRise;
 
 public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
-    public string Name;
-    public Version Version;
-    public Version FortRiseVersion;
-    public string Description;
-    public string Author;
-    public string DLL;
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("version")]
+    public Version Version { get; set; }
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("author")]
+    public string Author { get; set; } = string.Empty;
+    [JsonPropertyName("dll")]
+    public string DLL { get; set; } = string.Empty;
+    [JsonPropertyName("dependencies")]
+    public ModuleMetadata[] Dependencies { get; set; } = null;
+    [JsonPropertyName("nativePath")]
+    public string NativePath { get; set; } = string.Empty;
+    [JsonPropertyName("nativePathX86")]
+    public string NativePathX86 { get; set; } = string.Empty;
+
     public string PathDirectory = string.Empty;
     public string PathZip = string.Empty;
-    public ModuleMetadata[] Dependencies;
-    public string NativePath;
-    public string NativePathX86;
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
@@ -63,11 +72,15 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public static ModuleMetadata ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
-        var metadataJson = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(stream);
-        var metadata = CreateModuleMetadataFromJson(metadataJson);
-        if (RiseCore.FortRiseVersion < metadata.FortRiseVersion)
+        var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream);
+        var fortRise = metadata.GetFortRiseMetadata();
+        if (fortRise == null)
         {
-            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {RiseCore.FortRiseVersion}");
+            Logger.Error("FortRise dependency cannot be found, this will be invalid later version of FortRise");
+        }
+        if (RiseCore.FortRiseVersion < fortRise?.Version)
+        {
+            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {fortRise.Version}. Your FortRise version: {RiseCore.FortRiseVersion}");
             return null;
         }
         string zipPath = "";
@@ -83,36 +96,6 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         }
 
         return metadata;
-    }
-
-    public static ModuleMetadata CreateModuleMetadataFromJson(Dictionary<string, JsonElement> value)
-    {
-        var meta = new ModuleMetadata();
-        meta.Name = value["name"].GetString();
-        meta.Version = new Version(value.GetStringOrNull("version") ?? "1.0.0");
-        var fVersion = value.GetStringOrNull("required");
-        if (fVersion == null)
-            meta.FortRiseVersion = RiseCore.FortRiseVersion;
-        else
-            meta.FortRiseVersion = new Version(fVersion);
-        meta.Description = value.GetStringOrNull("description") ?? string.Empty;
-        meta.Author = value.GetStringOrNull("author") ?? string.Empty;
-        meta.DLL = value.GetStringOrNull("dll") ?? string.Empty;
-        meta.NativePath = value.GetStringOrNull("nativePath") ?? string.Empty;
-        meta.NativePathX86 = value.GetStringOrNull("nativePathX86") ?? string.Empty;
-
-        // TODO Improve the dependency system
-        // if (value.TryGetValue("dependencies", out var deps))
-        // {
-        //     var list = new List<ModuleMetadata>();
-        //     foreach (var dep in deps.EnumerateArray())
-        //     {
-        //     }
-
-        //     meta.Dependencies = list.ToArray();
-        // }
-
-        return meta;
     }
 
     public static bool operator ==(ModuleMetadata lhs, ModuleMetadata rhs)
@@ -132,4 +115,20 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     }
 
     public static bool operator !=(ModuleMetadata lhs, ModuleMetadata rhs) => !(lhs == rhs);
+
+    public ModuleMetadata GetFortRiseMetadata() 
+    {
+        if (Dependencies == null)
+        {
+            return null;
+        }
+        foreach (var dep in Dependencies)
+        {
+            if (dep.Name == "FortRise")
+            {
+                return dep;
+            }
+        }
+        return null;
+    }
 }

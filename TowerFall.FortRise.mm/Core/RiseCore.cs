@@ -184,10 +184,14 @@ public static partial class RiseCore
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 
-         new NoModule(new ModuleMetadata() {
+        var fortRiseMetadata = new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
-        }).Register();
+        };
+        var fortRiseModule = new NoModule(fortRiseMetadata);
+        fortRiseModule.Register();
+        InternalFortModules.Add(fortRiseModule);
+        InternalModuleMetadatas.Add(fortRiseMetadata);
 
         AdventureModule = new AdventureModule();
         AdventureModule.InternalLoad();
