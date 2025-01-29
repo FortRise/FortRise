@@ -72,7 +72,6 @@ public class patch_Atlas : Atlas
                 {
                     if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
                     {
-                        Logger.Log(actualKey);
                         textures.Add(actualKey.Replace("(", ""), source);
                     }
                     else 
