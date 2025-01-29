@@ -309,6 +309,7 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + FortRise.FortContent.ctor(ModuleMetadata, RiseCore.ModResource)
 + FortRise.FortContent.ctor(string, RiseCore.ModResource)
 + FortRise.RiseCore.Resource.ModResource.ctor(string)
++ FortRise.FortModule.CreateModSettings(List\<TowerFall.OptionButton\>)
 
 # Additional Information
 ## DotNetZip has been replaced with System.IO.Compression

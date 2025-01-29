@@ -123,8 +123,6 @@ public abstract partial class FortModule
         {
             InternalSaveData = (ModuleSaveData)SaveDataType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
         }
-
-        Logger.Log("BRUH! ITS LOADING!:" + InternalSaveData);
     }
 
     public void LoadSettings()
@@ -145,9 +143,6 @@ public abstract partial class FortModule
         var path = Path.Combine("Saves", ID, Name + ".settings" + ".json");
         InternalSettings.Save(path);
     }
-
-    [Obsolete("Use CreateModSettings(FortRise.TextContainer) instead")]
-    public virtual void CreateModSettings(List<OptionsButton> optionList) {}
 
     public virtual void CreateModSettings(TextContainer textContainer) {}
 
