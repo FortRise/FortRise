@@ -11,7 +11,8 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	3. [[#Custom RoundLogic API Changes]]
 	4. [[#OnVariantRegister Changes]]
 	5. [[#Arrow and Pickup Registry Changes]]
-    6. [[#VanillaAtlas removal]]
+    6. [[#Hjson and TeuJson Removal]]
+    7. [[#VanillaAtlas removal]]
 2. [[#Optional Migration]]
 	1. [[#Using textures with an Atlas]]
     2. [[#Creating an Atlas]]
@@ -184,6 +185,12 @@ For simplicity sake of this documentation, I did not include the other function 
 You can still access the specific Registers as well like `PickupRegistry` and `ArrowRegistry` which contains the under the hood
 implementation of these `ModRegisters`.
 
+## Hjson and TeuJson Removal
+Hjson and TeuJson has been removed completely, which means you will not have an access to the Hjson format anymore, and TeuJson
+will cause a compile error.
+
+Use `System.Text.Json` instead and it add this to your dependencies if needed.
+
 ## VanillaAtlas removal
 To iterate what this is, this feature is for replacing TowerFall's texture directly from the Atlas. This uses a separate directory
 from the Mod's Atlas and it also uses the Atlas format to replace.
@@ -297,6 +304,8 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)
 + TowerFall.TowerTheme.ctor(XmlElement, RiseCore.Resource  FortRise.ThemeResource)
 + TowerFall.TowerTheme.ctor(Hjson.Value, RiseCore.Resource  FortRise.ThemeResource)
++ TowerFall.DarkWorldTowerData.LevelData.ctor(Hjson.Value, Dictionary\<string, List\<DarkWorldTowerData.EnemyData\>\>)
++ TowerFall.DarkWorldTowerData.EnemyData.ctor(Hjson.Value)
 + FortRise.FortContent.ctor(ModuleMetadata, RiseCore.ModResource)
 + FortRise.FortContent.ctor(string, RiseCore.ModResource)
 + FortRise.RiseCore.Resource.ModResource.ctor(string)

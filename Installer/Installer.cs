@@ -28,7 +28,7 @@ public class Installer : MarshalByRefObject
     };
     
     private static readonly string[] fileDeprecated = {
-        "DotNetZip.dll", "TeuJson.dll", "MonoMod.Backports.dll", "KeraLua.dll", "NLua.dll"
+        "DotNetZip.dll", "TeuJson.dll", "MonoMod.Backports.dll", "KeraLua.dll", "NLua.dll, I18N.dll, I18N.West.dll"
     };
 
     private static string[] nativeLibs; 
