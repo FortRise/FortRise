@@ -40,6 +40,7 @@ public static class TowerPatchRegistry
                 continue;
 
             Versus(type, instance);
+            DarkWorld(type, instance);
         }
         toPatch = null;
     }
@@ -90,15 +91,6 @@ public static class TowerPatchRegistry
             .FirstOrDefault();
         if (tower == null) 
         {
-            if (levelPatchType.Name.StartsWith("Global")) 
-            {
-                foreach (var tow in GameData.DarkWorldTowers) 
-                {
-                    dwCtx.Patch(tow);
-                    patcher.VersusPatch(versusCtx);
-                    // tow.ApplyPatch(versusCtx);
-                }
-            }
             return;
         }
         dwCtx.Patch(tower);
