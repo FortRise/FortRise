@@ -30,6 +30,9 @@ public abstract class CustomGameMode
     public bool TeamMode { get => teamMode; set => teamMode = value; }
     private bool teamMode;
 
+    public int TeamMinimumPlayers { get; set; } = 3;
+    public int MinimumPlayers { get; set; } = 2;
+
     public int CoinOffset { get => coinOffset; set => coinOffset = value; }
     private int coinOffset = 10;
 
