@@ -19,8 +19,8 @@ running `cd` command in the terminal.
 
 ## Mod Installation
 + For installing a mod, you must create a directory called `Mods`.
-+ Then create a folder inside of it and name what it represent the mod is.
-+ Paste all of the mod content and done.
++ Paste the zip file of the mod.
++ + Or you might need to extract it if the mod is not properly bundled.
 + Launch TowerFall to see the changes.
 
 
