@@ -15,7 +15,7 @@ public class Installer : MarshalByRefObject
     private static readonly string[] fileDependencies = {
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe", 
+        "MonoMod.exe", "TowerFall.exe.config", 
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
