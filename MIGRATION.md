@@ -5,20 +5,20 @@ FortRise is currently cleaning up its API for the release of v6.0.
 FortRise v5.0 might not be a big release, but can improves the development of the mod loader faster than what it was before.
 
 ## Table of Contents
-1. [[#Required Migration]]
-    1. [[#Metadata Changes]]
-	2. [[#OnTower API Changes]]
-	3. [[#Custom RoundLogic API Changes]]
-	4. [[#OnVariantRegister Changes]]
-	5. [[#Arrow and Pickup Registry Changes]]
-    6. [[#Hjson and TeuJson Removal]]
-    7. [[#VanillaAtlas removal]]
-2. [[#Optional Migration]]
-	1. [[#Using textures with an Atlas]]
-    2. [[#Creating an Atlas]]
-3. [[#Renamed APIs]]
-4. [[#Removed APIs]] 
-5. [[#Additional Information]]
+1. [Required Migration](#required-migration)
+    1. [Metadata Changes](#metadata-changes)
+	2. [OnTower API Changes](#ontower-api-changes)
+	3. [Custom RoundLogic API Changes](#custom-roundlogic-api-changes)
+	4. [OnVariantRegister Changes](#onvariantregister-changes)
+	5. [Arrow and Pickup Registry Changes](#arrow-and-pickup-registry-changes)
+    6. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
+    7. [VanillaAtlas removal](#vanillaatlas-removal)
+2. [Optional Migration](#optional-migration)
+	1. [Using textures with an Atlas](#using-textures-with-an-atlas)
+    2. [Creating an Atlas](#creating-an-atlas)
+3. [Renamed APIs](#renamed-apis)
+4. [Removed APIs](#removed-apis)
+5. [Additional Information](#additional-information)
 
 # Required Migration
 These migrations are required to work in v5.0 and must be changed before it is going to work.
@@ -211,7 +211,7 @@ from the Mod's Atlas and it also uses the Atlas format to replace.
 
 For the texture to be replaced, the path of the texture from VanillaAtlas must match from the texture from TowerFall's main Atlas.
 
-This feature has been replaced along with the new redesigned atlas system. First, read this section: [[##Creating an Atlas]], then
+This feature has been replaced along with the new redesigned atlas system. First, read this section: [Creating an Atlas](#creating-an-atlas), then
 to replace the texture, you must surround the image file with parenthesis `(filename.png)` to replace the texture. Note that the path
 must match to the texture from TowerFall's main Atlas in order to be replaced.
 
