@@ -81,18 +81,15 @@ public abstract class patch_Arrow : Actor
 
     internal static void ExtendArrows() 
     {
-        var arrowIDCount = ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count;
-        ARROW_TYPES += ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count;
+        var arrowIDCount = ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count;
+        ARROW_TYPES += ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count;
         Array.Resize(ref Names, arrowIDCount);
         Array.Resize(ref Colors, arrowIDCount);
         Array.Resize(ref ColorsB, arrowIDCount);
-        foreach (var arrowObject in RiseCore.ArrowsRegistry.Values) 
+        foreach (var arrowObject in ArrowsRegistry.ArrowDatas.Values) 
         {
             var arrow = arrowObject.Types;
-            var info = arrowObject.InfoLoader?.Invoke();
-            if (info == null)
-                return;
-            var value = info.Value;
+            var value = arrowObject.InfoLoader();
             Names[(int)arrow] = value.Name.ToUpperInvariant();
             Colors[(int)arrow] = Calc.HexToColor(value.Color);
             ColorsB[(int)arrow] = Calc.HexToColor(value.ColorB);
@@ -107,7 +104,7 @@ public abstract class patch_Arrow : Actor
     [MonoModReplace]
     public static void Initialize() 
     {
-        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + FortRise.RiseCore.ArrowsRegistry.Count];
+        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count];
         for (int i = 0; i < cached.Length; i++)
         {
             cached[i] = new Stack<patch_Arrow>();
@@ -148,7 +145,7 @@ public abstract class patch_Arrow : Actor
 
     private static patch_Arrow CreateCustomArrow(ArrowTypes type) 
     {
-        var arrow = RiseCore.Arrows[type]?.Invoke();
+        var arrow = ArrowsRegistry.ArrowDatas[type].ArrowLoader();
         if (arrow == null) 
         {
             Logger.Error($"Some Arrow type ID: {type} can't be found. Falling back to default arrow");

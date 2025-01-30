@@ -50,12 +50,12 @@ public class patch_Pickup : Pickup
         {
             return new GemPickup(position, target);
         }
-        if (!FortRise.RiseCore.PickupLoader.TryGetValue(type, out var loader)) 
+        if (!PickupsRegistry.PickupDatas.TryGetValue(type, out var data)) 
         {
             Logger.Error("Pickup type cannot be found!");
             Sounds.ui_levelLock.Play(160f);
             return new GemPickup(position, target);;
         }
-        return loader?.Invoke(position, target, playerIndex);
+        return data.PickupLoader(position, target, playerIndex);
     }
 }

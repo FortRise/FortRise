@@ -1,7 +1,6 @@
 using System;
 using System.Xml;
 using FortRise;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -10,24 +9,38 @@ namespace TowerFall;
 
 public class patch_TowerTheme : TowerTheme 
 {
+    public string ID; 
     public RiseCore.Resource Mod;
     public patch_TowerTheme(XmlElement xml) {}
-    public patch_TowerTheme(XmlElement xml, RiseCore.Resource mod, ThemeResource resource) {}
-    public patch_TowerTheme(Hjson.JsonValue value, RiseCore.Resource mod, ThemeResource resource) {}
+    public patch_TowerTheme(XmlElement xml, RiseCore.Resource mod) {}
+
+    public extern void orig_ctor(XmlElement xml);
+
+    [MonoModConstructor]
+    public void ctor(XmlElement xml) 
+    {
+        orig_ctor(xml);
+        ID = xml.Attr("id", Name);
+    }
 
 
     [MonoModConstructor]
-    public void ctor(XmlElement xml, RiseCore.Resource mod, ThemeResource resource) 
+    public void ctor(XmlElement xml, RiseCore.Resource mod) 
     {
         Mod = mod;
-        var atlas = resource.Atlas != null ? resource.Atlas : TFGame.MenuAtlas;
         Name = xml.ChildText("Name").ToUpperInvariant();
+        ID = mod.Root.Substring(4) + xml.Attr("id", Name);
 
         var icon = xml.ChildText("Icon", "sacredGround");
-        if (atlas.Contains(icon)) 
-            Icon = atlas[icon];
+
+        if (TFGame.MenuAtlas.Contains(icon)) 
+        {
+            Icon = TFGame.MenuAtlas[icon];
+        }
         else 
+        {
             Icon = TFGame.MenuAtlas["towerIcons/" + icon];
+        }
 
         TowerType = xml.ChildEnum<MapButton.TowerType>("TowerType", MapButton.TowerType.Normal);
         MapPosition = xml["MapPosition"].Position();
@@ -81,78 +94,6 @@ public class patch_TowerTheme : TowerTheme
             0.2f,
             0.2f
         };
-    }
-
-    [MonoModConstructor]
-    public void ctor(Hjson.JsonValue value, RiseCore.Resource mod, ThemeResource resource) 
-    {
-        Mod = mod;
-        var atlas = resource.Atlas != null ? resource.Atlas : TFGame.MenuAtlas;
-        Name = value.GetJsonValueOrNull("Name") ?? string.Empty;
-        Name = Name.ToUpperInvariant();
-
-        var icon = value.GetJsonValueOrNull("Icon") ?? "sacredGround";
-        if (atlas.Contains(icon)) 
-            Icon = atlas[icon];
-        else 
-            Icon = TFGame.MenuAtlas["towerIcons/" + icon];
-
-        Icon = TFGame.MenuAtlas["towerIcons/" + value.GetJsonValueOrNull("Icon") ?? "sacredGround"];
-        if (Enum.TryParse<MapButton.TowerType>(value.GetJsonValueOrNull("TowerType") ?? "Normal" , out var result)) 
-        {
-            TowerType = result;
-        }
-        var jsonPosition = value.GetJsonValueOrNull("MapPosition");
-        MapPosition = jsonPosition == null ? Vector2.Zero : jsonPosition.Position();
-        Music = value.GetJsonValueOrNull("Music") ?? "SacredGround";
-        DarknessColor = Calc.HexToColor(value.GetJsonValueOrNull("DarknessColor") ?? "000000").Invert();
-        DarknessOpacity = value.GetJsonValueOrNull("DarknessOpacity") ?? 0.2f;
-        Wind = value.GetJsonValueOrNull("Wind") ?? 0;
-        if (Enum.TryParse<TowerTheme.LanternTypes>(value.GetJsonValueOrNull("Lanterns") ?? "CathedralTorch", out var lanternResult)) 
-        {
-            Lanterns = lanternResult;
-        }
-        if (Enum.TryParse<TowerTheme.Worlds>(value.GetJsonValueOrNull("World") ?? "Normal", out var worldResult)) 
-        {
-            World = worldResult;
-        }
-        Raining = value.GetJsonValueOrNull("Raining") ?? false;
-        BackgroundID = value.GetJsonValueOrNull("Background") ?? "SacredGround";
-        
-        if (GameData.BGs.ContainsKey(BackgroundID)) 
-        {
-            BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
-            ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
-        }
-        if (value.ContainsKey("PlayerInvisibility")) 
-        {
-            var playerInvisibility = value["PlayerInvisibility"];
-            InvisibleOpacities = new float[9]
-            {
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Green") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Blue") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Pink") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Orange") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("White") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Yellow") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Cyan") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Purple") ?? 0f) * 0.1f,
-                0.2f + (float)(playerInvisibility.GetJsonValueOrNull("Red") ?? 0f) * 0.1f,
-            };
-        }
-        else 
-        {
-            InvisibleOpacities = new float[9] 
-            {
-                0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f
-            };
-        }
-        DrillParticleColor = Calc.HexToColor(value.GetJsonValueOrNull("DrillParticleColor") ?? "ff0000");
-        Cold = value.GetJsonValueOrNull("Cold") ?? false;
-        CrackedBlockColor = Calc.HexToColor(value.GetJsonValueOrNull("CrackedBlockColor") ?? "4EB1E9");
-        Tileset = value["Tileset"];
-        BGTileset = value["BGTileset"];
-        Cataclysm = value["Tileset"] == "Cataclysm";
     }
 
     public Guid GenerateThemeID() 

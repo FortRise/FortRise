@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Monocle;
-using TeuJson;
-using TeuJson.Attributes;
 using TowerFall;
 
 namespace FortRise.Adventure;
 
-public sealed partial class AdventureQuestStats : IDeserialize, ISerialize 
+public sealed partial class AdventureQuestStats 
 {
-    [TeuObject]
+    [JsonInclude]
     public Dictionary<string, AdventureQuestTowerStats> Towers = new Dictionary<string, AdventureQuestTowerStats>();
 
     public AdventureQuestTowerStats AddOrGet(string name) 
@@ -25,23 +24,23 @@ public sealed partial class AdventureQuestStats : IDeserialize, ISerialize
     }
 }
 
-public partial class AdventureQuestTowerStats : QuestStats, IDeserialize, ISerialize
+public partial class AdventureQuestTowerStats
 {
-    [TeuObject]
+    [JsonInclude]
     public bool Revealed;
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedNormal;
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedHardcore;
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedNoDeaths;
-    [TeuObject]
+    [JsonInclude]
     public long Best1PTime;
-    [TeuObject]
+    [JsonInclude]
     public long Best2PTime;
-    [TeuObject]
+    [JsonInclude]
     public ulong TotalDeaths;
-    [TeuObject]
+    [JsonInclude]
     public ulong TotalAttempts;
 
 
@@ -81,9 +80,9 @@ public partial class AdventureQuestTowerStats : QuestStats, IDeserialize, ISeria
 }
 
 
-public sealed partial class AdventureTrialsStats : IDeserialize, ISerialize 
+public sealed partial class AdventureTrialsStats 
 {
-    [TeuObject]
+    [JsonInclude]
     public Dictionary<string, AdventureTrialsTowerStats> Towers = new Dictionary<string, AdventureTrialsTowerStats>();
 
     public AdventureTrialsTowerStats AddOrGet(string name) 
@@ -99,20 +98,20 @@ public sealed partial class AdventureTrialsStats : IDeserialize, ISerialize
     }
 }
 
-public partial class AdventureTrialsTowerStats : IDeserialize, ISerialize
+public partial class AdventureTrialsTowerStats 
 {
-    [TeuObject]
+    [JsonInclude]
     public bool UnlockedGold;
-    [TeuObject]
+    [JsonInclude]
     public bool UnlockedDiamond;
-    [TeuObject]
+    [JsonInclude]
     public bool UnlockedDevTime;
-    [TeuObject]
+    [JsonInclude]
     public long BestTime;
-    [TeuObject]
+    [JsonInclude]
     public ulong Attempts;
 
-    [Ignore]
+    [JsonIgnore]
     public bool this[int index]
     {
         get
@@ -148,7 +147,7 @@ public partial class AdventureTrialsTowerStats : IDeserialize, ISerialize
         }
     }
 
-    [Ignore]
+    [JsonIgnore]
     public int NextGoal
     {
         get

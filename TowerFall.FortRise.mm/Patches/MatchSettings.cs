@@ -56,6 +56,32 @@ public class patch_MatchSettings : MatchSettings
         return Mode == patch_Modes.TeamDeathmatch;
     }
 
+    public extern bool orig_get_CanPlayThisMode();
+
+    public bool get_CanPlayThisMode()
+    {
+        if (IsCustom) 
+        {
+            if (CurrentCustomGameMode.TeamMode) 
+            {
+                if (TFGame.PlayerAmount >= CurrentCustomGameMode.TeamMinimumPlayers)
+                {
+                    return true;
+                }
+            }
+            else 
+            {
+                if (TFGame.PlayerAmount >= CurrentCustomGameMode.MinimumPlayers)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        return orig_get_CanPlayThisMode();
+    }
+
     [MonoModIgnore]
     private extern int PlayerGoals(int p2goal, int p3goal, int p4goal);
 

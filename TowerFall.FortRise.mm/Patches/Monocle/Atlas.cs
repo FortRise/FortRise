@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using FortRise;
+using FortRise.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
@@ -14,96 +15,84 @@ namespace Monocle;
 public class patch_Atlas : Atlas
 {
     private string xmlPath;
-    public string DataPath;
+    internal HashSet<string> injectedAtlas = new HashSet<string>();
 
-    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load)
-    {
-    }
+    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) {}
 
-    public patch_Atlas() : base(null, null, false)
-    {
-    }
+    public patch_Atlas() : base(null, null, false) {}
 
     public extern void orig_ctor(string xmlPath, string imagePath, bool load);
 
     [MonoModConstructor]
     public void ctor(string xmlPath, string imagePath, bool load) 
     {
+        injectedAtlas = new HashSet<string>();
         orig_ctor(xmlPath, imagePath, load);
 
         TaggedSubTextures = new();
-        DataPath = Path.Combine(Calc.LOADPATH, xmlPath)
-            .Replace(".xml", "")
-            .Replace('\\', '/')
-            .Replace("/Atlas", "/VanillaAtlas");
-        MapAllAssets(this, DataPath);
     }
 
-    public static void MapAllAssets(patch_Atlas atlas, string path) 
-    {
-        if (path.StartsWith("Content/../DarkWorldContent/"))
-            path = path.Replace("Content/../DarkWorldContent/", "Content/");
-        foreach (var resource in RiseCore.ResourceTree.TreeMap.Values
-            .Where(x => x.Path.Contains(path))) 
-        {
-            atlas.Digest(resource);
-        }
-    }
 
-    public static void MergeAtlas(patch_Atlas source, Atlas destination, string prefix) 
+    public static void MergeAtlas(RiseCore.Resource resource, patch_Atlas source, Atlas destination, string prefix) 
     {
         foreach (var subTexture in source.SubTextures) 
         {
             destination.SubTextures.Add(prefix + subTexture.Key, subTexture.Value);
         }
+
+        destination.GetAllInjectedAtlas().Add(resource.Root + resource.Path);
     }
 
-    public void Digest(RiseCore.Resource resource) 
+    public static void MergeTexture(RiseCore.Resource resource, Subtexture source, Atlas destination, string prefix) 
     {
-        var pngPath = resource.Root + resource.Path;
-        if (Path.GetExtension(pngPath) != ".png")
-            return;
-        var xmlPath = pngPath.Replace(".png", ".xml");
-        if (!RiseCore.ResourceTree.TreeMap.ContainsKey(xmlPath)) 
-            return;
+        var pngPath = resource.RootPath;
+        int indexOfSlash = pngPath.IndexOf('/');
+        var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1)
+            .Replace("Content/Atlas/atlas/", "")
+            .Replace("Content/Atlas/menuAtlas/", "")
+            .Replace("Content/Atlas/bossAtlas/", "")
+            .Replace("Content/Atlas/bgAtlas", ""), null);
         
-        using var xmlStream = RiseCore.ResourceTree.TreeMap[xmlPath].Stream;
-        using var imageStream = RiseCore.ResourceTree.TreeMap[pngPath].Stream;
+        var filename = Path.GetFileName(key);
 
-        var baseTexture = new Texture(Texture2D.FromStream(Engine.Instance.GraphicsDevice, imageStream));
-        
-        var subTextures = patch_Calc.LoadXML(xmlStream)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        foreach (XmlElement subTexture in subTextures) 
+        if (filename.StartsWith("(")) 
         {
-            var attrib = subTexture.Attributes;
-            var x = Convert.ToInt32(attrib["x"].Value);
-            var y = Convert.ToInt32(attrib["y"].Value);
-            var width = Convert.ToInt32(attrib["width"].Value);
-            var height = Convert.ToInt32(attrib["height"].Value);
-            string name = subTexture.HasAttr("mapTo") ? attrib["mapTo"].Value : attrib["name"].Value;
-            
-            Subtexture subTex;
-            if (!subTexture.HasAttr("tag")) 
+            int index = filename.IndexOf('(');
+            int ending = key.IndexOf(')');
+            var actualKey = key.Substring(0, ending);
+
+            var tagPath = Path.ChangeExtension(pngPath, "tag");
+            if (ModIO.IsFileExists(tagPath)) 
             {
-                subTex = new Subtexture(baseTexture, x, y, width, height);
-                SubTextures[name] = subTex;
-                continue;
-            }
-            var tagsCSV = attrib["tag"].Value;
-            var tags = Calc.ReadCSV(tagsCSV);
-            foreach (var tag in tags) 
-            {
-                subTex = new TaggedSubtexture(baseTexture, x, y, width, height, tags);
-                if (TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                patch_Atlas dest = (patch_Atlas)destination;               
+                using var text = ModIO.OpenText(tagPath);
+                var tags = Calc.ReadCSV(text.ReadLine());
+
+                foreach (var tag in tags) 
                 {
-                    textures.Add(name, subTex);
-                    continue;
+                    if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                    {
+                        textures.Add(actualKey.Replace("(", ""), source);
+                    }
+                    else 
+                    {
+                        var newTextures = new Dictionary<string, Subtexture>();
+                        newTextures.Add(actualKey.Replace("(", ""), source);
+                        dest.TaggedSubTextures.Add(tag, newTextures);
+                    }
                 }
-                var newTextures = new Dictionary<string, Subtexture>();
-                newTextures.Add(name, subTex);
-                TaggedSubTextures.Add(tag, newTextures);
+            }
+            else 
+            {
+                destination.SubTextures[actualKey.Replace("(", "")] = source;
             }
         }
+        else 
+        {
+            destination.SubTextures[prefix + key] = source;
+        }
+
+        destination.GetAllInjectedAtlas().Add(pngPath);
     }
 
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
@@ -149,57 +138,16 @@ public class patch_Atlas : Atlas
     {
         this.SubTextures = subTextures;
     }
-
-
     
 
     [MonoModConstructor]
-    internal void ctor() {}
+    internal void ctor() 
+    {
+        injectedAtlas = new HashSet<string>();
+    }
 
     [MonoModIgnore]
     public extern bool Contains(string name);
-
-
-    [Obsolete("Use the Content.LoadAtlas from your module instead")]
-    public static patch_Atlas Create(string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
-    {
-        switch (access) 
-        {
-        case ContentAccess.Content:
-            xmlPath = Calc.LOADPATH + xmlPath;
-            imagePath = Calc.LOADPATH + imagePath;
-            break;
-        case ContentAccess.ModContent:
-            // try to access the path
-            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.');
-            var modDirectory = Path.Combine("Mods", modName[0]);
-            if (!Directory.Exists(modDirectory)) 
-            {
-                modDirectory = Path.Combine("Mods", modName[1]);
-            }
-            xmlPath = Path.Combine(modDirectory, "Content", xmlPath).Replace("\\", "/");
-            imagePath = Path.Combine(modDirectory, "Content", imagePath).Replace("\\", "/");
-            break;
-        }
-        XmlNodeList elementsByTagName = Calc.LoadXML(xmlPath)["TextureAtlas"].GetElementsByTagName("SubTexture");
-        var atlas = new patch_Atlas() 
-        {
-            xmlPath = xmlPath,
-            ImagePath = imagePath,
-            SubTextures = new Dictionary<string, Subtexture>(elementsByTagName.Count)
-            
-        };
-        foreach (XmlElement item in elementsByTagName)
-        {
-            XmlAttributeCollection attributes = item.Attributes;
-            atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
-        }
-        if (load)
-        {
-            atlas.Load();
-        }
-        return atlas;
-    }
 
     internal void LoadStream(Stream fs) 
     {
@@ -236,34 +184,27 @@ public static class AtlasExt
         return atlas;
     }
 
-    [Obsolete("Use AtlasExt.CreateAtlas(this FortContent content, string xmlPath, string imagePath, ContentAccess access) instead.")]
-    public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, bool load, ContentAccess access = ContentAccess.Root)
+    public static patch_Atlas CreateAtlas(string xmlPath, string imagePath) 
     {
-        return CreateAtlas(content, xmlPath, imagePath, access);
+        using var rootXmlStream = ModIO.OpenRead(xmlPath);
+        using var rootImageStream = ModIO.OpenRead(imagePath);
+        return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);       
     }
 
     public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, ContentAccess access = ContentAccess.Root)
     {
-        switch (access) 
+        if (access == ContentAccess.Content) 
         {
-        case ContentAccess.Content: 
             xmlPath = Calc.LOADPATH + xmlPath;
             imagePath =  Calc.LOADPATH + imagePath;
-            break;
-        case ContentAccess.ModContent:
-            {
-                if (content == null) 
-                {
-                    Logger.Error("[Atlas] You cannot use AtlasExt.CreateAtlas while FortContent is null");
-                    return null;
-                }
-                using var xmlStream = content[xmlPath].Stream;
-                using var imageStream = content[imagePath].Stream;
-                return AtlasExt.CreateAtlas(xmlStream, imageStream);
-            }
         }
-        using var rootXmlStream = File.OpenRead(xmlPath);
-        using var rootImageStream = File.OpenRead(imagePath);
+        else if (content != null) 
+        {
+            xmlPath = Path.Combine(content.MetadataPath, xmlPath);
+            imagePath = Path.Combine(content.MetadataPath, imagePath);
+        }
+        using var rootXmlStream = ModIO.OpenRead(xmlPath);
+        using var rootImageStream = ModIO.OpenRead(imagePath);
         return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
     }
 
@@ -287,11 +228,9 @@ public static class AtlasExt
         atlas.LoadStream(imageStream);
         return atlas;
     }
-}
 
-public enum ContentAccess
-{
-    Root,
-    Content,
-    ModContent
+    internal static HashSet<string> GetAllInjectedAtlas(this Atlas atlas)
+    {
+        return ((patch_Atlas)atlas).injectedAtlas;
+    }
 }

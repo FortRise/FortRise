@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using TeuJson;
+using System.Text.Json;
 
 namespace FortRise;
 
@@ -18,7 +19,7 @@ public abstract class ModuleSettings
     {
         if (!Directory.Exists(path))    
             Directory.CreateDirectory(Path.GetDirectoryName(path));
-        var json = new JsonObject();
+        var json = new Dictionary<string, object>();
         foreach (var field in this.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance)) 
         {
             if (field.FieldType == typeof(Action))
@@ -46,7 +47,8 @@ public abstract class ModuleSettings
                 Logger.Error("[Settings] Type unsupported: " + field.FieldType);
             }
         }
-        JsonTextWriter.WriteToFile(path, json);
+        var jsonText = JsonSerializer.Serialize(json);
+        File.WriteAllText(path, jsonText);
     }
 
     /// <summary>
@@ -58,8 +60,8 @@ public abstract class ModuleSettings
         if (!File.Exists(path))
             return;
         var thisType = this.GetType();
-        var json = JsonTextReader.FromFile(path);
-        foreach (var val in json.Pairs) 
+        var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
+        foreach (var val in json) 
         {
             var field = thisType.GetField(val.Key, BindingFlags.Public | BindingFlags.Instance);
             if (field == null)
@@ -67,19 +69,19 @@ public abstract class ModuleSettings
 
             if (field.FieldType == typeof(bool)) 
             {
-                field.SetValue(this, json[val.Key].AsBoolean);
+                field.SetValue(this, json[val.Key].GetBoolean());
             }
             else if (field.FieldType == typeof(int)) 
             {
-                field.SetValue(this, json[val.Key].AsInt32);
+                field.SetValue(this, json[val.Key].GetInt32());
             }
             else if (field.FieldType == typeof(float)) 
             {
-                field.SetValue(this, json[val.Key].AsSingle);
+                field.SetValue(this, json[val.Key].GetSingle());
             }
             else if (field.FieldType == typeof(string)) 
             {
-                field.SetValue(this, json[val.Key].AsString);
+                field.SetValue(this, json[val.Key].GetString());
             }
         }
     }

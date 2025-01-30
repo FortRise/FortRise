@@ -15,12 +15,17 @@ public abstract class ShaderFilter
     public abstract void Render(RenderTarget2D canvas);
     public abstract void AfterRender(RenderTarget2D canvas);
 
-    public virtual void Activated(LevelRenderData data) 
+    internal void InternalActivated(LevelRenderData data) 
     {
         ForegroundRenderTarget = data.ForegroundRenderTarget;
         Level = data.Level;
         SolidTiles = data.SolidTiles;
         BGTiles = data.BGTiles;
+        Activated(data);
+    }
+
+    public virtual void Activated(LevelRenderData data) 
+    {
     }
 
     public virtual void Deactivated() {}

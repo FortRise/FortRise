@@ -10,22 +10,22 @@ using MonoMod.Utils;
 namespace MonoMod;
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPostFix))]
-internal class PostFixingAttribute : Attribute 
+internal class PostFixingAttribute : Attribute
 {
     public string TypeName;
     public string MethodName;
-    public PostFixingAttribute(string typeName, string methodName, bool isStatic = false) 
+    public PostFixingAttribute(string typeName, string methodName, bool isStatic = false)
     {
         TypeName = typeName;
         MethodName = methodName;
     }
 }
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPreFix))]
-internal class PreFixingAttribute : Attribute 
+internal class PreFixingAttribute : Attribute
 {
     public string TypeName;
     public string MethodName;
-    public PreFixingAttribute(string typeName, string methodName, bool isStatic = false) 
+    public PreFixingAttribute(string typeName, string methodName, bool isStatic = false)
     {
         TypeName = typeName;
         MethodName = methodName;
@@ -44,12 +44,12 @@ internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 internal class PatchFlags : Attribute {}
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.ObsoletePatch))]
-internal class ObsoletePatch : Attribute 
+internal class ObsoletePatch : Attribute
 {
     public ObsoletePatch(string arg) {}
 }
 
-internal static partial class MonoModRules 
+internal static partial class MonoModRules
 {
     private static bool IsTowerFall;
     private static bool IsWindows;
@@ -59,12 +59,12 @@ internal static partial class MonoModRules
     public static readonly ModuleDefinition RulesModule;
     public static string ExecModName;
 
-    public static bool CheckIfMods(ModuleDefinition mod) 
+    public static bool CheckIfMods(ModuleDefinition mod)
     {
         return ExecModName == mod.Name.Substring(0, mod.Name.Length - 4) + ".MonoModRules [MMILRT, ID:" + MonoModRulesManager.GetId(MonoModRule.Modder) + "]";
     }
 
-    static MonoModRules() 
+    static MonoModRules()
     {
         MonoModRule.Modder.MissingDependencyThrow = false;
 
@@ -80,7 +80,7 @@ internal static partial class MonoModRules
         MonoModRule.Modder.PostProcessors += PostProcessor;
         IsMod = RulesModule == null || !MonoModRule.Modder.Mods.Contains(RulesModule);
 
-        if (IsMod) 
+        if (IsMod)
         {
             MonoModRule.Modder.PostProcessors += ModPostProcessor;
             Console.WriteLine("[FortRise] Mod Relinking");
@@ -92,18 +92,18 @@ internal static partial class MonoModRules
         MonoModRule.Modder.PostProcessors += PostProcessMacros;
 
         bool hasSteamworks = false;
-        foreach (var name in MonoModRule.Modder.Module.AssemblyReferences) 
+        foreach (var name in MonoModRule.Modder.Module.AssemblyReferences)
         {
             if (name.Name.Contains("Steamworks"))
                 hasSteamworks = true;
         }
         MonoModRule.Flag.Set("Steamworks", hasSteamworks);
         MonoModRule.Flag.Set("NoLauncher", !hasSteamworks);
-        if (hasSteamworks) 
+        if (hasSteamworks)
             Console.WriteLine("[FortRise] Running on a Steam Launcher");
-        else 
+        else
             Console.WriteLine("[FortRise] Running TowerFall without a Launcher");
-        
+
 
         TypeDefinition t_TFGame = MonoModRule.Modder.FindType("TowerFall.TFGame")?.Resolve();
         if (t_TFGame == null)
@@ -114,20 +114,20 @@ internal static partial class MonoModRules
 
         int[] numVersions = null;
         var ctor_TFGame = t_TFGame.FindMethod(".cctor", true);
-        if (ctor_TFGame != null && ctor_TFGame.HasBody) 
+        if (ctor_TFGame != null && ctor_TFGame.HasBody)
         {
             var instrs = ctor_TFGame.Body.Instructions;
-            for (int i = 0; i < instrs.Count; i++) 
+            for (int i = 0; i < instrs.Count; i++)
             {
                 var instr = instrs[i];
                 var ctor_Version = instr.Operand as MethodReference;
                 if (instr.OpCode != OpCodes.Newobj || ctor_Version.DeclaringType?.FullName != "System.Version")
                     continue;
-                
+
                 numVersions = new int[ctor_Version.Parameters.Count];
-                for (int j = -numVersions.Length; j < 0; j++) 
+                for (int j = -numVersions.Length; j < 0; j++)
                     numVersions[j + numVersions.Length] = instrs[j + i].GetInt();
-                
+
                 break;
             }
         }
@@ -149,8 +149,8 @@ internal static partial class MonoModRules
             throw new Exception($"Unsupported version of TowerFall: {version}, currently supported: {minimumVersion}");
         Version = version;
         Console.WriteLine("[FortRise] TowerFall Version is: " + Version);
-        
-        if (IsTowerFall) 
+
+        if (IsTowerFall)
         {
             // Ensure that TowerFall assembly is not already modded
             // (https://github.com/MonoMod/MonoMod#how-can-i-check-if-my-assembly-has-been-modded)
@@ -179,12 +179,12 @@ internal static partial class MonoModRules
             VisitType(type);
     }
 
-    public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name) 
-    { 
+    public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name)
+    {
         System.Reflection.AssemblyName asmName = null;
-        foreach (var asm in System.Reflection.Assembly.GetExecutingAssembly().GetReferencedAssemblies()) 
+        foreach (var asm in System.Reflection.Assembly.GetExecutingAssembly().GetReferencedAssemblies())
         {
-            if (asm.Name.Equals(name)) 
+            if (asm.Name.Equals(name))
             {
                 asmName = asm;
                 break;
@@ -193,13 +193,13 @@ internal static partial class MonoModRules
         return asmName;
     }
 
-    public static bool ReplaceAssemblyRefs(MonoModder modder, System.Reflection.AssemblyName newRef) 
+    public static bool ReplaceAssemblyRefs(MonoModder modder, System.Reflection.AssemblyName newRef)
     {
         // Check if the module has a reference affected by the filter
         bool proceed0 = false;
-        foreach (var asm in modder.Module.AssemblyReferences) 
+        foreach (var asm in modder.Module.AssemblyReferences)
         {
-            if (asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+            if (asm.Name.StartsWith("Microsoft.Xna.Framework"))
             {
                 proceed0 = true;
                 break;
@@ -210,15 +210,15 @@ internal static partial class MonoModRules
 
         // Add new dependency and map it, if it not already exist
         bool hasNewRef = false;
-        foreach (var asm in modder.Module.AssemblyReferences) 
+        foreach (var asm in modder.Module.AssemblyReferences)
         {
-            if (asm.Name == newRef.Name) 
+            if (asm.Name == newRef.Name)
             {
                 hasNewRef = true;
                 break;
             }
         }
-        if (!hasNewRef) 
+        if (!hasNewRef)
         {
             AssemblyNameReference asmRef = new AssemblyNameReference(newRef.Name, newRef.Version);
             // modder.Module.AssemblyReferences.Add(asmRef);
@@ -228,9 +228,9 @@ internal static partial class MonoModRules
 
         // Replace old references
         ModuleDefinition newModule = null;
-        foreach (var module in modder.DependencyMap[modder.Module]) 
+        foreach (var module in modder.DependencyMap[modder.Module])
         {
-            if (module.Assembly.Name.Name == newRef.Name) 
+            if (module.Assembly.Name.Name == newRef.Name)
             {
                 newModule = module;
                 break;
@@ -245,14 +245,14 @@ internal static partial class MonoModRules
             // Remove dependency
             modder.Module.AssemblyReferences.RemoveAt(i--);
             var listToRemove = new List<ModuleDefinition>();
-            foreach (var mod in modder.DependencyMap[modder.Module]) 
+            foreach (var mod in modder.DependencyMap[modder.Module])
             {
-                if (mod.Assembly.FullName == asmRef.FullName) 
+                if (mod.Assembly.FullName == asmRef.FullName)
                 {
                     listToRemove.Add(mod);
                 }
             }
-            foreach (var item in listToRemove) 
+            foreach (var item in listToRemove)
             {
                 modder.DependencyMap[modder.Module].Remove(item);
             }
@@ -264,15 +264,15 @@ internal static partial class MonoModRules
     }
 
 
-    private static bool RelinkAgainstFNA(MonoModder modder) 
+    private static bool RelinkAgainstFNA(MonoModder modder)
     {
-        try 
+        try
         {
             // Check if the module references either XNA or FNA
             bool proceed = false;
-            foreach (var asm in modder.Module.AssemblyReferences) 
+            foreach (var asm in modder.Module.AssemblyReferences)
             {
-                if (asm.Name == "FNA" || asm.Name.StartsWith("Microsoft.Xna.Framework")) 
+                if (asm.Name == "FNA" || asm.Name.StartsWith("Microsoft.Xna.Framework"))
                 {
                     proceed = true;
                     break;
@@ -287,19 +287,19 @@ internal static partial class MonoModRules
             bool didReplaceXNA = ReplaceAssemblyRefs(MonoModRule.Modder, GetRulesAssemblyRef("FNA"));
 
             // Ensure that FNA.dll can be loaded
-            if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null) 
+            if (MonoModRule.Modder.FindType("Microsoft.Xna.Framework.Game")?.SafeResolve() == null)
                 throw new Exception("Failed to resolve Microsoft.Xna.Framework.Game");
 
             return didReplaceXNA;
         }
-        catch 
+        catch
         {
             Console.WriteLine("[FortRise] Cannot be Relinked to FNA");
             return false;
         }
     }
 
-    public static void ObsoletePatch(ILContext ctx, CustomAttribute attrib) 
+    public static void ObsoletePatch(ILContext ctx, CustomAttribute attrib)
     {
         string strArg = attrib.ConstructorArguments[0].Value as string;
         var typeRef = ctx.Module.ImportReference(
@@ -312,7 +312,7 @@ internal static partial class MonoModRules
         ctx.Method.CustomAttributes.Add(obsolete);
     }
 
-    public static void PatchPostFix(ILContext ctx, CustomAttribute attrib) 
+    public static void PatchPostFix(ILContext ctx, CustomAttribute attrib)
     {
         string typeName = (string)attrib.ConstructorArguments[0].Value;
         string methodName = (string)attrib.ConstructorArguments[1].Value;
@@ -327,7 +327,7 @@ internal static partial class MonoModRules
         cursor.Emit(OpCodes.Call, method);
     }
 
-    public static void PatchPreFix(ILContext ctx, CustomAttribute attrib) 
+    public static void PatchPreFix(ILContext ctx, CustomAttribute attrib)
     {
         string typeName = (string)attrib.ConstructorArguments[0].Value;
         string methodName = (string)attrib.ConstructorArguments[1].Value;
@@ -341,19 +341,19 @@ internal static partial class MonoModRules
         cursor.Emit(OpCodes.Call, method);
     }
 
-    public static void PatchFlags(ILContext ctx, CustomAttribute attrib) 
+    public static void PatchFlags(ILContext ctx, CustomAttribute attrib)
     {
         var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
         var cursor = new ILCursor(ctx);
 
         if (MonoModRules.IsWindows)
             cursor.Emit(OpCodes.Ldc_I4_1);
-        else    
+        else
             cursor.Emit(OpCodes.Ldc_I4_0);
         cursor.Emit(OpCodes.Call, IsWindows);
     }
 
-    public static void PatchDarkWorldLevelSelectOverlayCtor(ILContext ctx, CustomAttribute attrib) 
+    public static void PatchDarkWorldLevelSelectOverlayCtor(ILContext ctx, CustomAttribute attrib)
     {
         var TowerFall_MapScene = ctx.Module.Assembly.MainModule.GetType("TowerFall", "MapScene");
         var Selection = TowerFall_MapScene.FindField("Selection");
@@ -375,38 +375,38 @@ internal static partial class MonoModRules
         cursor.Emit(OpCodes.Brfalse_S, label);
     }
 
-    public static void PostProcessMacros(MonoModder modder) 
+    public static void PostProcessMacros(MonoModder modder)
     {
         var matchVariant = modder.Module.Types.Where(x => x.FullName == "TowerFall.MatchVariants").First();
-        foreach (TypeDefinition type in modder.Module.Types) 
+        foreach (TypeDefinition type in modder.Module.Types)
         {
-            if (type.FullName == "TowerFall.TemporaryVariants") 
+            if (type.FullName == "TowerFall.TemporaryVariants")
             {
-                foreach (var field in matchVariant.Fields) 
+                foreach (var field in matchVariant.Fields)
                 {
                     if (!field.FieldType.Is("TowerFall.Variant"))
                         continue;
                     FieldDefinition def = new FieldDefinition(
-                        "Temp" + field.Name, FieldAttributes.Public | FieldAttributes.Static, 
-                        modder.Module.TypeSystem.Boolean 
+                        "Temp" + field.Name, FieldAttributes.Public | FieldAttributes.Static,
+                        modder.Module.TypeSystem.Boolean
                     );
                     type.Fields.Add(def);
                 }
             }
-            else if (type.FullName == "TowerFall.DarkWorldTowerData") 
+            else if (type.FullName == "TowerFall.DarkWorldTowerData")
             {
                 var levelData = type.NestedTypes.Where(x => x.FullName == "TowerFall.DarkWorldTowerData/LevelData").First();
                 var variantField = levelData.FindField("ActiveVariant");
                 var variant = variantField.FieldType.Resolve();
                 var MatchVariants = modder.Module.GetType("TowerFall.MatchVariants");
-                foreach (var field in MatchVariants.Fields) 
+                foreach (var field in MatchVariants.Fields)
                 {
                     if (!field.FieldType.Is("TowerFall.Variant"))
                         continue;
                     var newField = new FieldDefinition(field.Name, FieldAttributes.Public, modder.Module.TypeSystem.Boolean);
                     variant.Fields.Add(newField);
                 }
-                foreach (var methd in levelData.Methods) 
+                foreach (var methd in levelData.Methods)
                 {
                     if (!methd.HasCustomAttribute("MonoMod.PostPatchXmlToVariant"))
                         continue;
@@ -419,16 +419,18 @@ internal static partial class MonoModRules
                     var firstLast = il.Body.Instructions[0];
                     il.RemoveAt(il.Body.Instructions.Count - 1);
 
-                    for (int i = 0; i < variant.Fields.Count; i++) 
+                    var variants = variant.Fields.Where(x => !x.Name.Contains("k__BackingField")).ToList();
+
+                    for (int i = 0; i < variants.Count; i++)
                     {
-                        var field = variant.Fields[i];
+                        var field = variants[i];
                         var fieldName = variant.FindField(field.Name);
-                        var entry = i == variant.Fields.Count - 1 ? 
+                        var entry = i == variants.Count - 1 ?
                             il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldarg_1);
-                        
-                        if (i == 0) 
+
+                        if (i == 0)
                             il.Emit(OpCodes.Ldarg_1);
-                        
+
                         il.Emit(OpCodes.Ldstr, field.Name);
                         il.Emit(OpCodes.Call, HasChild);
                         il.Emit(OpCodes.Brfalse_S, entry);
@@ -446,13 +448,12 @@ internal static partial class MonoModRules
 
         var controlType = modder.Module.GetType("TowerFall.DarkWorldControl");
 
-        foreach (var methd in controlType.Methods) 
+        foreach (var methd in controlType.Methods)
         {
             var tempVariant = modder.Module.GetType("TowerFall.TemporaryVariants");
             // PostPatch
-            if (methd.HasCustomAttribute("MonoMod.PostPatchDisableTempVariant")) 
+            if (methd.HasCustomAttribute("MonoMod.PostPatchDisableTempVariant"))
             {
-                var TempDark = tempVariant.FindField("TempAlwaysDark");
                 var Level = modder.Module.GetType("TowerFall.Level");
                 var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
 
@@ -460,11 +461,11 @@ internal static partial class MonoModRules
                 var MatchSettings = Session.FindField("MatchSettings");
                 var Variants = MatchSettings.FieldType.Resolve().FindField("Variants");
 
-                
+
                 var il = methd.Body.GetILProcessor();
                 var firstLast = il.Body.Instructions[0];
                 il.RemoveAt(il.Body.Instructions.Count - 1);
-                for (int i = 0; i < tempVariant.Fields.Count; i++) 
+                for (int i = 0; i < tempVariant.Fields.Count; i++)
                 {
                     var field = tempVariant.Fields[i];
                     var variant = Variants.FieldType.Resolve().FindField(field.Name.Remove(0, 4));
@@ -472,7 +473,7 @@ internal static partial class MonoModRules
                     // if (TempVariant)
                     if (i == 0)
                         il.Emit(OpCodes.Ldsfld, field);
-                    var entry = i == tempVariant.Fields.Count - 1 ? 
+                    var entry = i == tempVariant.Fields.Count - 1 ?
                         il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldsfld, tempVariant.Fields[i + 1]);
                     il.Emit(OpCodes.Brfalse_S, entry);
                     // Body
@@ -489,7 +490,7 @@ internal static partial class MonoModRules
                 }
 
             }
-            else if (methd.HasCustomAttribute("MonoMod.PostPatchEnableTempVariant"))  
+            else if (methd.HasCustomAttribute("MonoMod.PostPatchEnableTempVariant"))
             {
                 var Level = modder.Module.GetType("TowerFall.Level");
                 var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
@@ -504,7 +505,7 @@ internal static partial class MonoModRules
                 var firstLast = il.Body.Instructions[0];
                 il.RemoveAt(il.Body.Instructions.Count - 1);
 
-                for (int i = 0; i < tempVariant.Fields.Count; i++)  
+                for (int i = 0; i < tempVariant.Fields.Count; i++)
                 {
                     var field = tempVariant.Fields[i];
                     var fieldVariant = field.Name.Remove(0, 4);
@@ -513,7 +514,7 @@ internal static partial class MonoModRules
                     var get_Value = variant.FieldType.Resolve().FindMethod("System.Boolean get_Value()");
                     var set_Value = variant.FieldType.Resolve().FindMethod("System.Void set_Value(System.Boolean)");
 
-                    var entry = i == tempVariant.Fields.Count - 1 ? 
+                    var entry = i == tempVariant.Fields.Count - 1 ?
                         il.Create(OpCodes.Ret) : il.Create(OpCodes.Ldarg_0);
                     if (i == 0)
                         il.Emit(OpCodes.Ldarg_0);
@@ -544,17 +545,17 @@ internal static partial class MonoModRules
 
     // https://github.com/EverestAPI/Everest/blob/f4545220fe22ed3f752e358741befe9cc7546234/Celeste.Mod.mm/MonoModRules.cs
     // This is to fix the Enumerators can't be decompiled
-    public static void FixEnumeratorDecompile(MonoModder modder, TypeDefinition type) 
+    public static void FixEnumeratorDecompile(MonoModder modder, TypeDefinition type)
     {
-        foreach (MethodDefinition method in type.Methods) 
+        foreach (MethodDefinition method in type.Methods)
         {
-            new ILContext(method).Invoke(il => 
+            new ILContext(method).Invoke(il =>
             {
                 ILCursor cursor = new ILCursor(il);
                 while (cursor.TryGotoNext(instr => instr.MatchCallvirt(out MethodReference m) &&
                     (m.Name is "System.Collections.IEnumerable.GetEnumerator" or "System.IDisposable.Dispose" ||
                         m.Name.StartsWith("<>m__Finally")))
-                ) 
+                )
                 {
                     cursor.Next.OpCode = OpCodes.Call;
                 }
@@ -562,11 +563,11 @@ internal static partial class MonoModRules
         }
     }
 
-    /* 
+    /*
     The game is made on Net Framework 4.0, which means it doesn't have IteratorStateMachine.
     By doing this, we can easily hook up the enumerators via GetStateMachineTarget() from MonoMod when using hooks.
     */
-    private static void AddIteratorStateMachineAttribute(MonoModder modder, MethodDefinition method) 
+    private static void AddIteratorStateMachineAttribute(MonoModder modder, MethodDefinition method)
     {
         var moveNext = method.GetEnumeratorMoveNext();
         if (moveNext == null)
@@ -583,66 +584,30 @@ internal static partial class MonoModRules
         method.CustomAttributes.Add(customAttribute);
     }
 
-    private static void ModPostProcessor(MonoModder modder) 
-    {
-        var towerfall = ModuleDefinition.ReadModule("TowerFall.exe");
-        foreach (var type in modder.Module.Types) 
-        {
-            // a tiny namespace mistake can be a huge problem for compatibility
-            // but I want to be consistent at everything, so old mods using the wrong namespace
-            // will be relinked to a correct namespace
-            towerfall.ReplaceAttribute(modder, type, "TowerFall.CustomArrowsAttribute", "FortRise.CustomArrowsAttribute", "System.String,System.String");
-        }
-    }
+    private static void ModPostProcessor(MonoModder modder) {}
 
-    private static void ReplaceAttribute(
-        this ModuleDefinition module, 
-        MonoModder modder,
-        TypeDefinition type, 
-        string fullnameFrom, 
-        string fullnameTo,
-        string args) 
+    private static void PostProcessor(MonoModder modder)
     {
-        var tfArrowAttribute = type.GetCustomAttribute(fullnameFrom);
-        if (tfArrowAttribute is null)
-            return;
-        Console.WriteLine("[FortRise][MOD] " + type.FullName);
-        Console.WriteLine($"[FortRise][MOD] Replacing {fullnameFrom} -> {fullnameTo}");
-        var typeRef = module.GetType("FortRise.CustomArrowsAttribute");
-        
-        var frArrowAttributeTypes = modder.Module.ImportReference(typeRef).Resolve();
-        var constructor = frArrowAttributeTypes.FindMethod($"System.Void .ctor({args})");
-        var frArrowAttribute = new CustomAttribute(modder.Module.ImportReference(constructor));
-        foreach (var arg in tfArrowAttribute.ConstructorArguments) 
-        {
-            frArrowAttribute.ConstructorArguments.Add(arg);
-        }
-        type.CustomAttributes.Remove(tfArrowAttribute);
-        type.CustomAttributes.Add(frArrowAttribute);
-    }
-
-    private static void PostProcessor(MonoModder modder) 
-    {
-        foreach (var type in modder.Module.Types) 
+        foreach (var type in modder.Module.Types)
         {
             PostProcessType(modder, type);
         }
     }
 
-    private static void PostProcessType(MonoModder modder, TypeDefinition type) 
+    private static void PostProcessType(MonoModder modder, TypeDefinition type)
     {
-        if (type.IsCompilerGeneratedEnumerator() && !IsMod) 
+        if (type.IsCompilerGeneratedEnumerator() && !IsMod)
         {
             FixEnumeratorDecompile(modder, type);
         }
-        foreach (MethodDefinition method in type.Methods) 
+        foreach (MethodDefinition method in type.Methods)
         {
             method.FixShortLongOps();
-            if (!method.HasCustomAttribute("System.Runtime.CompilerServices.IteratorStateMachineAttribute") && !IsMod) 
+            if (!method.HasCustomAttribute("System.Runtime.CompilerServices.IteratorStateMachineAttribute") && !IsMod)
                 AddIteratorStateMachineAttribute(modder, method);
-            
+
         }
-        foreach (TypeDefinition nested in type.NestedTypes) 
+        foreach (TypeDefinition nested in type.NestedTypes)
         {
             PostProcessType(modder, nested);
         }

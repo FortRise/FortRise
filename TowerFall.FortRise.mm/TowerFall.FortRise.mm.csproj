@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
     <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
-    <ShouldIncludeNativeLua>false</ShouldIncludeNativeLua>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,15 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
-    <PackageReference Include="TeuJson" Version="3.1.2" />
-    <PackageReference Include="TeuJson.Generator" Version="3.1.2" />
-    <PackageReference Include="Hjson" Version="3.0.0" />
     <PackageReference Include="MonoMod" Version="22.7.31.1" />
-    <PackageReference Include="MonoModReorg.Backports" Version="23.3.22.1" />
     <PackageReference Include="MonoMod.Utils" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
     <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.7.31.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,9 +34,6 @@
     <EmbeddedResource Include="Content\Atlas\menuatlas.xml">
       <LogicalName>Content.Atlas.menuatlas.xml</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Content\Scripts\fort.lua">
-      <LogicalName>Content.Scripts.fort.lua</LogicalName>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -49,10 +42,7 @@
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms"/>
-    <Reference Include="DotNetZip">
-      <HintPath>..\lib\DotNetZip.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="System.IO.Compression"/>
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>
       <Private>False</Private>
@@ -64,12 +54,6 @@
     <Reference Include="Steamworks.NET">
       <HintPath>..\lib-stripped\Steamworks.NET.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-      <Reference Include="I18N">
-      <HintPath>..\lib-I18N\I18N.dll</HintPath>
-    </Reference>
-    <Reference Include="I18N.West">
-      <HintPath>..\lib-I18N\I18N.West.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

@@ -4,7 +4,6 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
-using TeuJson;
 using TowerFall;
 
 namespace FortRise.Adventure;
@@ -28,7 +27,7 @@ public sealed class AdventureMapButton : MapButton
     private string lockedTextA;
     private string lockedTextB;
     public string LevelSet;
-    private ModuleMetadata[] requiredMods;
+    // private ModuleMetadata[] requiredMods;
     private SineWave lockedSine;
     private bool wasSelected;
     private AdventureType type;
@@ -54,90 +53,90 @@ public sealed class AdventureMapButton : MapButton
     {
         this.type = type;
         author = data.Author.ToUpperInvariant();
-        if (string.IsNullOrEmpty(data.RequiredMods))   
-            return;
-        try 
-        {
-            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
-            string currentRequired = null;
-            int more = 0;
-            foreach (var mod in requiredMods) 
-            {
-                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
-                    continue;
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
                 
-                currentRequired = mod.Name;
-                more++;
-            }
-            var sb = new StringBuilder();
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(currentRequired)) 
-            {
-                lockedTextA = "REQUIRED MODS"; 
-                Locked = true;
-                sb.Append(currentRequired);
-                if (more > 1) 
-                {
-                    sb.Append(" ");
-                    sb.Append($"and {more - 1} more..");
-                }
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
 
-                lockedTextB = sb.ToString().ToUpperInvariant();
-            }
-        }
-        catch (Exception e)
-        {
-            lockedTextA = "ERROR PARSING";
-            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
-            Locked = true;
-            Logger.Error("Something went wrong parsing the required Metadata");
-            Logger.Error(e.ToString());
-        }
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
     }
 
     public AdventureMapButton(AdventureQuestTowerData data, AdventureType type) : base(new TowerMapData(data))
     {
         this.type = type;
         author = data.Author.ToUpperInvariant();
-        if (string.IsNullOrEmpty(data.RequiredMods))   
-            return;
-        try 
-        {
-            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
-            string currentRequired = null;
-            int more = 0;
-            foreach (var mod in requiredMods) 
-            {
-                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
-                    continue;
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
                 
-                currentRequired = mod.Name;
-                more++;
-            }
-            var sb = new StringBuilder();
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(currentRequired)) 
-            {
-                lockedTextA = "REQUIRED MODS"; 
-                Locked = true;
-                sb.Append(currentRequired);
-                if (more > 1) 
-                {
-                    sb.Append(" ");
-                    sb.Append($"and {more - 1} more..");
-                }
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
 
-                lockedTextB = sb.ToString().ToUpperInvariant();
-            }
-        }
-        catch (Exception e)
-        {
-            lockedTextA = "ERROR PARSING";
-            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
-            Locked = true;
-            Logger.Error("Something went wrong parsing the required Metadata");
-            Logger.Error(e.ToString());
-        }
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
     }
 
     public AdventureMapButton(AdventureVersusTowerData data, string levelset, AdventureType type) : base(new TowerMapData(data))
@@ -146,45 +145,45 @@ public sealed class AdventureMapButton : MapButton
         this.type = type;
         canSetSeed = data.Procedural;
         author = data.Author.ToUpperInvariant();
-        if (string.IsNullOrEmpty(data.RequiredMods))   
-            return;
-        try 
-        {
-            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
-            string currentRequired = null;
-            int more = 0;
-            foreach (var mod in requiredMods) 
-            {
-                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
-                    continue;
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
                 
-                currentRequired = mod.Name;
-                more++;
-            }
-            var sb = new StringBuilder();
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(currentRequired)) 
-            {
-                lockedTextA = "REQUIRED MODS"; 
-                Locked = true;
-                sb.Append(currentRequired);
-                if (more > 1) 
-                {
-                    sb.Append(" ");
-                    sb.Append($"and {more - 1} more..");
-                }
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
 
-                lockedTextB = sb.ToString().ToUpperInvariant();
-            }
-        }
-        catch (Exception e)
-        {
-            lockedTextA = "ERROR PARSING";
-            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
-            Locked = true;
-            Logger.Error("Something went wrong parsing the required Metadata");
-            Logger.Error(e.ToString());
-        }
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
     }
 
     public AdventureMapButton(AdventureTrialsTowerData data, string levelset, AdventureType type) : base(new TowerMapData(data))
@@ -192,45 +191,45 @@ public sealed class AdventureMapButton : MapButton
         this.LevelSet = levelset;
         this.type = type;
         author = data.Author.ToUpperInvariant();
-        if (string.IsNullOrEmpty(data.RequiredMods))   
-            return;
-        try 
-        {
-            requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
-            string currentRequired = null;
-            int more = 0;
-            foreach (var mod in requiredMods) 
-            {
-                if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
-                    continue;
+        // if (string.IsNullOrEmpty(data.RequiredMods))   
+        //     return;
+        // try 
+        // {
+        //     requiredMods = JsonTextReader.FromText(data.RequiredMods).ConvertToArray<ModuleMetadata>();
+        //     string currentRequired = null;
+        //     int more = 0;
+        //     foreach (var mod in requiredMods) 
+        //     {
+        //         if (FortRise.RiseCore.InternalModuleMetadatas.Contains(mod))
+        //             continue;
                 
-                currentRequired = mod.Name;
-                more++;
-            }
-            var sb = new StringBuilder();
+        //         currentRequired = mod.Name;
+        //         more++;
+        //     }
+        //     var sb = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(currentRequired)) 
-            {
-                lockedTextA = "REQUIRED MODS"; 
-                Locked = true;
-                sb.Append(currentRequired);
-                if (more > 1) 
-                {
-                    sb.Append(" ");
-                    sb.Append($"and {more - 1} more..");
-                }
+        //     if (!string.IsNullOrEmpty(currentRequired)) 
+        //     {
+        //         lockedTextA = "REQUIRED MODS"; 
+        //         Locked = true;
+        //         sb.Append(currentRequired);
+        //         if (more > 1) 
+        //         {
+        //             sb.Append(" ");
+        //             sb.Append($"and {more - 1} more..");
+        //         }
 
-                lockedTextB = sb.ToString().ToUpperInvariant();
-            }
-        }
-        catch (Exception e)
-        {
-            lockedTextA = "ERROR PARSING";
-            lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
-            Locked = true;
-            Logger.Error("Something went wrong parsing the required Metadata");
-            Logger.Error(e.ToString());
-        }
+        //         lockedTextB = sb.ToString().ToUpperInvariant();
+        //     }
+        // }
+        // catch (Exception e)
+        // {
+        //     lockedTextA = "ERROR PARSING";
+        //     lockedTextB = "SOMETHING WENT WRONG PARSING THE REQUIRED METADATA";
+        //     Locked = true;
+        //     Logger.Error("Something went wrong parsing the required Metadata");
+        //     Logger.Error(e.ToString());
+        // }
     }
 
     public override bool HasDownAction => canSetSeed;

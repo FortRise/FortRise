@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using FortRise;
-using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -33,7 +32,6 @@ public class patch_MatchVariants : MatchVariants
         {
             manager.SetContext(mod.Meta);
             mod.OnVariantsRegister(manager, noPerPlayer);
-            mod.OnVariantsRegister(this, noPerPlayer);
         }
 
 
@@ -56,46 +54,6 @@ public class patch_MatchVariants : MatchVariants
             canRandoms.Add(random);
         Count = Variants.Length;
         manager.Dispose();
-    }
-
-    [Obsolete("Use FortRise.VariantManager.AddVariant")]
-    public Variant AddVariant(string variantName, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
-    {
-        return AddVariant(
-            variantName, 
-            VariantManager.GetVariantIconFromName(variantName, info.VariantAtlas), 
-            info,
-            flags,
-            noPerPlayer
-        );
-    }
-
-
-    [Obsolete("Use FortRise.VariantManager.AddVariant")]
-    public Variant AddVariant(string variantName, Subtexture variantIcon, VariantInfo info, VariantFlags flags, bool noPerPlayer) 
-    {
-         var fortRiseInfo = new FortRise.CustomVariantInfo(
-            variantName, 
-            variantIcon,
-            info.Header ?? manager.CurrentContext,
-            (FortRise.CustomVariantFlags)(int)flags,
-            info.Exclusions) 
-        {
-            Description = info.Description
-        };
-        return manager.AddVariant(fortRiseInfo, noPerPlayer);
-    }
-
-    [Obsolete("Use VariantManager.GetVariantIconFromName")]
-    public static Subtexture GetVariantIconFromName(string variantName, Atlas atlas)
-    {
-        return VariantManager.GetVariantIconFromName(variantName, atlas);
-    }
-
-    [Obsolete("Use VariantManager.CreateLinks")]
-    public void CreateCustomLinks(params Variant[] variants)
-    {
-        manager.CreateLinks(variants);
     }
 
     public Variant GetCustomVariant(string name) 
@@ -130,70 +88,4 @@ public class patch_MatchVariants : MatchVariants
         }
         return list;
     }
-}
-
-[Obsolete("Use FortRise.CustomVariantInfo")]
-public struct VariantInfo 
-{
-    public Atlas VariantAtlas;
-    public string Header = "";
-    public string Description = "";
-    public Version NewInVersion;
-    public Pickups[] Exclusions;
-
-    public static readonly VariantInfo Empty = new VariantInfo();
-
-    public VariantInfo(Atlas variantAtlas)
-    {
-        VariantAtlas = variantAtlas;
-        Header = "";
-        Description = "";
-        Exclusions = null;
-        NewInVersion = null;
-    }
-
-    public VariantInfo(string header, Atlas variantAtlas)
-    {
-        VariantAtlas = variantAtlas;
-        Header = header;
-        Description = "";
-        Exclusions = null;
-        NewInVersion = null;
-    }
-
-    public VariantInfo(string header, Atlas variantAtlas, params Pickups[] exclusion)
-    {
-        VariantAtlas = variantAtlas;
-        Header = header;
-        Description = "";
-        Exclusions = null;
-        NewInVersion = null;
-    }
-
-    public VariantInfo(string header, string description, Atlas variantAtlas, params Pickups[] exclusion)
-    {
-        VariantAtlas = variantAtlas;
-        Header = header;
-        Description = "";
-        Exclusions = null;
-        NewInVersion = null;
-    }
-}
-
-
-[Flags]
-[Obsolete("Use FortRise.CustomVariantFlags")]
-public enum VariantFlags
-{
-    None,
-    PerPlayer,
-    CanRandom,
-    ScrollEffect,
-    CoopBlessing,
-    CoopCurses,
-    TournamentRule1v1,
-    TournamentRule2v2,
-    DarkWorldDLC,
-    Hidden,
-    Unlisted,
 }

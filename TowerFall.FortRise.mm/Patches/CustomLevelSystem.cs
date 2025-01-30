@@ -19,6 +19,6 @@ public class patch_CustomLevelSystem : CustomLevelSystem
     {
         orig_ctor(file);
         // Resize so we don't get any error
-        Array.Resize<int>(ref treasureMask, treasureMask.Length + RiseCore.PickupRegistry.Count + 1);
+        Array.Resize<int>(ref treasureMask, treasureMask.Length + PickupsRegistry.PickupDatas.Count + 1);
     }
 }

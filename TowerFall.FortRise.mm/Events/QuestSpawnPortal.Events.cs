@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using FortRise;
 using Monocle;
 using Microsoft.Xna.Framework;
 using TowerFall;
@@ -69,10 +67,10 @@ public static partial class RiseCore
                 var colonIndex = name.IndexOf(':');
                 if (colonIndex != -1) 
                 {
-                    var arrowName = name.Substring(colonIndex);
-                    if (RiseCore.ArrowsRegistry.TryGetValue(arrowName, out var obj)) 
+                    var arrowName = name.Substring(colonIndex + 1);
+                    if (ArrowsRegistry.StringToTypes.TryGetValue(arrowName, out var type)) 
                     {
-                        return obj.Types;
+                        return type;
                     }
                     Logger.Error($"[Skeleton Arrow] Arrow Name: '{arrowName}' not found!");
                 }
@@ -122,11 +120,14 @@ public static partial class RiseCore
                     list.Add(ArrowTypes.Trigger);
                     list.Add(ArrowTypes.Prism);
                 }
-                if (!vanilla)
-                    foreach (var customArrow in RiseCore.ArrowsRegistry.Values) 
+                if (!vanilla) 
+                {
+                    foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values) 
                     {
                         list.Add(customArrow.Types);
                     }
+                }
+
                 
                 if (list.Count == 0)
                 {

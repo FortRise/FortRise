@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
-    <AssemblyName>Installer.NoAnsi</AssemblyName>
+    <AssemblyName>Installer</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +28,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="../lib-I18N/**/*">
-      <Link>%(Filename)%(Extension)</Link>
+    <Content Include="../lib-mono/**/*.so">
+      <Link>lib64/%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib-mono/**/*.dylib">
+      <Link>osx/%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

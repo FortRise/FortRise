@@ -314,10 +314,6 @@ namespace TowerFall
         protected override void LoadContent()
         {
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
-            foreach (var mods in RiseCore.InternalMods) 
-            {
-                mods.Content.LoadResources();
-            }
         }
 
         protected extern void orig_Initialize();
@@ -347,6 +343,7 @@ namespace TowerFall
             RiseCore.Events.Invoke_Update(gameTime);
             orig_Update(gameTime);
             RiseCore.Events.Invoke_AfterUpdate(gameTime);
+            RiseCore.ResourceReloader.Update();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -367,12 +364,18 @@ namespace TowerFall
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
+                    foreach (var mods in RiseCore.InternalMods) 
+                    {
+                        mods.Content.LoadResources();
+                    }
+                    RiseCore.ResourceTree.AfterModdedLoadContent();
                     FortRise.RiseCore.RegisterMods();
                     patch_TreasureSpawner.ExtendTreasures();
                     patch_Arrow.ExtendArrows();
-                    Loader.Message = "INITIALIZING LEVEL DATA";
+                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
                     Logger.Log("[LOAD] ...Level Data");
                     GameData.Load();
+                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
                     TowerPatchRegistry.Initialize();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");

@@ -1,5 +1,6 @@
 using System.IO;
 using FortRise;
+using FortRise.IO;
 using Microsoft.Xna.Framework.Audio;
 using MonoMod;
 
@@ -28,6 +29,29 @@ public class patch_SFX : SFX
     [MonoModLinkTo("Monocle.SFX", "System.Void .ctor(System.Boolean)")]
     [MonoModIgnore]
     public void thisctor(bool obeysMasterPitch) {}
+
+    [MonoModConstructor]
+    [MonoModReplace]
+    public void ctor(string filename, bool obeysMasterPitch = true) 
+    {
+        thisctor(obeysMasterPitch);
+        string path = Audio.LOAD_PREFIX + filename + ".wav";
+        if (!ModIO.IsDirectoryOrFileExists(path)) 
+        {
+            path = filename; // Mods can use .ogg
+            if (!Path.HasExtension(path))
+                path += ".wav";
+        }
+        using Stream stream = ModIO.OpenRead(path);
+        try
+        {
+            Data = SoundEffect.FromStream(stream);
+        }
+        catch (NoAudioHardwareException)
+        {
+            Data = null;
+        }
+    }
 
     [MonoModConstructor]
     public void ctor(Stream stream, bool obeysMasterPitch = true) 

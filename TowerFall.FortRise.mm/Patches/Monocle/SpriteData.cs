@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using FortRise;
+using FortRise.IO;
 using MonoMod;
 
 namespace Monocle;
@@ -29,42 +30,6 @@ public class patch_SpriteData : SpriteData
         this.atlas = atlas;
         this.sprites = sprites;
     }
-
-    [Obsolete("Use SpriteDataExt.CreateSpriteData instead")]
-    public static patch_SpriteData Create(string filename, patch_Atlas atlas, ContentAccess access = ContentAccess.Root)
-    {
-        switch (access) 
-        {
-        case ContentAccess.Content:
-            filename = Calc.LOADPATH + filename;
-            break;
-        case ContentAccess.ModContent:
-            // try to access the path
-            var modName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location).Split('.');
-            var modDirectory = Path.Combine("Mods", modName[0]);
-            if (!Directory.Exists(modDirectory)) 
-            {
-                modDirectory = Path.Combine("Mods", modName[1]);
-            }
-            filename = Path.Combine(modDirectory, "Content", filename).Replace("\\", "/");
-            break;
-        }
-        XmlDocument xmlDocument = Calc.LoadXML(filename);
-        var sprites = new Dictionary<string, XmlElement>();
-        foreach (object item in xmlDocument["SpriteData"])
-        {
-            if (item is XmlElement)
-            {
-                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
-            }
-        }
-        var spriteData = new patch_SpriteData() 
-        {
-            atlas = atlas,
-            sprites = sprites
-        };
-        return spriteData;
-    }
 }
 
 public static class SpriteDataExt 
@@ -84,16 +49,22 @@ public static class SpriteDataExt
                 return null;
             }
             using var fileStream = content[filename].Stream;
-            return SpriteDataExt.CreateSpriteData(content, fileStream, atlas);
+            return SpriteDataExt.CreateSpriteData(fileStream, atlas);
         }
         }
         using var stream = File.OpenRead(filename);
-        return SpriteDataExt.CreateSpriteData(content, stream, atlas);
+        return SpriteDataExt.CreateSpriteData(stream, atlas);
     }
 
-    public static patch_SpriteData CreateSpriteData(this FortContent content, Stream filename, patch_Atlas atlas)
+    public static patch_SpriteData CreateSpriteData(string filename, patch_Atlas atlas) 
     {
-        XmlDocument xmlDocument = patch_Calc.LoadXML(filename);
+        using var stream = ModIO.OpenRead(filename);
+        return CreateSpriteData(stream, atlas);
+    }
+
+    public static patch_SpriteData CreateSpriteData(Stream stream, patch_Atlas atlas)
+    {
+        XmlDocument xmlDocument = patch_Calc.LoadXML(stream);
         var sprites = new Dictionary<string, XmlElement>();
         foreach (object item in xmlDocument["SpriteData"])
         {
@@ -104,6 +75,24 @@ public static class SpriteDataExt
         }
         var spriteData = new patch_SpriteData();
 
+        spriteData.SetAtlasAndSprite(atlas, sprites);
+        return spriteData;
+    }
+
+    public static patch_SpriteData CreateSpriteDataFromAtlas(this FortContent content, Stream filename, patch_Atlas atlas)
+    {
+        var xmlElement = patch_Calc.LoadXML(filename)["SpriteData"];
+        var sprites = new Dictionary<string, XmlElement>();
+        
+        foreach (object item in xmlElement)
+        {
+            if (item is XmlElement)
+            {
+                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
+            }
+        }
+        var spriteData = new patch_SpriteData();
+        
         spriteData.SetAtlasAndSprite(atlas, sprites);
         return spriteData;
     }

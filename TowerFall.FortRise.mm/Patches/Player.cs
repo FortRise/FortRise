@@ -1,4 +1,5 @@
 using System;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -14,6 +15,23 @@ namespace TowerFall
 
         public patch_Player(int playerIndex, Vector2 position, Allegiance allegiance, Allegiance teamColor, PlayerInventory inventory, HatStates hatState, bool frozen, bool flash, bool indicator) : base(playerIndex, position, allegiance, teamColor, inventory, hatState, frozen, flash, indicator)
         {
+        }
+
+        public extern void orig_Added();
+
+        public override void Added()
+        {
+            orig_Added();
+            RiseCore.Events.Player.Invoke_OnSpawn(this, PlayerIndex);
+        }
+
+        public extern PlayerCorpse orig_Die(DeathCause deathCause, int killerIndex, bool brambled = false, bool laser = false);
+
+        public PlayerCorpse Die(DeathCause deathCause, int killerIndex, bool brambled = false, bool laser = false) 
+        {
+            PlayerCorpse corpsed = orig_Die(deathCause, killerIndex, brambled, laser);
+            RiseCore.Events.Player.Invoke_OnPlayerDie(this, PlayerIndex, deathCause, killerIndex, brambled, laser);
+            return corpsed;
         }
 
         [MonoModIgnore]

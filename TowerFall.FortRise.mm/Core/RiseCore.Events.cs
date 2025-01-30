@@ -8,16 +8,23 @@ using TowerFall;
 
 namespace FortRise;
 
-public static partial class RiseCore 
+public static partial class RiseCore
 {
     /// <summary>
     /// List of built-in useful events that can be subscribe by a modules.
     /// </summary>
-    public static partial class Events 
+    public static partial class Events
     {
+        public delegate void AfterModdedLoadContentHandler(FortContent content);
+        public static event AfterModdedLoadContentHandler OnAfterModdedLoadContent;
+        internal static void Invoke_OnAfterModdedLoadContent(FortContent content) 
+        {
+            OnAfterModdedLoadContent?.Invoke(content);
+        }
+
         public delegate void QuestSpawnWaveHandler(
             QuestControl control, int waveNum,
-            List<IEnumerator> groups, int[] floors, 
+            List<IEnumerator> groups, int[] floors,
             bool dark, bool slow, bool scroll);
 
         /// <summary>
@@ -26,7 +33,7 @@ public static partial class RiseCore
         public static event QuestSpawnWaveHandler OnQuestSpawnWave;
         internal static void Invoke_OnQuestSpawnWave(
             QuestControl control, int waveNum,
-            List<IEnumerator> groups, int[] floors, 
+            List<IEnumerator> groups, int[] floors,
             bool dark, bool slow, bool scroll)
         {
             OnQuestSpawnWave?.Invoke(control, waveNum, groups, floors, dark, slow, scroll);
@@ -72,7 +79,7 @@ public static partial class RiseCore
         /// Called when entered a level.
         /// </summary>
         public static event Action OnLevelEntered;
-        internal static void Invoke_OnLevelEntered()  
+        internal static void Invoke_OnLevelEntered()
         {
             OnLevelEntered?.Invoke();
         }
@@ -81,7 +88,7 @@ public static partial class RiseCore
         /// Called when exited the level via Quit or Map.
         /// </summary>
         public static event Action OnLevelExited;
-        internal static void Invoke_OnLevelExited()  
+        internal static void Invoke_OnLevelExited()
         {
             OnLevelExited?.Invoke();
         }
@@ -90,7 +97,7 @@ public static partial class RiseCore
         /// Called before the GameData.Load() called.
         /// </summary>
         public static event Action OnBeforeDataLoad;
-        internal static void Invoke_OnBeforeDataLoad()  
+        internal static void Invoke_OnBeforeDataLoad()
         {
             OnBeforeDataLoad?.Invoke();
         }
@@ -99,7 +106,7 @@ public static partial class RiseCore
         /// Called after the GameData.Load() called.
         /// </summary>
         public static event Action OnAfterDataLoad;
-        internal static void Invoke_OnAfterDataLoad()  
+        internal static void Invoke_OnAfterDataLoad()
         {
             OnAfterDataLoad?.Invoke();
         }
@@ -113,21 +120,21 @@ public static partial class RiseCore
         /// Called after the game initialization state.
         /// </summary>
         public static event Action OnPostInitialize;
-        internal static void Invoke_OnPreInitialize() 
+        internal static void Invoke_OnPreInitialize()
         {
             OnPreInitialize?.Invoke();
         }
 
-        internal static void Invoke_OnPostInitialize() 
+        internal static void Invoke_OnPostInitialize()
         {
             OnPostInitialize?.Invoke();
         }
 
         /// <summary>
-        /// Called before the game loop. 
+        /// Called before the game loop.
         /// </summary>
         public static event Action<GameTime> OnBeforeUpdate;
-        internal static void Invoke_BeforeUpdate(GameTime gameTime) 
+        internal static void Invoke_BeforeUpdate(GameTime gameTime)
         {
             OnBeforeUpdate?.Invoke(gameTime);
         }
@@ -136,7 +143,7 @@ public static partial class RiseCore
         /// Called during the game loop.
         /// </summary>
         public static event Action<GameTime> OnUpdate;
-        internal static void Invoke_Update(GameTime gameTime) 
+        internal static void Invoke_Update(GameTime gameTime)
         {
             OnUpdate?.Invoke(gameTime);
         }
@@ -145,7 +152,7 @@ public static partial class RiseCore
         /// Called after the game loop.
         /// </summary>
         public static event Action<GameTime> OnAfterUpdate;
-        internal static void Invoke_AfterUpdate(GameTime gameTime) 
+        internal static void Invoke_AfterUpdate(GameTime gameTime)
         {
             OnAfterUpdate?.Invoke(gameTime);
         }
@@ -154,7 +161,7 @@ public static partial class RiseCore
         /// Called before the backbuffer renders.
         /// </summary>
         public static event Action<SpriteBatch> OnBeforeRender;
-        internal static void Invoke_BeforeRender(SpriteBatch spriteBatch) 
+        internal static void Invoke_BeforeRender(SpriteBatch spriteBatch)
         {
             OnBeforeRender?.Invoke(spriteBatch);
         }
@@ -163,7 +170,7 @@ public static partial class RiseCore
         /// Called when the backbuffer renders.
         /// </summary>
         public static event Action<SpriteBatch> OnRender;
-        internal static void Invoke_Render(SpriteBatch spriteBatch) 
+        internal static void Invoke_Render(SpriteBatch spriteBatch)
         {
             OnRender?.Invoke(spriteBatch);
         }
@@ -171,8 +178,8 @@ public static partial class RiseCore
         /// <summary>
         /// Called after the backbuffer renders.
         /// </summary>
-        public static event Action<SpriteBatch> OnAfterRender; 
-        internal static void Invoke_AfterRender(SpriteBatch spriteBatch) 
+        public static event Action<SpriteBatch> OnAfterRender;
+        internal static void Invoke_AfterRender(SpriteBatch spriteBatch)
         {
             OnAfterRender?.Invoke(spriteBatch);
         }
@@ -180,10 +187,17 @@ public static partial class RiseCore
         /// <summary>
         /// Called after a mod initialized.
         /// </summary>
-        public static event Action<FortModule> OnModInitialized; 
-        internal static void Invoke_OnModInitialized(FortModule module) 
+        public static event Action<FortModule> OnModInitialized;
+        internal static void Invoke_OnModInitialized(FortModule module)
         {
             OnModInitialized?.Invoke(module);
+        }
+
+        public delegate void ResourceAssignTypeHandler(string path, string filename, ref Type ResourceType);
+        public static event ResourceAssignTypeHandler OnResourceAssignType;
+        internal static void Invoke_OnResourceAssignType(string path, string filename, ref Type ResourceType)
+        {
+            OnResourceAssignType?.Invoke(path, filename, ref ResourceType);
         }
 
         public delegate void AdventureTowerAddHandler<T>(string levelSet, T towerData)
@@ -197,7 +211,7 @@ public static partial class RiseCore
         /// </summary>
         public static event AdventureTowerAddHandler<AdventureWorldTowerData> OnAdventureDarkWorldTowerDataAdd;
 
-        internal static void Invoke_OnAdventureDarkWorldTowerDataAdd(string levelSet, AdventureWorldTowerData towerData) 
+        internal static void Invoke_OnAdventureDarkWorldTowerDataAdd(string levelSet, AdventureWorldTowerData towerData)
         {
             OnAdventureDarkWorldTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -206,7 +220,7 @@ public static partial class RiseCore
         /// Called after an adventure quest tower has been added.
         /// </summary>
         public static event AdventureTowerAddHandler<AdventureQuestTowerData> OnAdventureQuestTowerDataAdd;
-        internal static void Invoke_OnAdventureQuestTowerDataAdd(string levelSet, AdventureQuestTowerData towerData) 
+        internal static void Invoke_OnAdventureQuestTowerDataAdd(string levelSet, AdventureQuestTowerData towerData)
         {
             OnAdventureQuestTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -215,7 +229,7 @@ public static partial class RiseCore
         /// Called after an adventure versus tower has been added.
         /// </summary>
         public static event AdventureTowerAddHandler<AdventureVersusTowerData> OnAdventureVersusTowerDataAdd;
-        internal static void Invoke_OnAdventureVersusTowerDataAdd(string levelSet, AdventureVersusTowerData towerData) 
+        internal static void Invoke_OnAdventureVersusTowerDataAdd(string levelSet, AdventureVersusTowerData towerData)
         {
             OnAdventureVersusTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -224,7 +238,7 @@ public static partial class RiseCore
         /// Called after an adventure trials towers has been added.
         /// </summary>
         public static event AdventureTowersAddHandler<AdventureTrialsTowerData> OnAdventureTrialsTowerDatasAdd;
-        internal static void Invoke_OnAdventureTrialsTowerDatasAdd(string levelSet, AdventureTrialsTowerData[] towerData) 
+        internal static void Invoke_OnAdventureTrialsTowerDatasAdd(string levelSet, AdventureTrialsTowerData[] towerData)
         {
             OnAdventureTrialsTowerDatasAdd?.Invoke(levelSet, towerData);
         }

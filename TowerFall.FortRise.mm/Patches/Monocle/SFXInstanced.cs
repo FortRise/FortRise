@@ -21,6 +21,21 @@ public class patch_SFXInstanced : patch_SFX
     }
 
     [MonoModConstructor]
+    [MonoModReplace]
+    public void ctor(string filename, int instances = 2, bool obeysMasterPitch = true) 
+    {
+        base.ctor(filename, obeysMasterPitch);
+        if (base.Data != null)
+        {
+            this.Instances = new SoundEffectInstance[instances];
+            for (int i = 0; i < instances; i++)
+            {
+                this.Instances[i] = base.Data.CreateInstance();
+            }
+        }
+    }
+
+    [MonoModConstructor]
     public void ctor(Stream stream, int instances = 2, bool obeysMasterPitch = true) 
     {
         base.ctor(stream, obeysMasterPitch);

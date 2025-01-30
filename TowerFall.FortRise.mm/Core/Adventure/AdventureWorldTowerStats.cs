@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using TeuJson;
-using TeuJson.Attributes;
+using System.Text.Json.Serialization;
 using TowerFall;
 
 namespace FortRise.Adventure;
 
-public sealed partial class AdventureWorldStats : IDeserialize, ISerialize 
+public sealed partial class AdventureWorldStats 
 {
-    [TeuObject]
+    [JsonInclude]
     public Dictionary<string, AdventureWorldTowerStats> Towers = new Dictionary<string, AdventureWorldTowerStats>();
 
     public AdventureWorldTowerStats AddOrGet(string name) 
@@ -23,37 +22,37 @@ public sealed partial class AdventureWorldStats : IDeserialize, ISerialize
     }
 }
 
-public sealed partial class AdventureWorldTowerStats : IDeserialize, ISerialize
+public sealed partial class AdventureWorldTowerStats 
 {
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedNormal;
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedHardcore;
-    [TeuObject]
+    [JsonInclude]
     public bool CompletedLegendary;
-    [TeuObject]
+    [JsonInclude]
     public bool EarnedEye;
-    [TeuObject]
+    [JsonInclude]
     public bool EarnedGoldEye;
-    [TeuObject]
+    [JsonInclude]
     public long Best1PTime;
-    [TeuObject]
+    [JsonInclude]
     public long Best2PTime;
-    [TeuObject]
+    [JsonInclude]
     public long Best3PTime;
-    [TeuObject]
+    [JsonInclude]
     public long Best4PTime;
-    [TeuObject]
+    [JsonInclude]
     public int Most1PCurses;
-    [TeuObject]
+    [JsonInclude]
     public int Most2PCurses;
-    [TeuObject]
+    [JsonInclude]
     public int Most3PCurses;
-    [TeuObject]
+    [JsonInclude]
     public int Most4PCurses;
-    [TeuObject]
+    [JsonInclude]
     public ulong Deaths;
-    [TeuObject]
+    [JsonInclude]
     public ulong Attempts;
 
     public void Complete(DarkWorldDifficulties difficulty, int players, long time, int continues, int deaths, int curses)

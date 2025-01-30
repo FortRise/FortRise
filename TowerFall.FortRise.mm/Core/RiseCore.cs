@@ -12,12 +12,12 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using MonoMod.Utils;
-using TeuJson;
 using TowerFall;
 using System.Diagnostics;
 using System.Text;
 using YYProject.XXHash;
-using Ionic.Zip;
+using System.IO.Compression;
+using System.Text.Json;
 
 namespace FortRise;
 
@@ -39,27 +39,16 @@ public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveM
 /// <summary>
 /// Core API of FortRise
 /// </summary>
-public static partial class RiseCore 
+public static partial class RiseCore
 {
     /// <summary>
     /// A TowerFall root directory.
     /// </summary>
     public static string GameRootPath { get; internal set; }
-    internal static long PickupLoaderCount = 21;
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
     public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
-
-
-    // Extending enums this way. Please inform me if there's a better way to do this.
-    public static Dictionary<Pickups, PickupLoader> PickupLoader = new();
-    [Obsolete("Use RiseCore.ArrowsRegistry instead.")]
-    public static Dictionary<string, ArrowTypes> ArrowsID = new();
-    public static Dictionary<string, ArrowObject> ArrowsRegistry = new();
-    public static Dictionary<string, PickupObject> PickupRegistry = new();
-    public static Dictionary<ArrowTypes, ArrowLoader> Arrows = new();
-    public static Dictionary<ArrowTypes, string> ArrowNameMap = new();
 
     /// <summary>
     /// Contains a read-only access to all of the Fort Modules.
@@ -80,12 +69,12 @@ public static partial class RiseCore
 
     /// <summary>
     /// A current version of FortRise.
-    /// <note>This should be not used to check for Latest Version and Current Version, 
+    /// <note>This should be not used to check for Latest Version and Current Version,
     /// this is an information for logging purposes.</note>
     /// </summary>
     public static Version FortRiseVersion;
     /// <summary>
-    /// Checks if the OS that is currently running is Windows. 
+    /// Checks if the OS that is currently running is Windows.
     /// </summary>
     /// <value>true if the OS is running on Windows, otherwise false.</value>
     public static bool IsWindows { get; internal set; }
@@ -110,25 +99,25 @@ public static partial class RiseCore
     /// </summary>
     public static bool WillRestart = false;
 
-    internal static HashSet<string> ReadBlacklistedMods(string blackListPath) 
+    internal static HashSet<string> ReadBlacklistedMods(string blackListPath)
     {
-        try 
+        try
         {
-            var json = JsonTextReader.FromFile(blackListPath).ConvertToArrayString();
+            var json = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(blackListPath));
             var blacklisted = new HashSet<string>();
-            foreach (var j in json) 
+            foreach (var j in json)
             {
                 blacklisted.Add(j);
             }
             return blacklisted;
         }
-        catch 
+        catch
         {
             return new HashSet<string>(0);
         }
     }
 
-    internal static bool Start() 
+    internal static bool Start()
     {
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
@@ -137,34 +126,34 @@ public static partial class RiseCore
 
         Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
         var directory = Directory.GetDirectories("Mods");
-        foreach (var dir in directory) 
+        foreach (var dir in directory)
         {
             if (dir.Contains("_RelinkerCache"))
-                continue;    
-            var dirInfo = new DirectoryInfo(dir);
-            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(dirInfo.Name))  
                 continue;
-            
+            var dirInfo = new DirectoryInfo(dir);
+            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(dirInfo.Name))
+                continue;
+
             LoadDir(dir);
         }
         var files = Directory.GetFiles("Mods");
-        foreach (var file in files) 
+        foreach (var file in files)
         {
             if (!file.EndsWith("zip"))
                 continue;
             var fileName = Path.GetFileName(file);
-            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(Path.GetFileName(fileName))) 
+            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(Path.GetFileName(fileName)))
                 continue;
-            
+
             LoadZip(file);
         }
-        static void LoadDir(string dir) 
+        static void LoadDir(string dir)
         {
             var metaPath = Path.Combine(dir, "env.json");
             if (!File.Exists(metaPath))
                 return;
-            var value = JsonTextReader.FromFile(metaPath);    
-            foreach (var val in value.Pairs) 
+            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metaPath));
+            foreach (var val in value)
             {
                 Environment.SetEnvironmentVariable(val.Key, val.Value);
             }
@@ -172,15 +161,16 @@ public static partial class RiseCore
 
         static void LoadZip(string file)
         {
-            using var zipFile = ZipFile.Read(file);
+            using var zipFile = ZipFile.OpenRead(file);
 
-            if (!zipFile.ContainsEntry("env.json"))
+            var envZip = zipFile.GetEntry("env.json");
+
+            if (envZip == null)
                 return;
-            
-            var entry = zipFile["env.json"];
-            using var memStream = entry.ExtractStream();
-            var value = JsonTextReader.FromStream(memStream);
-            foreach (var val in value.Pairs) 
+
+            using var memStream = envZip.ExtractStream();
+            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(memStream);
+            foreach (var val in value)
             {
                 Environment.SetEnvironmentVariable(val.Key, val.Value);
             }
@@ -189,20 +179,25 @@ public static partial class RiseCore
         return true;
     }
 
-    internal static void ModuleStart() 
+    internal static void ModuleStart()
     {
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 
-         new NoModule(new ModuleMetadata() {
+        var fortRiseMetadata = new ModuleMetadata() {
             Name = "FortRise",
             Version = FortRiseVersion
-        }).Register();
+        };
+        var fortRiseModule = new NoModule(fortRiseMetadata);
+        fortRiseModule.Register();
+        InternalFortModules.Add(fortRiseModule);
+        InternalModuleMetadatas.Add(fortRiseMetadata);
 
         AdventureModule = new AdventureModule();
         AdventureModule.InternalLoad();
         AdventureModule.Register();
         EntityRegistry.LoadAllBuiltinEnemies();
+        QuestEventRegistry.LoadAllBuiltinEvents();
         InternalFortModules.Add(AdventureModule);
 
         AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
@@ -215,27 +210,27 @@ public static partial class RiseCore
             return null;
         };
 
-        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => 
+        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) =>
         {
             var name = asmArgs?.Name == null ? null : new AssemblyName(asmArgs.Name);
 
             if (string.IsNullOrEmpty(name?.Name))
                 return null;
 
-            foreach (var mod in RiseCore.ResourceTree.ModResources) 
+            foreach (var mod in RiseCore.ResourceTree.ModResources)
             {
                 var meta = mod.Metadata;
 
                 if (meta is null)
                     continue;
-                
+
                 var path = name.Name + ".dll";
                 var pathDirectory = string.IsNullOrEmpty(meta.PathZip) ? meta.PathDirectory : meta.PathZip;
                 path = Path.Combine(pathDirectory, path).Replace('\\', '/');
                 if (!string.IsNullOrEmpty(pathDirectory))
                     path = path.Substring(pathDirectory.Length + 1);
 
-                if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly)) 
+                if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly))
                 {
                     using var stream = res.Stream;
                     if (stream != null)
@@ -252,26 +247,26 @@ public static partial class RiseCore
             DiscordComponent.Create();
     }
 
-    public static void ParseArgs(string[] args) 
+    public static void ParseArgs(string[] args)
     {
         var compiledArgs = new List<string>(args);
-        if (File.Exists("launch.txt")) 
+        if (File.Exists("launch.txt"))
         {
             using var fs = File.OpenText("launch.txt");
             string argPass;
-            while ((argPass = fs.ReadLine()) != null) 
+            while ((argPass = fs.ReadLine()) != null)
             {
                 if (argPass.Trim().StartsWith(";") || string.IsNullOrEmpty(argPass))
                     continue;
                 var splittedArgs = argPass.Trim().Split(' ');
-                foreach (var splittedArg in splittedArgs) 
+                foreach (var splittedArg in splittedArgs)
                 {
                     if (!compiledArgs.Contains(splittedArg))
                         compiledArgs.Add(argPass.Trim());
                 }
             }
         }
-        else 
+        else
         {
             using var fs = File.CreateText("launch.txt");
             fs.WriteLine("; Add any of available launch arguments here.");
@@ -286,10 +281,10 @@ public static partial class RiseCore
 
         Logger.Verbosity = Logger.LogLevel.Error;
         int cursor = 0;
-        while (cursor < compiledArgs.Count) 
+        while (cursor < compiledArgs.Count)
         {
             var arg = compiledArgs[cursor];
-            switch (arg) 
+            switch (arg)
             {
             case "--debug":
                 DebugMode = true;
@@ -336,10 +331,10 @@ public static partial class RiseCore
             case "--disable-fort-mods":
                 DisableFortMods = true;
                 break;
-            case "--level-quick-start": 
+            case "--level-quick-start":
                 cursor++;
                 arg = compiledArgs[cursor];
-                try 
+                try
                 {
                     var argSpan = arg.AsSpan();
                     var slashSplit = argSpan.SplitLines('/');
@@ -348,9 +343,9 @@ public static partial class RiseCore
                     int num = 0;
                     string towerSet = null;
                     string levelID = null;
-                    foreach (var (slashSet, _) in slashSplit) 
+                    foreach (var (slashSet, _) in slashSplit)
                     {
-                        switch (phase) 
+                        switch (phase)
                         {
                         case 0:
                             towerSet = slashSet.ToString();
@@ -360,9 +355,9 @@ public static partial class RiseCore
                             break;
                         case 2:
                             var span = slashSet.SplitLines('.');
-                            foreach (var (s, x) in span) 
+                            foreach (var (s, x) in span)
                             {
-                                if (s[0] == '0') 
+                                if (s[0] == '0')
                                 {
                                     num = int.Parse(s[1].ToString());
                                     break;
@@ -390,12 +385,12 @@ public static partial class RiseCore
                         TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
                     };
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     Logger.Error("[Quick Start] Couldn't quick start as the passed arguments is invalid");
                     Logger.Error(ex);
                 }
-                
+
                 break;
             }
             cursor++;
@@ -404,114 +399,43 @@ public static partial class RiseCore
         ApplicationArgs = compiledArgs.ToArray();
     }
 
-    public static ModuleMetadata ParseMetadata(string dir, string path)  
-    {
-        if (Path.GetExtension(path) == ".json") 
-        {
-            using var jfs = File.OpenRead(path);
-            return ParseMetadataWithJson(dir, jfs);
-        }
-        using var fs = File.OpenRead(path);
-        return ParseMetadataWithHJson(dir, fs);
-    }
-
-    public static ModuleMetadata ParseMetadataWithJson(string dir, string path)  
-    {
-        using var fs = File.OpenRead(path);
-        return ParseMetadataWithJson(dir, fs);
-    }
-
-    public static ModuleMetadata ParseMetadataWithJson(string dirPath, Stream path, bool zip = false) 
-    {
-        var json = JsonTextReader.FromStream(path);
-        var metadata = json.Convert<ModuleMetadata>();
-        if (FortRiseVersion < metadata.FortRiseVersion) 
-        {
-            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {FortRiseVersion}");
-            return null;
-        }
-        string zipPath = "";
-        if (!zip) 
-        {
-            metadata.PathDirectory = dirPath;
-        }
-        else 
-        {
-            zipPath = dirPath;
-            dirPath = Path.GetDirectoryName(dirPath);
-            metadata.PathZip = zipPath;
-        }
-
-        return metadata; 
-    }
-
-    public static ModuleMetadata ParseMetadataWithHJson(string dir, string path)  
-    {
-        using var fs = File.OpenRead(path);
-        return ParseMetadataWithHJson(dir, fs);
-    }
-
-    public static ModuleMetadata ParseMetadataWithHJson(string dirPath, Stream path, bool zip = false) 
-    {
-        var hjson = Hjson.HjsonValue.Load(path);
-        var metadata = ModuleMetadata.HJsonToMetadata(hjson);
-        if (FortRiseVersion < metadata.FortRiseVersion) 
-        {
-            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {metadata.FortRiseVersion}. Your FortRise version: {FortRiseVersion}");
-            return null;
-        }
-        string zipPath = "";
-        if (!zip) 
-        {
-            metadata.PathDirectory = dirPath;
-        }
-        else 
-        {
-            zipPath = dirPath;
-            dirPath = Path.GetDirectoryName(dirPath);
-            metadata.PathZip = zipPath;
-        }
-
-        return metadata; 
-    }
-
     /// <summary>
     /// Ask the mod loader to restart the game. If it isn't possible to restart, the call will be ignored.
     /// </summary>
-    public static void AskForRestart(FortModule module) 
+    public static void AskForRestart(FortModule module)
     {
-        if (CantRestart) 
+        if (CantRestart)
         {
             Logger.Warning($"[RESTART] {module.Name} asked for restart. But it was rejected as the game is not ready yet.");
             return;
         }
-        
+
         var moduleName = module.Name;
         Logger.Info($"[RESTART] {module.Name} asked for restart. Restarting the game...");
         WillRestart = true;
         Engine.Instance.Exit();
-    } 
+    }
 
-    internal static void InternalRestart() 
+    internal static void InternalRestart()
     {
         WillRestart = true;
         Engine.Instance.Exit();
     }
 
-    internal static void RunTowerFallProcess(string towerFallPath, string[] args) 
+    internal static void RunTowerFallProcess(string towerFallPath, string[] args)
     {
         bool noIntroFound = false;
         var sb = new StringBuilder();
-        foreach (var arg in args) 
+        foreach (var arg in args)
         {
             sb.Append(arg + " ");
-            if (arg is "-nointro" or "nointro") 
+            if (arg is "-nointro" or "nointro")
             {
                 noIntroFound = true;
             }
         }
         if (!noIntroFound)
-            sb.Append("-nointro");    
+            sb.Append("-nointro");
         var process = new Process();
         process.StartInfo.FileName = towerFallPath;
         process.StartInfo.Arguments = sb.ToString();
@@ -525,21 +449,21 @@ public static partial class RiseCore
 
     public static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
-    public static byte[] GetChecksum(string path) 
+    public static byte[] GetChecksum(string path)
     {
         using var fs = File.OpenRead(path);
         return ChecksumHasher.ComputeHash(fs);
     }
 
-    public static byte[] GetChecksum(ModuleMetadata meta) 
+    public static byte[] GetChecksum(ModuleMetadata meta)
     {
         return GetChecksum(meta.DLL);
     }
 
     // https://github.com/EverestAPI/Everest/blob/dev/Celeste.Mod.mm/Mod/Everest/Everest.cs
-    public static byte[] GetChecksum(ref Stream stream) 
+    public static byte[] GetChecksum(ref Stream stream)
     {
-        if (!stream.CanSeek) 
+        if (!stream.CanSeek)
         {
             var ms = new MemoryStream();
             stream.CopyTo(ms);
@@ -556,139 +480,102 @@ public static partial class RiseCore
     }
 
 
-    internal static void LogAllTypes() 
+    internal static void LogAllTypes()
     {
         Logger.Info(InternalMods.Count + " total of mods loaded");
     }
 
-    internal static void Initialize() 
+    internal static void Initialize()
     {
-        foreach (var fortModule in InternalFortModules) 
+        foreach (var fortModule in InternalFortModules)
         {
             fortModule.Initialize();
-            if (fortModule is ITowerPatcher patcher)
-                patcher.PatchTower(new OnTower(fortModule));
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
-
-        Relinker.Modder.Dispose();
-        Relinker.Modder = null;
     }
 
-    internal static void ModuleEnd() 
+    internal static void ModuleEnd()
     {
-        foreach (var t in InternalFortModules) 
+        foreach (var t in InternalFortModules)
         {
             t.InternalUnload();
         }
     }
 
-    internal static void ModsAfterLoad() 
+    internal static void ModsAfterLoad()
     {
-        foreach (var mod in InternalFortModules) 
+        foreach (var mod in InternalFortModules)
         {
             mod.AfterLoad();
         }
     }
 
-    internal static void RegisterMods() 
+    internal static void RegisterMods()
     {
-        foreach (var mod in InternalFortModules) 
+        foreach (var mod in InternalFortModules)
         {
             TowerFall.Loader.Message = ("Registering " + mod.Name + " Features").ToUpperInvariant();
             mod.Register();
         }
     }
 
-    internal static void WriteBlacklist(JsonValue ctx, string path) 
+    internal static void WriteBlacklist(List<string> ctx, string path)
     {
-        JsonTextWriter.WriteToFile(path, ctx);
+        var json = JsonSerializer.Serialize(ctx);
+        File.WriteAllText(path, json);
     }
 
-    internal static void Register(this FortModule module) 
+    internal static void Register(this FortModule module)
     {
         if (module is NoModule)
             return;
 
-        module.LoadContent();
+        try
+        {
+            module.LoadContent();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Register] [{module.Meta.Name}] There was an error trying to load a content.");
+            Logger.Error(ex.ToString());
+            return;
+        }
+
         module.Enabled = true;
 
-        try 
+        try
         {
-        foreach (var type in module.GetType().Assembly.GetTypes()) 
+        foreach (var type in module.GetType().Assembly.GetTypes())
         {
             if (type is null)
                 continue;
-            
-            // TODO rewrite
-            foreach (var attrib in type.GetCustomAttributes<CustomRoundLogicAttribute>()) 
-            {
-                if (attrib is null)
-                    continue;
 
-                string name = attrib.Name;
-                RoundLogicLoader loader = null;
-                ConstructorInfo ctor;
-                MethodInfo info;
-                string overriden = attrib.OverrideFunction ?? "Create";
-                info = type.GetMethod(overriden);
-                if (info == null || !info.IsStatic)
-                {
-                    Logger.Error($"[Register] [{module.Meta.Name}] No `static RoundLogicIdentifier Create()` method found on this RoundLogic {name}, ignored.");
-                    continue;
-                }
-                var identifier = (RoundLogicInfo)info.Invoke(null, Array.Empty<object>());
-                var legacyGameMode = new LegacyCustomGamemode(name, identifier);
-                ctor = type.GetConstructor(new Type[] { typeof(Session), typeof(bool) });
-                if (ctor != null) 
-                {
-                    loader = (x, y) => {
-                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x, y });
-                        return roundLogic;
-                    };
-                    goto Loaded;
-                }
-                ctor = type.GetConstructor(new Type[] { typeof(Session) });
-                if (ctor != null) 
-                {
-                    loader = (x, y) => {
-                        var roundLogic = (CustomVersusRoundLogic)ctor.Invoke(new object[] { x });
-                        return roundLogic;
-                    };
-                    goto Loaded;
-                }
-                Loaded:
-
-                legacyGameMode.LegacyLoader = loader;
-                legacyGameMode.coinSprite = legacyGameMode.CoinSprite();
-                GameModeRegistry.AddToLegacyVersus(name, legacyGameMode);
-            }
             GameModeRegistry.Register(type, module);
-            foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>()) 
+            foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>())
             {
                 if (attrib is null)
                     continue;
                 EntityRegistry.AddEnemy(module, type, attrib.Names);
             }
-            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>()) 
+            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>())
             {
                 if (clea is null)
                     continue;
-                foreach (var name in clea.Names) 
+                foreach (var name in clea.Names)
                 {
                     string id;
                     string methodName = string.Empty;
                     string[] split = name.Split('=');
-                    if (split.Length == 1) 
+                    if (split.Length == 1)
                     {
                         id = split[0];
                     }
-                    else if (split.Length == 2) 
+                    else if (split.Length == 2)
                     {
                         id = split[0];
                         methodName = split[1];
                     }
-                    else 
+                    else
                     {
                         Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
                         continue;
@@ -700,11 +587,11 @@ public static partial class RiseCore
                     MethodInfo info;
                     LevelEntityLoader loader = null;
                     info = type.GetMethod(methodName, new Type[] { typeof(XmlElement) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
                     {
                         loader = (xml, _, _) => {
                             var invoked = (LevelEntity)info.Invoke(null, new object[] {
-                               xml 
+                               xml
                             });
                             return invoked;
                         };
@@ -712,7 +599,7 @@ public static partial class RiseCore
                     }
 
                     info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
                     {
                         loader = (xml, pos, _) => {
                             var invoked = (LevelEntity)info.Invoke(null, new object[] {
@@ -724,7 +611,7 @@ public static partial class RiseCore
                     }
 
                     info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity))) 
+                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
                     {
                         loader = (xml, pos, nodes) => {
                             var invoked = (LevelEntity)info.Invoke(null, new object[] {
@@ -736,9 +623,9 @@ public static partial class RiseCore
                     }
 
                     ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
-                    if (ctor != null) 
+                    if (ctor != null)
                     {
-                        loader = (x, _, _) => 
+                        loader = (x, _, _) =>
                         {
                             var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
                             return invoked;
@@ -746,9 +633,9 @@ public static partial class RiseCore
                         goto Loaded;
                     }
                     ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
-                    if (ctor != null) 
+                    if (ctor != null)
                     {
-                        loader = (x, pos, _) => 
+                        loader = (x, pos, _) =>
                         {
                             var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos});
                             return invoked;
@@ -756,9 +643,9 @@ public static partial class RiseCore
                         goto Loaded;
                     }
                     ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                    if (ctor != null) 
+                    if (ctor != null)
                     {
-                        loader = (x, pos, nodes) => 
+                        loader = (x, pos, nodes) =>
                         {
                             var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos, nodes });
                             return invoked;
@@ -773,7 +660,7 @@ public static partial class RiseCore
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
             FortRise.PickupsRegistry.Register(type, module);
-            foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>()) 
+            foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
             {
                 if (dwBoss is null)
                     continue;
@@ -782,9 +669,9 @@ public static partial class RiseCore
                 ConstructorInfo ctor;
                 DarkWorldBossLoader loader = null;
                 ctor = type.GetConstructor(new Type[] { typeof(int) });
-                if (ctor != null) 
+                if (ctor != null)
                 {
-                    loader = diff => 
+                    loader = diff =>
                     {
                         var invoked = (DarkWorldBoss)ctor.Invoke(new object[] { diff });
                         return invoked;
@@ -796,7 +683,7 @@ public static partial class RiseCore
             }
         }
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             Logger.Error(e.ToString());
         }
@@ -804,22 +691,26 @@ public static partial class RiseCore
         module.AfterLoad();
     }
 
-    internal static void Unregister(this FortModule module) 
+    internal static void Unregister(this FortModule module)
     {
         module.InternalUnload();
     }
 
 
-    internal static IConsole ConsoleAttachment() 
+    internal static IConsole ConsoleAttachment()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             return new WindowConsole();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return new LinuxConsole();
         }
         return null;
     }
 
-    public static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug) 
+    public static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
     {
         List<string> detours = DetourLogs;
         if (detours.Count == 0)
@@ -827,7 +718,7 @@ public static partial class RiseCore
 
         DetourLogs = new List<string>();
 
-        foreach (string line in detours) 
+        foreach (string line in detours)
         {
             Logger.Log(line, level);
         }
@@ -838,17 +729,15 @@ public static partial class RiseCore
     /// </summary>
     /// <param name="modName">A Fort name, not a metadata name</param>
     /// <returns>true if found, else false</returns>
-    public static bool IsModExists(string modName) 
+    public static bool IsModExists(string modName)
     {
-        foreach (var module in InternalFortModules) 
+        foreach (var module in InternalFortModules)
         {
-            if (module.Name == modName) 
+            if (module.Name == modName)
             {
                 return true;
             }
         }
         return false;
     }
-
-    public static ArrowTypes GetArrowID(string name) => RiseCore.ArrowsRegistry[name].Types;
 }

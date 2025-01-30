@@ -103,6 +103,7 @@ public class patch_Background : Background
                     break;
 
                 /* Customs */
+                // TODO Add an actual custom backdrop for mods
                 case "CustomBackdrop":
                     elements.Add(new patch_Background.CustomBackdrop(level, xmlElement));
                     break;

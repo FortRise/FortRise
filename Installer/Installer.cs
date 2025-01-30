@@ -13,10 +13,9 @@ public class Installer : MarshalByRefObject
 
 
     private static readonly string[] fileDependencies = {
-        "I18N.dll", "I18N.West.dll",
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe", 
+        "MonoMod.exe", "TowerFall.exe.config", 
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
@@ -24,43 +23,46 @@ public class Installer : MarshalByRefObject
         "TowerFall.FortRise.mm.pdb",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
-        "TeuJson.dll", "DotNetZip.dll", "NLua.dll", "KeraLua.dll",
-        "MonoMod.ILHelpers.dll", "MonoMod.Backports.dll", "Hjson.dll",
+        "MonoMod.ILHelpers.dll", "Mono.Cecil.Rocks.dll",
         "DiscordGameSdk.dll", "DiscordGameSdk.pdb", "Fortrise.targets"
     };
+    
+    private static readonly string[] fileDeprecated = {
+        "DotNetZip.dll", "TeuJson.dll", "MonoMod.Backports.dll", "KeraLua.dll", "NLua.dll, I18N.dll, I18N.West.dll"
+    };
 
-    private static string[] fnaLibs; 
+    private static string[] nativeLibs; 
     private static readonly string modFile = "TowerFall.FortRise.mm.dll";
 
     public void Install(string path) 
     {
         // Let's try to not do it at compile-time.. It's really hard to maintain that way
-        string FNAPath;
-        Action<string> FNACopy;
+        string NativePath;
+        Action<string> NativeCopy;
         switch (Environment.OSVersion.Platform) 
         {
         case PlatformID.MacOSX:
-            FNAPath = "MacOS/osx";
-            FNACopy = CopyFNAFiles_MacOS;
-            fnaLibs = new string[] {
-                "libFAudio.0.dylib", "libFNA3D.0.dylib", "liblua53.dylib",
+            NativePath = "MacOS/osx";
+            NativeCopy = CopyNativeFiles_MacOS;
+            nativeLibs = new string[] {
+                "libFAudio.0.dylib", "libFNA3D.0.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
-                "libvulkan.1.dylib", "libdiscord_game_sdk.dylib"
+                "libvulkan.1.dylib", "libdiscord_game_sdk.dylib", "libmono-btls-shared.dylib", "libMonoPosixHelper.dylib"
             };
             break;
         case PlatformID.Unix:
-            FNAPath = "lib64";
-            FNACopy = CopyFNAFiles_Linux;
-            fnaLibs = new string[] {
-                "libFAudio.so.0", "libFNA3D.so.0", "liblua53.so",
-                "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so"
+            NativePath = "lib64";
+            NativeCopy = CopyNativeFiles_Linux;
+            nativeLibs = new string[] {
+                "libFAudio.so.0", "libFNA3D.so.0",
+                "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so", "libmono-btls-shared.so", "libMonoPosixHelper.so"
             };
             break;
         default:
-            FNAPath = "x86";
-            FNACopy = CopyFNAFiles_Windows;
-            fnaLibs = new string[] {
-                "FAudio.dll", "FNA3D.dll", "lua53.dll",
+            NativePath = "x86";
+            NativeCopy = CopyNativeFiles_Windows;
+            nativeLibs = new string[] {
+                "FAudio.dll", "FNA3D.dll",
                 "SDL2.dll", "libtheorafile.dll", "discord_game_sdk.dll"
             };
             break;
@@ -115,7 +117,7 @@ public class Installer : MarshalByRefObject
         }
         File.Copy(fortRiseDll, Path.Combine(path, "TowerFall.FortRise.mm.dll"), true);
 
-        Underline("Moving all of the lib files");
+        Underline("Moving all of the dependencies files");
         foreach (var file in fileDependencies) 
         {
             var lib = Path.Combine(libPath, file);
@@ -128,8 +130,27 @@ public class Installer : MarshalByRefObject
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 
-        Underline($"Moving all of the FNA files on {FNAPath}");
-        FNACopy(path);
+        Underline("Moving all of the library files");
+        var libraryFiles = Directory.GetFiles(Path.Combine(libPath, "Libraries"));
+        foreach (var file in libraryFiles) 
+        {
+            var lib = Path.Combine(libPath, file);
+            File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
+        }
+
+        foreach (var file in fileDeprecated) 
+        {
+            var lib = Path.Combine(path, file);
+            if (!File.Exists(lib)) 
+            {
+                continue;
+            }
+
+            File.Delete(lib);
+        }
+
+        Underline($"Moving all of the Native files on {NativePath}");
+        NativeCopy(path);
 
 
         Underline("Generating XML Document");
@@ -176,14 +197,19 @@ public class Installer : MarshalByRefObject
         Yellow("Generating HookGen");
 
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");
-        AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { "--private", Path.Combine(path, "TowerFall.exe"), Path.Combine(path, "MMHOOK_TowerFall.dll") } });
+        AsmHookGen.EntryPoint.Invoke(null, new object[] { new string[] { 
+                "--private", 
+                Path.Combine(path, "TowerFall.exe"), 
+                Path.Combine(path, "MMHOOK_TowerFall.dll") 
+            } 
+        });
 
         var patchVersion = Path.Combine(path, "PatchVersion.txt");
 
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "4.7.7");
+        sb.AppendLine("Installer Version: " + "5.0.0");
 
         var text = sb.ToString();
 
@@ -270,10 +296,10 @@ public class Installer : MarshalByRefObject
         xmlDocument.Save(toPath);
     }
 
-    private static void CopyFNAFiles_Windows(string path) 
+    private static void CopyNativeFiles_Windows(string path) 
     {
-        Console.WriteLine("CopyFNAFiles_Windows is called");
-        foreach (var fnaLib in fnaLibs) 
+        Console.WriteLine("CopyNativeFiles_Windows is called");
+        foreach (var fnaLib in nativeLibs) 
         {
             var lib = Path.Combine("x86", fnaLib);
             if (!File.Exists(lib)) 
@@ -288,10 +314,10 @@ public class Installer : MarshalByRefObject
         }
     }
 
-    private static void CopyFNAFiles_Linux(string path) 
+    private static void CopyNativeFiles_Linux(string path) 
     {
-        Console.WriteLine("CopyFNAFiles_Linux is called");
-        foreach (var fnaLib in fnaLibs) 
+        Console.WriteLine("CopyNativeFiles_Linux is called");
+        foreach (var fnaLib in nativeLibs) 
         {
             var origPath = Path.Combine(path, "lib64/orig");
 
@@ -312,11 +338,11 @@ public class Installer : MarshalByRefObject
         }
     }
 
-    private static void CopyFNAFiles_MacOS(string path) 
+    private static void CopyNativeFiles_MacOS(string path) 
     {
-        Console.WriteLine("CopyFNAFiles_MACOS is called");
+        Console.WriteLine("CopyNativeFiles_MACOS is called");
         var macOSPath = new DirectoryInfo(path).Parent.FullName;
-        foreach (var fnaLib in fnaLibs) 
+        foreach (var fnaLib in nativeLibs) 
         {
             var osxPath = Path.Combine(macOSPath, "MacOS/Resources/osx");
             var origPath = Path.Combine(osxPath, "orig");

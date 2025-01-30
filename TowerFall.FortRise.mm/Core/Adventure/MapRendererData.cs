@@ -22,13 +22,8 @@ public class MapRendererNode : CompositeComponent
         Xml = xml;
         Mod = mod;
 
-        var atlasPath = xml.Attr("atlas", "Atlas/atlas");
         var spriteDataPath = xml.Attr("spriteData", "Atlas/SpriteData/mapSpriteData");
-        if (!mod.Source.Content.Atlases.TryGetValue(atlasPath, out var atlas)) 
-        {
-            Logger.Error($"[MAP RENDERER][{mod.Root}] Atlas path {atlasPath} not found!");
-            return;
-        }
+        
         if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataPath, out var spriteData)) 
         {
             Logger.Warning($"[MAP RENDERER][{mod.Root}] SpriteData path {spriteDataPath} not found!");
@@ -42,27 +37,19 @@ public class MapRendererNode : CompositeComponent
                 break;
             case "landImage":
                 var landImageName = element.Attr("image", "mapLand");
-                Land = atlas[landImageName];
+                Land = TFGame.MenuAtlas[landImageName];
                 Add(new Image(Land));
                 break;
             case "waterImage":
                 var waterImageName = element.Attr("image", "mapWater");
-                Water = atlas[waterImageName];
+                Water = TFGame.MenuAtlas[waterImageName];
                 break;
             case "mapImage":
                 var mapImageName = element.Attr("image");
                 var x = element.AttrInt("x");
                 var y = element.AttrInt("y");
-                patch_Atlas atlasPack;
-                if (mapImageName.StartsWith("TFGame.MenuAtlas::")) 
-                {
-                    atlasPack = (patch_Atlas)TFGame.MenuAtlas;
-                    mapImageName = mapImageName.Replace("TFGame.MenuAtlas::", "");
-                }
-                else
-                    atlasPack = atlas;
                 
-                Add(new Image(atlas[mapImageName]));
+                Add(new Image(TFGame.MenuAtlas[mapImageName]));
                 break;
             case "mapAnimated":
                 var mapAnimated = element.Attr("name");
