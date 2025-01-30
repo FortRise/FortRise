@@ -27,7 +27,7 @@ public sealed class AdventureMapButton : MapButton
     private string lockedTextA;
     private string lockedTextB;
     public string LevelSet;
-    private ModuleMetadata[] requiredMods;
+    // private ModuleMetadata[] requiredMods;
     private SineWave lockedSine;
     private bool wasSelected;
     private AdventureType type;

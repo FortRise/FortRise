@@ -74,15 +74,19 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     {
         var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream);
         var fortRise = metadata.GetFortRiseMetadata();
-        if (fortRise == null)
+        if (fortRise != null)
+        {
+            if (RiseCore.FortRiseVersion < fortRise.Version)
+            {
+                Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {fortRise.Version}. Your FortRise version: {RiseCore.FortRiseVersion}");
+                return null;
+            }
+        }
+        else 
         {
             Logger.Error("FortRise dependency cannot be found, this will be invalid later version of FortRise");
         }
-        if (RiseCore.FortRiseVersion < fortRise?.Version)
-        {
-            Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {fortRise.Version}. Your FortRise version: {RiseCore.FortRiseVersion}");
-            return null;
-        }
+
         string zipPath = "";
         if (!zip)
         {
