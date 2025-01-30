@@ -30,6 +30,20 @@ FortRise no longer accepts `meta.hjson` since it is not usually used in any way,
 Second of all, FortRise would no longer accepts names that has a special characters and spaces in it except `.` and `_`. Which means
 you had to change the mod name into a name that could accepts: [Aa-Zz0-9._].
 
+Third, the dependencies need to explicitly depends on a certain version of FortRise to ensure backward compatibility for the forseeable future,
+you will need to write this in your dependencies field:
+```json
+{
+    // Other stuff above
+    "dependencies": [
+        {
+            "name": "FortRise",
+            "version": "5.0.0"
+        }
+    ]
+}
+```
+
 
 ## OnTower API Changes
 OnTower patcher were removed in favor of a new TowerPatch API. If you are using this API correctly, migrating to it will be a breeze.
