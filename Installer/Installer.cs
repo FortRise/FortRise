@@ -43,7 +43,7 @@ public class Installer : MarshalByRefObject
         {
         case PlatformID.MacOSX:
             NativePath = "MacOS/osx";
-            NativeCopy = CopyFNAFiles_MacOS;
+            NativeCopy = CopyNativeFiles_MacOS;
             nativeLibs = new string[] {
                 "libFAudio.0.dylib", "libFNA3D.0.dylib",
                 "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
@@ -52,7 +52,7 @@ public class Installer : MarshalByRefObject
             break;
         case PlatformID.Unix:
             NativePath = "lib64";
-            NativeCopy = CopyFNAFiles_Linux;
+            NativeCopy = CopyNativeFiles_Linux;
             nativeLibs = new string[] {
                 "libFAudio.so.0", "libFNA3D.so.0",
                 "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so", "libmono-btls-shared.so", "libMonoPosixHelper.so"
@@ -60,7 +60,7 @@ public class Installer : MarshalByRefObject
             break;
         default:
             NativePath = "x86";
-            NativeCopy = CopyFNAFiles_Windows;
+            NativeCopy = CopyNativeFiles_Windows;
             nativeLibs = new string[] {
                 "FAudio.dll", "FNA3D.dll",
                 "SDL2.dll", "libtheorafile.dll", "discord_game_sdk.dll"
@@ -117,7 +117,7 @@ public class Installer : MarshalByRefObject
         }
         File.Copy(fortRiseDll, Path.Combine(path, "TowerFall.FortRise.mm.dll"), true);
 
-        Underline("Moving all of the lib files");
+        Underline("Moving all of the dependencies files");
         foreach (var file in fileDependencies) 
         {
             var lib = Path.Combine(libPath, file);
@@ -127,6 +127,14 @@ public class Installer : MarshalByRefObject
                 continue;
             }
 
+            File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
+        }
+
+        Underline("Moving all of the library files");
+        var libraryFiles = Directory.GetFiles(Path.Combine(libPath, "Libraries"));
+        foreach (var file in libraryFiles) 
+        {
+            var lib = Path.Combine(libPath, file);
             File.Copy(lib, Path.Combine(path, Path.GetFileName(lib)), true);
         }
 

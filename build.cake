@@ -33,7 +33,7 @@ Task("PublishInstaller")
     DotNetPublish("./Installer/Installer.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = $"./artifacts/Installer.v{version}-NoANSI",
+        OutputDirectory = $"./artifacts/Installer.v{version}-Windows",
         NoBuild = true
     });
     DotNetPublish("./Installer/Installer.Kick.csproj", new DotNetPublishSettings 
