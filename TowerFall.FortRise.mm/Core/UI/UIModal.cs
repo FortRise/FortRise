@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
+using TowerFall;
 
-namespace TowerFall;
+namespace FortRise;
 
 /// <summary>
 /// A modal api that can be used to spawn a dialog that can be added in the scene.

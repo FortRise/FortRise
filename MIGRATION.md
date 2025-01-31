@@ -313,6 +313,7 @@ These following methods and classes are removed on v5.0. If you needed these fea
 + FortRise.SaveDataFormatExt
 + FortRise.JsonSaveDataFormat
 + FortRise.JsonBinarySaveDataFormat
++ FortRise.UILoader
 
 ### With signatures
 + TowerFall.AtlasExt.CreateAtlas(FortContent, string, string, bool, ContentAccess)
