@@ -33,6 +33,8 @@ public abstract class CustomGameMode
     public int TeamMinimumPlayers { get; set; } = 3;
     public int MinimumPlayers { get; set; } = 2;
 
+    public bool RespectFixedFirst { get; set; }
+
     public int CoinOffset { get => coinOffset; set => coinOffset = value; }
     private int coinOffset = 10;
 

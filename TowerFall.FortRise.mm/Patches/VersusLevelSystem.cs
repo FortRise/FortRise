@@ -70,8 +70,32 @@ public class patch_VersusLevelSystem : VersusLevelSystem
         }
     }
 
-    [MonoModIgnore]
-    private extern void GenLevels(MatchSettings matchSettings);
+    [MonoModReplace]
+    private void GenLevels(MatchSettings matchSettings)
+    {
+		levels = VersusTowerData.GetLevels(matchSettings);
+		if (VersusTowerData.FixedFirst && lastLevel == null)
+		{
+            var patchMatchSettings = (patch_MatchSettings)matchSettings;
+            if (patchMatchSettings.IsCustom && !patchMatchSettings.CurrentCustomGameMode.RespectFixedFirst)
+            {
+                goto JUMP;
+            }
+			string item = levels[0];
+			levels.RemoveAt(0);
+			levels.Shuffle(new Random());
+			levels.Insert(0, item);
+			return;
+		}
+
+        JUMP: // not even once
+		levels.Shuffle(new Random());
+		if (levels[0] == lastLevel)
+		{
+			levels.RemoveAt(0);
+			levels.Add(lastLevel);
+		}
+    }
 }
 
 public static class VersusLevelSystemExt 
