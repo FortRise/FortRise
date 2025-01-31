@@ -15,7 +15,8 @@ FortRise v5.0 might not be a big release, but can improves the development of th
     7. [VanillaAtlas removal](#vanillaatlas-removal)
 2. [Optional Migration](#optional-migration)
 	1. [Using textures with an Atlas](#using-textures-with-an-atlas)
-    2. [Creating an Atlas](#creating-an-atlas)
+	2. [Using SpriteDatas](#using-spritedatas)
+    3. [Creating an Atlas](#creating-an-atlas)
 3. [Renamed APIs](#renamed-apis)
 4. [Removed APIs](#removed-apis)
 5. [Additional Information](#additional-information)
@@ -250,6 +251,12 @@ You can now use the Vanilla `TFGame.Atlas` for looking up followed by the metada
 ```csharp
 TFGame.Atlas["MyMod/mytextures"];
 ```
+
+## Using SpriteDatas
+Like the Atlases, SpriteData is also now inside of any of vanilla spriteData with mod prefixes which making custom map data much easier,
+and no need for manual loading for spriteDatas inside of the code.
+
+As much as I like this approach, you probably still needs to load SpriteData manually, so the way to do that is still kept in.
 
 ## Creating an Atlas
 Before, you had to create your own Atlas which means, you had to merge all of the images into one single image, and map its location and

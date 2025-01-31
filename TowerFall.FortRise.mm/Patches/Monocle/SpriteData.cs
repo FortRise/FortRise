@@ -30,6 +30,11 @@ public class patch_SpriteData : SpriteData
         this.atlas = atlas;
         this.sprites = sprites;
     }
+
+    internal Dictionary<string, XmlElement> GetSprites() 
+    {
+        return sprites;
+    }
 }
 
 public static class SpriteDataExt 
@@ -119,5 +124,10 @@ public static class SpriteDataExt
         spriteData.SetAtlasAndSprite(atlas, sprites);
         data = spriteData;
         return true;
+    }
+
+    public static Dictionary<string, XmlElement> GetSprites(this SpriteData spriteData)
+    {
+        return ((patch_SpriteData)spriteData).GetSprites();
     }
 }

@@ -17,17 +17,9 @@ public class MapRendererNode : CompositeComponent
     public Dictionary<string, AnimatedTower> AnimatedTowers = new();
     public AnimatedTower CurrentTower;
 
-    public MapRendererNode(XmlElement xml, RiseCore.Resource mod) : base(true, true)
+    public MapRendererNode(XmlElement xml) : base(true, true)
     {
         Xml = xml;
-        Mod = mod;
-
-        var spriteDataPath = xml.Attr("spriteData", "Atlas/SpriteData/mapSpriteData");
-        
-        if (!mod.Source.Content.SpriteDatas.TryGetValue(spriteDataPath, out var spriteData)) 
-        {
-            Logger.Warning($"[MAP RENDERER][{mod.Root}] SpriteData path {spriteDataPath} not found!");
-        }
         foreach (XmlElement element in xml["elements"]) 
         {
             switch (element.Name) 
@@ -53,13 +45,6 @@ public class MapRendererNode : CompositeComponent
                 break;
             case "mapAnimated":
                 var mapAnimated = element.Attr("name");
-
-                var containsVanillaSpriteData = mapAnimated.StartsWith("TFGame.MenuSpriteData::");
-                if (spriteData == null && !containsVanillaSpriteData) 
-                {
-                    Logger.Error($"[MAP RENDERER][{mod.Root}] You cannot use mapAnimated when SpriteData is not present");
-                    return;
-                }
                 
                 var mapX = element.AttrInt("x");
                 var mapY = element.AttrInt("y");
@@ -67,15 +52,8 @@ public class MapRendererNode : CompositeComponent
                 var outAnimation = element.ChildText("out", "out");
                 var notSelected = element.ChildText("notSelected", "notSelected");
                 var selected = element.ChildText("selected", "selected");
-                Sprite<string> animation;
-                if (containsVanillaSpriteData) 
-                {
-                    animation = TFGame.MenuSpriteData.GetSpriteString(mapAnimated.Substring("TFGame.MenuSpriteData::".Length));
-                }
-                else 
-                {
-                    animation = spriteData.GetSpriteString(mapAnimated);
-                }
+                Sprite<string> animation = TFGame.MenuSpriteData.GetSpriteString(mapAnimated);
+                
                 var tower = new AnimatedTower(inAnimation, outAnimation, selected, notSelected, animation);
 
                 animation.Position = new Vector2(mapX, mapY);

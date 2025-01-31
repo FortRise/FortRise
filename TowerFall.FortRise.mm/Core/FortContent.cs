@@ -454,18 +454,33 @@ public class FortContent
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData)))
         {
             var child = spriteDataRes.Value;
-            var spriteData = child.RootPath;
-            if (Path.GetExtension(spriteData) != ".xml")
+            var filename = Path.GetFileName(child.Path);
+
+            var spriteDataXML = ModIO.LoadXml(child)["SpriteData"];
+
+            foreach (XmlElement item in spriteDataXML)
             {
-                continue;
+                if (filename == "spriteData.xml")
+                {
+                    TFGame.SpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
+                }
+                else if (filename == "menuSpriteData.xml")
+                {
+                    TFGame.MenuSpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
+                }
+                else if (filename == "corpseSpriteData.xml")
+                {
+                    TFGame.CorpseSpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
+                }
+                else if (filename == "bossSpriteData.xml")
+                {
+                    TFGame.BossSpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
+                }
+                else if (filename == "bgSpriteData.xml")
+                {
+                    TFGame.BGSpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
+                }
             }
-
-            int indexOfSlash = spriteData.IndexOf('/');
-
-            spriteData = spriteData.Substring(indexOfSlash + 1).Replace("Content/", "");
-
-            // Will just try to load the spriteData, some spriteData might not have a neeeded attribute.
-            TryLoadSpriteData(spriteData, out var result);
         }
 
         foreach (var gameDataRes in ResourceSystem.Resources
@@ -531,7 +546,7 @@ public class FortContent
             case "mapData.xml":
             {
                 var xmlMap = ModIO.LoadXml(child)["map"];
-                var map = new MapRendererNode(xmlMap, child);
+                var map = new MapRendererNode(xmlMap);
                 ExtendedGameData.Defer(() => ExtendedGameData.InternalMapRenderers.Add(child.Root.Substring(4).Replace("/", ""), map), 1);
                 Logger.Verbose("[MapData] Loaded: " + child.Root.Substring(4) + child.Path);
             }
