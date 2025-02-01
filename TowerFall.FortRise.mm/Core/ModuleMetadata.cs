@@ -8,21 +8,13 @@ namespace FortRise;
 
 public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
-    [JsonPropertyName("name")]
     public string Name { get; set; }
-    [JsonPropertyName("version")]
     public Version Version { get; set; }
-    [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
-    [JsonPropertyName("author")]
     public string Author { get; set; } = string.Empty;
-    [JsonPropertyName("dll")]
     public string DLL { get; set; } = string.Empty;
-    [JsonPropertyName("dependencies")]
     public ModuleMetadata[] Dependencies { get; set; } = null;
-    [JsonPropertyName("nativePath")]
     public string NativePath { get; set; } = string.Empty;
-    [JsonPropertyName("nativePathX86")]
     public string NativePathX86 { get; set; } = string.Empty;
 
     public string PathDirectory = string.Empty;
@@ -70,9 +62,14 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         return ParseMetadata(dir, jfs);
     }
 
+    private static JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions 
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public static ModuleMetadata ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
-        var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream);
+        var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream, metaJsonOptions);
         var fortRise = metadata.GetFortRiseMetadata();
         if (fortRise != null)
         {
