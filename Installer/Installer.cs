@@ -67,6 +67,13 @@ public class Installer : MarshalByRefObject
             };
             break;
         }
+
+
+        if (RequiresUpdateRuntime(path))
+        {
+            Underline("Requiring runtime update, this only takes a few seconds!");
+            UpdateRuntime(path);
+        }
         
         var fortOrigPath = Path.Combine(path, "fortOrig");
 
@@ -209,7 +216,7 @@ public class Installer : MarshalByRefObject
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "5.0.0");
+        sb.AppendLine("Installer Version: " + "5.0.1");
 
         var text = sb.ToString();
 
@@ -392,6 +399,67 @@ public class Installer : MarshalByRefObject
     private static void ThrowError(string error) 
     {
         Console.WriteLine(error);
+    }
+
+    private static void UpdateRuntime(string tfPath) 
+    {
+        string[] runtimeFiles = {
+            "Mono.Posix.dll", 
+            "Mono.Security.dll", 
+            "monoconfig", 
+            "monomachineconfig", 
+            "mscorlib.dll",
+            "System.Configuration.dll",
+            "System.Core.dll",
+            "System.Data.dll",
+            "System.dll",
+            "System.Drawing.dll",
+            "System.Numerics.dll",
+            "System.Runtime.Serialization.dll",
+            "System.Security.dll",
+            "System.Xml.dll",
+            "System.Xml.Linq.dll"
+        };
+
+        string apphostExt;
+        if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+        {
+            apphostExt = "osx";
+        }
+        else 
+        {
+            apphostExt = "x86_64";
+        }
+
+        // Paste all the runtime libs
+        for (int i = 0; i < runtimeFiles.Length; i++)
+        {
+            var file = runtimeFiles[i];
+            if (!File.Exists(file))
+            {
+                ThrowError($"File name: {file} does not exists!");
+                continue;
+            }
+            var pastePath = Path.Combine(tfPath, file);
+            File.Copy(file, pastePath, true);
+        }
+
+        // We can just use the installer apphost
+        File.Copy("Installer.bin." + apphostExt, Path.Combine(tfPath, "TowerFall.bin." + apphostExt), true);
+        Succeed("Mono Runtime Updated!");
+    }
+
+    private static bool RequiresUpdateRuntime(string tfPath) 
+    {
+        if (Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX)
+        {
+            var monoMachineConfig = Path.Combine(tfPath, "monomachineconfig");
+
+            // we cannot check for its version, so we'll just check if this file does not exists
+            // which means the runtime is oudated.
+            return !File.Exists(monoMachineConfig);
+        }
+        return false;
     }
 
     private static Assembly LoadAssembly(string path) 
