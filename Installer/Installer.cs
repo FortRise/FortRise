@@ -82,12 +82,14 @@ public class Installer : MarshalByRefObject
             File.Copy(Path.Combine(fortOrigPath, "TowerFall.exe"), Path.Combine(path, "TowerFall.exe"), true);
         }
 
-        Underline("Moving original TowerFall into fortOrig folder");
         if (!Directory.Exists(fortOrigPath))
             Directory.CreateDirectory(fortOrigPath);
         
         if (!File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe")))
+        {
+            Underline("Moving original TowerFall into fortOrig folder");
             File.Copy(Path.Combine(path, "TowerFall.exe"), Path.Combine(fortOrigPath, "TowerFall.exe"));
+        }
 
         if (!File.Exists(Path.Combine(fortOrigPath, "TowerFall.exe")))
         {
@@ -95,13 +97,14 @@ public class Installer : MarshalByRefObject
             return;
         }
 
-        Underline("Moving original FNA.dll and FNA.dll.config into fortOrig folder if have one");
         if (File.Exists(Path.Combine(path, "FNA.dll")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll")))
         {
+            Underline("Moving original FNA.dll to fortOrig");
             File.Copy(Path.Combine(path, "FNA.dll"), Path.Combine(fortOrigPath, "FNA.dll"));
         }
         if (File.Exists(Path.Combine(path, "FNA.dll.config")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll.config")))
         {
+            Underline("Moving original FNA.dll.config to fortOrig");
             File.Copy(Path.Combine(path, "FNA.dll.config"), Path.Combine(fortOrigPath, "FNA.dll.config"));
         }
 
@@ -403,6 +406,11 @@ public class Installer : MarshalByRefObject
 
     private static void UpdateRuntime(string tfPath) 
     {
+        var backupDir = Path.Combine(tfPath, "system-mono-old");
+        if (!Directory.Exists(backupDir))
+        {
+            Directory.CreateDirectory(backupDir);
+        }
         string[] runtimeFiles = {
             "Mono.Posix.dll", 
             "Mono.Security.dll", 
@@ -441,10 +449,16 @@ public class Installer : MarshalByRefObject
                 continue;
             }
             var pastePath = Path.Combine(tfPath, file);
+
+            if (File.Exists(pastePath))
+            {
+                File.Copy(pastePath, Path.Combine(backupDir, file), true);
+            }
             File.Copy(file, pastePath, true);
         }
 
         // We can just use the installer apphost
+        File.Copy(Path.Combine(tfPath, "TowerFall.bin." + apphostExt), Path.Combine(backupDir, "TowerFall.bin." + apphostExt), true);
         File.Copy("Installer.bin." + apphostExt, Path.Combine(tfPath, "TowerFall.bin." + apphostExt), true);
         Succeed("Mono Runtime Updated!");
     }
