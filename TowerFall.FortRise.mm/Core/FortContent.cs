@@ -458,8 +458,12 @@ public class FortContent
 
             var spriteDataXML = ModIO.LoadXml(child)["SpriteData"];
 
-            foreach (XmlElement item in spriteDataXML)
+            foreach (object elm in spriteDataXML)
             {
+                if (elm is not XmlElement item)
+                {
+                    continue;
+                }
                 if (filename == "spriteData.xml")
                 {
                     TFGame.SpriteData.GetSprites().Add(child.Root.Substring(4) + item.Attr("id"), item);
