@@ -660,6 +660,7 @@ public static partial class RiseCore
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
             FortRise.PickupsRegistry.Register(type, module);
+            FortRise.BackdropRegistry.Register(type, module);
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
             {
                 if (dwBoss is null)
