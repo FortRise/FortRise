@@ -25,5 +25,4 @@ artifacts/
 lib-stripped/TestDep
 PatchVersion.txt
 options.json
-
-*.malfunc.*
+__pycache__
