@@ -4,43 +4,88 @@ using TowerFall;
 
 namespace FortRise;
 
-
+/// <summary>
+/// A class to create custom gamemode for Versus or Co-Op (WIP) mode. By extending this class, 
+/// the mod loader will then proceed to register the class into the GameModeRegistry.
+/// </summary>
 public abstract class CustomGameMode 
 {
+    /// <summary>
+    /// The ID of your GameMode, this can only be set by the mod loader.
+    /// </summary>
     public string ID { get; internal set; }
     internal TowerFall.Modes GameModeInternal;
 
+    /// <summary>
+    /// The name that would show up on the gamemode selection, by default
+    /// it will use the type name instead.
+    /// </summary>
     public string Name 
     { 
         get => name ?? StringUtils.SeparateCases(GetType().Name); 
         set => name = value; 
     }
     private string name;
+
+    /// <summary>
+    /// The color of the name that would show up in the round start screen.
+    /// </summary>
     public Color NameColor { get => nameColor; set => nameColor = value; }
     private Color nameColor = Color.White;
+
+    /// <summary>
+    /// A huge icon that shows up on the gamemode selection.
+    /// </summary>
     public Subtexture Icon 
     { 
         get => icon; 
         set => icon = value; 
     }
     private Subtexture icon = TFGame.MenuAtlas["gameModes/lastManStanding"];
+
+    /// <summary>
+    /// A type whether it should be Versus or Co-Op mode.
+    /// </summary>
     public GameModeType ModeType { get => type; set => type = value; }
     private GameModeType type;
 
+    /// <summary>
+    /// A flag to switch the mode to team mode.
+    /// </summary>
     public bool TeamMode { get => teamMode; set => teamMode = value; }
     private bool teamMode;
 
+    /// <summary>
+    /// A minimum players to play for team mode.
+    /// </summary>
     public int TeamMinimumPlayers { get; set; } = 3;
+
+    /// <summary>
+    /// A minimum players to play for FFA mode.
+    /// </summary>
     public int MinimumPlayers { get; set; } = 2;
 
+    /// <summary>
+    /// The level that has a flag fixedFirst will never have an effect and will random the first level if this flag
+    /// is set to false.
+    /// </summary>
     public bool RespectFixedFirst { get; set; }
 
+    /// <summary>
+    /// An X-Offset of a coin show up on the result.
+    /// </summary>
     public int CoinOffset { get => coinOffset; set => coinOffset = value; }
     private int coinOffset = 10;
 
+    /// <summary>
+    /// A sound for a coin earned on the result.
+    /// </summary>
     public SFX EarnedCoinSound { get => earnedCoinSound; set => earnedCoinSound = value; }
     private SFX earnedCoinSound = Sounds.sfx_multiCoinEarned;
 
+    /// <summary>
+    /// A sound for a coin lost on the result.
+    /// </summary>
     public SFX LoseCoinSound { get => loseCoinSound; set => loseCoinSound = value; }
     private SFX loseCoinSound = Sounds.sfx_multiSkullNegative;
     internal Sprite<int> coinSprite;
@@ -52,6 +97,9 @@ public abstract class CustomGameMode
         InitializeSounds();
     }
 
+    /// <summary>
+    /// Creates a custom game mode, this must be registered to the GameModeRegistry.
+    /// </summary>
     public CustomGameMode() 
     {
         ID = GetType().Name;
@@ -116,5 +164,7 @@ public abstract class CustomGameMode
     }
 }
 
-
+/// <summary>
+/// An enum type used to specify where to put this game mode.
+/// </summary>
 public enum GameModeType { Versus, CoOp }
