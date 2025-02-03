@@ -15,7 +15,7 @@ public class Installer : MarshalByRefObject
     private static readonly string[] fileDependencies = {
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe", "TowerFall.exe.config", 
+        "MonoMod.exe",
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
@@ -165,6 +165,9 @@ public class Installer : MarshalByRefObject
 
         Underline("Generating XML Document");
         GenerateDOC(Path.Combine(libPath, "TowerFall.FortRise.mm.xml"), Path.Combine(path, "TowerFall.xml"));
+
+        Underline("Generating TowerFall.config");
+        GenerateDOC(Path.Combine(libPath, "TowerFall.FortRise.mm.dll.config"), Path.Combine(path, "TowerFall.exe.config"));
 
 
         Underline("Patching TowerFall");
