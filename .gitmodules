@@ -1,0 +1,4 @@
+[submodule "lib-ext/MonoMod"]
+	path = lib-ext/MonoMod
+	url = https://github.com/MonoMod/MonoMod.git
+	branch = reorganize

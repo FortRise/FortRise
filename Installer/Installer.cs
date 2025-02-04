@@ -15,12 +15,12 @@ public class Installer : MarshalByRefObject
     private static readonly string[] fileDependencies = {
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe",
+        "MonoMod.exe",  "MonoMod.Backports.dll", "MonoMod.Iced.dll", "MonoMod.Core.dll",
         "MonoMod.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
         "TowerFall.FortRise.mm.xml",
-        "TowerFall.FortRise.mm.pdb",
+        "TowerFall.FortRise.mm.pdb", "System.ValueTuple.dll",
         "MonoMod.RuntimeDetour.dll", "MonoMod.RuntimeDetour.xml",
         "Mono.Cecil.dll", "Mono.Cecil.Mdb.dll", "Mono.Cecil.Pdb.dll",
         "MonoMod.ILHelpers.dll", "Mono.Cecil.Rocks.dll",
@@ -28,7 +28,7 @@ public class Installer : MarshalByRefObject
     };
     
     private static readonly string[] fileDeprecated = {
-        "DotNetZip.dll", "TeuJson.dll", "MonoMod.Backports.dll", "KeraLua.dll", "NLua.dll, I18N.dll, I18N.West.dll"
+        "DotNetZip.dll", "TeuJson.dll", "KeraLua.dll", "NLua.dll, I18N.dll, I18N.West.dll"
     };
 
     private static string[] nativeLibs; 
@@ -177,7 +177,7 @@ public class Installer : MarshalByRefObject
         LoadAssembly(Path.Combine(path, "MonoMod.Utils.dll"));
         LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.dll"));
 
-        AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.exe"));
+        AsmMonoMod = LoadAssembly(Path.Combine(path, "MonoMod.Patcher.exe"));
         AsmHookGen = LoadAssembly(Path.Combine(path, "MonoMod.RuntimeDetour.HookGen.exe"));
 
         Environment.SetEnvironmentVariable("MONOMOD_DEPENDENCY_MISSING_THROW", "0");

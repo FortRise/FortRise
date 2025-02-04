@@ -14,10 +14,11 @@ dependencies = [
     "Mono.Cecil.Mdb.dll",
     "Mono.Cecil.Pdb.dll",
     "Mono.Cecil.Rocks.dll",
-    "MonoMod.exe",
+    "MonoMod.Patcher.exe",
     "MonoMod.RuntimeDetour.dll",
     "MonoMod.RuntimeDetour.HookGen.exe",
     "MonoMod.Utils.dll",
+    "System.ValueTuple.dll"
 ]
 
 library_dependencies = [
@@ -31,8 +32,7 @@ library_dependencies = [
     "System.Runtime.CompilerServices.Unsafe.dll",
     "System.Text.Encodings.Web.dll",
     "System.Text.Json.dll",
-    "System.Threading.Tasks.Extensions.dll",
-    "System.ValueTuple.dll"
+    "System.Threading.Tasks.Extensions.dll"
 ]
 
 def file_copy(tfpath: str, fpath: str):
@@ -56,14 +56,14 @@ def file_copy(tfpath: str, fpath: str):
 def file_copy_library(tfpath:str, fpath: str):
     file = path.join(".", fpath)
 
-    dir = path.join(tfpath, "Installer-Framework"," Libraries")    
+    dir = path.join(tfpath, "Installer-Framework", "Libraries")    
     if not path.exists(dir):
         makedirs(dir)
     destination = path.join(dir, fpath)
     print(f"Copying {file} to {destination}")
     copyfile(file, destination)
 
-    dir = path.join("..", "..", "..", "..", "Installer", "lib-framework", 'Libraries')
+    dir = path.join("..", "..", "..", "..", "Installer", "lib-framework", "Libraries")
     if not path.exists(dir):
         makedirs(dir)
 

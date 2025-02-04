@@ -160,23 +160,24 @@ namespace TowerFall
                     RiseCore.DebugMode = true;
                 }
             }
-            if (RiseCore.DebugMode) 
+            if (RiseCore.DebugMode)
             {
-                var detourModManager = new DetourModManager();
-                detourModManager.OnILHook += (assembly, source, dest) => 
-                {
-                    object obj = dest.Target;
-                    RiseCore.DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
-                };
-                detourModManager.OnHook += (assembly, source, dest, obj) => 
-                {
-                    RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
-                };
+                // TODO fill it in later
+                // var detourModManager = new DetourModManager();
+                // detourModManager.OnILHook += (assembly, source, dest) => 
+                // {
+                //     object obj = dest.Target;
+                //     RiseCore.DetourLogs.Add($"ILHook from {assembly.GetName().Name}: {source.GetID()} :: {dest.Method?.GetID() ?? "??"}{(obj == null ? "" : $"(object: {obj})")}");
+                // };
+                // detourModManager.OnHook += (assembly, source, dest, obj) => 
+                // {
+                //     RiseCore.DetourLogs.Add($"Hook from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}{(obj == null ? "" : $"(object: {obj})")}");
+                // };
 
-                detourModManager.OnDetour += (assembly, source, dest) => 
-                {
-                    RiseCore.DetourLogs.Add($"Detour from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}");
-                };
+                // detourModManager.OnDetour += (assembly, source, dest) => 
+                // {
+                //     RiseCore.DetourLogs.Add($"Detour from {assembly.GetName().Name}: {source.GetID()} :: {dest.GetID()}");
+                // };
                 
                 try 
                 {
