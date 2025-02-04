@@ -18,6 +18,10 @@ dependencies = [
     "MonoMod.RuntimeDetour.dll",
     "MonoMod.RuntimeDetour.HookGen.exe",
     "MonoMod.Utils.dll",
+    "MonoMod.Backports.dll",
+    "MonoMod.Iced.dll",
+    "MonoMod.ILHelpers.dll",
+    "MonoMod.Core.dll",
     "System.ValueTuple.dll"
 ]
 

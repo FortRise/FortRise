@@ -1,1 +1,0 @@
-start ./busybox64.exe bash build.sh
