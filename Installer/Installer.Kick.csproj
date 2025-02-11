@@ -18,7 +18,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Remove="lib-kick/MonoKickstart/"/>
+    <None Remove="lib-kick/MonoKickstart/"/>
     <Content Include="../lib/osx/**/*">
       <Link>osx/%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
