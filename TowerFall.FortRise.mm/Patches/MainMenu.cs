@@ -271,6 +271,20 @@ namespace TowerFall
             MainMenu.CurrentMatchSettings = null;
         }
 
+        public void CreateCoOp()
+        {
+            CoOpModeButton coopModeButton = new CoOpModeButton(new Vector2(160f, 90), new Vector2(-100f, 90));
+            Add(new List<MenuItem>() {coopModeButton});
+            ToStartSelected = coopModeButton;
+
+            BackState = patch_MenuState.Main;
+            TweenBGCameraToY(1);
+
+            QuestButton questButton = new QuestButton(new Vector2(100f, 90f), new Vector2(-160f, 120f));
+			DarkWorldButton darkWorldButton = new DarkWorldButton(new Vector2(220f, 90f), new Vector2(480f, 120f));
+            Add(new patch_CoOpDataDisplay(questButton, darkWorldButton, coopModeButton));
+        }
+
         public extern void orig_Render();
         public override void Render()
         {
