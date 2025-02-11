@@ -51,7 +51,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public override int GetHashCode()
     {
-        var version = Version.Major.GetHashCode() + Version.Minor.GetHashCode();
+        var version = Version.Major.GetHashCode();
         var name = Name.GetHashCode();
         return version + name;
     }
