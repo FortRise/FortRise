@@ -12,6 +12,7 @@ namespace FortRise;
 public class VariantManager : IDisposable 
 {
     private string currentContext;
+    private ModuleMetadata metadata;
     /// <summary>
     /// The current name of the module registering their variants.
     /// </summary>
@@ -37,11 +38,15 @@ public class VariantManager : IDisposable
     internal void SetContext(ModuleMetadata context) 
     {
         var name = context.Name;
+        metadata = context;
         currentContext = name;
     }
 
     /// <summary>
     /// Use to add variants to <see cref="TowerFall.MatchVariants"/>.
+    /// <br/>
+    /// Version Constraints:
+    /// v5.1.0 and above will implicitly put metadata name prefix in the variant ID.
     /// </summary>
     /// <param name="info">A <see cref="FortRise.CustomVariantInfo"/> is needed to know what
     /// kind of variant is being passed to the holder.
@@ -87,8 +92,19 @@ public class VariantManager : IDisposable
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
         if (flag)
             CanRandoms.Add(variant);
+
+        var fortRise = metadata.GetFortRiseMetadata();
+
+        // FIXME remove null check as its explicitly required to have fortrise dependency anyway
+        if (fortRise != null && fortRise.Version.Major >= 5 && fortRise.Version.Minor >= 1)
+        {
+            main.InternalCustomVariants.Add(metadata.Name + "/" + info.Name, variant);
+        }
+        else 
+        {
+            main.InternalCustomVariants.Add(info.Name, variant);
+        }
         
-        main.InternalCustomVariants.Add(info.Name, variant);
         TotalCustomVariantsAdded++;
 
         if (!TempVariantHolder.TempCustom.ContainsKey(info.Name))
@@ -181,6 +197,9 @@ public class VariantManager : IDisposable
     /// <summary>
     /// Get a variant icon from name with an atlas pass around. Note: It is recommended to
     /// just pass a <see cref="Monocle.Subtexture"/> Icon to the <see cref="FortRise.CustomVariantInfo"/> instead.
+    /// <br/>
+    /// Version Constraints:
+    /// v5.1.0 variants and above will need to input metadata name prefix.
     /// </summary>
     /// <param name="variantName">A name of the variant</param>
     /// <param name="atlas">An atlas that includes the variants folder and 

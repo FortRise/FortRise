@@ -608,9 +608,11 @@ internal static partial class MonoModRules
         foreach (MethodDefinition method in type.Methods)
         {
             method.FixShortLongOps();
-            if (!method.HasCustomAttribute("System.Runtime.CompilerServices.IteratorStateMachineAttribute") && !IsMod)
-                AddIteratorStateMachineAttribute(modder, method);
 
+            if (!method.HasCustomAttribute("System.Runtime.CompilerServices.IteratorStateMachineAttribute") && !IsMod)
+            {
+                AddIteratorStateMachineAttribute(modder, method);
+            }
         }
         foreach (TypeDefinition nested in type.NestedTypes)
         {
