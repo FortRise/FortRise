@@ -12,6 +12,21 @@ public static partial class patch_TFCommands
     {
         orig_Init();
         Commands commands = Engine.Instance.Commands;
+        commands.RegisterCommand("treasure_rates", args => 
+        {
+            if (Engine.Instance.Scene is not patch_Level level) 
+            {
+				commands.Log("Command can only be used during gameplay!");
+                return;
+            }
+            if (!level.CanSpawnTreasure)
+            {
+				commands.Log("Treasure rates cannot be known if the level cannot spawn a treasure");
+                return;
+            }
+
+            level.Session.TreasureSpawner.LogSpawnRates();
+        });
         commands.RegisterCommand("detours", args => 
         {
             if (!RiseCore.DebugMode) 

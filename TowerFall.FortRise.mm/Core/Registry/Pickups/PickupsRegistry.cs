@@ -13,6 +13,22 @@ public static class PickupsRegistry
     public static Dictionary<string, Pickups> StringToTypes = new();
     public static Dictionary<Type, Pickups> Types = new();
 
+    public static string TypesToString(Pickups pickups)
+    {
+        if ((int)pickups < 21)
+        {
+            return pickups.ToString();
+        }
+
+        if (PickupDatas.TryGetValue(pickups, out var data))
+        {
+            return data.Name;
+        }
+
+        Logger.Error("[PickupRegistry] Unknown Pickups type passed");
+        return null;
+    }
+
 
     public static void Register<T>(FortModule module) 
     {

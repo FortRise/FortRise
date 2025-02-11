@@ -150,4 +150,23 @@ public class patch_TreasureSpawner : TreasureSpawner
         list.Shuffle();
         return list;
     }
+
+    [MonoModReplace]
+    public void LogSpawnRates()
+    {
+        float allRates = 0f;
+        for (int i = 0; i < TreasureRates.Length; i++)
+        {
+            allRates += TreasureRates[i];
+        }
+        for (int i = 0; i < TreasureRates.Length; i++)
+        {
+            if (TreasureRates[i] > 0f)
+            {
+                string name = PickupsRegistry.TypesToString((Pickups)i);
+                Engine.Instance.Commands.Log(name + " - " + (this.TreasureRates[i] / allRates * 100f).ToString("F") + "%");
+            }
+        }
+    }
+
 }
