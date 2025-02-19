@@ -7,8 +7,6 @@ namespace FortRise;
 /// </summary>
 public abstract class ModuleSaveData 
 {
-    internal ModuleSaveData() {}
-
     /// <summary>
     /// A function that called when SaveData is being verified.
     /// </summary>
