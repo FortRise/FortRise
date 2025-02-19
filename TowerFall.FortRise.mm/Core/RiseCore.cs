@@ -24,7 +24,7 @@ namespace FortRise;
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing, Vector2[] nodes);
 public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
-public delegate ArrowInfo ArrowInfoLoader();
+public delegate Subtexture ArrowHUDLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
 
 public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position, Vector2[] nodes);
@@ -542,6 +542,7 @@ public static partial class RiseCore
         }
 
         module.Enabled = true;
+        List<Action> laziedRegisters = new List<Action>();
 
         try
         {
@@ -659,7 +660,8 @@ public static partial class RiseCore
 
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
-            FortRise.PickupsRegistry.Register(type, module);
+            // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
+            laziedRegisters.Add(() => FortRise.PickupsRegistry.Register(type, module));
             FortRise.BackdropRegistry.Register(type, module);
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
             {
@@ -682,6 +684,11 @@ public static partial class RiseCore
                 Loaded:
                 DarkWorldBossLoader[bossName] = loader;
             }
+        }
+
+        foreach (var lazy in laziedRegisters)
+        {
+            lazy();
         }
         }
         catch (Exception e)

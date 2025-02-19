@@ -33,3 +33,25 @@ public class PickupData
     public float Chance;
     public PickupLoader PickupLoader;
 }
+
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+public sealed class CustomArrowPickupAttribute : Attribute 
+{
+    public string Name;
+    public float Chance = 1f;
+    public Type ArrowType;
+
+    public CustomArrowPickupAttribute(string name, Type arrowType) 
+    {
+        Name = name;
+        ArrowType = arrowType;
+    }
+
+    public CustomArrowPickupAttribute(string name, float chance, Type arrowType)
+    {
+        Name = name;
+        Chance = chance;
+        ArrowType = arrowType;
+    }
+}

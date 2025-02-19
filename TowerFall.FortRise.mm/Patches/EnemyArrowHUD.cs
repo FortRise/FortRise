@@ -22,8 +22,8 @@ public class patch_EnemyArrowHUD : EnemyArrowHUD
         foreach (var arrowObj in ArrowsRegistry.ArrowDatas.Values) 
         {
             var arrow = arrowObj.Types;
-            var value = arrowObj.InfoLoader();
-            images[(int)arrow] = value.HUD ?? TFGame.Atlas["player/arrowHUD/arrow"];
+            var value = arrowObj.HudLoader();
+            images[(int)arrow] = value ?? TFGame.Atlas["player/arrowHUD/arrow"];
         }
     }
 }

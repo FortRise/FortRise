@@ -125,13 +125,15 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         var arrow = orig_GetRandomArrowType(includeDefaultArrows);
         var list = new List<ArrowTypes> { arrow };
-        foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values)
+        foreach (var arrowPickup in PickupsRegistry.ArrowToPickupMapping)
         {
-            if (Exclusions.Contains(customArrow.PickupType.ID))
+            if (Exclusions.Contains(arrowPickup.Value))
+            {
                 continue;
-            
-            list.Add(customArrow.Types);
+            }
+            list.Add(arrowPickup.Key);
         }
+        
         return Random.Choose(list);
     }
 
@@ -140,12 +142,12 @@ public class patch_TreasureSpawner : TreasureSpawner
     public List<Pickups> GetArrowShufflePickups() 
     {
         var list = orig_GetArrowShufflePickups();
-        foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values)
+        foreach (var customArrow in PickupsRegistry.ArrowPickups)
         {
-            if (Exclusions.Contains(customArrow.PickupType.ID))
+            if (Exclusions.Contains(customArrow))
                 continue;
             
-            list.Add(customArrow.PickupType.ID);
+            list.Add(customArrow);
         }
         list.Shuffle();
         return list;

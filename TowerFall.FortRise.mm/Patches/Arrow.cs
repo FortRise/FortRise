@@ -89,10 +89,7 @@ public abstract class patch_Arrow : Actor
         foreach (var arrowObject in ArrowsRegistry.ArrowDatas.Values) 
         {
             var arrow = arrowObject.Types;
-            var value = arrowObject.InfoLoader();
-            Names[(int)arrow] = value.Name.ToUpperInvariant();
-            Colors[(int)arrow] = Calc.HexToColor(value.Color);
-            ColorsB[(int)arrow] = Calc.HexToColor(value.ColorB);
+            Colors[(int)arrow] = Color.White;
         }
     }
 

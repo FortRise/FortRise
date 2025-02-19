@@ -27,7 +27,7 @@ public static class ArrowsRegistry
             if (type is null)
                 return;
             var name = arrow.Name ?? $"{type.Namespace}.{type.Name}";
-            var graphicFn = arrow.GraphicPickupInitializer ?? "CreateGraphicPickup";
+            var graphicFn = arrow.CreateHud ?? "CreateHud";
             var stride = (ArrowTypes)offset + ArrowDatas.Count;
             MethodInfo graphic = type.GetMethod(graphicFn);
 
@@ -42,53 +42,34 @@ public static class ArrowsRegistry
                     return invoked;
                 };
             }
-            ArrowInfoLoader infoLoader = null;
+            ArrowHUDLoader infoLoader = null;
             if (graphic == null || !graphic.IsStatic)
             {
-                Logger.Warning($"[Loader] [{module.Meta.Name}] No `static ArrowInfo CreateGraphicPickup()` method found on this Arrow {name}, falling back to normal arrow graphics.");
+                Logger.Warning($"[Loader] [{module.Meta.Name}] No `static Subtexture CreateHud()` method found on this Arrow {name}, falling back to normal arrow graphics.");
                 infoLoader = () => {
-                    return ArrowInfo.Create(new Image(TFGame.Atlas["arrows/arrow"]));
+                    return TFGame.Atlas["arrows/arrow"];
                 };
             }
             else 
             {
                 infoLoader = () => {
-                    var identifier = (ArrowInfo)graphic.Invoke(null, Array.Empty<object>());
-                    if (string.IsNullOrEmpty(identifier.Name))
-                        identifier.Name = name;
-                    
-                    var trimmedName = identifier.Name.Trim();
-                    if (trimmedName.EndsWith("Arrows") || trimmedName.EndsWith("Arrow")) 
-                    {
-                        trimmedName = trimmedName.Replace("Arrows", "").Trim();
-                    }
-                    identifier.Name = trimmedName;
-                    return identifier;
+                    return (Subtexture)graphic.Invoke(null, Array.Empty<object>());
+
                 };
             }
 
-            Pickups stridePickup = (Pickups)21 + PickupsRegistry.PickupDatas.Count; 
-            var pickupObject = new PickupData() 
-            {
-                Name = name,
-                ID = stridePickup,
-                Chance = arrow.Chance,
-                PickupLoader = (pos, targetPos, _) => new ArrowTypePickup(pos, targetPos, stride)
-            };
+
+            StringToTypes[name] = stride;
 
             ArrowDatas[stride] = new ArrowData() 
             {
                 ArrowLoader = loader,
                 Types = stride,
-                InfoLoader = infoLoader,
-                PickupType = pickupObject
+                HudLoader = infoLoader,
+                Name = name,
             };
-            StringToTypes[name] = stride;
-
-            PickupsRegistry.StringToTypes[name] = stridePickup;
-            PickupsRegistry.PickupDatas[stridePickup] = pickupObject;
-            PickupsRegistry.Types.Add(type, stridePickup);
             Types.Add(type, stride);
+
         }
     }
 }

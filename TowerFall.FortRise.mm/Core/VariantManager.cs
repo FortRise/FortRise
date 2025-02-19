@@ -128,9 +128,8 @@ public class VariantManager : IDisposable
     public void AddArrowVariant(
         ArrowData obj, Subtexture arrowVariantIcon, Subtexture arrowExcludeVariantIcon, string header)  
     {
-        var customArrowInfo = obj.InfoLoader();
-        var name = $"{RemoveSlashes(customArrowInfo.Name)}";
-        AddArrowVariant(obj, arrowVariantIcon, arrowExcludeVariantIcon, name, header);
+        var name = $"{RemoveArrowsTitle(RemoveSlashes(obj.Name))}";
+        AddArrowVariant(obj, arrowVariantIcon, arrowExcludeVariantIcon, name + "Arrows", header);
     }
 
     public void AddArrowVariant(
@@ -145,7 +144,9 @@ public class VariantManager : IDisposable
         string variantPickupName = $"No{name}";
         if (!variantPickupName.EndsWith("Arrows"))
             variantPickupName += " Arrows";
-        AddPickupVariant(obj.PickupType, arrowExcludeVariantIcon, variantPickupName, header);
+        
+        Pickups pickupData = PickupsRegistry.ArrowToPickupMapping[obj.Types];
+        AddPickupVariant(PickupsRegistry.PickupDatas[pickupData], arrowExcludeVariantIcon, variantPickupName, header);
 
         CreateLinks(main.StartWithBoltArrows, variant);
         CreateLinks(main.StartWithBombArrows, variant);
@@ -252,6 +253,23 @@ public class VariantManager : IDisposable
             return null;
         }
         return (level.Session.MatchSettings.Variants as patch_MatchVariants).GetCustomVariant(variantName);
+    }
+
+    private static string RemoveArrowsTitle(string title)
+    {
+        var name = title;
+        if (string.IsNullOrEmpty(name))
+        {
+            name = title;
+        }
+        
+        var trimmedName = name.Trim();
+        if (trimmedName.EndsWith("Arrows") || trimmedName.EndsWith("Arrow")) 
+        {
+            trimmedName = trimmedName.Replace("Arrows", "").Trim();
+        }
+        name = trimmedName;
+        return name;
     }
 
     private static string GetCustomVariantTitle(string name)
