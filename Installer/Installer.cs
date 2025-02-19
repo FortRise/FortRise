@@ -15,8 +15,8 @@ public class Installer : MarshalByRefObject
     private static readonly string[] fileDependencies = {
         "FNA.dll", "FNA.dll.config", "FNA.pdb",
         "FNA.xml", "MonoMod.RuntimeDetour.HookGen.exe",
-        "MonoMod.exe",  "MonoMod.Backports.dll", "MonoMod.Iced.dll", "MonoMod.Core.dll",
-        "MonoMod.xml", "0Harmony.dll",
+        "MonoMod.Patcher.exe",  "MonoMod.Backports.dll", "MonoMod.Iced.dll", "MonoMod.Core.dll",
+        "MonoMod.Patcher.xml", "0Harmony.dll",
         "MonoMod.Utils.dll", "MonoMod.Utils.xml", 
         "MonoMod.RuntimeDetour.HookGen.xml",
         "TowerFall.FortRise.mm.xml",
@@ -222,7 +222,7 @@ public class Installer : MarshalByRefObject
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "5.0.1");
+        sb.AppendLine("Installer Version: " + "5.1.0");
 
         var text = sb.ToString();
 
