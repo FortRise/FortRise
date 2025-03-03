@@ -511,6 +511,7 @@ namespace TowerFall
             {
                 yield return 0;
             }
+            XNAFileDialog.GraphicsDevice = Engine.Instance.GraphicsDevice;
             foreach (var gameMode in GameModeRegistry.VersusGameModes) 
             {
                 gameMode.InitializeSoundsInternal();
