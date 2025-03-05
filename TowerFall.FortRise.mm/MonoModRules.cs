@@ -39,6 +39,9 @@ internal class PostPatchXmlToVariant : Attribute {}
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldLevelSelectOverlayCtor))]
 internal class PatchDarkWorldLevelSelectOverlayCtor : Attribute {}
 
+[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSDL2ToSDL3))]
+internal class PatchSDL2ToSDL3 : Attribute {}
+
 
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchFlags))]
 internal class PatchFlags : Attribute {}
@@ -617,6 +620,20 @@ internal static partial class MonoModRules
         foreach (TypeDefinition nested in type.NestedTypes)
         {
             PostProcessType(modder, nested);
+        }
+    }
+
+    public static void PatchSDL2ToSDL3(ILContext ctx, CustomAttribute attrib)
+    {
+        var cursor = new ILCursor(ctx);
+        // screw it, just read the module.
+        var fna = ModuleDefinition.ReadModule("FNA.dll");
+
+        var sdlRef = fna.GetType("SDL3.SDL");
+        var SDL_GetPlatform = ctx.Module.ImportReference(sdlRef.Resolve().FindMethod("System.String SDL_GetPlatform()"));
+        while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallOrCallvirt("SDL2.SDL", "SDL_GetPlatform")))
+        {
+            cursor.Next.Operand = SDL_GetPlatform;
         }
     }
 }

@@ -11,6 +11,10 @@ public static class patch_Calc
 {
     public static string LOADPATH;
     public static string DW_LOADPATH;
+
+    [PatchSDL2ToSDL3]
+    [MonoModIgnore]
+    private static extern string GetDWLoadPath();
     public static XmlDocument LoadXML(Stream stream) 
     {
         using var textReader = new StreamReader(stream);

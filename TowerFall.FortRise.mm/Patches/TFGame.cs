@@ -13,7 +13,7 @@ using Monocle;
 using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
-using SDL2;
+using SDL3;
 
 namespace TowerFall
 {
@@ -36,6 +36,7 @@ namespace TowerFall
 
     public partial class patch_TFGame : TFGame
     {
+        private static string FILENAME;
         public static bool SoundLoaded;
         private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
@@ -125,7 +126,7 @@ namespace TowerFall
 
             if (!FortRise.RiseCore.Start()) 
             {
-                SDL2.SDL.SDL_ShowSimpleMessageBox(
+                SDL.SDL_ShowSimpleMessageBox(
                     SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, 
                     "CONTENT NOT FOUND",
                     "TowerFall Content cannot be found elsewhere.", IntPtr.Zero);
@@ -312,6 +313,7 @@ namespace TowerFall
         // [MonoModLinkTo("Monocle.Engine", "InternalRun")]
         // private extern void InternalRun();
 
+        [PatchSDL2ToSDL3]
         protected extern void orig_LoadContent();
 
         protected override void LoadContent()
@@ -570,5 +572,13 @@ namespace TowerFall
                 process.Start();
             }
         }
+
+        [PatchSDL2ToSDL3]
+        [MonoModIgnore]
+        private static extern string GetSavePath();
+
+        [PatchSDL2ToSDL3]
+        [MonoModIgnore]
+        private static extern string GetCloudSavePath();
     }
 }

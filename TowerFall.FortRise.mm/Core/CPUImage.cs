@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SDL2;
+using SDL3;
 
 namespace FortRise;
 
@@ -26,7 +26,6 @@ public class CPUImage : IDisposable
 
     public IntPtr Data => data;
     private IntPtr data;
-    private bool useSIMD;
     private int len;
 
     private bool disposedValue;
@@ -38,7 +37,7 @@ public class CPUImage : IDisposable
         Width = width;
         Height = height;
         this.len = (int)(width * height * 4);
-        data = SDL.SDL_SIMDAlloc((uint)len);
+        data = SDL.SDL_malloc((nuint)len);
 
         byte *ptr = (byte*)data.ToPointer();
         for (int i = 0; i < len; i += 4) 
@@ -161,7 +160,7 @@ public class CPUImage : IDisposable
         }
         var len = (uint)(w * h * 4);
         
-        var dat = SDL.SDL_SIMDAlloc(len);
+        var dat = SDL.SDL_malloc((nuint)len);
         Color *d = (Color*)dat;
         for (int i = 0; i < subTexData.Length; i++) 
         {
@@ -171,7 +170,6 @@ public class CPUImage : IDisposable
         image.Width = w;
         image.Height = h;
         image.data = dat;
-        image.useSIMD = true;
         return image;
     }
 
@@ -184,14 +182,7 @@ public class CPUImage : IDisposable
             IntPtr lockedPtr = Interlocked.Exchange(ref data, IntPtr.Zero);
             if (lockedPtr != IntPtr.Zero) 
             {
-                if (useSIMD) 
-                {
-                    SDL.SDL_SIMDFree(lockedPtr);
-                } 
-                else 
-                {
-                    FNA3D_Image_Free(lockedPtr);
-                }
+                FNA3D_Image_Free(lockedPtr);
 
                 data = IntPtr.Zero;
             }
@@ -213,14 +204,6 @@ public class CPUImage : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-
-    public static Func<IntPtr, IntPtr> Malloc = (Func<IntPtr, IntPtr>)typeof(SDL2.SDL)
-        .GetMethod("SDL_malloc", BindingFlags.Static | BindingFlags.NonPublic)
-        .CreateDelegate(typeof(Func<IntPtr, IntPtr>));
-
-    public static Action<IntPtr> Free = (Action<IntPtr>)typeof(SDL2.SDL)
-        .GetMethod("SDL_free", BindingFlags.Static | BindingFlags.NonPublic)
-        .CreateDelegate(typeof(Action<IntPtr>));
 
     public delegate IntPtr FNA3D_ReadImageStreamDelegate(Stream stream, out int width, out int height, out int len, int forceW = -1, int forceH = -1, bool zoom = false);
     public static FNA3D_ReadImageStreamDelegate FNA3D_ReadImageStream = (FNA3D_ReadImageStreamDelegate)typeof(FNALoggerEXT).Assembly

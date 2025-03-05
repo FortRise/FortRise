@@ -46,8 +46,8 @@ public class Installer : MarshalByRefObject
             NativeCopy = CopyNativeFiles_MacOS;
             nativeLibs = new string[] {
                 "libFAudio.0.dylib", "libFNA3D.0.dylib",
-                "libMoltenVK.dylib", "libSDL2-2.0.0.dylib", "libtheorafile.dylib",
-                "libvulkan.1.dylib", "libdiscord_game_sdk.dylib", "libmono-btls-shared.dylib", "libMonoPosixHelper.dylib"
+                "libSDL3.0.dylib", "libtheorafile.dylib",
+                "libdiscord_game_sdk.dylib", "libmono-btls-shared.dylib", "libMonoPosixHelper.dylib"
             };
             break;
         case PlatformID.Unix:
@@ -55,7 +55,7 @@ public class Installer : MarshalByRefObject
             NativeCopy = CopyNativeFiles_Linux;
             nativeLibs = new string[] {
                 "libFAudio.so.0", "libFNA3D.so.0",
-                "libSDL2-2.0.so.0", "libtheorafile.so", "libdiscord_game_sdk.so", "libmono-btls-shared.so", "libMonoPosixHelper.so"
+                "libSDL3.so.0", "libtheorafile.so", "libdiscord_game_sdk.so", "libmono-btls-shared.so", "libMonoPosixHelper.so"
             };
             break;
         default:
@@ -63,7 +63,7 @@ public class Installer : MarshalByRefObject
             NativeCopy = CopyNativeFiles_Windows;
             nativeLibs = new string[] {
                 "FAudio.dll", "FNA3D.dll",
-                "SDL2.dll", "libtheorafile.dll", "discord_game_sdk.dll"
+                "SDL3.dll", "libtheorafile.dll", "discord_game_sdk.dll"
             };
             break;
         }

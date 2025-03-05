@@ -1,9 +1,11 @@
 using FortRise;
+using MonoMod;
 
 namespace TowerFall;
 
 public class patch_SaveData : SaveData
 {
+    [PatchSDL2ToSDL3]
     public extern string orig_Save();
 
     public string Save() 
@@ -15,6 +17,7 @@ public class patch_SaveData : SaveData
         return orig_Save();
     }
 
+    [PatchSDL2ToSDL3]
     public static extern string orig_Load();
 
     public static string Load() 

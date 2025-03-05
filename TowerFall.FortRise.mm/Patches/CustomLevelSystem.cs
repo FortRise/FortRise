@@ -21,4 +21,8 @@ public class patch_CustomLevelSystem : CustomLevelSystem
         // Resize so we don't get any error
         Array.Resize<int>(ref treasureMask, treasureMask.Length + PickupsRegistry.PickupDatas.Count + 1);
     }
+
+    [PatchSDL2ToSDL3]
+    [MonoModIgnore]
+    public extern void StartWorkshopLookup(Steamworks.PublishedFileId_t fileID);
 }
