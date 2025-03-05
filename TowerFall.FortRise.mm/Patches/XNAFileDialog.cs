@@ -1,73 +1,79 @@
+using System;
 using System.Text;
 using System.Windows.Forms;
+using FortRise;
 using Microsoft.Xna.Framework.Graphics;
+using Monocle;
 using MonoMod;
+using SDL3;
 
-/* Cross-platform native file dialog by matching its functions name */
-[MonoModIfFlag("OS:Windows")]
+
 public static class XNAFileDialog
 {
 	// While this is unused, it is better to keep this as it somehow needs some compatibility
 	public static GraphicsDevice GraphicsDevice;
 	public static string Path;
 	public static string StartDirectory;
+	private static volatile bool isDialogOpened;
+
+	private static unsafe void OnOpenActionDialog(IntPtr userdata, IntPtr filelist, int filter) 
+    {
+        if (filelist == IntPtr.Zero)
+        {
+			isDialogOpened = false;
+            return;
+        }
+
+        if ((IntPtr)(*(byte*)filelist) == IntPtr.Zero) 
+        {
+			isDialogOpened = false;
+            return;
+        }
+        byte **files = (byte**)filelist;
+        byte *ptr = files[0];
+        int count = 0;
+        while (*ptr != 0)
+        {
+            ptr++;
+            count++;
+        }
+
+        if (count <= 0)
+        {
+			isDialogOpened = false;
+            return;
+        }
+
+        string file = Encoding.UTF8.GetString(files[0], count);
+		Path = file;
+		isDialogOpened = false;
+    }
 
 	public static bool ShowDialogSynchronous(string title = null, string saveFile = null)
 	{
 		Path = null;
-		var sb = new StringBuilder();
-		bool begin = false;
-		foreach (var t in title) 
-		{
-			if (t == '.') 
-			{
-				begin = true;
-				continue;
-			}
-			if (begin && char.IsWhiteSpace(t)) 
-			{
-				begin = false;
-				break;
-			}
-			
-			if (begin)
-				sb.Append(t);
-		}
-		var filter = sb.ToString();
-		if (!string.IsNullOrEmpty(saveFile)) 
-		{
-			using var saveFileDialog = new SaveFileDialog() 
-			{
-				Title = title,
-				AddExtension = true,
-				Filter = $"Save a {filter} (*.{filter})|*.{filter}|All files (*.*)|*.*",
-				InitialDirectory = saveFile,
-				DefaultExt = $".{filter}",
-				RestoreDirectory = true
-			};
-			if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
-				return false;
+		isDialogOpened = true;
 
-			Path = saveFileDialog.FileName;
-			
-			return !string.IsNullOrEmpty(Path);
+		var propID = SDL.SDL_CreateProperties();
+		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
+		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_LOCATION_STRING, StartDirectory);
+		SDL.SDL_SetPointerProperty(propID, SDL.SDL_PROP_FILE_DIALOG_WINDOW_POINTER, Engine.Instance.Window.Handle);
+
+		if (saveFile != null)
+		{
+			SDL.SDL_ShowFileDialogWithProperties(SDL.SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE, OnOpenActionDialog, IntPtr.Zero, propID);
+		}
+		else 
+		{
+			SDL.SDL_ShowFileDialogWithProperties(SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE, OnOpenActionDialog, IntPtr.Zero, propID);
 		}
 
-		using var fileDialog = new OpenFileDialog() 
+		while (isDialogOpened)
 		{
-			Title = title,
-			AddExtension = true,
-			CheckPathExists = true,
-			CheckFileExists = true,
-			Filter = $"Load a {filter} (*.{filter})|*.{filter}|All files (*.*)|*.*",
-			DefaultExt = $".{filter}",
-			RestoreDirectory = true,
-			InitialDirectory = StartDirectory ?? ""
-		};
-		if (fileDialog.ShowDialog() == DialogResult.Cancel)
-			return false;
-		
-		Path = fileDialog.FileName;
+			SDL.SDL_PumpEvents();
+		}
+
+		SDL.SDL_DestroyProperties(propID);
 
 		return !string.IsNullOrEmpty(Path);
 	}
