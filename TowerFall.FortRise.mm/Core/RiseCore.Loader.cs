@@ -60,7 +60,13 @@ public static partial class RiseCore
                 return;
             }
 
-            moduleMetadata = ModuleMetadata.ParseMetadata(dir, metaPath);
+            var result = ModuleMetadata.ParseMetadata(dir, metaPath);
+            if (!result.Check(out moduleMetadata, out string error))
+            {
+                Logger.Error(error);
+                return;
+            }
+
             Loader.LoadMod(moduleMetadata, false);
         }
 
@@ -78,7 +84,13 @@ public static partial class RiseCore
 
             using var memStream = metaZip.ExtractStream();
 
-            moduleMetadata = ModuleMetadata.ParseMetadata(file, memStream, true);
+            var result = ModuleMetadata.ParseMetadata(file, memStream, true);
+            if (!result.Check(out moduleMetadata, out string error))
+            {
+                Logger.Error(error);
+                return;
+            }
+
             Loader.LoadMod(moduleMetadata, false);
         }
 
@@ -107,9 +119,6 @@ public static partial class RiseCore
 
         public static void LoadMod(ModuleMetadata metadata, bool isDelayed = false)
         {
-            if (metadata == null)
-                return;
-
             if (!CheckDependencies(metadata, isDelayed))
             {
                 if (!isDelayed)

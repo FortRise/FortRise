@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace FortRise;
 
@@ -22,6 +23,8 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
+
+    private static Regex nameRegex = new Regex(@"^[\w\\s]+$");
 
     public ModuleMetadata() {}
 
@@ -56,7 +59,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         return version + name;
     }
 
-    public static ModuleMetadata ParseMetadata(string dir, string path)
+    public static Result<ModuleMetadata, string> ParseMetadata(string dir, string path)
     {
         using var jfs = File.OpenRead(path);
         return ParseMetadata(dir, jfs);
@@ -67,21 +70,30 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         PropertyNameCaseInsensitive = true
     };
 
-    public static ModuleMetadata ParseMetadata(string dirPath, Stream stream, bool zip = false)
+    public static Result<ModuleMetadata, string> ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
         var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream, metaJsonOptions);
+
+        if (!nameRegex.IsMatch(metadata.Name))
+        {
+            Logger.Error(
+                $"Mod Name: {metadata.Name} name pattern is not allowed. Name pattern must not contain spaces and only be alphanumerical, " +
+                "and underscore (AaZz09_)"
+            );
+        }
+
         var fortRise = metadata.GetFortRiseMetadata();
         if (fortRise != null)
         {
             if (RiseCore.FortRiseVersion < fortRise.Version)
             {
-                Logger.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {fortRise.Version}. Your FortRise version: {RiseCore.FortRiseVersion}");
-                return null;
+                return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} has a higher version of FortRise required {fortRise.Version}. Your FortRise version: {RiseCore.FortRiseVersion}");
             }
         }
         else 
         {
-            Logger.Error("FortRise dependency cannot be found, this will be invalid later version of FortRise");
+            Logger.Error($"Mod Name: {metadata.Name} does not have FortRise dependency, this will be invalid later version of FortRise");
+            // return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} does not have FortRise dependency, this will be invalid later version of FortRise");
         }
 
         string zipPath = "";

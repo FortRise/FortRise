@@ -74,7 +74,12 @@ public class UIModToggler : FortRiseUI
                 }
 
                 using var meta = metaZip.ExtractStream();
-                metadata = ModuleMetadata.ParseMetadata(file, meta, true);
+                var result = ModuleMetadata.ParseMetadata(file, meta, true);
+                if (!result.Check(out metadata, out string error))
+                {
+                    Logger.Error(error);
+                    continue;
+                }
             }
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);
             modsMetadata.Add(filename, metadata);
@@ -96,7 +101,12 @@ public class UIModToggler : FortRiseUI
             var metadata = loadedMetadata.Where(meta => meta.PathDirectory == dir).FirstOrDefault();
             if (metadata == null) 
             {
-                metadata = ModuleMetadata.ParseMetadata(dir, metaPath);
+                var result = ModuleMetadata.ParseMetadata(dir, metaPath);
+                if (!result.Check(out metadata, out string error))
+                {
+                    Logger.Error(error);
+                    continue;
+                }
             }
             var isWhitelisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);
@@ -157,9 +167,16 @@ public class UIModToggler : FortRiseUI
         foreach (var mod in modsMetadata.Values) 
         {
             if (mod.Dependencies == null)
+            {
                 continue;
+            }
             foreach (var dep in mod.Dependencies) 
             {
+                // we don't wanna blacklist our loader
+                if (dep.Name == "FortRise")
+                {
+                    continue;
+                }
                 if (modmeta == dep) 
                 {
                     string depName;
@@ -200,6 +217,11 @@ public class UIModToggler : FortRiseUI
         {
             foreach (var dep in modmeta.Dependencies)
             {
+                // FortRise might get checked, which it doesn't have PathDirectory
+                if (dep.Name == "FortRise")
+                {
+                    continue;
+                }
                 if (mod == dep) 
                 {
                     string depName;
