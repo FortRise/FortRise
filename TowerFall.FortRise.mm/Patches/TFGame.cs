@@ -303,6 +303,8 @@ namespace TowerFall
             {
                 TFGame.Log(ex, false);
                 TFGame.OpenLog();
+                Engine.Instance.Exit();
+                throw;
             }
         }
 
