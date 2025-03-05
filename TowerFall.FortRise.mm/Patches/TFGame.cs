@@ -547,23 +547,25 @@ namespace TowerFall
             {
                 var process = new Process();
                 string os = SDL.SDL_GetPlatform();
+                
+                // is this safe?
+                process.StartInfo.UseShellExecute = true;
                 if (os.Equals("Linux"))
                 {
                     process.StartInfo.FileName = "xdg-open";
-                    process.StartInfo.Arguments = FILENAME;
-                    process.Start();
+                    process.StartInfo.Arguments = "\"" + FILENAME + "\"";
                 }
                 else if (os.Equals("Mac OS X"))
                 {
                     process.StartInfo.FileName = "open";
-                    process.StartInfo.Arguments = $"-a TextEdit {FILENAME}";
-                    process.Start();
+                    process.StartInfo.Arguments = $"-a TextEdit \"{FILENAME}\"";
                 }
                 else 
                 {
-                    process.StartInfo.FileName = FILENAME;
-                    process.Start();
+                    process.StartInfo.FileName = "\"" + FILENAME + "\"";
                 }
+
+                process.Start();
             }
         }
     }
