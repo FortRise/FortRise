@@ -135,6 +135,10 @@ internal class Program
                 return;
             }
         }
+        else 
+        {
+            TFPath = args[1];
+        }
         try
         {
             Console.WriteLine("Creating Sandbox App Domain");
