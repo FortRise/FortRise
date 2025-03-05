@@ -5,6 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
     <AssemblyName>Installer</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

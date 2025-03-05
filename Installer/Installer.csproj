@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>10</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,11 @@
     </Content>
     <Content Include="../lib/x86/**/*">
       <Link>x86/%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib/SDL3.dll">
+      <Link>(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
