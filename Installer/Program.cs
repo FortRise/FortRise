@@ -15,14 +15,15 @@ internal class Program
 
     private unsafe static void OpenFileCallback(IntPtr userdata, IntPtr filelist, int filter)
     {
-        waitFileDialog = false;
         if (filelist == IntPtr.Zero)
         {
+            waitFileDialog = false;
             return;
         }
 
         if ((IntPtr)(*(byte*)filelist) == IntPtr.Zero) 
         {
+            waitFileDialog = false;
             return;
         }
         byte **files = (byte**)filelist;
@@ -36,11 +37,14 @@ internal class Program
 
         if (count <= 0)
         {
+            waitFileDialog = false;
             return;
         }
 
         string file = Encoding.UTF8.GetString(files[0], count);
 		TFPath = file;
+
+        waitFileDialog = false;
     }
 
     [STAThread]
