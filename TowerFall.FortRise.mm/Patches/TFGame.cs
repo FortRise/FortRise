@@ -539,5 +539,32 @@ namespace TowerFall
             patch_TFGame.Loaded = true;
             yield break;
         }
+
+        [MonoModReplace]
+        public static void OpenLog()
+        {
+            if (File.Exists(FILENAME))
+            {
+                var process = new Process();
+                string os = SDL.SDL_GetPlatform();
+                if (os.Equals("Linux"))
+                {
+                    process.StartInfo.FileName = "xdg-open";
+                    process.StartInfo.Arguments = FILENAME;
+                    process.Start();
+                }
+                else if (os.Equals("Mac OS X"))
+                {
+                    process.StartInfo.FileName = "open";
+                    process.StartInfo.Arguments = $"-a TextEdit {FILENAME}";
+                    process.Start();
+                }
+                else 
+                {
+                    process.StartInfo.FileName = FILENAME;
+                    process.Start();
+                }
+            }
+        }
     }
 }
