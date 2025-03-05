@@ -580,5 +580,16 @@ namespace TowerFall
         [PatchSDL2ToSDL3]
         [MonoModIgnore]
         private static extern string GetCloudSavePath();
+
+
+        [MonoModIfFlag("OS:Windows")]
+        [MonoModPatch("<>c")]
+        public class TFGame_c
+        {
+            [MonoModIfFlag("OS:Windows")]
+            [MonoModRemove]
+            [MonoModPatch("<Load>b__120_0")]
+            internal extern void Loadb__120_0();
+        }
     }
 }
