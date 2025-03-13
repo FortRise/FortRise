@@ -4,6 +4,7 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace FortRise;
 
@@ -23,24 +24,40 @@ public abstract class TowerPatch
     }
 }
 
+[AttributeUsage(AttributeTargets.Class)]
+public class TowerPatcherAttribute : Attribute
+{
+    public string Name { get; set; }
+
+    public TowerPatcherAttribute(string name)
+    {
+        Name = name;
+    }
+}
+
 public static class TowerPatchRegistry 
 {
     // garbage
-    private static List<Type> toPatch = new();
+    private class TowerPatchType
+    {
+        public List<string> TowerPatches = new List<string>();
+        public Type TypePatch;
+    }
+    private static List<TowerPatchType> toPatch = new();
 
     private static VersusTowerPatchContext versusCtx = new();
     private static DarkWorldTowerPatchContext dwCtx = new();
 
     public static void Initialize() 
     {
-        foreach (var type in toPatch) 
+        foreach (var towerPatchType in toPatch) 
         {
-            var instance = Activator.CreateInstance(type) as TowerPatch;
+            var instance = Activator.CreateInstance(towerPatchType.TypePatch) as TowerPatch;
             if (instance == null)
                 continue;
 
-            Versus(type, instance);
-            DarkWorld(type, instance);
+            Versus(towerPatchType, instance);
+            DarkWorld(towerPatchType, instance);
         }
         toPatch = null;
     }
@@ -53,49 +70,60 @@ public static class TowerPatchRegistry
 
     public static void Register(Type type, FortModule module) 
     {
-        if (type.IsSubclassOf(typeof(TowerPatch))) 
+        if (type.GetCustomAttribute<TowerPatcherAttribute>() == null)
         {
-            toPatch.Add(type);
+            return;
+        }
+        TowerPatchType towerPatchType = new TowerPatchType();
+        foreach (var attrib in type.GetCustomAttributes<TowerPatcherAttribute>()) 
+        {
+            towerPatchType.TowerPatches.Add(attrib.Name);
+            towerPatchType.TypePatch = type;
+            toPatch.Add(towerPatchType);
         }
     }
 
-    private static void Versus(Type levelPatchType, TowerPatch patcher) 
+    private static void Versus(TowerPatchType towerPatchType, TowerPatch patcher) 
     {
-        var tower = GameData.VersusTowers
-            .Where(x => levelPatchType.Name
-                .StartsWith(x.GetLevelID().Replace("'", "").Replace(" ", "")))
-            .FirstOrDefault();
-        if (tower == null) 
+        foreach (var name in towerPatchType.TowerPatches)
         {
-            if (levelPatchType.Name.StartsWith("Global")) 
+            var tower = GameData.VersusTowers
+                .Where(x => name == x.GetLevelID())
+                .FirstOrDefault();
+            if (tower == null) 
             {
-                foreach (var tow in GameData.VersusTowers) 
+                if (name.StartsWith("Global")) 
                 {
-                    versusCtx.Patch(tow);
-                    patcher.VersusPatch(versusCtx);
-                    tow.ApplyPatch(versusCtx);
+                    foreach (var tow in GameData.VersusTowers) 
+                    {
+                        versusCtx.Patch(tow);
+                        patcher.VersusPatch(versusCtx);
+                        tow.ApplyPatch(versusCtx);
+                    }
                 }
+                return;
             }
-            return;
+            versusCtx.Patch(tower);
+            patcher.VersusPatch(versusCtx);
+            tower.ApplyPatch(versusCtx);
         }
-        versusCtx.Patch(tower);
-        patcher.VersusPatch(versusCtx);
-        tower.ApplyPatch(versusCtx);
     }
 
-    private static void DarkWorld(Type levelPatchType, TowerPatch patcher) 
+    private static void DarkWorld(TowerPatchType towerPatchType, TowerPatch patcher) 
     {
-        var tower = GameData.DarkWorldTowers
-            .Where(x => levelPatchType.Name
-                .StartsWith(x.GetLevelID().Replace("'", "").Replace(" ", "")))
-            .FirstOrDefault();
-        if (tower == null) 
+        foreach (var name in towerPatchType.TowerPatches)
         {
-            return;
+            var tower = GameData.DarkWorldTowers
+                .Where(x => name == x.GetLevelID())
+                .FirstOrDefault();
+            if (tower == null) 
+            {
+                return;
+            }
+            dwCtx.Patch(tower);
+            patcher.DarkWorldPatch(dwCtx);
+            // tower.ApplyPatch(dwCtx);
         }
-        dwCtx.Patch(tower);
-        patcher.DarkWorldPatch(dwCtx);
-        // tower.ApplyPatch(dwCtx);
     }
 }
 
