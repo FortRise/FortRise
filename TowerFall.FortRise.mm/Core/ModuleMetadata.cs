@@ -15,6 +15,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
     public ModuleMetadata[] Dependencies { get; set; } = null;
+    public ModuleMetadata[] OptionalDependencies { get; set; } = null;
     public string NativePath { get; set; } = string.Empty;
     public string NativePathX86 { get; set; } = string.Empty;
 

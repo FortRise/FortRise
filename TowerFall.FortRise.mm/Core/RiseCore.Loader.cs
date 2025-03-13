@@ -8,14 +8,23 @@ namespace FortRise;
 
 public static partial class RiseCore
 {
+    public class ModDelayed(int requiredCount, ModuleMetadata metadata) 
+    {
+        public int RequiredCount = requiredCount;
+        public ModuleMetadata Metadata = metadata;
+    }
+
+
+    
     public static class Loader
     {
+        public enum LoadResult { Success, Delayed, Failure }
         internal static HashSet<string> BlacklistedMods;
-        private static List<ModuleMetadata> DelayedMods = new();
-        internal static List<string> CantLoad = new();
+        internal static HashSet<string> CantLoad = new();
 
         internal static void InitializeMods()
         {
+            var delayedMods = new List<ModDelayed>();
             var directory = Directory.GetDirectories("Mods");
             foreach (var dir in directory)
             {
@@ -27,7 +36,7 @@ public static partial class RiseCore
                     Logger.Verbose($"[Loader] Ignored {dir} as it's blacklisted");
                     continue;
                 }
-                LoadDir(dir);
+                LoadDir(dir, delayedMods);
             }
 
             var files = Directory.GetFiles("Mods");
@@ -41,17 +50,12 @@ public static partial class RiseCore
                     Logger.Verbose($"[Loader] Ignored {file} as it's blacklisted");
                     continue;
                 }
-                LoadZip(file);
+                LoadZip(file, delayedMods);
             }
-
-            foreach (var delayMod in DelayedMods)
-            {
-                LoadMod(delayMod, true);
-            }
-            DelayedMods.Clear();
+            LoadDelayedMods(delayedMods);
         }
 
-        public static void LoadDir(string dir)
+        public static void LoadDir(string dir, List<ModDelayed> delayedMods)
         {
             var metaPath = Path.Combine(dir, "meta.json");
             ModuleMetadata moduleMetadata = null;
@@ -67,10 +71,18 @@ public static partial class RiseCore
                 return;
             }
 
-            Loader.LoadMod(moduleMetadata, false);
+            switch (Loader.LoadMod(moduleMetadata, out int requiredDependencies))
+            {
+            case LoadResult.Success:
+            case LoadResult.Failure:
+                break;
+            case LoadResult.Delayed:
+                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
+                break;
+            }
         }
 
-        public static void LoadZip(string file)
+        public static void LoadZip(string file, List<ModDelayed> delayedMods)
         {
             using var zipFile = ZipFile.OpenRead(file);
 
@@ -91,48 +103,61 @@ public static partial class RiseCore
                 return;
             }
 
-            Loader.LoadMod(moduleMetadata, false);
+            switch (Loader.LoadMod(moduleMetadata, out int requiredDependencies))
+            {
+            case LoadResult.Success:
+            case LoadResult.Failure:
+                break;
+            case LoadResult.Delayed:
+                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
+                break;
+            }
         }
 
-        public static bool CheckDependencies(ModuleMetadata metadata, bool isDelay)
+        public static bool CheckDependencies(ModuleMetadata metadata, out int requiredDependencies)
         {
-            bool notFound = false;
+            requiredDependencies = 0;
             if (metadata.Dependencies != null)
             {
                 foreach (var dep in metadata.Dependencies)
                 {
                     if (RiseCore.InternalModuleMetadatas.Contains(dep))
-                        continue;
-
-                    if (!isDelay)
                     {
-                        DelayedMods.Add(metadata);
-                        return false;
+                        continue;
                     }
+                    requiredDependencies += 1;
 
-                    Logger.Error($"[Loader] [{metadata.Name}] Dependency {dep} not found!");
-                    notFound = true;
+                    return false;
                 }
             }
-            return !notFound;
+
+            if (metadata.OptionalDependencies != null)
+            {
+                foreach (var dep in metadata.OptionalDependencies)
+                {
+                    if (RiseCore.InternalModuleMetadatas.Contains(dep))
+                    {
+                        continue;
+                    }
+
+                    return false;
+                }
+            }
+            return true;
         }
 
-        public static void LoadMod(ModuleMetadata metadata, bool isDelayed = false)
+        public static LoadResult LoadMod(ModuleMetadata metadata, out int requiredDependencies)
         {
-            if (!CheckDependencies(metadata, isDelayed))
+            if (!CheckDependencies(metadata, out requiredDependencies))
             {
-                if (!isDelayed)
-                    return;
-                string path;
-                if (!string.IsNullOrEmpty(metadata.PathZip))
-                    path = metadata.PathZip.Replace("Mods/", "");
-                else
-                    path = metadata.PathDirectory.Replace("Mods\\", "");
-
-                CantLoad.Add(path);
-                return;
+                return LoadResult.Delayed;
             }
 
+            return LoadModSkipDependecies(metadata);
+        }
+
+        public static LoadResult LoadModSkipDependecies(ModuleMetadata metadata)
+        {
             Assembly asm = null;
             ModResource modResource;
             if (!string.IsNullOrEmpty(metadata.PathZip))
@@ -172,7 +197,7 @@ public static partial class RiseCore
             else
             {
                 Logger.Error($"[Loader] Mod {metadata.Name} not found");
-                return;
+                return LoadResult.Failure;
             }
 
             if (asm != null)
@@ -197,10 +222,63 @@ public static partial class RiseCore
                 if (ModuleGuids.Contains(generatedGuid))
                 {
                     Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    return;
+                    return LoadResult.Failure;
                 }
                 Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
+            }
+
+            return LoadResult.Success;
+        }
+
+        private static void LoadDelayedMods(List<ModDelayed> delayedMods)
+        {
+            List<ModDelayed> successfulLoad = new List<ModDelayed>();
+            for (int i = 0; i < delayedMods.Count; i++)
+            {
+                var delayMod = delayedMods[i];
+                if (LoadMod(delayMod.Metadata, out int requiredDependencies) == LoadResult.Success)
+                {
+                    successfulLoad.Add(delayMod);
+                }
+                delayMod.RequiredCount = requiredDependencies;
+                delayedMods[i] = delayMod;
+            }
+            
+            bool loadedAnother = successfulLoad.Count != 0;
+
+            foreach (var success in successfulLoad)
+            {
+                delayedMods.Remove(success);
+            }
+
+            successfulLoad = null;
+
+            // Loads another batch of mods that are delayed
+            if (loadedAnother)
+            {
+                LoadDelayedMods(delayedMods);
                 return;
+            }
+
+            foreach (var delayedMod in delayedMods)
+            {
+                if (delayedMod.RequiredCount > 0)
+                {
+                    // unfortunate mods that cannot be loaded in
+                    if (!string.IsNullOrEmpty(delayedMod.Metadata.PathDirectory))
+                    {
+                        CantLoad.Add(delayedMod.Metadata.PathDirectory);
+                    }
+                    else if (!string.IsNullOrEmpty(delayedMod.Metadata.PathZip))
+                    {
+                        CantLoad.Add(delayedMod.Metadata.PathZip);
+                    }
+                }
+                else 
+                {
+                    // Hey, we can load this one, dependency is not required!
+                    LoadModSkipDependecies(delayedMod.Metadata);
+                }
             }
         }
 
