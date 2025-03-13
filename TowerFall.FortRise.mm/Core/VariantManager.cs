@@ -247,12 +247,17 @@ public class VariantManager : IDisposable
     public static Variant GetCustomVariant(string variantName) 
     {
         var scene = Engine.Instance.Scene;
-        if (scene is not Level level)
+        if (scene is Level level)
         {
-            Logger.Warning($"[Custom Variant] The scene instance is not a Level");
-            return null;
+            return (level.Session.MatchSettings.Variants as patch_MatchVariants).GetCustomVariant(variantName);
         }
-        return (level.Session.MatchSettings.Variants as patch_MatchVariants).GetCustomVariant(variantName);
+
+        if (scene is LevelLoaderXML levelLoaderXML)
+        {
+            return (levelLoaderXML.Session.MatchSettings.Variants as patch_MatchVariants).GetCustomVariant(variantName);
+        }
+
+        return (MainMenu.CurrentMatchSettings.Variants as patch_MatchVariants).GetCustomVariant(variantName);
     }
 
     private static string RemoveArrowsTitle(string title)
