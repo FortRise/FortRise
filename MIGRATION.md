@@ -57,18 +57,33 @@ public override void Initialize()
 {
     new OnTower(this)
         .Versus_Flight
-        .IncreaseTreasureRates(FortRise.RiseCore.PickupRegistry["ModName/Registry"].ID);
+        .IncreaseTreasureRates(FortRise.RiseCore.PickupRegistry["ModName/TestArrow"].ID);
 }
 ```
 
-### New
+### Old
+While this is technically correct, there's some changes to the API as well which make this invalid.
 ```csharp
 // TowerPatch API
 public class Flight : TowerPatch
 {
     public override void VersusPatch(VersusPatchTowerContext context) 
     {
-        context.IncreaseTreasureRates(FortRise.RiseCore.PickupRegistry["Modname/Registry"].ID);
+        context.IncreaseTreasureRates(FortRise.RiseCore.PickupRegistry["Modname/TestArrow"].ID);
+    }
+}
+```
+
+### New
+A new attribute is created to avoid certain confusion.
+```csharp
+// TowerPatch API
+[TowerPatcher("Flight")]
+public class Flight : TowerPatch
+{
+    public override void VersusPatch(VersusPatchTowerContext context) 
+    {
+        context.IncreaseTreasureRates(ModRegisters.PickupType<TestArrow>());
     }
 }
 ```
