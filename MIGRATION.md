@@ -11,8 +11,9 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	3. [Custom RoundLogic API Changes](#custom-roundlogic-api-changes)
 	4. [OnVariantRegister Changes](#onvariantregister-changes)
 	5. [Arrow and Pickup Registry Changes](#arrow-and-pickup-registry-changes)
-    6. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
-    7. [VanillaAtlas removal](#vanillaatlas-removal)
+	6. [Arrow Info and Pickup changes](#arrow-info-and-pickup-changes)
+    7. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
+    8. [VanillaAtlas removal](#vanillaatlas-removal)
 2. [Optional Migration](#optional-migration)
 	1. [Using textures with an Atlas](#using-textures-with-an-atlas)
 	2. [Using SpriteDatas](#using-spritedatas)
@@ -214,6 +215,70 @@ For simplicity sake of this documentation, I did not include the other function 
 
 You can still access the specific Registers as well like `PickupRegistry` and `ArrowRegistry` which contains the under the hood
 implementation of these `ModRegisters`.
+
+## Arrow Info and Pickup changes
+Arrow API has changes once again and its for the better to maintain FortRise's stability. This changes affects all mods that has custom
+arrows registered.
+
+This will now allows the mod developer to customize the pickup entity for arrows they wanted.
+
+# Old
+The arrows and pickups were in a same place.
+
+```csharp
+[CustomArrow("Test/Test", nameof(CreateGraphicPickup))]
+public class TestArrow : Arrow
+{
+    // This is automatically been set by the mod loader
+    public override ArrowTypes ArrowType { get; set; }
+
+    public static ArrowInfo CreateGraphicPickup() 
+    {
+        var graphic = new Sprite<int>(MyMod.ArrowAtlas["TestArrowPickup"], 12, 12, 0);
+        graphic.Add(0, 0.3f, new int[2] { 0, 0 });
+        graphic.Play(0, false);
+        graphic.CenterOrigin();
+        var arrowInfo = ArrowInfo.Create(graphic, MyMod.ArrowAtlas["TestArrowHud"]);
+        arrowInfo.Name = "Test Arrows";
+        return arrowInfo;
+    }
+}
+```
+
+# New
+The arrows and pickups were separated, but it still references the arrow type from pickup.
+
+```csharp
+[CustomArrowPickup("Test/TestArrow", typeof(TestArrow))]
+public class TestArrowPickup : ArrowTypePickup
+{
+    public TestArrowPickup(Vector2 position, Vector2 targetPosition, ArrowTypes type) : base(position, targetPosition, type)
+    {
+        Name = "Bait";
+
+        var graphic = new Sprite<int>(MyMod.ArrowAtlas["TestArrowPickup"], 12, 12, 0);
+        graphic.Add(0, 0.3f, new int[2] { 0, 0 });
+        graphic.Play(0, false);
+        graphic.CenterOrigin();
+        AddGraphic(graphic);
+    }
+}
+```
+
+```csharp
+[CustomArrow("Test/Test", nameof(CreateHud))]
+public class TestArrow : Arrow
+{
+    // This is automatically been set by the mod loader
+    public override ArrowTypes ArrowType { get; set; }
+
+    public static Subtexture CreateHud() 
+    {
+        return MyMod.ArrowAtlas["TestArrow"];
+    }
+}
+```
+
 
 ## Hjson and TeuJson Removal
 Hjson and TeuJson has been removed completely, which means you will not have an access to the Hjson format anymore, and TeuJson
