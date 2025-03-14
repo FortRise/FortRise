@@ -77,10 +77,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
         if (!nameRegex.IsMatch(metadata.Name))
         {
-            Logger.Error(
-                $"Mod Name: {metadata.Name} name pattern is not allowed. Name pattern must not contain spaces and only be alphanumerical, " +
-                "and underscore (AaZz09_)"
-            );
+            return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} name pattern is not allowed. Pattern allowed: (AaZz09_)");
         }
 
         var fortRise = metadata.GetFortRiseMetadata();
@@ -93,8 +90,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         }
         else 
         {
-            Logger.Error($"Mod Name: {metadata.Name} does not have FortRise dependency, this will be invalid later version of FortRise");
-            // return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} does not have FortRise dependency, this will be invalid later version of FortRise");
+            return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} does not have FortRise dependency.");
         }
 
         string zipPath = "";

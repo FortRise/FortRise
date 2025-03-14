@@ -14,11 +14,9 @@ public static partial class RiseCore
         public ModuleMetadata Metadata = metadata;
     }
 
-
-    
     public static class Loader
     {
-        public enum LoadResult { Success, Delayed, Failure }
+        public enum LoadError { Delayed, Failure }
         internal static HashSet<string> BlacklistedMods;
         internal static HashSet<string> CantLoad = new();
 
@@ -67,18 +65,17 @@ public static partial class RiseCore
             var result = ModuleMetadata.ParseMetadata(dir, metaPath);
             if (!result.Check(out moduleMetadata, out string error))
             {
+                ErrorPanel.StoreError(error);
                 Logger.Error(error);
                 return;
             }
 
-            switch (Loader.LoadMod(moduleMetadata, out int requiredDependencies))
+            if (!Loader.LoadMod(moduleMetadata, out int requiredDependencies).Check(out _, out LoadError err))
             {
-            case LoadResult.Success:
-            case LoadResult.Failure:
-                break;
-            case LoadResult.Delayed:
-                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
-                break;
+                if (err == LoadError.Delayed)
+                {
+                    delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
+                }
             }
         }
 
@@ -99,18 +96,17 @@ public static partial class RiseCore
             var result = ModuleMetadata.ParseMetadata(file, memStream, true);
             if (!result.Check(out moduleMetadata, out string error))
             {
+                ErrorPanel.StoreError(error);
                 Logger.Error(error);
                 return;
             }
 
-            switch (Loader.LoadMod(moduleMetadata, out int requiredDependencies))
+            if (!Loader.LoadMod(moduleMetadata, out int requiredDependencies).Check(out _, out LoadError err))
             {
-            case LoadResult.Success:
-            case LoadResult.Failure:
-                break;
-            case LoadResult.Delayed:
-                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
-                break;
+                if (err == LoadError.Delayed)
+                {
+                    delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
+                }
             }
         }
 
@@ -146,17 +142,17 @@ public static partial class RiseCore
             return true;
         }
 
-        public static LoadResult LoadMod(ModuleMetadata metadata, out int requiredDependencies)
+        public static Result<Unit, LoadError> LoadMod(ModuleMetadata metadata, out int requiredDependencies)
         {
             if (!CheckDependencies(metadata, out requiredDependencies))
             {
-                return LoadResult.Delayed;
+                return LoadError.Delayed;
             }
 
             return LoadModSkipDependecies(metadata);
         }
 
-        public static LoadResult LoadModSkipDependecies(ModuleMetadata metadata)
+        public static Result<Unit, LoadError> LoadModSkipDependecies(ModuleMetadata metadata)
         {
             Assembly asm = null;
             ModResource modResource;
@@ -197,7 +193,8 @@ public static partial class RiseCore
             else
             {
                 Logger.Error($"[Loader] Mod {metadata.Name} not found");
-                return LoadResult.Failure;
+                ErrorPanel.StoreError($"'{metadata.Name}' not found!");
+                return LoadError.Failure;
             }
 
             if (asm != null)
@@ -221,13 +218,14 @@ public static partial class RiseCore
                     generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
                 if (ModuleGuids.Contains(generatedGuid))
                 {
+                    ErrorPanel.StoreError($"'{metadata.Name}' cannot load due to guid conflict with {generatedGuid}.");
                     Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    return LoadResult.Failure;
+                    return LoadError.Failure;
                 }
                 Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
             }
 
-            return LoadResult.Success;
+            return new Unit();
         }
 
         private static void LoadDelayedMods(List<ModDelayed> delayedMods)
@@ -236,10 +234,11 @@ public static partial class RiseCore
             for (int i = 0; i < delayedMods.Count; i++)
             {
                 var delayMod = delayedMods[i];
-                if (LoadMod(delayMod.Metadata, out int requiredDependencies) == LoadResult.Success)
+                if (!LoadMod(delayMod.Metadata, out int requiredDependencies).IsError)
                 {
                     successfulLoad.Add(delayMod);
                 }
+                
                 delayMod.RequiredCount = requiredDependencies;
                 delayedMods[i] = delayMod;
             }
@@ -273,6 +272,8 @@ public static partial class RiseCore
                     {
                         CantLoad.Add(delayedMod.Metadata.PathZip);
                     }
+
+                    ErrorPanel.StoreError($"'{delayedMod.Metadata.Name}' has missing dependencies.");
                 }
                 else 
                 {

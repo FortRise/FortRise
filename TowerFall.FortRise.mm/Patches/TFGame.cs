@@ -51,6 +51,7 @@ namespace TowerFall
 
 
         private bool noIntro;
+        private ErrorPanel panel;
         public patch_TFGame(bool noIntro) : base(noIntro)
         {
         }
@@ -60,6 +61,7 @@ namespace TowerFall
         [MonoModConstructor]
         public void ctor(bool noIntro) 
         {
+            panel = new ErrorPanel();
             orig_ctor(noIntro || RiseCore.NoIntro);
 
             FortRise.RiseCore.ModuleStart();
@@ -330,6 +332,10 @@ namespace TowerFall
             RiseCore.Events.Invoke_Update(gameTime);
             orig_Update(gameTime);
             RiseCore.Events.Invoke_AfterUpdate(gameTime);
+            if (ErrorPanel.Show)
+            {
+                panel.Update();
+            }
             RiseCore.ResourceReloader.Update();
         }
 
@@ -339,6 +345,10 @@ namespace TowerFall
             RiseCore.Events.Invoke_Render(Monocle.Draw.SpriteBatch);
             base.Draw(gameTime);
             RiseCore.Events.Invoke_AfterRender(Monocle.Draw.SpriteBatch);
+            if (ErrorPanel.Show)
+            {
+                panel.Render();
+            }
         }
 
         [MonoModReplace]
@@ -515,6 +525,11 @@ namespace TowerFall
                     yield return 0;
                 }
                 saver = null;
+            }
+
+            if (ErrorPanel.Errors.Count > 0)
+            {
+                ErrorPanel.Show = true;
             }
             MainMenu.PlayMenuMusic();
             Engine.ConsoleEnabled = SaveData.Instance.Options.DevConsole;

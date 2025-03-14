@@ -8,6 +8,9 @@ public struct Result<T, U>
     public T Value { get; private set; }
     public U ErrorValue { get; private set; }
 
+    public bool IsError => ResponseType == Response.Error;
+    public bool IsOk => ResponseType == Response.Ok;
+
     public Response ResponseType;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -43,4 +46,12 @@ public struct Result<T, U>
     {
         return Result<T, U>.Ok(value);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Result<T, U>(U value)
+    {
+        return Result<T, U>.Error(value);
+    }
 }
+
+public readonly struct Unit;
