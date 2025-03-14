@@ -254,7 +254,7 @@ public class TestArrowPickup : ArrowTypePickup
 {
     public TestArrowPickup(Vector2 position, Vector2 targetPosition, ArrowTypes type) : base(position, targetPosition, type)
     {
-        Name = "Bait";
+        Name = "Test";
 
         var graphic = new Sprite<int>(MyMod.ArrowAtlas["TestArrowPickup"], 12, 12, 0);
         graphic.Add(0, 0.3f, new int[2] { 0, 0 });
