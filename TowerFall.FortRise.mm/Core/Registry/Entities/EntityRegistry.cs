@@ -62,7 +62,6 @@ public static class EntityRegistry
                     var invoked = (patch_Enemy)info.Invoke(null, new object[] {
                         position, facing
                     });
-                    invoked.Load();
                     return invoked;
                 };
                 goto Loaded;
@@ -75,7 +74,6 @@ public static class EntityRegistry
                     var invoked = (patch_Enemy)info.Invoke(null, new object[] {
                         position, facing, nodes
                     });
-                    invoked.Load();
                     return invoked;
                 };
                 goto Loaded;
@@ -91,7 +89,6 @@ public static class EntityRegistry
                         position,
                         facing
                     });
-                    invoked.Load();
 
                     return invoked;
 
@@ -110,7 +107,6 @@ public static class EntityRegistry
                         facing,
                         nodes
                     });
-                    invoked.Load();
 
                     return invoked;
 
