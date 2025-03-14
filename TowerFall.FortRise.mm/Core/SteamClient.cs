@@ -28,6 +28,12 @@ public static class SteamClient
         }
         else 
         {
+            // Last resort
+            File.Delete("steam_appid.txt");
+            if (SteamAPI.RestartAppIfNecessary(TFGame.STEAM_ID)) 
+            {
+                return false;
+            }
 			SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "SAVE THIS MESSAGE!", "Couldn't find Steam!", IntPtr.Zero);
         }
         return steamInit;
