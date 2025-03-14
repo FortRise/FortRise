@@ -92,7 +92,7 @@ public class TexturePacker<T>
     /// Construct a <see cref="FortRise.TexturePacker{T}"/>.
     /// </summary>
     /// <param name="maxSize">A maximum area size before it bails out</param>
-    public TexturePacker(int maxSize = 4096) 
+    public TexturePacker(int maxSize = 8192) 
     {
         MaxSize = maxSize;
     }
