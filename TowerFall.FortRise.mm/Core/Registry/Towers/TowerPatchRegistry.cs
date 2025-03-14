@@ -10,8 +10,7 @@ namespace FortRise;
 
 /// <summary>
 /// Patch any towers by deriving from this class.
-/// Name your class with the tower name you want to patch, must not have any spaces.
-/// Make sure that you properly spelled it and it is case sensitive.
+/// It has to use TowerPatcherAttribute to register it to <see cref="FortRise.TowerPatchRegistry"/> .
 /// </summary>
 public abstract class TowerPatch
 {
@@ -37,7 +36,6 @@ public class TowerPatcherAttribute : Attribute
 
 public static class TowerPatchRegistry 
 {
-    // garbage
     private class TowerPatchType
     {
         public List<string> TowerPatches = new List<string>();
