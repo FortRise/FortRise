@@ -18,6 +18,7 @@ using System.Text;
 using YYProject.XXHash;
 using System.IO.Compression;
 using System.Text.Json;
+using MonoMod.RuntimeDetour;
 
 namespace FortRise;
 
@@ -238,6 +239,38 @@ public static partial class RiseCore
                 }
             }
             return null;
+        };
+
+        DetourManager.DetourApplied += info => {
+            if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
+            {
+                return;
+            }
+
+            if (!isMMHOOK)
+            {
+                DetourLogs.Add($"new Detour by {owner.GetName().Name}: {info.Method.Method.GetID()}");
+            }
+            else 
+            {
+                DetourLogs.Add($"new On.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
+            }
+        };
+
+        DetourManager.ILHookApplied += info => {
+            if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
+            {
+                return;
+            }
+
+            if (!isMMHOOK)
+            {
+                DetourLogs.Add($"new ILHook by {owner.GetName().Name}: {info.Method.Method.GetID()}");
+            }
+            else 
+            {
+                DetourLogs.Add($"new IL.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
+            }
         };
 
         AtlasReader.Initialize();
@@ -730,6 +763,53 @@ public static partial class RiseCore
         {
             Logger.Log(line, level);
         }
+    }
+
+    internal static Assembly GetHookOwner(out bool isMMHOOK, StackTrace trace = null)
+    {
+        isMMHOOK = false;
+
+        if (trace == null)
+        {
+            trace = new StackTrace();
+        }
+
+        int frameCount = trace.FrameCount;
+        for (int i = 0; i < frameCount; i++)
+        {
+            StackFrame frame = trace.GetFrame(i);
+            MethodBase caller = frame.GetMethod();
+
+            if (caller == null)
+            {
+                continue;
+            }
+
+            var declaringType = caller.DeclaringType;
+
+            if (declaringType == null)
+            {
+                continue;
+            }
+
+            Assembly assembly = declaringType.Assembly;
+
+            if (assembly == null || 
+                assembly == Assembly.GetExecutingAssembly() ||
+                assembly == typeof(Hook).Assembly)
+            {
+                continue;
+            }
+
+            if (assembly.GetName().Name.StartsWith("MMHOOK_"))
+            {
+                isMMHOOK = true;
+                continue;
+            }
+            return assembly;
+        }
+
+        return null;
     }
 
     /// <summary>
