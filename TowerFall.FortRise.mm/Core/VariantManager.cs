@@ -62,7 +62,7 @@ public class VariantManager : IDisposable
         var flags = info.Flags;
         Pickups[] itemExclusions = info.Exclusions;
         bool perPlayer = flags.HasFlag(CustomVariantFlags.PerPlayer) && !noPerPlayer;
-        string description = info.Description;
+        string description = info.Description.ToUpperInvariant();
         string header = (info.Header ?? currentContext).ToUpperInvariant();
         string useHeader = header;
         if (Headers.Contains(header)) 
