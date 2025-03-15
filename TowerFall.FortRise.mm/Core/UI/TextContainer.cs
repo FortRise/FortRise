@@ -581,3 +581,26 @@ public class TextContainer : MenuItem
         }
     }
 }
+
+public class UIModButtonText : TextContainer.ButtonText
+{
+    private bool alerted;
+    public UIModButtonText(string text, bool alerted) : base(text)
+    {
+        this.alerted = alerted;
+    }
+
+    public override void Render(Vector2 position, bool selected)
+    {
+        Color color = (base.Selected ? OptionsButton.SelectedColor : OptionsButton.NotSelectedColor);
+        Draw.OutlineTextCentered(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * SelectedWiggler.Value, 0f), color, Color.Black);
+        if (alerted)
+        {
+            var measured = TFGame.Font.MeasureString(Text).X * 0.5f;
+            Draw.OutlineTextureCentered(
+                TFGame.MenuAtlas["variants/newVariantsTagSmall"], 
+                position + new Vector2(measured + 5, 0f) + new Vector2(5f * SelectedWiggler.Value, 0f), 
+                Color.White);
+        }
+    }
+}

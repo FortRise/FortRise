@@ -7,6 +7,19 @@ using System.Text.RegularExpressions;
 
 namespace FortRise;
 
+public class ModuleUpdater 
+{
+    [JsonPropertyName("Github")]
+    public Github GH { get; set; }
+
+    public class Github 
+    {
+        public string Repository { get; set; }
+        public string TagRegex { get; set; }
+    }
+}
+
+
 public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
     public string Name { get; set; }
@@ -16,6 +29,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     public string DLL { get; set; } = string.Empty;
     public ModuleMetadata[] Dependencies { get; set; } = null;
     public ModuleMetadata[] OptionalDependencies { get; set; } = null;
+    public ModuleUpdater Update { get; set; } = null;
     public string NativePath { get; set; } = string.Empty;
     public string NativePathX86 { get; set; } = string.Empty;
 

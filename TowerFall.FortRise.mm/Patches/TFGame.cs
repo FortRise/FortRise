@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -501,11 +502,39 @@ namespace TowerFall
             });
 
             Task.Run(CheckUpdate);
+            Task.Run(CheckModUpdate);
+        }
+
+        private static async Task CheckModUpdate()
+        {
+            var tasks = new List<Task<Result<bool, string>>>();
+            foreach (var metadata in RiseCore.InternalModuleMetadatas)
+            {
+                if (metadata.Name is "FortRise" or "Adventure")
+                {
+                    continue;
+                }
+                tasks.Add(RiseCore.UpdateChecks.CheckModUpdate(metadata));
+            }
+
+            await Task.WhenAll(tasks);
+
+            foreach (var task in tasks)
+            {
+                if (!task.Result.Check(out var res, out string err))
+                {
+                    if (err != "NRF")
+                    {
+                        Logger.Error(err);
+                    }
+                    continue;
+                }
+            }
         }
 
         private static async Task CheckUpdate()
         {
-            var result = await RiseCore.UpdateChecks.CheckUpdate();
+            var result = await RiseCore.UpdateChecks.CheckFortRiseUpdate();
             if (!result.Check(out var res, out string err))
             {
                 RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
@@ -515,11 +544,17 @@ namespace TowerFall
 
             string url = res.Ref;
             int index = url.LastIndexOf('/');
-            var version = new Version(url.Substring(index + 1));
-            if (version > RiseCore.FortRiseVersion)
+            if (!System.Version.TryParse(url.Substring(index + 1), out Version version))
             {
-                RiseCore.UpdateChecks.UpdateMessage = "AN UPDATE IS AVAILABLE!";
-                RiseCore.UpdateChecks.UpdateConfirm(version.ToString());
+                RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
+                return;
+            }
+
+            RiseCore.UpdateChecks.UpdateFortRiseConfirm(version);
+
+            if (RiseCore.UpdateChecks.FortRiseUpdateAvailable)
+            {
+                RiseCore.UpdateChecks.UpdateMessage = "FORTRISE UPDATE IS AVAILABLE!";
                 return;
             }
             RiseCore.UpdateChecks.UpdateMessage = string.Empty;

@@ -80,6 +80,28 @@ namespace TowerFall
             var textContainer = new TextContainer(180);
 
             textContainer.Selected = true;
+            if (RiseCore.UpdateChecks.HasUpdates.Contains(currentModule.Meta))
+            {
+                var updateButton = new TextContainer.ButtonText("UPDATE AVAILABLE");
+                updateButton.Pressed(() => {
+                    var repo = currentModule.Meta.Update.GH.Repository;
+                    RiseCore.UpdateChecks.OpenGithubModUpdateURL(currentModule.Meta, repo);
+                });
+                textContainer.Add(updateButton);
+            }
+
+            if (currentModule.Meta.Update is not null and { GH: { Repository: not null } })
+            {
+                var visitGithubButton = new TextContainer.ButtonText("VISIT GITHUB");
+                visitGithubButton.Pressed(() => {
+                    var repo = currentModule.Meta.Update.GH.Repository;
+                    RiseCore.UpdateChecks.OpenGithubURL(repo);
+                });
+
+                textContainer.Add(visitGithubButton);
+            }
+
+
             currentModule.CreateSettings(textContainer);
             Add(textContainer);
 
@@ -107,7 +129,7 @@ namespace TowerFall
             if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
             {
                 var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
-                modButton.Pressed(RiseCore.UpdateChecks.OpenUpdateURL);
+                modButton.Pressed(RiseCore.UpdateChecks.OpenFortRiseUpdateURL);
                 textContainer.Add(modButton);
             }
 
@@ -126,8 +148,11 @@ namespace TowerFall
                 {
                     title = setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant();
                 }
-                var modButton = new TextContainer.ButtonText(title);
-                if (mod is not AdventureModule and { InternalSettings: not null }) 
+
+                bool hasUpdate = RiseCore.UpdateChecks.HasUpdates.Contains(mod.Meta);
+
+                var modButton = new UIModButtonText(title, hasUpdate);
+                if (mod is not AdventureModule or NoModule) 
                 {
                     modButton.Pressed(() => {
                         State = patch_MenuState.ModOptions;
@@ -307,7 +332,7 @@ namespace TowerFall
                     Draw.SpriteBatch.End();
                 }
             }
-            else if (State == patch_MenuState.Main && !string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
+            else if (State == patch_MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
             {
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
                 Draw.Texture(TFGame.MenuAtlas["variants/newVariantsTag"], new Vector2(20, (MainMenu.NoQuit ? 208 : 192) - 28), Color.White);
