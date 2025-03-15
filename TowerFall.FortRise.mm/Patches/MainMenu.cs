@@ -58,7 +58,7 @@ namespace TowerFall
         [MonoModIgnore]
         [PatchMainMenuBegin]
         public extern override void Begin();
-        
+
 
         private void CreateModToggle() 
         {
@@ -103,6 +103,14 @@ namespace TowerFall
                 State = patch_MenuState.ModOptions;
             });
             textContainer.Add(toggleButton);
+
+            if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
+            {
+                var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
+                modButton.Pressed(RiseCore.UpdateChecks.OpenUpdateURL);
+                textContainer.Add(modButton);
+            }
+
             foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
                 var version = mod.Meta.Version.ToString();
@@ -289,6 +297,23 @@ namespace TowerFall
         public override void Render()
         {
             orig_Render();
+            if (State == patch_MenuState.PressStart)
+            {
+                if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
+                {
+                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    Draw.OutlineTextJustify(TFGame.Font, RiseCore.UpdateChecks.UpdateMessage, new Vector2(4, 225), Color.Gray, Color.Black, 
+                        new Vector2(0, 0.5f));
+                    Draw.SpriteBatch.End();
+                }
+            }
+            else if (State == patch_MenuState.Main && !string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
+            {
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                Draw.Texture(TFGame.MenuAtlas["variants/newVariantsTag"], new Vector2(20, (MainMenu.NoQuit ? 208 : 192) - 28), Color.White);
+                Draw.SpriteBatch.End();
+            }
+
             if (Loader.Message == "")
                 return;
             var tasks = TaskHelper.Tasks;

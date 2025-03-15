@@ -19,6 +19,7 @@ using YYProject.XXHash;
 using System.IO.Compression;
 using System.Text.Json;
 using MonoMod.RuntimeDetour;
+using System.Net;
 
 namespace FortRise;
 
@@ -182,6 +183,7 @@ public static partial class RiseCore
 
     internal static void ModuleStart()
     {
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 

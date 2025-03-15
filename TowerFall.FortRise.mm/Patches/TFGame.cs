@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -498,6 +499,30 @@ namespace TowerFall
                     Engine.Instance.Exit();
                 }
             });
+
+            Task.Run(CheckUpdate);
+        }
+
+        private static async Task CheckUpdate()
+        {
+            var result = await RiseCore.UpdateChecks.CheckUpdate();
+            if (!result.Check(out var res, out string err))
+            {
+                RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
+                Logger.Error(err);
+                return;
+            }
+
+            string url = res.Ref;
+            int index = url.LastIndexOf('/');
+            var version = new Version(url.Substring(index + 1));
+            if (version > RiseCore.FortRiseVersion)
+            {
+                RiseCore.UpdateChecks.UpdateMessage = "AN UPDATE IS AVAILABLE!";
+                RiseCore.UpdateChecks.UpdateConfirm(version.ToString());
+                return;
+            }
+            RiseCore.UpdateChecks.UpdateMessage = string.Empty;
         }
 
         [MonoModReplace]
