@@ -592,8 +592,6 @@ internal static partial class MonoModRules
         method.CustomAttributes.Add(customAttribute);
     }
 
-    private static void ModPostProcessor(MonoModder modder) {}
-
     private static void PostProcessor(MonoModder modder)
     {
         foreach (var type in modder.Module.Types)

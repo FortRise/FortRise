@@ -306,7 +306,7 @@ public static partial class RiseCore
                 module.Name = customAttribute.Name;
                 module.ID = customAttribute.GUID;
                 var content = resource.Content;
-                module.Content = content;
+                module.s_Content(content);
                 module.ParseArgs(RiseCore.ApplicationArgs);
                 module.InternalLoad();
                 lock (InternalFortModules)

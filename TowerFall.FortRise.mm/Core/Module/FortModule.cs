@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using MonoMod;
 using TowerFall;
 
 namespace FortRise;
@@ -16,6 +17,16 @@ public class FortAttribute : Attribute
     {
         GUID = guid;
         Name = name;
+    }
+}
+
+[MonoModRemove]
+public abstract partial class patch_FortModule
+{
+    public FortContent Content 
+    {
+        get;
+        internal set;
     }
 }
 
@@ -39,10 +50,17 @@ public abstract partial class FortModule
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
+
     /// <summary>
     /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..
     /// </summary>
+    [MonoModLinkTo("FortRise.FortModule", "get_Content")]
+    [MonoModRemove]
     public FortContent Content;
+
+    [MonoModLinkTo("FortRise.FortModule", "set_Content")]
+    [MonoModRemove]
+    public void s_Content(FortContent content) {}
 
     /// <summary>
     /// Override this function to load your hooks, events, and set environment variables for your mod.
