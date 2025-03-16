@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FortRise;
 using FortRise.Adventure;
 using Microsoft.Xna.Framework;
@@ -82,10 +83,30 @@ namespace TowerFall
             textContainer.Selected = true;
             if (RiseCore.UpdateChecks.HasUpdates.Contains(currentModule.Meta))
             {
-                var updateButton = new TextContainer.ButtonText("UPDATE AVAILABLE");
+                var updateButton = new TextContainer.ButtonText("UPDATE");
                 updateButton.Pressed(() => {
-                    var repo = currentModule.Meta.Update.GH.Repository;
-                    RiseCore.UpdateChecks.OpenGithubModUpdateURL(currentModule.Meta, repo);
+                    UILoader loader = new UILoader();
+                    Add(loader);
+                    Task.Run(async () => {
+                        textContainer.Selected = false;
+                        var res = await RiseCore.UpdateChecks.DownloadUpdate(currentModule.Meta);
+                        loader.Finish();
+
+                        UIModal modal = new UIModal();
+                        modal.AutoClose = true;
+                        modal.SetTitle("Update Status");
+                        if (!res.Check(out _, out string err))
+                        {
+                            modal.AddFiller(err);
+                            modal.AddItem("Ok", () => textContainer.Selected = true);
+                            Add(modal);
+                            Logger.Error(err);
+                            return;
+                        }
+                        modal.AddFiller("Restart Required!");
+                        modal.AddItem("Ok", () => textContainer.Selected = true);
+                        Add(modal);
+                    });
                 });
                 textContainer.Add(updateButton);
             }

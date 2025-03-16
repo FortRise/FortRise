@@ -20,6 +20,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using MonoMod.RuntimeDetour;
 using System.Net;
+using System.Linq;
 
 namespace FortRise;
 
@@ -123,9 +124,27 @@ public static partial class RiseCore
     {
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
+        // Check for the important directories
         if (!Directory.Exists("Mods"))
+        {
             Directory.CreateDirectory("Mods");
+        }
 
+        if (!Directory.Exists("ModUpdater"))
+        {
+            Directory.CreateDirectory("ModUpdater");
+        }
+
+        // Check for updates
+        var updates = Directory.GetFiles("ModUpdater").Where(x => x.EndsWith("zip"));
+        foreach (var update in updates)
+        {
+            var filename = Path.GetFileName(update);
+            Logger.Info($"Updating {filename}");
+            File.Move(update, Path.Combine("Mods", filename));
+        }
+
+        // Load mods here
         Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
         var directory = Directory.GetDirectories("Mods");
         foreach (var dir in directory)

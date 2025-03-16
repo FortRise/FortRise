@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -17,17 +19,20 @@ public partial class RiseCore
     {
         private const string API_REPO_REF_LINK = "https://api.github.com/repos/FortRise/FortRise/git/refs/tags";
         private static string version;
-        public static string UpdateMessage = "CHECKING FOR AN UPDATE...";
+        internal static string UpdateMessage = "CHECKING FOR AN UPDATE...";
         public static bool FortRiseUpdateAvailable;
         public static HashSet<ModuleMetadata> HasUpdates = new HashSet<ModuleMetadata>();
         public static Dictionary<ModuleMetadata, string> Tags = new Dictionary<ModuleMetadata, string>();
-        public struct UpdateRef
-        {
-            [JsonPropertyName("ref")]
-            public string Ref { get; set; }
 
-            [JsonIgnore]
-            public Version Version { get; set; }
+
+        public static bool IsUpdateAvailable(FortModule module)
+        {
+            return IsUpdateAvailable(module.Meta);
+        }
+
+        public static bool IsUpdateAvailable(ModuleMetadata metadata)
+        {
+            return HasUpdates.Contains(metadata);
         }
 
         public static async Task<Result<bool, string>> CheckModUpdate(ModuleMetadata metadata)
@@ -40,10 +45,13 @@ public partial class RiseCore
 
             try
             {
-                using var webClient = new WebClient();
-                webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
-                webClient.Headers.Add(HttpRequestHeader.UserAgent, "FortRise/" + FortRiseVersion.ToString());
-                var json = await webClient.DownloadStringTaskAsync(new Uri(urlRepository));
+                string json;
+                using (var webClient = new WebClient())
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
+                    webClient.Headers.Add(HttpRequestHeader.UserAgent, "FortRise/" + FortRiseVersion.ToString());
+                    json = await webClient.DownloadStringTaskAsync(new Uri(urlRepository));
+                }
 
                 var updateRefs = JsonSerializer.Deserialize<UpdateRef[]>(json);
 
@@ -90,7 +98,93 @@ public partial class RiseCore
             }
         }
 
-        public static async Task<Result<UpdateRef, string>> CheckFortRiseUpdate()
+        public static async Task<Result<bool, string>> DownloadUpdate(ModuleMetadata metadata)
+        {
+            var tagName = Tags[metadata];
+
+            var urlTaggedRelease = $"https://api.github.com/repos/{metadata.Update.GH.Repository}/releases/tags/{tagName}";
+            try 
+            {
+                string fortriseAgent = "FortRise/" + FortRiseVersion.ToString();
+                string json;
+                using (var webClient = new WebClient())
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
+                    webClient.Headers.Add(HttpRequestHeader.UserAgent, fortriseAgent);
+                    json = await webClient.DownloadStringTaskAsync(new Uri(urlTaggedRelease));
+                }
+
+                var updateRelease = JsonSerializer.Deserialize<UpdateRelease>(json);
+                var firstAsset = updateRelease.Assets[0];
+
+                var downloadURI = new Uri(firstAsset.BrowserDownloadUrl);
+                byte[] data;
+                using (var webClient = new WebClient())
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/zip");
+                    webClient.Headers.Add(HttpRequestHeader.UserAgent, fortriseAgent);
+                    data = await webClient.DownloadDataTaskAsync(downloadURI);
+                }
+
+                if (!ValidateReleaseByte(data))
+                {
+                    return "First release does not have a valid mod metadata.";
+                }
+
+                using (var fs = File.Create(Path.Combine("ModUpdater", firstAsset.Name)))
+                {
+                    fs.Write(data, 0, data.Length);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return "Could not get a download file from this repository.";
+            }
+        }
+
+        public static void OpenGithubURL(string repo)
+        {
+            OpenURL($"https://github.com/{repo}");
+        }
+
+        public static void OpenGithubModUpdateURL(ModuleMetadata metadata, string repo)
+        {
+            var releaseTag = Tags[metadata];
+            OpenURL($"https://github.com/{repo}/releases/tag/{releaseTag}");
+        }
+
+        private static bool ValidateReleaseByte(byte[] data)
+        {
+            try 
+            {
+                using var ms = new MemoryStream(data);
+                using var zip = new ZipArchive(ms);
+                var entry = zip.GetEntry("meta.json");
+
+                if (entry == null)
+                {
+                    return false;
+                }
+
+                using var jsonMs = entry.ExtractStream();
+                if (!ModuleMetadata.ParseMetadata(null, jsonMs).Check(out _, out string err))
+                {
+                    Logger.Error(err);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return false;
+            }
+        }
+
+        internal static async Task<Result<UpdateRef, string>> CheckFortRiseUpdate()
         {
             try 
             {
@@ -111,7 +205,7 @@ public partial class RiseCore
             }
         }
 
-        public static void UpdateFortRiseConfirm(Version version)
+        internal static void UpdateFortRiseConfirm(Version version)
         {
             if (version > FortRiseVersion)
             {
@@ -119,7 +213,7 @@ public partial class RiseCore
             }
         }
 
-        public static void OpenFortRiseUpdateURL()
+        internal static void OpenFortRiseUpdateURL()
         {
             string url;
             if (version == null)
@@ -131,17 +225,6 @@ public partial class RiseCore
                 url = $"https://github.com/Terria-K/FortRise/releases/tag/{version}";
             }
             OpenURL(url);
-        }
-
-        public static void OpenGithubURL(string repo)
-        {
-            OpenURL($"https://github.com/{repo}");
-        }
-
-        public static void OpenGithubModUpdateURL(ModuleMetadata metadata, string repo)
-        {
-            var releaseTag = Tags[metadata];
-            OpenURL($"https://github.com/{repo}/releases/tag/{releaseTag}");
         }
 
         private static void OpenURL(string url)
@@ -176,6 +259,33 @@ public partial class RiseCore
         {
             int index = url.LastIndexOf('/');
             return url.Substring(index + 1);
+        }
+
+        public struct UpdateRef
+        {
+            [JsonPropertyName("ref")]
+            public string Ref { get; set; }
+
+            [JsonIgnore]
+            public Version Version { get; set; }
+        }
+
+        public struct UpdateRelease
+        {
+            [JsonPropertyName("tag_name")]
+            public string TagName { get; set; }
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+            [JsonPropertyName("assets")]
+            public UpdateReleaseAssets[] Assets { get; set; }
+        }
+
+        public struct UpdateReleaseAssets 
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+            [JsonPropertyName("browser_download_url")]
+            public string BrowserDownloadUrl { get; set; }
         }
     }
 }
