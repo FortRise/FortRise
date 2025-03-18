@@ -153,7 +153,10 @@ namespace TowerFall
                         if (readed.Contains("Installer")) 
                         {
                             var version = readed.Split(':')[1].Trim();
-                            RiseCore.FortRiseVersion = new System.Version(version);
+                            if (!SemanticVersion.TryParse(version, out RiseCore.FortRiseVersion))
+                            {
+                                throw new Exception("Invalid FortRise version!");
+                            }
                         }
                     }
                 }
@@ -544,7 +547,7 @@ namespace TowerFall
 
             string url = res.Ref;
             int index = url.LastIndexOf('/');
-            if (!System.Version.TryParse(url.Substring(index + 1), out Version version))
+            if (!SemanticVersion.TryParse(url.Substring(index + 1), out SemanticVersion version))
             {
                 RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
                 return;

@@ -23,7 +23,7 @@ public class ModuleUpdater
 public class ModuleMetadata : IEquatable<ModuleMetadata>
 {
     public string Name { get; set; }
-    public Version Version { get; set; }
+    public SemanticVersion Version { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
@@ -61,6 +61,10 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         if (this.Version.Minor < other.Version.Minor)
             return false;
 
+        if (this.Version.Prerelease != other.Version.Prerelease)
+            return false;
+        
+
         return true;
     }
 
@@ -80,10 +84,16 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         return ParseMetadata(dir, jfs);
     }
 
-    private static JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions 
+    private static JsonSerializerOptions metaJsonOptions;
+
+    static ModuleMetadata()
     {
-        PropertyNameCaseInsensitive = true
-    };
+        metaJsonOptions = new JsonSerializerOptions 
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+        metaJsonOptions.Converters.Add(new SemanticVersionConverter());
+    }
 
     public static Result<ModuleMetadata, string> ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {

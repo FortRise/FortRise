@@ -222,7 +222,7 @@ public class Installer : MarshalByRefObject
         Underline("Writing the version file");
 
         var sb = new StringBuilder();
-        sb.AppendLine("Installer Version: " + "5.1.0");
+        sb.AppendLine("Installer Version: " + "5.0.0-alpha.1");
 
         var text = sb.ToString();
 

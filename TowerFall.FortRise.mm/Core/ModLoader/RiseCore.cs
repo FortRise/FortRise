@@ -75,7 +75,7 @@ public static partial class RiseCore
     /// <note>This should be not used to check for Latest Version and Current Version,
     /// this is an information for logging purposes.</note>
     /// </summary>
-    public static Version FortRiseVersion;
+    public static SemanticVersion FortRiseVersion;
     /// <summary>
     /// Checks if the OS that is currently running is Windows.
     /// </summary>

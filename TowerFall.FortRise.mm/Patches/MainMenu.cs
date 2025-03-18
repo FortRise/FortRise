@@ -157,7 +157,7 @@ namespace TowerFall
             foreach (var mod in FortRise.RiseCore.InternalFortModules) 
             {
                 var version = mod.Meta.Version.ToString();
-                var setupName = mod.Meta.Name + " v" + version;
+                var setupName = mod.Meta.Name + " v" + version.ToUpperInvariant();
                 string author = mod.Meta.Author ?? "";
 
                 string title;

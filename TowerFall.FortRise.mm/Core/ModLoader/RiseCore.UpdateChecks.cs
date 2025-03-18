@@ -61,7 +61,7 @@ public partial class RiseCore
                     var list = updateRefs
                         .Where(x => regex.IsMatch(TrimUrl(x.Ref)))
                         .Select(x => {
-                            x.Version = new Version(regex.Match(TrimUrl(x.Ref)).Groups[1].Value);
+                            x.Version = new SemanticVersion(regex.Match(TrimUrl(x.Ref)).Groups[1].Value);
                             return x;
                         })
                         .ToArray();
@@ -76,7 +76,7 @@ public partial class RiseCore
 
                 if (r.Version == null)
                 {
-                    if (!System.Version.TryParse(TrimUrl(r.Ref), out Version version))
+                    if (!SemanticVersion.TryParse(TrimUrl(r.Ref), out SemanticVersion version))
                     {
                         return "ERROR PARSING THE VERSION NUMBER.";
                     }
@@ -205,7 +205,7 @@ public partial class RiseCore
             }
         }
 
-        internal static void UpdateFortRiseConfirm(Version version)
+        internal static void UpdateFortRiseConfirm(SemanticVersion version)
         {
             if (version > FortRiseVersion)
             {
@@ -267,7 +267,8 @@ public partial class RiseCore
             public string Ref { get; set; }
 
             [JsonIgnore]
-            public Version Version { get; set; }
+            [JsonConverter(typeof(SemanticVersionConverter))]
+            public SemanticVersion Version { get; set; }
         }
 
         public struct UpdateRelease
