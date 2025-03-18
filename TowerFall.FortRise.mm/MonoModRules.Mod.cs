@@ -9,6 +9,6 @@ internal static partial class MonoModRules
 {
     private static void ModPostProcessor(MonoModder modder) 
     {
-        
+
     }
 }
