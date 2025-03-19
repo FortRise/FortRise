@@ -59,13 +59,7 @@ internal static partial class MonoModRules
     private static Version Version;
     private static bool IsMod;
     private static bool IsFNA = true;
-    public static readonly ModuleDefinition RulesModule;
-    public static string ExecModName;
-
-    public static bool CheckIfMods(ModuleDefinition mod)
-    {
-        return ExecModName == mod.Name.Substring(0, mod.Name.Length - 4) + ".MonoModRules [MMILRT, ID:" + MonoModRulesManager.GetId(MonoModRule.Modder) + "]";
-    }
+    public static ModuleDefinition RulesModule;
 
     static MonoModRules()
     {
@@ -77,116 +71,45 @@ internal static partial class MonoModRules
         IsWindows = PlatformDetection.OS == OSKind.Windows;
         MonoModRule.Flag.Set("OS:Windows", IsWindows);
         MonoModRule.Flag.Set("OS:NotWindows", !IsWindows);
-        ExecModName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-        RulesModule = MonoModRule.Modder.DependencyMap.Keys.FirstOrDefault(CheckIfMods);
+        var execModName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+        RulesModule = MonoModRule.Modder.DependencyMap.Keys.FirstOrDefault(mod => 
+            execModName == mod.Name.Substring(0, mod.Name.Length - 4) + ".MonoModRules [MMILRT, ID:" + MonoModRulesManager.GetId(MonoModRule.Modder) + "]"
+        );
 
         MonoModRule.Modder.PostProcessors += PostProcessor;
         IsMod = RulesModule == null || !MonoModRule.Modder.Mods.Contains(RulesModule);
 
         if (IsMod)
         {
-            MonoModRule.Modder.PostProcessors += ModPostProcessor;
-            Console.WriteLine("[FortRise] Mod Relinking");
-            if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
-                Console.WriteLine("[FortRise] Relinked to FNA");
-            return;
+            ModPatch(MonoModRule.Modder);
         }
-
-        MonoModRule.Modder.Module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
-
-        MonoModRule.Modder.PostProcessors += PostProcessMacros;
-
-        bool hasSteamworks = false;
-        foreach (var name in MonoModRule.Modder.Module.AssemblyReferences)
+        else 
         {
-            if (name.Name.Contains("Steamworks"))
-                hasSteamworks = true;
-        }
-        MonoModRule.Flag.Set("Steamworks", hasSteamworks);
-        MonoModRule.Flag.Set("NoLauncher", !hasSteamworks);
-        if (hasSteamworks)
-            Console.WriteLine("[FortRise] Running on a Steam Launcher");
-        else
-            Console.WriteLine("[FortRise] Running TowerFall without a Launcher");
-
-
-        TypeDefinition t_TFGame = MonoModRule.Modder.FindType("TowerFall.TFGame")?.Resolve();
-        if (t_TFGame == null)
-            return;
-        IsTowerFall = t_TFGame.Scope == MonoModRule.Modder.Module;
-
-        // Get the version of TowerFall
-
-        int[] numVersions = null;
-        var ctor_TFGame = t_TFGame.FindMethod(".cctor", true);
-        if (ctor_TFGame != null && ctor_TFGame.HasBody)
-        {
-            var instrs = ctor_TFGame.Body.Instructions;
-            for (int i = 0; i < instrs.Count; i++)
+            bool hasSteamworks = false;
+            foreach (var name in MonoModRule.Modder.Module.AssemblyReferences)
             {
-                var instr = instrs[i];
-                var ctor_Version = instr.Operand as MethodReference;
-                if (instr.OpCode != OpCodes.Newobj || ctor_Version.DeclaringType?.FullName != "System.Version")
-                    continue;
+                if (name.Name.Contains("Steamworks"))
+                    hasSteamworks = true;
+            }
+            if (hasSteamworks)
+            {
+                Console.WriteLine("[FortRise] Running on a Steam Launcher");
+            }
+            else
+            {
+                Console.WriteLine("[FortRise] Running TowerFall without a Launcher");
+            }
 
-                numVersions = new int[ctor_Version.Parameters.Count];
-                for (int j = -numVersions.Length; j < 0; j++)
-                    numVersions[j + numVersions.Length] = instrs[j + i].GetInt();
+            MonoModRule.Flag.Set("Steamworks", hasSteamworks);
+            MonoModRule.Flag.Set("NoLauncher", !hasSteamworks);
 
-                break;
+            if (MonoModRule.Modder.FindType("TowerFall.TFGame")?.SafeResolve()?.Scope == MonoModRule.Modder.Module)
+            {
+                GamePatch(MonoModRule.Modder);
             }
         }
 
-        if (numVersions == null) {
-            throw new InvalidOperationException("Unknown version of TowerFall is being patched. Operation cancelled");
-        }
-
-        var version = numVersions.Length switch {
-            2 => new Version(numVersions[0], numVersions[1]),
-            3 => new Version(numVersions[0], numVersions[1], numVersions[2]),
-            4 => new Version(numVersions[0], numVersions[1], numVersions[2], numVersions[3]),
-            _ => throw new InvalidOperationException("Unknown version of TowerFall is being patched. Operation cancelled")
-        };
-        var minimumVersion = new Version(1, 3, 3, 1);
-        if (version.Major == 0)
-        {
-            version = minimumVersion;
-        }
-
-        if (version < minimumVersion)
-        {
-            throw new Exception($"Unsupported version of TowerFall: {version}, currently supported: {minimumVersion}");
-        }
-        Version = version;
-        Console.WriteLine("[FortRise] TowerFall Version is: " + Version);
-
-        if (IsTowerFall)
-        {
-            // Ensure that TowerFall assembly is not already modded
-            // (https://github.com/MonoMod/MonoMod#how-can-i-check-if-my-assembly-has-been-modded)
-            if (MonoModRule.Modder.FindType("MonoMod.WasHere") != null)
-                throw new Exception("This version of TowerFall is already modded. You need a clean install of TowerFall to mod it.");
-        }
-
-        Console.WriteLine($"[FortRise] Platform Found: {PlatformDetection.OS}");
-
-        if (IsFNA && RelinkAgainstFNA(MonoModRule.Modder))
-            Console.WriteLine("[FortRise] Relinking to FNA");
-
-        static void VisitType(TypeDefinition type) {
-            // Remove readonly attribute from all static fields
-            // This "fixes" https://github.com/dotnet/runtime/issues/11571, which breaks some mods
-            foreach (FieldDefinition field in type.Fields)
-                if ((field.Attributes & FieldAttributes.Static) != 0)
-                    field.Attributes &= ~FieldAttributes.InitOnly;
-
-            // Visit nested types
-            foreach (TypeDefinition nestedType in type.NestedTypes)
-                VisitType(nestedType);
-        }
-
-        foreach (TypeDefinition type in MonoModRule.Modder.Module.Types)
-            VisitType(type);
+        MonoModRule.Modder.PostProcessors += _ => RulesModule = null;
     }
 
     public static System.Reflection.AssemblyName GetRulesAssemblyRef(string name)

@@ -110,6 +110,8 @@ namespace TowerFall
             }
             if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
             {
+                // Prevent Windows from having its cwd to be in System32 sometimes
+                Environment.CurrentDirectory = Path.GetDirectoryName(towerFallPath);
                 try 
                 {
                     NativeMethods.SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);

@@ -59,7 +59,7 @@ public class Installer : MarshalByRefObject
             };
             break;
         default:
-            NativePath = "x86";
+            NativePath = "x86 and x64";
             NativeCopy = CopyNativeFiles_Windows;
             nativeLibs = new string[] {
                 "FAudio.dll", "FNA3D.dll",
@@ -97,11 +97,18 @@ public class Installer : MarshalByRefObject
             return;
         }
 
+        if (File.Exists(Path.Combine(path, "Steamworks.NET.dll")) && !File.Exists(Path.Combine(fortOrigPath, "Steamworks.NET.dll")))
+        {
+            Underline("Moving original Steamworks.NET.dll to fortOrig");
+            File.Copy(Path.Combine(path, "Steamworks.NET.dll"), Path.Combine(fortOrigPath, "Steamworks.NET.dll"));
+        }
+
         if (File.Exists(Path.Combine(path, "FNA.dll")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll")))
         {
             Underline("Moving original FNA.dll to fortOrig");
             File.Copy(Path.Combine(path, "FNA.dll"), Path.Combine(fortOrigPath, "FNA.dll"));
         }
+
         if (File.Exists(Path.Combine(path, "FNA.dll.config")) && !File.Exists(Path.Combine(fortOrigPath, "FNA.dll.config")))
         {
             Underline("Moving original FNA.dll.config to fortOrig");
@@ -318,12 +325,24 @@ public class Installer : MarshalByRefObject
             if (!File.Exists(lib)) 
             {
                 ThrowErrorContinous($"{lib} file not found!");
-                continue;
+                goto X64Check;
             }   
             var x86Path = Path.Combine(path, "x86");
             if (!Directory.Exists(x86Path)) 
                 Directory.CreateDirectory(x86Path);
             File.Copy(lib, Path.Combine(x86Path, Path.GetFileName(lib)), true);
+
+            X64Check:
+            lib = Path.Combine("x64", fnaLib);
+            if (!File.Exists(lib)) 
+            {
+                ThrowErrorContinous($"{lib} file not found!");
+                continue;
+            }   
+            var x64Path = Path.Combine(path, "x64");
+            if (!Directory.Exists(x64Path)) 
+                Directory.CreateDirectory(x64Path);
+            File.Copy(lib, Path.Combine(x64Path, Path.GetFileName(lib)), true);
         }
     }
 
