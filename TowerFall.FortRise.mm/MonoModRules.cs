@@ -92,6 +92,8 @@ internal static partial class MonoModRules
             return;
         }
 
+        MonoModRule.Modder.Module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
+
         MonoModRule.Modder.PostProcessors += PostProcessMacros;
 
         bool hasSteamworks = false;
