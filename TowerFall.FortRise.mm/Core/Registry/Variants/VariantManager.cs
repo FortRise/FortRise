@@ -88,15 +88,14 @@ public class VariantManager : IDisposable
         var title = GetCustomVariantTitle(info.Name);
         var icon = info.Icon ?? GetVariantIconFromName(info.Name);
         var variant = new Variant(icon, title, description, itemExclusions, perPlayer, 
-            useHeader, null, scrollEffect, hidden, flag, tournamentRule1v, 
+            header, null, scrollEffect, hidden, flag, tournamentRule1v, 
             tournamentRule2v, unlisted, darkWorldDLC, coopValue);
         if (flag)
             CanRandoms.Add(variant);
 
         var fortRise = metadata.GetFortRiseMetadata();
 
-        // FIXME remove null check as its explicitly required to have fortrise dependency anyway
-        if (fortRise != null && fortRise.Version.Major >= 5 && fortRise.Version.Minor >= 1)
+        if (fortRise.Version.Major >= 5 && fortRise.Version.Minor >= 1)
         {
             main.InternalCustomVariants.Add(metadata.Name + "/" + info.Name, variant);
         }

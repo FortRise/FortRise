@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using FortRise;
+using Microsoft.Xna.Framework;
 using MonoMod;
 
 namespace TowerFall;
@@ -88,4 +89,200 @@ public class patch_MatchVariants : MatchVariants
         }
         return list;
     }
+
+    public List<VariantItem> BuildMenu(MainMenu menu, out MenuItem startSelected, out float maxUICameraY)
+    {
+        float yOffset = 50f;
+        List<VariantItem> items = new List<VariantItem>();
+        List<VariantHeader> headers = new List<VariantHeader>();
+        List<List<VariantItem>> grid = new List<List<VariantItem>>();
+        List<Variant> notAllowed = new List<Variant>();
+
+        Dictionary<string, int> headerFilter = new Dictionary<string, int>();
+
+        grid.Add(new List<VariantItem>());
+        grid[0].Add(new VariantDisableAll());
+        grid[0].Add(new VariantRandomize());
+        grid[0].Add(new VariantTournament1v1());
+        if (GameData.DarkWorldDLC)
+        {
+            grid[0].Add(new VariantTournament2v2(true));
+        }
+        grid.Add(new List<VariantItem>());
+        grid[1].Add(new VariantPreset(0));
+        grid[1].Add(new VariantPreset(1));
+        grid[1].Add(new VariantPreset(2));
+        grid[1].Add(new VariantPreset(3));
+        grid[1].Add(new VariantPreset(4));
+
+        foreach (VariantItem variantItem in grid[0])
+        {
+            items.Add(variantItem);
+        }
+
+        foreach (VariantItem variantItem in grid[1])
+        {
+            items.Add(variantItem);
+        }
+
+        int columnIndex = 1;
+        foreach (var variant in Variants)
+        {
+            // if this is not a custom variant, perform the vanilla variant insertion
+            if (!InternalCustomVariants.ContainsValue(variant))
+            {
+                if (!string.IsNullOrEmpty(variant.Header))
+                {
+                    VariantHeader variantHeader = new VariantHeader(variant.Header);
+                    headers.Add(variantHeader);
+                    items.Add(variantHeader);
+                    grid.Add(new List<VariantItem>());
+                    // we do want its index though..
+                    columnIndex += 1;
+                    headerFilter[variant.Header] = columnIndex;
+                }    
+            }
+            // delay all of the modded variants that had headers since we want all non-headers variant
+            // to be place at the top
+            else if (!string.IsNullOrEmpty(variant.Header))
+            {
+                // only do this if the header has not yet been discovered.
+                if (!headerFilter.ContainsKey(variant.Header))
+                {
+                    VariantHeader variantHeader = new VariantHeader(variant.Header);
+                    headers.Add(variantHeader);
+                    items.Add(variantHeader);
+                    grid.Add(new List<VariantItem>());
+                    // we do want its index though..
+                    columnIndex += 1;
+                    headerFilter[variant.Header] = columnIndex;
+                }
+                continue;
+            }
+
+            if (variant.DarkWorldDLC && !GameData.DarkWorldDLC)
+            {
+                notAllowed.Add(variant);
+            }
+            else if (variant.VisibleInMenu)
+            {
+                VariantItem variantItem2 = new VariantToggle(variant, true);
+                items.Add(variantItem2);
+                grid[columnIndex].Add(variantItem2);
+            }
+        }
+
+        foreach (var p in InternalCustomVariants)
+        {
+            var variant = p.Value;
+            if (string.IsNullOrEmpty(variant.Header))
+            {
+                continue;
+            }
+            var cIndex = headerFilter[variant.Header];
+            if (variant.DarkWorldDLC && !GameData.DarkWorldDLC)
+            {
+                notAllowed.Add(variant);
+            }
+            else if (variant.VisibleInMenu)
+            {
+                VariantItem variantItem2 = new VariantToggle(variant, true);
+                items.Add(variantItem2);
+                // this is why we store the columnIndex
+                grid[cIndex].Add(variantItem2);
+            }
+        }
+
+        if (!GameData.DarkWorldDLC)
+        {
+            VariantHeader variantHeader = new VariantHeader("DARK WORLD EXPANSION");
+            headers.Add(variantHeader);
+            items.Add(variantHeader);
+            grid.Add(new List<VariantItem>());
+            columnIndex += 1;
+            VariantTournament2v2 variantTournament2v = new VariantTournament2v2(false);
+            grid[columnIndex].Add(variantTournament2v);
+            items.Add(variantTournament2v);
+            foreach (Variant variant in notAllowed)
+            {
+                if (variant.VisibleInMenu)
+                {
+                    VariantItem variantItem2 = new VariantToggle(variant, false);
+                    items.Add(variantItem2);
+                    grid[columnIndex].Add(variantItem2);
+                }
+            }
+        }
+
+        // this one sets all of the key inputs for variants
+        for (int y = 0; y < grid.Count; y++)
+        {
+            for (int x = 0; x < grid[y].Count; x++)
+            {
+                if (x > 0)
+                {
+                    grid[y][x].LeftItem = grid[y][x - 1];
+                }
+                else if (y > 0)
+                {
+                    grid[y][x].LeftItem = grid[y - 1][grid[y - 1].Count - 1];
+                }
+                if (x < grid[y].Count - 1)
+                {
+                    grid[y][x].RightItem = grid[y][x + 1];
+                }
+                else if (y < grid.Count - 1)
+                {
+                    grid[y][x].RightItem = grid[y + 1][0];
+                }
+                if (x / 7 > 0)
+                {
+                    grid[y][x].UpItem = grid[y][x - 7];
+                }
+                else if (y > 0)
+                {
+                    int num3 = (grid[y - 1].Count - 1) / 7 * 7 + x % 7;
+                    num3 = Math.Min(num3, grid[y - 1].Count - 1);
+                    grid[y][x].UpItem = grid[y - 1][num3];
+                }
+                if (grid[y].Count > x / 7 * 7 + 7)
+                {
+                    grid[y][x].DownItem = grid[y][Math.Min(x + 7, grid[y].Count - 1)];
+                }
+                else if (y < grid.Count - 1)
+                {
+                    int num3 = x % 7;
+                    num3 = Math.Min(num3, grid[y + 1].Count - 1);
+                    grid[y][x].DownItem = grid[y + 1][num3];
+                }
+            }
+        }
+
+        // this one sets all of the positioning of variants and headers
+        for (int j = 0; j < grid.Count; j++)
+        {
+            if (j > 1)
+            {
+                VariantHeader variantHeader = headers[j - 2];
+                variantHeader.Position = new Vector2(70f, yOffset);
+                yOffset += 20f;
+            }
+            for (int k = 0; k < grid[j].Count; k++)
+            {
+                int num4 = k % 7;
+                VariantItem variantItem2 = grid[j][k];
+                if (k != 0 && k % 7 == 0)
+                {
+                    yOffset += 26f;
+                }
+                variantItem2.Position = new Vector2((float)(70 + num4 * 26), yOffset);
+            }
+            yOffset += 20f;
+        }
+
+        startSelected = grid[0][0];
+        maxUICameraY = yOffset - 240f;
+        return items;
+    }
+
 }
