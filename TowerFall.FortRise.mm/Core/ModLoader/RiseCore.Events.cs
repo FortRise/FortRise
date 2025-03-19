@@ -39,6 +39,17 @@ public static partial class RiseCore
             OnQuestSpawnWave?.Invoke(control, waveNum, groups, floors, dark, slow, scroll);
         }
 
+        public delegate void SlotVariantCreated(MatchVariants matchVariants, List<List<VariantItem>> variantSlots);
+
+        /// <summary>
+        /// Called when the quest wave spawn
+        /// </summary>
+        public static event SlotVariantCreated OnSlotVariantCreated;
+        internal static void Invoke_OnSlotVariantCreated(MatchVariants matchVariants, List<List<VariantItem>> variantSlots)
+        {
+            OnSlotVariantCreated?.Invoke(matchVariants, variantSlots);
+        }
+
         /// <summary>
         /// Called when the main menu has started
         /// </summary>
@@ -58,7 +69,7 @@ public static partial class RiseCore
         }
 
         /// <summary>
-        /// Called when the map scene has started
+        /// Called when a enemy has been killed by a player
         /// </summary>
         public static event Action<QuestRoundLogic, Vector2, int, int> OnQuestRegisterEnemyKills;
         internal static void Invoke_OnQuestRegisterEnemyKills(QuestRoundLogic roundLogic, Vector2 at, int killerIndex, int points)

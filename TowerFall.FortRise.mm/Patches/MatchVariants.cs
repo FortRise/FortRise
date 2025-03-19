@@ -214,6 +214,8 @@ public class patch_MatchVariants : MatchVariants
             }
         }
 
+        RiseCore.Events.Invoke_OnSlotVariantCreated(this, grid);
+
         // this one sets all of the key inputs for variants
         for (int y = 0; y < grid.Count; y++)
         {
