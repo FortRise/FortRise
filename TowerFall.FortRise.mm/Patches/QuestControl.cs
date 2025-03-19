@@ -118,9 +118,9 @@ namespace TowerFall
                     waves.Add(SpawnWave(
                         waveNum - base.Level.Session.QuestTestWave, 
                         sequences, floors, 
-                        wave.AttrBool("dark", false), 
-                        wave.AttrBool("slow", false), 
-                        wave.AttrBool("scroll", false))
+                        wave.AttrBool("dark", false) || Level.Session.MatchSettings.Variants.AlwaysDark, 
+                        wave.AttrBool("slow", false) || Level.Session.MatchSettings.Variants.SlowTime, 
+                        wave.AttrBool("scroll", false) || Level.Session.MatchSettings.Variants.AlwaysScrolling)
                     );
                 }
                 waveNum++;
