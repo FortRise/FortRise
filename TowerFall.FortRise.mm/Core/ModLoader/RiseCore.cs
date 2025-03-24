@@ -29,15 +29,9 @@ public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
 public delegate Subtexture ArrowHUDLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
-
 public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position, Vector2[] nodes);
-/// <summary>
-/// A loader delegate for custom RoundLogic.
-/// </summary>
-/// <param name="session">A game current session</param>
-/// <param name="canHaveMiasma">If the RoundLogic can have miasma</param>
-/// <returns></returns>
-public delegate RoundLogic RoundLogicLoader(patch_Session session, bool canHaveMiasma = false);
+public delegate CustomMenuState CustomMenuStateLoader(MainMenu menu);
+
 
 /// <summary>
 /// Core API of FortRise

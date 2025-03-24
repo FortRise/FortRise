@@ -20,6 +20,7 @@ namespace TowerFall
 
         private FortRiseUI currentUI;
         private patch_MenuState state;
+        [MonoModPublic]
         private patch_MenuState switchTo;
         public patch_MenuState BackState;
 
@@ -59,6 +60,31 @@ namespace TowerFall
         [MonoModIgnore]
         [PatchMainMenuBegin]
         public extern override void Begin();
+
+        [MonoModReplace]
+        private void CallStateFunc(string name, MainMenu.MenuState state)
+        {
+            if (CustomMenuStateRegistry.MenuLoaders.TryGetValue(state, out var loader))
+            {
+                var menuState = loader(this);
+                if (name == "Create")
+                {
+                    menuState.Create();
+                }
+                else 
+                {
+                    menuState.Destroy();
+                }
+
+                return;
+            }
+
+            var method = typeof(MainMenu).GetMethod(name + state.ToString());
+            if (method != null)
+            {
+                method.Invoke(this, new object[0]);
+            }
+        }
 
 
         private void CreateModToggle() 
@@ -226,6 +252,7 @@ namespace TowerFall
         [MonoModIgnore]
         private extern void MainCredits();
         [MonoModIgnore]
+        [MonoModPublic]
         private extern void TweenBGCameraToY(int y);
 
         [MonoModReplace]
@@ -235,18 +262,15 @@ namespace TowerFall
             var list = new List<MenuItem>();
 
             FightButton fightButton = new FightButton(new Vector2(100f, 140f), new Vector2(-160f, 120f));
-            list.Add(fightButton);
-
             CoOpButton coOpButton = new CoOpButton(new Vector2(220f, 140f), new Vector2(480f, 120f));
-            list.Add(coOpButton);
-
             WorkshopButton workshopButton = new WorkshopButton(new Vector2(270f, 210f), new Vector2(270f, 300f));
-            list.Add(workshopButton);
-
             ArchivesButton archivesButton = new ArchivesButton(new Vector2(200f, 210f), new Vector2(200f, 300f));
-            list.Add(archivesButton);
-
             TrialsButton trialsButton = new TrialsButton(new Vector2(130f, 210f), new Vector2(130f, 300f));
+
+            list.Add(fightButton);
+            list.Add(coOpButton);
+            list.Add(workshopButton);
+            list.Add(archivesButton);
             list.Add(trialsButton);
 
             BladeButton optionsButton;
