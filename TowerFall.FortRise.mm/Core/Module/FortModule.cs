@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using FortRise.IO;
 using MonoMod;
 using TowerFall;
 
@@ -98,7 +100,7 @@ public abstract partial class FortModule
 
         try 
         {
-            var savePath = Path.Combine("Saves", ID, $"{Name}.saveData.json");
+            var savePath = Path.Combine(GetRootPath(), "Saves", ID, $"{Name}.saveData.json");
             if (!Directory.Exists(Path.GetDirectoryName(savePath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(savePath));
@@ -127,7 +129,7 @@ public abstract partial class FortModule
         {
             return;
         }
-        var savePath = Path.Combine("Saves", ID, $"{Name}.saveData.json");
+        var savePath = Path.Combine(GetRootPath(), "Saves", ID, $"{Name}.saveData.json");
         if (!Directory.Exists(Path.GetDirectoryName(savePath)))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(savePath));
@@ -150,7 +152,7 @@ public abstract partial class FortModule
         if (InternalSettings == null)
             return;
 
-        var path = Path.Combine("Saves", ID, Name + ".settings" + ".json");
+        var path = Path.Combine(GetRootPath(), "Saves", ID, Name + ".settings" + ".json");
         InternalSettings.Load(path);
     }
 
@@ -158,7 +160,7 @@ public abstract partial class FortModule
     {
         if (InternalSettings == null)
             return;
-        var path = Path.Combine("Saves", ID, Name + ".settings" + ".json");
+        var path = Path.Combine(GetRootPath(), "Saves", ID, Name + ".settings" + ".json");
         InternalSettings.Save(path);
     }
 
@@ -278,5 +280,11 @@ public abstract partial class FortModule
     public bool IsModExists(string modName)
     {
         return RiseCore.IsModExists(modName);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string GetRootPath()
+    {
+        return ModIO.GetRootPath();
     }
 }

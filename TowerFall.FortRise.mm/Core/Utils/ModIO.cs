@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -13,6 +14,15 @@ namespace FortRise.IO;
 /// </summary>
 public static class ModIO
 {
+    /// <summary>
+    /// Get the FortRise path where the launcher is.
+    /// </summary>
+    /// <returns>A path to launcher directory</returns>
+    public static string GetRootPath()
+    {
+        return AppDomain.CurrentDomain.BaseDirectory;
+    }
+
     public static bool IsFolder(RiseCore.Resource resource)
     {
         return resource.ResourceType == typeof(RiseCore.ResourceTypeFolder);
