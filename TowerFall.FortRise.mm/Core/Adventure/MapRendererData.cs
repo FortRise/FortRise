@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -77,7 +78,9 @@ public class MapRendererNode : CompositeComponent
         if (AnimatedTowers.TryGetValue(towerName, out var value)) 
         {
             if (CurrentTower == value)
+            {
                 return;
+            }
             
             value.Select();
             CurrentTower?.DeSelect();
@@ -96,10 +99,13 @@ public class MapRendererNode : CompositeComponent
 
     private void AddAnimatedTowers(string towerTarget, AnimatedTower tower) 
     {
-        if (AnimatedTowers.ContainsKey(towerTarget)) 
-            return;
+        ref var tow = ref CollectionsMarshal.GetValueRefOrAddDefault(AnimatedTowers, towerTarget, out bool exists);
+        if (exists)
+        {
+            return; 
+        }
 
-        AnimatedTowers[towerTarget] = tower;
+        tow = tower;
         Add(tower.Sprite);
     }
 

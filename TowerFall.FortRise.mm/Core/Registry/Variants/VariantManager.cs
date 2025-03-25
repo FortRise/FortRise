@@ -93,16 +93,7 @@ public class VariantManager : IDisposable
         if (flag)
             CanRandoms.Add(variant);
 
-        var fortRise = metadata.GetFortRiseMetadata();
-
-        if (fortRise.Version.Major >= 5 && fortRise.Version.Minor >= 1)
-        {
-            main.InternalCustomVariants.Add(metadata.Name + "/" + info.Name, variant);
-        }
-        else 
-        {
-            main.InternalCustomVariants.Add(info.Name, variant);
-        }
+        main.InternalCustomVariants.Add(metadata.Name + "/" + info.Name, variant);
         
         TotalCustomVariantsAdded++;
 

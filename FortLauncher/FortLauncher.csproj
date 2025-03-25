@@ -25,7 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="../lib/'$(RuntimeIdentifier)'/**/*">
+    <Content Include="../lib/original/$(RuntimeIdentifier)/**/*">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib/$(RuntimeIdentifier)/**/*">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

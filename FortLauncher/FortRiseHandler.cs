@@ -13,14 +13,12 @@ namespace FortLauncher;
 
 public class FortRiseHandler(string fortriseCWD, List<string> args)
 {
-    public string PatchFile;
-
     public string[] Args = args.ToArray();
     private string cwd = fortriseCWD;
 
-    public void Run(string exePath) 
+    public void Run(string exePath, string patchFile) 
     {
-        var asm = LoadAssembly(PatchFile);
+        var asm = LoadAssembly(patchFile);
         Directory.SetCurrentDirectory(Path.GetFullPath(Path.GetDirectoryName(exePath)));
 
         // run the game
@@ -98,8 +96,6 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
 
             return false;
         }
-
-        PatchFile = patchFile;
 
         return true;
     }

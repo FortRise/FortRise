@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using Monocle;
 using TowerFall;
@@ -13,14 +14,12 @@ public sealed partial class AdventureQuestStats
 
     public AdventureQuestTowerStats AddOrGet(string name) 
     {
-        Towers ??= new Dictionary<string, AdventureQuestTowerStats>();
-        if (Towers.TryGetValue(name, out AdventureQuestTowerStats stats)) 
+        ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
+        if (!exists) 
         {
-            return stats;
+            stats = new AdventureQuestTowerStats();
         }
-        var newStats = new AdventureQuestTowerStats();
-        Towers.Add(name, newStats);
-        return newStats;
+        return stats;
     }
 }
 
@@ -87,14 +86,12 @@ public sealed partial class AdventureTrialsStats
 
     public AdventureTrialsTowerStats AddOrGet(string name) 
     {
-        Towers ??= new Dictionary<string, AdventureTrialsTowerStats>();
-        if (Towers.TryGetValue(name, out AdventureTrialsTowerStats stats)) 
+        ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
+        if (!exists)
         {
-            return stats;
+            stats = new AdventureTrialsTowerStats();
         }
-        var newStats = new AdventureTrialsTowerStats();
-        Towers.Add(name, newStats);
-        return newStats;
+        return stats;
     }
 }
 

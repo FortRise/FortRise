@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using TowerFall;
 
@@ -12,13 +13,12 @@ public sealed partial class AdventureWorldStats
 
     public AdventureWorldTowerStats AddOrGet(string name) 
     {
-        if (Towers.TryGetValue(name, out AdventureWorldTowerStats stats)) 
+        ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
+        if (!exists) 
         {
-            return stats;
+            stats = new AdventureWorldTowerStats();
         }
-        var newStats = new AdventureWorldTowerStats();
-        Towers.Add(name, newStats);
-        return newStats;
+        return stats;
     }
 }
 
