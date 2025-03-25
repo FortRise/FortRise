@@ -5,10 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text.Json;
 using FortRise;
 using Mono.Cecil;
 using MonoMod;
 using YYProject.XXHash;
+using SDL3;
+using FortLauncher.IO;
 
 namespace FortLauncher;
 
@@ -22,8 +25,107 @@ internal class Program
     {
         Console.WriteLine($"[FortRise] Version: {Version}");
 
+        bool canOverride = File.Exists("launch_override.json");
+
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        string exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+        string exePath;
+        LaunchOverride launchOverride = default;
+        if (!canOverride)
+        {
+            exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+        }
+        else 
+        {
+            string jsonOverride = File.ReadAllText("launch_override.json");
+            launchOverride = JsonSerializer.Deserialize<LaunchOverride>(jsonOverride, LaunchOverrideContext.Default.LaunchOverride);
+            if (string.IsNullOrEmpty(launchOverride.GamePath))
+            {
+                exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+            }
+            else 
+            {
+                exePath = launchOverride.GamePath;
+            }
+        }
+
+        // Check if the game is not present
+        if (!File.Exists(exePath))
+        {
+            SDL.SDL_Init(SDL.SDL_InitFlags.SDL_INIT_VIDEO);
+            bool overrided = false;
+            unsafe 
+            {
+                using RawString yes = "yes";
+                using RawString no = "no";
+                Span<SDL.SDL_MessageBoxButtonData> buttons = [
+                    new SDL.SDL_MessageBoxButtonData() 
+                    {
+                        flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                        buttonID = 0,
+                        text = yes
+                    },
+                    new SDL.SDL_MessageBoxButtonData() 
+                    {
+                        flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                        buttonID = 1,
+                        text = no
+                    }
+                ];
+                var data = new SDL.SDL_MessageBoxData();
+                using RawString title = "Manual Path Override Required!";
+                using RawString message = "TowerFall path cannot be found with this relative path: '../TowerFall/TowerFall.exe'";
+                data.title = title;
+                data.message = message;
+                fixed (SDL.SDL_MessageBoxButtonData* ptr = buttons)
+                {
+                    data.numbuttons = 2;
+                    data.buttons = ptr;
+                    if (SDL.SDL_ShowMessageBox(ref data, out int id)) 
+                    {
+                        if (id == 0)
+                        {
+                            FileDialog.OpenFile();
+
+                            while (FileDialog.IsOpened)
+                            {
+                                SDL.SDL_PumpEvents();
+                            }
+                        }
+                    }
+                }
+            }
+
+            string path = FileDialog.ResultPath;
+
+
+            if (!string.IsNullOrEmpty(path) && path.EndsWith("TowerFall.exe"))
+            {
+                exePath = path;
+                overrided = true;
+            }
+            else 
+            {
+                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
+            }
+
+            SDL.SDL_Quit();
+
+            if (!overrided)
+            {
+                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "TowerFall not found!", IntPtr.Zero);
+                return -1;
+            }
+
+            launchOverride.GamePath = exePath;
+            string json = JsonSerializer.Serialize(launchOverride, LaunchOverrideContext.Default.LaunchOverride);
+            File.WriteAllText("launch_override.json", json);
+        }
+
+        return Launch(args, baseDirectory, exePath);
+    }
+
+    private static int Launch(string[] args, string baseDirectory, string exePath)
+    {
         string patchFile = Path.GetFullPath("TowerFall.Patch.dll");
         string mmFile = Path.GetFullPath("TowerFall.FortRise.mm.dll");
 
@@ -92,7 +194,6 @@ internal class Program
         }
 
         handler.Run(exePath, patchFile);
-
         return 0;
     }
 
