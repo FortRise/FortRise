@@ -118,29 +118,32 @@ public static partial class RiseCore
     {
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
+        var modDirectory = Path.Combine(GameRootPath, "Mods");
+        var modUpdater = Path.Combine(GameRootPath, "ModUpdater");
+
         // Check for the important directories
-        if (!Directory.Exists("Mods"))
+        if (!Directory.Exists(modDirectory))
         {
-            Directory.CreateDirectory("Mods");
+            Directory.CreateDirectory(modDirectory);
         }
 
-        if (!Directory.Exists("ModUpdater"))
+        if (!Directory.Exists(modUpdater))
         {
-            Directory.CreateDirectory("ModUpdater");
+            Directory.CreateDirectory(modUpdater);
         }
 
         // Check for updates
-        var updates = Directory.GetFiles("ModUpdater").Where(x => x.EndsWith("zip"));
+        var updates = Directory.GetFiles(modUpdater).Where(x => x.EndsWith("zip"));
         foreach (var update in updates)
         {
             var filename = Path.GetFileName(update);
             Logger.Info($"Updating {filename}");
-            File.Move(update, Path.Combine("Mods", filename));
+            File.Move(update, Path.Combine(modDirectory, filename));
         }
 
         // Load mods here
-        Loader.BlacklistedMods = ReadBlacklistedMods("Mods/blacklist.txt");
-        var directory = Directory.GetDirectories("Mods");
+        Loader.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
+        var directory = Directory.GetDirectories(modDirectory);
         foreach (var dir in directory)
         {
             if (dir.Contains("_RelinkerCache"))
@@ -151,7 +154,7 @@ public static partial class RiseCore
 
             LoadDir(dir);
         }
-        var files = Directory.GetFiles("Mods");
+        var files = Directory.GetFiles(modDirectory);
         foreach (var file in files)
         {
             if (!file.EndsWith("zip"))
@@ -196,7 +199,6 @@ public static partial class RiseCore
 
     internal static void ModuleStart()
     {
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 

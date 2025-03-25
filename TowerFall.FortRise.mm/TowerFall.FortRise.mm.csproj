@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <LangVersion>12</LangVersion>
     <RootNamespace>TowerFall</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -28,17 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-    <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <!-- Why mono does not want me to get these dlls from reference? -->
-    <Content Include="..\lib\System.IO.Compression.dll" CopyToOutputDirectory="Always"/>
-    <Content Include="..\lib\System.IO.Compression.FileSystem.dll" CopyToOutputDirectory="Always"/>
-  </ItemGroup>
-
 
   <ItemGroup>
     <EmbeddedResource Include="Content\Atlas\menuatlas.png">
@@ -52,23 +43,21 @@
   <ItemGroup>
     <!-- In order for the intellisense to work, you had to reference the artifacts again... -->
     <Reference Include="MonoMod.Patcher">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net452\MonoMod.Patcher.exe</HintPath>
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net9.0\MonoMod.Patcher.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Core">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Core\release_net452\MonoMod.Core.dll</HintPath>
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Core\release_net9.0\MonoMod.Core.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Utils\release_net452\MonoMod.Utils.dll</HintPath>
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Utils\release_net9.0\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour\release_net452\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour\release_net9.0\MonoMod.RuntimeDetour.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour.HookGen">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour.HookGen\release_net452\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour.HookGen\release_net9.0\MonoMod.RuntimeDetour.HookGen.dll</HintPath>
     </Reference>
 
-    <Reference Include="System.Windows.Forms"/>
-    <Reference Include="System.IO.Compression"/>
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>
       <Private>False</Private>

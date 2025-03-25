@@ -23,7 +23,8 @@ public static partial class RiseCore
         internal static void InitializeMods()
         {
             var delayedMods = new List<ModDelayed>();
-            var directory = Directory.GetDirectories("Mods");
+            var modDirectory = Path.Combine(GameRootPath, "Mods");
+            var directory = Directory.GetDirectories(modDirectory);
             foreach (var dir in directory)
             {
                 if (dir.Contains("_RelinkerCache"))
@@ -37,7 +38,7 @@ public static partial class RiseCore
                 LoadDir(dir, delayedMods);
             }
 
-            var files = Directory.GetFiles("Mods");
+            var files = Directory.GetFiles(modDirectory);
             foreach (var file in files)
             {
                 if (!file.EndsWith("zip"))

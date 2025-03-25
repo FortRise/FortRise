@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,14 +80,28 @@ namespace TowerFall
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            var towerFallPath = typeof(TFGame).Assembly.Location;
+            var towerFallPath = Directory.GetCurrentDirectory();
             bool vanillaLaunch = false;
+            bool parseVersion = false;
             foreach (var arg in args) 
             {
+                if (parseVersion)
+                {
+                    if (!SemanticVersion.TryParse(arg, out RiseCore.FortRiseVersion))
+                    {
+                        throw new Exception("Invalid FortRise Version");
+                    }
+                    parseVersion = false;
+                }
                 if (arg == "--vanilla")
                 {
                     vanillaLaunch = true;
                     break;
+                }
+
+                if (arg == "--version")
+                {
+                    parseVersion = true;
                 }
             }
 
@@ -108,27 +123,7 @@ namespace TowerFall
                 thread.Join();
                 goto Exit;
             }
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) 
-            {
-                // Prevent Windows from having its cwd to be in System32 sometimes
-                Environment.CurrentDirectory = Path.GetDirectoryName(towerFallPath);
-                try 
-                {
-                    NativeMethods.SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-                    NativeMethods.AddDllDirectory(Path.Combine(
-                        AppDomain.CurrentDomain.BaseDirectory,
-                        Environment.Is64BitProcess ? "x64" : "x86"
-                    ));
-                }
-                catch 
-                {
-                    NativeMethods.SetDllDirectory(Path.Combine(
-                        AppDomain.CurrentDomain.BaseDirectory,
-                        Environment.Is64BitProcess ? "x64" : "x86"
-                    ));
-                }
-            }
-
+            
             if (!FortRise.RiseCore.Start()) 
             {
                 SDL.SDL_ShowSimpleMessageBox(
@@ -143,32 +138,7 @@ namespace TowerFall
             {
                 patchFile = Path.Combine(RiseCore.GameRootPath, "PacthVersion.txt");
             }
-            if (File.Exists(patchFile)) 
-            {
-                try 
-                {
-                    using var fs = File.OpenRead(patchFile);
-                    using TextReader reader = new StreamReader(fs);
-                    string readed;
-                    while ((readed = reader.ReadLine()) != null) 
-                    {
-                        if (readed.Contains("Installer")) 
-                        {
-                            var version = readed.Split(':')[1].Trim();
-                            if (!SemanticVersion.TryParse(version, out RiseCore.FortRiseVersion))
-                            {
-                                throw new Exception("Invalid FortRise version!");
-                            }
-                        }
-                    }
-                }
-                catch 
-                {
-                    Logger.Log("Unable to load PatchVersion.txt, Unknown FortRise version will be sent.", Logger.LogLevel.Warning);
-                    Logger.Log("Please report this bug", Logger.LogLevel.Warning);
-                    RiseCore.DebugMode = true;
-                }
-            }
+            
             if (RiseCore.DebugMode)
             {
                 try 
@@ -316,6 +286,7 @@ namespace TowerFall
 
         protected override void Initialize() 
         {
+            Content = new ModContentManager(Services, Directory.GetCurrentDirectory());
             orig_LoadContent();
             FortRise.RiseCore.ModsAfterLoad();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
@@ -635,9 +606,18 @@ namespace TowerFall
             }
         }
 
+        [MonoModIfFlag("OS:NotWindows")]
         [PatchSDL2ToSDL3]
         [MonoModIgnore]
         private static extern string GetSavePath();
+
+        [MonoModIfFlag("OS:Windows")]
+        [MonoModPatch("GetSavePath")]
+        [MonoModReplace]
+        private static string Windows_GetSavePath()
+        {
+            return Directory.GetCurrentDirectory();
+        }
 
         [PatchSDL2ToSDL3]
         [MonoModIgnore]

@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Utils;
@@ -7,9 +9,23 @@ namespace MonoMod;
 
 internal static partial class MonoModRules
 {
+    public static void AddReferenceIfMissing(ModuleDefinition module, AssemblyName asmName) {
+        if (!module.AssemblyReferences.Any(asmRef => asmRef.Name == asmName.Name)) {
+            module.AssemblyReferences.Add(AssemblyNameReference.Parse(asmName.FullName));
+        }
+    }
+
+    public static void AddReferenceIfMissing(ModuleDefinition module, string name) => 
+        AddReferenceIfMissing(
+            module,
+            Assembly.GetExecutingAssembly()
+            .GetReferencedAssemblies()
+            .First(asmName => asmName.Name == name));
+
     private static void GamePatch(MonoModder modder)
     {
-        modder.Module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
+        var module = modder.Module;
+        AddReferenceIfMissing(module, "System.Runtime");
 
         modder.PostProcessors += PostProcessMacros;
 
@@ -80,8 +96,8 @@ internal static partial class MonoModRules
             // Remove readonly attribute from all static fields
             // This "fixes" https://github.com/dotnet/runtime/issues/11571, which breaks some mods
             foreach (FieldDefinition field in type.Fields)
-                if ((field.Attributes & FieldAttributes.Static) != 0)
-                    field.Attributes &= ~FieldAttributes.InitOnly;
+                if ((field.Attributes & Mono.Cecil.FieldAttributes.Static) != 0)
+                    field.Attributes &= ~Mono.Cecil.FieldAttributes.InitOnly;
 
             // Visit nested types
             foreach (TypeDefinition nestedType in type.NestedTypes)

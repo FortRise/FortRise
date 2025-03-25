@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>FortRise</AssemblyName>
+    <ApplicationIcon>../Icon.ico</ApplicationIcon>
+		<ApplicationManifest>../app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DiscordGameSdk/DiscordGameSdk.csproj"/>
+    <ProjectReference Include="../TowerFall.FortRise.mm/TowerFall.FortRise.mm.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../lib/x86/**/*" Condition="'$(RuntimeIdentifier)' == 'win-x86'">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib/x64/**/*" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib/osx/**/*" Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../lib/lib64/**/*" Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- In order for the intellisense to work, you had to reference the artifacts again... -->
+    <Reference Include="MonoMod.Patcher">
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net9.0\MonoMod.Patcher.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Core">
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Core\release_net9.0\MonoMod.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Utils\release_net9.0\MonoMod.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour\release_net9.0\MonoMod.RuntimeDetour.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour.HookGen">
+      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour.HookGen\release_net9.0\MonoMod.RuntimeDetour.HookGen.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

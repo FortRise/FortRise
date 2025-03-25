@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Windows.Forms;
 using FortRise;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
