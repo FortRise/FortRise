@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -46,11 +47,11 @@ public partial class RiseCore
             try
             {
                 string json;
-                using (var webClient = new WebClient())
+                using (var client = new HttpClient())
                 {
-                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
-                    webClient.Headers.Add(HttpRequestHeader.UserAgent, "FortRise/" + FortRiseVersion.ToString());
-                    json = await webClient.DownloadStringTaskAsync(new Uri(urlRepository));
+                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                    json = await client.GetStringAsync(urlRepository);
                 }
 
                 var updateRefs = JsonSerializer.Deserialize<UpdateRef[]>(json);
@@ -74,7 +75,7 @@ public partial class RiseCore
 
                 Tags.Add(metadata, TrimUrl(r.Ref));
 
-                if (r.Version == null)
+                if (r.Version == SemanticVersion.Empty)
                 {
                     if (!SemanticVersion.TryParse(TrimUrl(r.Ref), out SemanticVersion version))
                     {
@@ -107,23 +108,22 @@ public partial class RiseCore
             {
                 string fortriseAgent = "FortRise/" + FortRiseVersion.ToString();
                 string json;
-                using (var webClient = new WebClient())
+                using (var client = new HttpClient())
                 {
-                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
-                    webClient.Headers.Add(HttpRequestHeader.UserAgent, fortriseAgent);
-                    json = await webClient.DownloadStringTaskAsync(new Uri(urlTaggedRelease));
+                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                    json = await client.GetStringAsync(urlTaggedRelease);
                 }
 
                 var updateRelease = JsonSerializer.Deserialize<UpdateRelease>(json);
                 var firstAsset = updateRelease.Assets[0];
 
-                var downloadURI = new Uri(firstAsset.BrowserDownloadUrl);
                 byte[] data;
-                using (var webClient = new WebClient())
+                using (var client = new HttpClient())
                 {
-                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/zip");
-                    webClient.Headers.Add(HttpRequestHeader.UserAgent, fortriseAgent);
-                    data = await webClient.DownloadDataTaskAsync(downloadURI);
+                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                    client.DefaultRequestHeaders.Add("Accept", "application/zip");
+                    data = await client.GetByteArrayAsync(firstAsset.BrowserDownloadUrl);
                 }
 
                 if (!ValidateReleaseByte(data))
@@ -188,10 +188,10 @@ public partial class RiseCore
         {
             try 
             {
-                using var webClient = new WebClient();
-                webClient.Headers.Add(HttpRequestHeader.Accept, "application/vnd.github+json");
-                webClient.Headers.Add(HttpRequestHeader.UserAgent, "FortRise/" + FortRiseVersion.ToString());
-                var json = await webClient.DownloadStringTaskAsync(new Uri(API_REPO_REF_LINK));
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                var json = await client.GetStringAsync(API_REPO_REF_LINK);
 
                 var updateRefs = JsonSerializer.Deserialize<UpdateRef[]>(json);
                 Array.Reverse(updateRefs);
