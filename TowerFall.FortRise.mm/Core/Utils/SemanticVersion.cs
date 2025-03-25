@@ -12,6 +12,8 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
     public int Patch { get; set; }
     public string Prerelease { get; set; }
 
+    public static readonly SemanticVersion Empty = new SemanticVersion(0, 0, 0, null);
+
     public SemanticVersion(int major = 1, int minor = 0, int patch = 0, string prerelease = null)
     {
         Major = major;
