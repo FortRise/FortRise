@@ -137,6 +137,7 @@ public static partial class RiseCore
                 var nativePath = Path.Combine(dirPath, "Natives", $"{asmName}.{meta.Name}");
                 if (!Directory.Exists(nativePath))
                     Directory.CreateDirectory(nativePath);
+                
                 if (meta.IsZipped) 
                 {
                     using var zipFile = ZipFile.OpenRead(meta.PathZip);
@@ -245,7 +246,7 @@ public static partial class RiseCore
                 var mod = ModuleDefinition.ReadModule(cachedPath);
                 try 
                 {
-                    var asm = Assembly.LoadFrom(cachedPath);
+                    var asm = meta.AssemblyLoadContext.LoadFromAssemblyPath(cachedPath);
                     RelinkedAssemblies.Add(asm);
 
                     if (!relinkedModules.ContainsKey(mod.Assembly.Name.Name)) 
@@ -441,7 +442,8 @@ public static partial class RiseCore
                     File.WriteAllLines(cachedChecksumPath, checksums);
                 }
 
-                var asm = Assembly.LoadFrom(cachedPath);
+                var asm = meta.AssemblyLoadContext.LoadFromAssemblyPath(cachedPath);
+
                 RelinkedAssemblies.Add(asm);
                 if (!relinkedModules.ContainsKey(module.Assembly.Name.Name)) 
                 {

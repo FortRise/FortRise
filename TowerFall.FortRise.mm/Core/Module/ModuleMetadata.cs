@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Loader;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -35,6 +36,8 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public string PathDirectory = string.Empty;
     public string PathZip = string.Empty;
+    [JsonIgnore]
+    public AssemblyLoadContext AssemblyLoadContext { get; set; } = null;
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
