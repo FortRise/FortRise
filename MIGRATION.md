@@ -10,10 +10,11 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	2. [OnTower API Changes](#ontower-api-changes)
 	3. [Custom RoundLogic API Changes](#custom-roundlogic-api-changes)
 	4. [OnVariantRegister Changes](#onvariantregister-changes)
-	5. [Arrow and Pickup Registry Changes](#arrow-and-pickup-registry-changes)
-	6. [Arrow Info and Pickup changes](#arrow-info-and-pickup-changes)
-    7. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
-    8. [VanillaAtlas removal](#vanillaatlas-removal)
+	5. [Variant Prefixed](#variant-prefixed)
+	6. [Arrow and Pickup Registry Changes](#arrow-and-pickup-registry-changes)
+	7. [Arrow Info and Pickup changes](#arrow-info-and-pickup-changes)
+    8. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
+    9. [VanillaAtlas removal](#vanillaatlas-removal)
 2. [Optional Migration](#optional-migration)
 	1. [Using textures with an Atlas](#using-textures-with-an-atlas)
 	2. [Using SpriteDatas](#using-spritedatas)
@@ -183,6 +184,10 @@ public override void OnVariantsRegister(VariantManager variants, bool noPerPlaye
     variants.CreateLinks(variants.NoTimeLimit, customVariant);
 }
 ```
+
+## Variant Prefixed
+Variants are now prefixed with a metadata name, which means it is a breaking change once again. It is usually occur when you use
+`VariantManager.GetCustomVariant()`, so for that, make sure that it is prefixed with your metadata name followed by `/`.
 
 ## Arrow and Pickup Registry Changes
 RiseCore for some reason hold these variables before for no good reason. So the change has made to be more
