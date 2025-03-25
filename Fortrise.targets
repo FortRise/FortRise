@@ -1,19 +1,13 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TowerFallDirPath>$(MSBuildThisFileDirectory)</TowerFallDirPath>
-    <TowerFallPath>TowerFall.exe</TowerFallPath>
+    <TowerFallPath>TowerFall.Patch.dll</TowerFallPath>
     <FNAPath>FNA.dll</FNAPath>
     <HookPath>MMHOOK_TowerFall.dll</HookPath>
+    <MonoCecilPath>Mono.Cecil.dll</MonoCecilPath>
+    <MonoModRuntimeDetourPath>MonoMod.RuntimeDetour.dll</MonoModRuntimeDetourPath>
+    <MonoModUtilsPath>MonoMod.Utils.dll</MonoModUtilsPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MonoMod" Version="22.5.1.1">
-      <IncludeAssets>compile</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="MonoMod.RuntimeDetour" Version="22.5.1.1">
-      <IncludeAssets>compile</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="TowerFall">
@@ -24,8 +18,20 @@
       <HintPath>$(TowerFallDirPath)$(HookPath)</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="FNA" >
+    <Reference Include="FNA">
       <HintPath>$(TowerFallDirPath)$(FNAPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(TowerFallDirPath)$(MonoCecilPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>$(TowerFallDirPath)$(MonoModRuntimeDetourPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>$(TowerFallDirPath)$(MonoModUtilsPath)</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

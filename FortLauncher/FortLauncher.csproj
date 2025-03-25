@@ -46,7 +46,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="../lib/gamecontrollerdb.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../Fortrise.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- In order for the intellisense to work, you had to reference the artifacts again... -->
+    <Reference Include="FNA">
+      <HintPath>..\lib\FNA.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>..\lib\Steamworks.NET.dll</HintPath>
+    </Reference>
     <Reference Include="MonoMod.Patcher">
       <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net9.0\MonoMod.Patcher.dll</HintPath>
     </Reference>
