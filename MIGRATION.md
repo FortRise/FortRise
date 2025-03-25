@@ -15,6 +15,7 @@ FortRise v5.0 might not be a big release, but can improves the development of th
 	7. [Arrow Info and Pickup changes](#arrow-info-and-pickup-changes)
     8. [Hjson and TeuJson Removal](#hjson-and-teujson-removal)
     9. [VanillaAtlas removal](#vanillaatlas-removal)
+    10. [TowerFall DLL](#towerfall-dll)
 2. [Optional Migration](#optional-migration)
 	1. [Using textures with an Atlas](#using-textures-with-an-atlas)
 	2. [Using SpriteDatas](#using-spritedatas)
@@ -303,6 +304,13 @@ must match to the texture from TowerFall's main Atlas in order to be replaced.
 
 Not surrounding the image file will put the texture into the Mod's atlas and prefixed with the metadata name of a mod 
 which is the intended behavior if you wanna use your own texture to other stuff of your mod.
+
+## TowerFall DLL
+Due to the recent change that Installer being replaced with a Launcher instead, the `TowerFall.exe` is no longer reliable to be used
+as a dependency for modding. Luckily, the Launcher still spits out a modified version of `TowerFall.exe` which is called 
+`TowerFall.Patch.dll` after running the launcher for the first time.
+
+So instead of referencing TowerFall with a HintPath of `TowerFall.exe`, you now change the HintPath to `TowerFall.Patch.dll`.
 
 # Optional Migration
 These migrations are optional and is not needed to be migrated. Although it covers a good practices on what you should do to
