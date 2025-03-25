@@ -7,8 +7,10 @@ var version = "5.0.0-beta.1";
 Task("CleanInstaller")
     .Does(() => 
 {
-    CleanDirectory($"./artifacts/Installer.v{version}-Windows");
-    CleanDirectory($"./artifacts/Installer.v{version}-OSXLinux");
+    CleanDirectory($"./artifacts/FortRise.v{version}-win-x64");
+    CleanDirectory($"./artifacts/FortRise.v{version}-win-x86");
+    CleanDirectory($"./artifacts/FortRise.v{version}-linux-x64");
+    CleanDirectory($"./artifacts/FortRise.v{version}-osx-x64");
 });
 
 
@@ -16,31 +18,35 @@ Task("BuildInstaller")
     .IsDependentOn("CleanInstaller")
     .Does(() => 
 {
-    DotNetBuild("./Installer/Installer.csproj", new DotNetBuildSettings 
-    {
-        Configuration = configuration
-    });
-    DotNetBuild("./Installer/Installer.Kick.csproj", new DotNetBuildSettings 
+    DotNetBuild("./FortLauncher/FortLauncher.csproj", new DotNetBuildSettings 
     {
         Configuration = configuration
     });
 });
 
 Task("PublishInstaller")
-    .IsDependentOn("BuildInstaller")
     .Does(() => 
 {
-    DotNetPublish("./Installer/Installer.csproj", new DotNetPublishSettings 
+    DotNetPublish("./FortLauncher/FortLauncher.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = $"./artifacts/Installer.v{version}-Windows",
-        NoBuild = true
+        OutputDirectory = $"./artifacts/FortRise.v{version}-win-x64",
+        Runtime = "win-x64",
+        SelfContained = true
     });
-    DotNetPublish("./Installer/Installer.Kick.csproj", new DotNetPublishSettings 
+    DotNetPublish("./FortLauncher/FortLauncher.csproj", new DotNetPublishSettings 
     {
         Configuration = configuration,
-        OutputDirectory = $"./artifacts/Installer.v{version}-OSXLinux",
-        NoBuild = true
+        OutputDirectory = $"./artifacts/FortRise.v{version}-linux-x64",
+        Runtime = "linux-x64",
+        SelfContained = true
+    });
+    DotNetPublish("./FortLauncher/FortLauncher.csproj", new DotNetPublishSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = $"./artifacts/FortRise.v{version}-osx-x64",
+        Runtime = "osx-x64",
+        SelfContained = true
     });
 });
 

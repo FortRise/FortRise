@@ -4,8 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AssemblyName>FortRise</AssemblyName>
+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
     <ApplicationIcon>../Icon.ico</ApplicationIcon>
 		<ApplicationManifest>../app.manifest</ApplicationManifest>
+    <PublishDir>../artifacts/FortRise.v5.0.0-beta.1-$(RuntimeIdentifier)</PublishDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,22 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="../lib/x86/**/*" Condition="'$(RuntimeIdentifier)' == 'win-x86'">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="../lib/x64/**/*" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="../lib/osx/**/*" Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="../lib/lib64/**/*" Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <Content Include="../lib/'$(RuntimeIdentifier)'/**/*">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
