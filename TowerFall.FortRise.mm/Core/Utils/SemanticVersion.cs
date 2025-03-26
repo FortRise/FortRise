@@ -5,12 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace FortRise;
 
-public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<SemanticVersion>
+public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<SemanticVersion>
 {
-    public int Major { get; set; }
-    public int Minor { get; set; }
-    public int Patch { get; set; }
-    public string Prerelease { get; set; }
+    public int Major { get; init; }
+    public int Minor { get; init; }
+    public int Patch { get; init; }
+    public string Prerelease { get; init; }
 
     public static readonly SemanticVersion Empty = new SemanticVersion(0, 0, 0, null);
 
@@ -24,26 +24,35 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
 
     public SemanticVersion(string versionString)
     {
-        if (!SemanticVersion.TryParse(versionString, out var version)) 
+        if (!TryParse(versionString, out var version)) 
         {
             throw new Exception($"Version '{versionString}' is invalid.");
         }
         this = version;
     }
 
-    public static bool TryParse(string versionString, out SemanticVersion version)
+    public SemanticVersion(ReadOnlySpan<char> versionString)
+    {
+        if (!TryParse(versionString, out var version)) 
+        {
+            throw new Exception($"Version '{versionString}' is invalid.");
+        }
+        this = version;
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> versionString, out SemanticVersion version)
     {
         version = default;
         int patch = 0;
         string prerelease = null;
 
         versionString = versionString.Trim();
-        if (string.IsNullOrEmpty(versionString))
+        if (versionString.IsEmpty)
         {
             return false;
         }
 
-        ReadOnlySpan<char> spanString = versionString.AsSpan();
+        ReadOnlySpan<char> spanString = versionString;
 
         int i = 0;
 
@@ -63,13 +72,7 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
 		if (i != versionString.Length)
 			return false;
 
-        version = new SemanticVersion()
-        {
-            Major = major,
-            Minor = minor,
-            Patch = patch,
-            Prerelease = prerelease
-        };
+        version = new SemanticVersion(major, minor, patch, prerelease);
         return true;
     }
 
@@ -148,7 +151,7 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
         {
             return 1;
         }
-        if (!string.IsNullOrEmpty(other.Prerelease))
+        if (string.IsNullOrEmpty(other.Prerelease))
         {
             return -1;
         }
@@ -161,12 +164,12 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
 
         for (int i = 0; i < length; i++)
         {
-            if (self.Length <= 1)
+            if (self.Length <= i)
             {
                 return -1;
             }
 
-            if (otherSelf.Length <= 1)
+            if (otherSelf.Length <= i)
             {
                 return 1;
             }
@@ -193,7 +196,7 @@ public struct SemanticVersion : IEquatable<SemanticVersion>, IComparable<Semanti
             {
                 return selfNum.CompareTo(otherNum);
             }
-            
+
             return string.Compare(self[i], otherSelf[i], StringComparison.OrdinalIgnoreCase);
         }
 
