@@ -58,14 +58,13 @@ public static partial class RiseCore
         public static void LoadDir(string dir, List<ModDelayed> delayedMods)
         {
             var metaPath = Path.Combine(dir, "meta.json");
-            ModuleMetadata moduleMetadata = null;
             if (!File.Exists(metaPath))
             {
                 return;
             }
 
             var result = ModuleMetadata.ParseMetadata(dir, metaPath);
-            if (!result.Check(out moduleMetadata, out string error))
+            if (!result.Check(out ModuleMetadata moduleMetadata, out string error))
             {
                 ErrorPanel.StoreError(error);
                 Logger.Error(error);
@@ -85,7 +84,6 @@ public static partial class RiseCore
         {
             using var zipFile = ZipFile.OpenRead(file);
 
-            ModuleMetadata moduleMetadata = null;
             string metaFile = "meta.json";
             var metaZip = zipFile.GetEntry(metaFile);
             if (metaZip == null)
@@ -96,7 +94,7 @@ public static partial class RiseCore
             using var memStream = metaZip.ExtractStream();
 
             var result = ModuleMetadata.ParseMetadata(file, memStream, true);
-            if (!result.Check(out moduleMetadata, out string error))
+            if (!result.Check(out ModuleMetadata moduleMetadata, out string error))
             {
                 ErrorPanel.StoreError(error);
                 Logger.Error(error);
@@ -112,6 +110,30 @@ public static partial class RiseCore
             }
         }
 
+        public static bool CheckDependencyMetadata(ModuleMetadata metadata, bool storeError)
+        {
+            foreach (var internalMetadata in RiseCore.InternalModuleMetadatas)
+            {
+                if (metadata.Name != internalMetadata.Name)
+                {
+                    continue;
+                }
+
+                if (metadata.Version.Major != internalMetadata.Version.Major || metadata.Version > internalMetadata.Version)
+                {
+                    if (storeError)
+                    {
+                        ErrorPanel.StoreError($"Outdated Dependency {metadata.Name} {metadata.Version} > {internalMetadata.Version}");
+                    }
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool CheckDependencies(ModuleMetadata metadata, out int requiredDependencies)
         {
             requiredDependencies = 0;
@@ -119,7 +141,7 @@ public static partial class RiseCore
             {
                 foreach (var dep in metadata.Dependencies)
                 {
-                    if (RiseCore.InternalModuleMetadatas.Contains(dep))
+                    if (CheckDependencyMetadata(dep, true))
                     {
                         continue;
                     }
@@ -133,7 +155,7 @@ public static partial class RiseCore
             {
                 foreach (var dep in metadata.OptionalDependencies)
                 {
-                    if (RiseCore.InternalModuleMetadatas.Contains(dep))
+                    if (CheckDependencyMetadata(dep, false))
                     {
                         continue;
                     }
@@ -264,7 +286,7 @@ public static partial class RiseCore
 
         private static void LoadDelayedMods(List<ModDelayed> delayedMods)
         {
-            List<ModDelayed> successfulLoad = new List<ModDelayed>();
+            List<ModDelayed> successfulLoad = [];
             for (int i = 0; i < delayedMods.Count; i++)
             {
                 var delayMod = delayedMods[i];
@@ -283,8 +305,6 @@ public static partial class RiseCore
             {
                 delayedMods.Remove(success);
             }
-
-            successfulLoad = null;
 
             // Loads another batch of mods that are delayed
             if (loadedAnother)
