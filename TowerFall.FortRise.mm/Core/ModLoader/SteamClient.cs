@@ -13,10 +13,6 @@ public static class SteamClient
     public static bool Init() 
     {
         Logger.Info("Initializing Steam...");
-        if (SteamAPI.RestartAppIfNecessary(TFGame.STEAM_ID)) 
-        {
-            return false;
-        }
         Logger.Info("Setting up steam app ID to " + TFGame.STEAM_ID);
         SetAppID(TFGame.STEAM_ID);
 
