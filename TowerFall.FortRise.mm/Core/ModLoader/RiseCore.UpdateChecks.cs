@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FortRise;
@@ -24,6 +24,7 @@ public partial class RiseCore
         public static bool FortRiseUpdateAvailable;
         public static HashSet<ModuleMetadata> HasUpdates = new HashSet<ModuleMetadata>();
         public static Dictionary<ModuleMetadata, string> Tags = new Dictionary<ModuleMetadata, string>();
+        private static readonly Lock syncRoot = new Lock();
 
 
         public static bool IsUpdateAvailable(FortModule module)
@@ -62,7 +63,7 @@ public partial class RiseCore
                     var list = updateRefs
                         .Where(x => regex.IsMatch(TrimUrl(x.Ref)))
                         .Select(x => {
-                            x.Version = new SemanticVersion(regex.Match(TrimUrl(x.Ref)).Groups[1].Value);
+                            x.Version = new SemanticVersion(regex.Match(new string(TrimUrl(x.Ref))).Groups[1].Value);
                             return x;
                         })
                         .ToArray();
@@ -73,7 +74,10 @@ public partial class RiseCore
                 Array.Reverse(updateRefs);
                 var r = updateRefs[0];
 
-                Tags.Add(metadata, TrimUrl(r.Ref));
+                lock (syncRoot)
+                {
+                    Tags.Add(metadata, new string(TrimUrl(r.Ref)));
+                }
 
                 if (r.Version == SemanticVersion.Empty)
                 {
@@ -255,10 +259,10 @@ public partial class RiseCore
             }
         }
 
-        private static string TrimUrl(string url)
+        private static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> url)
         {
             int index = url.LastIndexOf('/');
-            return url.Substring(index + 1);
+            return url.Slice(index + 1);
         }
 
         public struct UpdateRef
