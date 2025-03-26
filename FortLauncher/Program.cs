@@ -19,7 +19,7 @@ internal class Program
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
-    private static SemanticVersion Version = new SemanticVersion("5.0.0-beta.1");
+    private static SemanticVersion Version = new SemanticVersion("5.0.0-beta.2");
 
     public static int Main(string[] args)
     {
@@ -57,6 +57,7 @@ internal class Program
             {
                 using RawString yes = "yes";
                 using RawString no = "no";
+
                 Span<SDL.SDL_MessageBoxButtonData> buttons = [
                     new SDL.SDL_MessageBoxButtonData() 
                     {
@@ -71,9 +72,14 @@ internal class Program
                         text = no
                     }
                 ];
+
                 var data = new SDL.SDL_MessageBoxData();
                 using RawString title = "Manual Path Override Required!";
-                using RawString message = "TowerFall path cannot be found with this relative path: '../TowerFall/TowerFall.exe'";
+                using RawString message = """
+                TowerFall path cannot be found with this relative path: '../TowerFall/TowerFall.exe', 
+                Will need a manual path override, would you like to select a proper TowerFall executable?
+                """;
+
                 data.title = title;
                 data.message = message;
                 fixed (SDL.SDL_MessageBoxButtonData* ptr = buttons)
@@ -84,7 +90,11 @@ internal class Program
                     {
                         if (id == 0)
                         {
-                            FileDialog.OpenFile();
+                            FileDialog.OpenFile(null, new Property() 
+                            {
+                                Title = "Select a TowerFall executable",
+                                Filter = new DialogFilter("TowerFall executable", "exe")
+                            });
 
                             while (FileDialog.IsOpened)
                             {
@@ -97,7 +107,7 @@ internal class Program
 
             string path = FileDialog.ResultPath;
 
-
+            // we might need a good way to filter out the files, but hardcoding should do for now
             if (!string.IsNullOrEmpty(path) && path.EndsWith("TowerFall.exe"))
             {
                 exePath = path;
