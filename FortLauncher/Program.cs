@@ -37,7 +37,7 @@ internal class Program
         else 
         {
             string jsonOverride = File.ReadAllText("launch_override.json");
-            launchOverride = JsonSerializer.Deserialize<LaunchOverride>(jsonOverride, LaunchOverrideContext.Default.LaunchOverride);
+            launchOverride = JsonSerializer.Deserialize(jsonOverride, LaunchOverrideContext.Default.LaunchOverride);
             if (string.IsNullOrEmpty(launchOverride.GamePath))
             {
                 exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
@@ -131,7 +131,23 @@ internal class Program
             File.WriteAllText("launch_override.json", json);
         }
 
+        if (CheckLegacyFortRiseInstalled(exePath))
+        {
+            SDL.SDL_ShowSimpleMessageBox(
+                SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", 
+                "TowerFall is still patched with legacy FortRise version, unpatch it first.",
+                IntPtr.Zero
+            );
+            return -1;
+        }
+
         return Launch(args, baseDirectory, exePath);
+    }
+
+    private static bool CheckLegacyFortRiseInstalled(string exePath)
+    {
+        var txt = Path.Combine(Path.GetDirectoryName(exePath), "PatchVersion.txt");
+        return File.Exists(txt);
     }
 
     private static int Launch(string[] args, string baseDirectory, string exePath)
