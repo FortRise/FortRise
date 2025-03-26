@@ -82,7 +82,7 @@ namespace TowerFall
             var method = typeof(MainMenu).GetMethod(name + state.ToString());
             if (method != null)
             {
-                method.Invoke(this, new object[0]);
+                method.Invoke(this, []);
             }
         }
 
@@ -118,8 +118,10 @@ namespace TowerFall
                         var res = await RiseCore.UpdateChecks.DownloadUpdate(currentModule.Meta);
                         loader.Finish();
 
-                        UIModal modal = new UIModal();
-                        modal.AutoClose = true;
+                        UIModal modal = new UIModal
+                        {
+                            AutoClose = true
+                        };
                         modal.SetTitle("Update Status");
                         if (!res.Check(out _, out string err))
                         {
@@ -137,7 +139,7 @@ namespace TowerFall
                 textContainer.Add(updateButton);
             }
 
-            if (currentModule.Meta.Update is not null and { GH: { Repository: not null } })
+            if (currentModule.Meta.Update is not null and { GH.Repository: not null })
             {
                 var visitGithubButton = new TextContainer.ButtonText("VISIT GITHUB");
                 visitGithubButton.Pressed(() => {
@@ -198,7 +200,12 @@ namespace TowerFall
 
                 bool hasUpdate = RiseCore.UpdateChecks.HasUpdates.Contains(mod.Meta);
 
-                var modButton = new UIModButtonText(title, hasUpdate);
+                if (hasUpdate)
+                {
+                    title += "<t=variants/newVariantsTagSmall>";
+                }
+
+                var modButton = new IconButtonText(title);
                 if (mod is not AdventureModule or NoModule) 
                 {
                     modButton.Pressed(() => {
