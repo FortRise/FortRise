@@ -12,6 +12,15 @@ public class patch_Commands : Commands
     private int seekIndex;
     private readonly char[] commandSplit = new char[2] { ' ', ','};
 
+    public extern void orig_ctor();
+
+    [MonoModConstructor]
+    public void ctor()
+    {
+        orig_ctor();
+        drawCommands = new List<string>(5); // let's have a capacity here so we don't crash
+    }
+
     [MonoModReplace]
     private void EnterCommand()
     {
