@@ -1,6 +1,7 @@
 # FortRise v5.0 Migration Guide
 Since FortRise v5.0 changes and removes a lot of API, some of the code needed to be change in order for a mod made in v4 to work with v5.
-FortRise is currently cleaning up its API for the release of v6.0.
+~~FortRise is currently cleaning up its API for the release of v6.0.~~
+FortRise v5.0 has been changed to be a huge major release.
 
 FortRise v5.0 might not be a big release, but can improves the development of the mod loader faster than what it was before.
 
