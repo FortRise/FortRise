@@ -64,26 +64,26 @@ public static class patch_Sounds
 
     public static void AddSFX(FortContent content, string id, SFX sfx) 
     {
-        AddSFX(content, id, sfx);
+        AddSFX(content, id.AsSpan(), sfx);
     }
 
     public static void Play(string sfxName, float panX = 160f, float volume = 1f) 
     {
-        Play(sfxName, panX, volume);
+        Play(sfxName.AsSpan(), panX, volume);
     }
 
     public static void Pause(string sfxName) 
     {
-        Pause(sfxName);
+        Pause(sfxName.AsSpan());
     }
 
     public static void Resume(string sfxName) 
     {
-        Resume(sfxName);
+        Resume(sfxName.AsSpan());
     }
 
     public static void Stop(string sfxName, bool addToList = true) 
     {
-        Stop(sfxName, addToList);
+        Stop(sfxName.AsSpan(), addToList);
     }
 }
