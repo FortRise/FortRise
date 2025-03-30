@@ -1,4 +1,3 @@
-#pragma warning disable CS0618
 using FortRise.Adventure;
 using System;
 using System.Collections.Generic;
@@ -7,20 +6,19 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Linq;
 using System.Xml;
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
+using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 using MonoMod.Utils;
-using TowerFall;
-using System.Diagnostics;
-using System.Text;
-using YYProject.XXHash;
-using System.IO.Compression;
-using System.Text.Json;
 using MonoMod.RuntimeDetour;
-using System.Net;
-using System.Linq;
+using TowerFall;
+using YYProject.XXHash;
 
 namespace FortRise;
 

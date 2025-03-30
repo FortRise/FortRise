@@ -49,9 +49,6 @@
     <Reference Include="FNA">
       <HintPath>..\lib\FNA.dll</HintPath>
     </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>..\lib\Steamworks.NET.dll</HintPath>
-    </Reference>
     <Reference Include="MonoMod.Patcher">
       <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net9.0\MonoMod.Patcher.dll</HintPath>
     </Reference>

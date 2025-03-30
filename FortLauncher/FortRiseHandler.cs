@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using FortRise;
 using Mono.Cecil;
 using MonoMod;
 using MonoMod.RuntimeDetour.HookGen;
@@ -22,7 +20,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
         Directory.SetCurrentDirectory(Path.GetFullPath(Path.GetDirectoryName(exePath)));
 
         // run the game
-        asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, new object[1] { Args }, null);
+        asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
     }
 
     public void GenerateHooks(Stream stream, string patchFile)

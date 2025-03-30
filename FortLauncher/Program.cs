@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using FortRise;
 using Mono.Cecil;
-using MonoMod;
 using YYProject.XXHash;
 using SDL3;
 using FortLauncher.IO;
@@ -18,8 +14,7 @@ namespace FortLauncher;
 internal class Program 
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
-
-    private static SemanticVersion Version = new SemanticVersion("5.0.0-beta.2");
+    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-beta.2");
 
     public static int Main(string[] args)
     {
@@ -154,7 +149,9 @@ internal class Program
     {
         string patchFile = Path.GetFullPath("TowerFall.Patch.dll");
         string mmFile = Path.GetFullPath("TowerFall.FortRise.mm.dll");
+		string steamworksPath = Path.Combine(Path.GetDirectoryName(exePath), "Steamworks.NET.dll");
 
+		bool isSteam = File.Exists(steamworksPath);
 
         bool shouldSkip = false;
         string mmSumStr = null;
@@ -164,8 +161,7 @@ internal class Program
             var mmSum = GetChecksum(ref mmStream).ToHexadecimalString();
 
             // check if the sum of TowerFall.Patch.dll exists
-            bool sumExists;
-            if (sumExists = File.Exists(mmFile + ".sum"))
+            if (File.Exists(mmFile + ".sum"))
             {
                 ReadOnlySpan<char> sumSum = File.ReadAllText(mmFile + ".sum").Trim();
                 Console.WriteLine(mmSum.ToString() + " == " + sumSum.ToString());
@@ -188,30 +184,22 @@ internal class Program
 
         if (!shouldSkip)
         {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (FileStream fs = File.OpenRead(exePath))
-                {
-                    ModuleDefinition module = ModuleDefinition.ReadModule(fs);
-                    if (Environment.Is64BitProcess)
-                    {
-                        Console.WriteLine("[FortRise] Converting 32-bit to 64-bit.");
-                        // remove 32 bit flags from TowerFall
-                        module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
-                    }
-                    module.Write(stream);
-                }
+			if (isSteam)
+			{
+				using MemoryStream steamworksStream = Remove32BitFlags(steamworksPath);
+				File.WriteAllBytes(Path.Combine(baseDirectory, "Steamworks.NET.dll"), steamworksStream.ToArray());
+			}
+			using Stream tfStream = Remove32BitFlags(exePath);
 
-                if (!handler.TryPatch(stream, patchFile))
-                {
-                    return -1;
-                }
+			if (!handler.TryPatch(tfStream, patchFile))
+			{
+				return -1;
+			}
 
-                using (FileStream fs = File.OpenRead(patchFile))
-                {
-                    handler.GenerateHooks(fs, patchFile);
-                }
-            }
+			using (FileStream fs = File.OpenRead(patchFile))
+			{
+				handler.GenerateHooks(fs, patchFile);
+			}
         }
 
         if (!shouldSkip && !string.IsNullOrEmpty(mmSumStr))
@@ -240,4 +228,22 @@ internal class Program
         stream.Seek(pos, SeekOrigin.Begin);
         return hash;
     }
+
+	private static MemoryStream Remove32BitFlags(string modulePath)
+	{
+		MemoryStream memoryStream = new MemoryStream();
+		using (FileStream fs = File.OpenRead(modulePath))
+		{
+			ModuleDefinition module = ModuleDefinition.ReadModule(fs);
+			if (Environment.Is64BitProcess)
+			{
+				Console.WriteLine($"[FortRise] Removing 32 bit flags from '{Path.GetFileName(modulePath)}'");
+				// remove 32 bit flags from TowerFall
+				module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
+			}
+			module.Write(memoryStream);
+		}
+
+		return memoryStream;
+	}
 }
