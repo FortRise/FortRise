@@ -632,6 +632,11 @@ namespace TowerFall
             [MonoModRemove]
             [MonoModPatch("<Load>b__120_0")]
             internal extern void Loadb__120_0();
+
+            [MonoModIfFlag("OS:Windows")]
+            [MonoModRemove]
+            [MonoModPatch("<Load>b__118_0")]
+            internal extern void Loadb__118_0();
         }
     }
 }
