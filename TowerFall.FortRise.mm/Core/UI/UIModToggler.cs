@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -55,7 +56,8 @@ public class UIModToggler : FortRiseUI
         disableAll.Pressed(() => ModifyAllButtons(false));
         Container.Add(enableAll);
         Container.Add(disableAll);
-        string[] files = Directory.GetFiles("Mods");
+        string modDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods");
+        string[] files = Directory.GetFiles(modDirectory);
         foreach (var file in files) 
         {
             if (!file.EndsWith(".zip"))
@@ -65,7 +67,7 @@ public class UIModToggler : FortRiseUI
             var metadata = loadedMetadata.Where(meta => meta.PathZip == filename).FirstOrDefault();
             if (metadata == null) 
             {
-                using var zipFile = ZipFile.OpenRead(Path.Combine("Mods", filename));
+                using var zipFile = ZipFile.OpenRead(Path.Combine(modDirectory, filename));
                 var metaZip = zipFile.GetEntry("meta.json");
 
                 if (metaZip == null)
@@ -87,7 +89,7 @@ public class UIModToggler : FortRiseUI
             Container.Add(CreateButton(filename, onOffs));
         }
 
-        files = Directory.GetDirectories("Mods");
+        files = Directory.GetDirectories(modDirectory);
 
         foreach (var dir in files) 
         {
@@ -158,7 +160,14 @@ public class UIModToggler : FortRiseUI
         var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
             .FirstOrDefault();
         if (modmeta == null)
-            modmeta = modsMetadata.Select(x => x.Value).Where(x => x.PathDirectory.Replace("Mods\\", "") == modName).FirstOrDefault();
+        {
+            modmeta = modsMetadata
+                .Select(x => x.Value)
+                .Where(x => x.PathDirectory
+                    .Replace('\\', '/')
+                    .Replace("Mods/", "") == modName)
+                .FirstOrDefault();
+        }
 
         
         if (modmeta == null)
@@ -207,7 +216,12 @@ public class UIModToggler : FortRiseUI
         var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
             .FirstOrDefault();
         if (modmeta == null)
-            modmeta = modsMetadata.Select(x => x.Value).Where(x => x.PathDirectory.Replace("Mods\\", "") == modName).FirstOrDefault();
+            modmeta = modsMetadata
+            .Select(x => x.Value)
+            .Where(x => x.PathDirectory
+                .Replace('\\', '/')
+                .Replace("Mods\\", "") == modName)
+            .FirstOrDefault();
 
         
         if (modmeta is null || modmeta.Dependencies is null)
@@ -252,7 +266,7 @@ public class UIModToggler : FortRiseUI
         {
             jsonArray.Add(blacklisted);
         }
-        RiseCore.WriteBlacklist(jsonArray, "Mods/blacklist.txt");
+        RiseCore.WriteBlacklist(jsonArray, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "blacklist.txt"));
         
         // cleanup
         modsMetadata = null;
