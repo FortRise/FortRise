@@ -216,46 +216,6 @@ public static partial class RiseCore
         QuestEventRegistry.LoadAllBuiltinEvents();
         InternalFortModules.Add(AdventureModule);
 
-        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) => {
-            AssemblyName asmName = new AssemblyName(asmArgs.Name);
-            foreach (Assembly asm in Relinker.RelinkedAssemblies) {
-                if (asm.GetName().Name == asmName.Name)
-                    return asm;
-            }
-
-            return null;
-        };
-
-        AppDomain.CurrentDomain.AssemblyResolve += (asmSender, asmArgs) =>
-        {
-            var name = asmArgs?.Name == null ? null : new AssemblyName(asmArgs.Name);
-
-            if (string.IsNullOrEmpty(name?.Name))
-                return null;
-
-            foreach (var mod in RiseCore.ResourceTree.ModResources)
-            {
-                var meta = mod.Metadata;
-
-                if (meta is null)
-                    continue;
-
-                var path = name.Name + ".dll";
-                var pathDirectory = string.IsNullOrEmpty(meta.PathZip) ? meta.PathDirectory : meta.PathZip;
-                path = Path.Combine(pathDirectory, path).Replace('\\', '/');
-                if (!string.IsNullOrEmpty(pathDirectory))
-                    path = path.Substring(pathDirectory.Length + 1);
-
-                if (mod.Resources.TryGetValue(path, out RiseCore.Resource res) && res.ResourceType == typeof(RiseCore.ResourceTypeAssembly))
-                {
-                    using var stream = res.Stream;
-                    if (stream != null)
-                        return Relinker.Relink(meta, name.Name, stream);
-                }
-            }
-            return null;
-        };
-
         DetourManager.DetourApplied += info => {
             if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
             {

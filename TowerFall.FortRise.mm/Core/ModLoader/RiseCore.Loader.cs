@@ -193,8 +193,7 @@ public static partial class RiseCore
                     var dllMeta = zip.GetEntry(dllPath);
                     if (dllMeta != null)
                     {
-                        metadata.AssemblyLoadContext = new AssemblyLoadContext(metadata.Name, true);
-                        SetupResolver(metadata);
+                        metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
                         using var dll = dllMeta.ExtractStream();
                         asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
@@ -212,8 +211,7 @@ public static partial class RiseCore
                 {
                     if (File.Exists(fullDllPath))
                     {
-                        metadata.AssemblyLoadContext = new AssemblyLoadContext(metadata.Name, true);
-                        SetupResolver(metadata);
+                        metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
                         using var stream = File.OpenRead(fullDllPath);
                         asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
@@ -256,32 +254,6 @@ public static partial class RiseCore
             }
 
             return new Unit();
-        }
-
-        private static void SetupResolver(ModuleMetadata metadata)
-        {
-            metadata.AssemblyLoadContext.Resolving += (context, assemblyName) => 
-            {
-                string dll = $"{Path.GetFileNameWithoutExtension(metadata.DLL)}.{metadata.Name}.dll";
-                string path = Path.Combine("Mods", "_RelinkerCache", dll);
-
-                if (File.Exists(path))
-                {
-                    return context.LoadFromAssemblyPath(path);
-                }
-                
-                
-                // loads from the FortRise dll
-                var cwd = AppDomain.CurrentDomain.BaseDirectory;
-                path = Path.Combine(cwd, assemblyName.Name + ".dll");
-
-                if (!File.Exists(path))
-                {
-                    return null;
-                }
-
-                return context.LoadFromAssemblyPath(path);
-            };
         }
 
         private static void LoadDelayedMods(List<ModDelayed> delayedMods)

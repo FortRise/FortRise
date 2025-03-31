@@ -37,7 +37,10 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     public string PathDirectory = string.Empty;
     public string PathZip = string.Empty;
     [JsonIgnore]
-    public AssemblyLoadContext AssemblyLoadContext { get; set; } = null;
+    public ModAssemblyLoadContext AssemblyLoadContext { get; set; } = null;
+
+    [JsonIgnore]
+    public byte[] Hash => RiseCore.GetChecksum(this);
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);

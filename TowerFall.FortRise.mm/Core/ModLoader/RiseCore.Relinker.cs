@@ -26,9 +26,6 @@ public static partial class RiseCore
     public static class Relinker 
     {
         private static bool temporaryASM;
-        private static ModuleMetadata currentMetaRelinking;
-        public static List<Assembly> RelinkedAssemblies = new();
-        private static Dictionary<string, ModuleDefinition> relinkedModules = new ();
 
         internal readonly static Dictionary<string, ModuleDefinition> StaticRelinkModuleCache = new Dictionary<string, ModuleDefinition>() {
             { "MonoMod", ModuleDefinition.ReadModule(typeof(MonoModder).Assembly.Location, new ReaderParameters(ReadingMode.Immediate)) },
@@ -126,98 +123,7 @@ public static partial class RiseCore
 
         public static Assembly LoadModAssembly(ModuleMetadata meta, string asmDLL, Stream stream) 
         {
-            var asmName = Path.GetFileNameWithoutExtension(asmDLL);
-
-            var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
-            if (!Directory.Exists(dirPath))
-                Directory.CreateDirectory(dirPath);
-
-            if (Environment.Is64BitProcess && !string.IsNullOrEmpty(meta.NativePath)) 
-            {
-                var nativePath = Path.Combine(dirPath, "Natives", $"{asmName}.{meta.Name}");
-                if (!Directory.Exists(nativePath))
-                    Directory.CreateDirectory(nativePath);
-                
-                if (meta.IsZipped) 
-                {
-                    using var zipFile = ZipFile.OpenRead(meta.PathZip);
-                    try 
-                    {
-                        foreach (var entry in zipFile.Entries) 
-                        {
-                            if (entry.FullName.StartsWith(meta.NativePath)) 
-                            {
-                                entry.ExtractToFile(nativePath, true);
-                            }
-                        }
-                    }
-                    catch (IOException) 
-                    {
-                        Logger.Error("[Relinker] Couldn't extract all of the native files as its in used by another process");
-                    }
-                }
-                else if (meta.IsDirectory)
-                {
-                    try 
-                    {
-                        foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePath))) 
-                        {
-                            File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
-                        }
-                    }
-                    catch (IOException) 
-                    {
-                        Logger.Error("[Relinker] Couldn't copy all of the native files as its in used by another process");
-                    }
-                }
-                else 
-                {
-                    Logger.Error($"[Relinker] Cannot find directory.");
-                }
-                NativeMethods.AddDllDirectory(nativePath);
-            }
-            else if (!string.IsNullOrEmpty(meta.NativePathX86))
-            {
-                var nativePath = Path.Combine(dirPath, "NativesX86", $"{asmName}.{meta.Name}");
-                if (!Directory.Exists(nativePath))
-                    Directory.CreateDirectory(nativePath);
-                if (!string.IsNullOrEmpty(meta.PathZip)) 
-                {
-                    using var zipFile = ZipFile.OpenRead(meta.PathZip);
-                    try 
-                    {
-                        foreach (var entry in zipFile.Entries) 
-                        {
-                            if (entry.FullName.StartsWith(meta.NativePathX86)) 
-                            {
-                                entry.ExtractToFile(nativePath, true);
-                            }
-                        }
-                    }
-                    catch (IOException) 
-                    {
-                        Logger.Error("[Relinker] Couldn't extract all of the native files as its in used by another process");
-                    }
-                }
-                else if (!string.IsNullOrEmpty(meta.PathDirectory))
-                {
-                    try 
-                    {
-                        foreach (var files in Directory.GetFiles(Path.Combine(meta.PathDirectory, meta.NativePathX86))) 
-                        {
-                            File.Copy(files, Path.Combine(nativePath, Path.GetFileName(files)), true);
-                        }
-                    }
-                    catch (IOException) 
-                    {
-                        Logger.Error("[Relinker] Couldn't copy all of the native files as its in used by another process");
-                    }
-                }
-                else
-                    Logger.Error($"[Relinker] Cannot find directory.");
-                NativeMethods.AddDllDirectory(nativePath);
-            }
-            return Relink(meta, asmName, stream);
+            return Relink(meta, Path.GetFileNameWithoutExtension(asmDLL), stream);
         }
 
         public static Assembly Relink(
@@ -243,22 +149,9 @@ public static partial class RiseCore
             {
                 Logger.Info($"[Relinker] Loading cached assembly for {meta} - {asmName}");
 
-                var mod = ModuleDefinition.ReadModule(cachedPath);
                 try 
                 {
-                    var asm = meta.AssemblyLoadContext.LoadFromAssemblyPath(cachedPath);
-                    RelinkedAssemblies.Add(asm);
-
-                    if (!relinkedModules.ContainsKey(mod.Assembly.Name.Name)) 
-                    {
-                        relinkedModules.Add(mod.Assembly.Name.Name, mod);
-                        mod = null;
-                    }
-                    else 
-                    {
-                        Logger.Warning($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
-                    }
-                    return asm;
+                    return meta.AssemblyLoadContext.LoadRelinkedAssembly(cachedPath);
                 }
                 catch (Exception e) 
                 {
@@ -266,69 +159,34 @@ public static partial class RiseCore
                     Logger.Error(e.ToString());
                     return null;
                 }
-                finally 
-                {
-                    mod?.Dispose();
-                }
             }
 
             MonoModder modder = new MonoModder() {
                 CleanupEnabled = false,
                 RelinkModuleMap = SharedRelinkModuleMap,
                 RelinkMap = SharedRelinkMap,
+                MissingDependencyThrow = false,
                 DependencyDirs = {
                     GameRootPath
                 },
+                AssemblyResolver = meta.AssemblyLoadContext,
                 ReaderParameters = {
                     SymbolReaderProvider = new RelinkerSymbolReaderProvider()
                 }
             };
 
-
-            var dependencyResolver = GenerateModDependencyResolver(meta);
-
-            AssemblyResolveEventHandler resolver = (s, r) => 
-            {
-                var dep = dependencyResolver(modder, modder.Module, r.Name, r.FullName);
-                if (dep != null) 
-                {
-                    return dep.Assembly;
-                }
-                
-                if (r.FullName.ToLowerInvariant().Contains("fna") || r.FullName.ToLowerInvariant().Contains("xna")) 
-                {
-                    var asmRefs = typeof(TFGame).Assembly.GetReferencedAssemblies();
-                    for (int i = 0; i < asmRefs.Length; i++) 
-                    {
-                        var asmRef = asmRefs[i];
-                        if (!asmRef.FullName.ToLowerInvariant().Contains("xna") &&
-                            !asmRef.FullName.ToLowerInvariant().Contains("fna") &&
-                            !asmRef.FullName.ToLowerInvariant().Contains("monogame"))
-                                continue;
-                            
-                        return ((DefaultAssemblyResolver)modder.AssemblyResolver).Resolve(AssemblyNameReference.Parse(asmRef.FullName));
-                    }
-                }
-                return null;
-            };
-
             try 
             {
-                currentMetaRelinking = meta;
                 modder.Input = stream;
                 modder.OutputPath = cachedPath;
-                modder.MissingDependencyThrow = false;
-                modder.MissingDependencyResolver = dependencyResolver;
 
                 var metaPath = meta.DLL.Substring(0, meta.DLL.Length - 4) + ".pdb";
                 modder.ReaderParameters.SymbolStream = OpenSymbol(meta, metaPath);
                 modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
 
-                ((DefaultAssemblyResolver)modder.AssemblyResolver).ResolveFailure += resolver;
-
-                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider) 
+                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider provider) 
                 {
-                    ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.PDB;
+                    provider.Format = DebugSymbolFormat.PDB;
                 }
 
                 try 
@@ -345,9 +203,9 @@ public static partial class RiseCore
                     modder.Read();
                 }
 
-                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider) 
+                if (modder.ReaderParameters.SymbolReaderProvider != null && modder.ReaderParameters.SymbolReaderProvider is RelinkerSymbolReaderProvider provider1) 
                 {
-                    ((RelinkerSymbolReaderProvider)modder.ReaderParameters.SymbolReaderProvider).Format = DebugSymbolFormat.Auto;
+                    provider1.Format = DebugSymbolFormat.Auto;
                 }
 
                 modder.MapDependencies();
@@ -389,8 +247,10 @@ public static partial class RiseCore
                     Logger.Info("[Relinker] Try writing the module with symbols");
                     modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
                     modder.WriterParameters.WriteSymbols = true;
-                    using var fs = File.Create(cachedPath);
-                    modder.Write(fs);
+                    using (var fs = File.Create(cachedPath))
+                    {
+                        modder.Write(fs);
+                    }
                 }
                 catch 
                 {
@@ -399,8 +259,10 @@ public static partial class RiseCore
                         Logger.Info("[Relinker] Writing the module without symbols");
                         modder.WriterParameters.SymbolWriterProvider = null;
                         modder.WriterParameters.WriteSymbols = false;
-                        using var fs = File.Create(cachedPath);
-                        modder.Write(fs);
+                        using (var fs = File.Create(cachedPath))
+                        {
+                            modder.Write(fs);
+                        }
                     }
                     catch when (!temporaryASM) 
                     {
@@ -425,7 +287,6 @@ public static partial class RiseCore
             }
             finally 
             {
-                ((DefaultAssemblyResolver)modder.AssemblyResolver).ResolveFailure -= resolver;
                 modder.ReaderParameters.SymbolStream?.Dispose();
                 if (module != modder.Module)
                     modder.Module?.Dispose();
@@ -442,19 +303,7 @@ public static partial class RiseCore
                     File.WriteAllLines(cachedChecksumPath, checksums);
                 }
 
-                var asm = meta.AssemblyLoadContext.LoadFromAssemblyPath(cachedPath);
-
-                RelinkedAssemblies.Add(asm);
-                if (!relinkedModules.ContainsKey(module.Assembly.Name.Name)) 
-                {
-                    relinkedModules.Add(module.Assembly.Name.Name, module);
-                    module = null;
-                }
-                else 
-                {
-                    Logger.Warning($"[Relinker] Encountered a module name conflict loading cached assembly {meta} - {asmName} - {module.Assembly.Name}");
-                }
-                return asm;
+                return meta.AssemblyLoadContext.LoadRelinkedAssembly(cachedPath);
             }
             catch (Exception e) 
             {
@@ -464,59 +313,62 @@ public static partial class RiseCore
             }
         }
 
-
-        private static MissingDependencyResolver GenerateModDependencyResolver(ModuleMetadata meta) 
+        public static Assembly FakeRelink(ModuleMetadata meta, string asmName, Stream stream)
         {
-            if (meta.IsZipped) 
+            asmName = asmName.Replace(" ", "_");
+
+            var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
+
+            var cachedPath = Path.Combine(dirPath, $"{asmName}.{meta.Name}.dll");
+            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+
+            var checksums = new string[2];
+            checksums[0] = GameChecksum;
+            checksums[1] = RiseCore.GetChecksum(ref stream).ToHexadecimalString();
+            
+
+            if (File.Exists(cachedPath) && File.Exists(cachedChecksumPath) && 
+                ChecksumsEqual(checksums, File.ReadAllLines(cachedChecksumPath))) 
             {
-                return (mod, main, name, fullname) => 
+                Logger.Info($"[Fake Relinker] Loading cached assembly for {meta} - {asmName}");
+
+                try 
                 {
-                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
-                    {
-                        return def;
-                    }
-
-                    string path = name + ".dll";
-                    if (!string.IsNullOrEmpty(meta.DLL))
-                        path = Path.Combine(Path.GetDirectoryName(meta.DLL), path);
-                    path = path.Replace('\\', '/');
-
-                    using var zip = ZipFile.OpenRead(meta.PathZip);
-                    foreach (var entry in zip.Entries) 
-                    {
-                        if (entry.FullName != path)
-                        {
-                            continue;
-                        }
-                        using var memStream = entry.ExtractStream();
-                        return ModuleDefinition.ReadModule(memStream, mod.GenReaderParameters(false));
-                    }
-
-                    Logger.Warning($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
+                    return meta.AssemblyLoadContext.LoadRelinkedAssembly(cachedPath);
+                }
+                catch (Exception e) 
+                {
+                    Logger.Error($"[Fake Relinker] Failed loading {meta} - {asmName}");
+                    Logger.Error(e.ToString());
                     return null;
-                };
+                }
             }
-            if (meta.IsDirectory) 
+
+            using (var fs = File.Create(cachedPath))
             {
-                return (mod, main, name, fullname) => 
-                {
-                    if (relinkedModules.TryGetValue(name, out ModuleDefinition def)) 
-                    {
-                        return def;
-                    }
-
-                    string path = name + ".dll";
-                    path = Path.Combine(meta.PathDirectory, path);
-                    if (File.Exists(path)) 
-                    {
-                        return ModuleDefinition.ReadModule(path, mod.GenReaderParameters(false, path));
-                    }
-                    
-                    Logger.Warning($"[Relinker] Couldn't find the dependency {main.Name} -> {fullname}, ({name})");
-                    return null;
-                };
+                stream.CopyTo(fs);
             }
-            return null;
+
+            try 
+            {
+                if (File.Exists(cachedChecksumPath))
+                    File.Delete(cachedChecksumPath);
+                
+                if (!temporaryASM) 
+                {
+                    File.WriteAllLines(cachedChecksumPath, checksums);
+                }
+
+                return meta.AssemblyLoadContext.LoadRelinkedAssembly(cachedPath);
+            }
+            catch (Exception e) 
+            {
+                Logger.Error($"[Fake Relinker] Failed Loading {meta} - {asmName}");
+                Logger.Error(e.ToString());
+                return null;
+            }
         }
 
         private static Stream OpenSymbol(ModuleMetadata metadata, string name) 
