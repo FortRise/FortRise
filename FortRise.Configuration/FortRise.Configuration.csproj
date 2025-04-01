@@ -9,7 +9,7 @@
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>NU5128</NoWarn>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>FortRise.Configuration</PackageId>
@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" PrivateAssets="all" />
-    <PackageReference Include="Ignore" Version="0.2.1" />
+    <PackageReference Include="Ignore" Version="0.2.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
