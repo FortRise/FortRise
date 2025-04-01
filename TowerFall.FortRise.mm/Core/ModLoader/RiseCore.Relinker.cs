@@ -25,8 +25,6 @@ public static partial class RiseCore
 
     public static class Relinker 
     {
-        private static bool temporaryASM;
-
         internal readonly static Dictionary<string, ModuleDefinition> StaticRelinkModuleCache = new Dictionary<string, ModuleDefinition>() {
             { "MonoMod", ModuleDefinition.ReadModule(typeof(MonoModder).Assembly.Location, new ReaderParameters(ReadingMode.Immediate)) },
             { "TowerFall", ModuleDefinition.ReadModule(typeof(TFGame).Assembly.Location, new ReaderParameters(ReadingMode.Immediate)) }
@@ -129,6 +127,8 @@ public static partial class RiseCore
         public static Assembly Relink(
             ModuleMetadata meta, ReadOnlySpan<char> name, Stream stream) 
         {
+            bool temporaryASM = false;
+
             ModuleDefinition module = null;
             Span<char> asmName = stackalloc char[name.Length];
             name.Replace(asmName, ' ', '_');
@@ -358,10 +358,7 @@ public static partial class RiseCore
                 if (File.Exists(cachedChecksumPath))
                     File.Delete(cachedChecksumPath);
                 
-                if (!temporaryASM) 
-                {
-                    File.WriteAllLines(cachedChecksumPath, checksums);
-                }
+                File.WriteAllLines(cachedChecksumPath, checksums);
 
                 return meta.AssemblyLoadContext.LoadRelinkedAssembly(cachedPath);
             }
