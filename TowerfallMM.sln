@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TowerFall.FortRise.mm", "To
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortLauncher", "FortLauncher\FortLauncher.csproj", "{A48F2DB9-4473-4388-8147-BF5447AAC331}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.Configuration", "FortRise.Configuration\FortRise.Configuration.csproj", "{26E7AD57-D569-4AA2-B7C1-E7C72D411328}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{A48F2DB9-4473-4388-8147-BF5447AAC331}.Release|x64.Build.0 = Release|Any CPU
 		{A48F2DB9-4473-4388-8147-BF5447AAC331}.Release|x86.ActiveCfg = Release|Any CPU
 		{A48F2DB9-4473-4388-8147-BF5447AAC331}.Release|x86.Build.0 = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|x64.Build.0 = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Debug|x86.Build.0 = Debug|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|x64.ActiveCfg = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|x64.Build.0 = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|x86.ActiveCfg = Release|Any CPU
+		{26E7AD57-D569-4AA2-B7C1-E7C72D411328}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,91 @@
+<Project>
+	<UsingTask TaskName="FortRise.Configuration.ModTask" AssemblyFile="FortRise.Configuration.dll" />
+
+	<PropertyGroup>
+		<DebugSymbols>true</DebugSymbols>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <ModName Condition="'$(ModName)' == ''">$(MSBuildProjectName)</ModName>
+		<ModVersion Condition="'$(ModVersion)' == ''">$(Version)</ModVersion>
+    <ModZipPath Condition="'$(ModZipPath)' == ''">$(MSBuildProjectDirectory)\release\$(ModVersion)\$(ModName).zip</ModZipPath>
+		<ModEnablePublish Condition="'$(ModEnablePublish)' == ''">true</ModEnablePublish>
+    <ModEnableZip Condition="'$(ModEnableZip)' == '' And '$(Configuration)' == 'Release'">true</ModEnableZip>
+		<ModEnableZip Condition="'$(ModEnableZip)' == ''">false</ModEnableZip>
+  </PropertyGroup>
+
+  <!-- Properties for knowing where th is the ModLoader -->
+  <PropertyGroup Condition="$(OS) == 'Windows_NT'">
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >C:\Program Files (x86)\Steam\steamapps\common\TowerFall\FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >C:\Program Files (x86)\Steam\steamapps\common\FortRise</ModLoaderPath>
+
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >C:\Program Files\Steam\steamapps\common\TowerFall\FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >C:\Program Files\Steam\steamapps\common\FortRise</ModLoaderPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(OS) == 'Unix' OR $(OS) == 'OSX'">
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.steam/steam/steamapps/common/TowerFall/FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.local/share/Steam/steamapps/common/TowerFall/FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/TowerFall/FortRise</ModLoaderPath>
+
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.steam/steam/steamapps/common/FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.local/share/Steam/steamapps/common/FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/FortRise</ModLoaderPath>
+
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/Library/Application Support/Steam/steamapps/common/TowerFall/Contents/MacOS/FortRise</ModLoaderPath>
+    <ModLoaderPath Condition="'$(ModLoaderPath)' == '' Or !Exists('$(ModLoaderPath)')" >$(HOME)/Library/Application Support/Steam/steamapps/common/FortRise</ModLoaderPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TowerFallDirPath>$(ModLoaderPath)</TowerFallDirPath>
+    <TowerFallPath>TowerFall.Patch.dll</TowerFallPath>
+    <FNAPath>FNA.dll</FNAPath>
+    <HookPath>MMHOOK_TowerFall.dll</HookPath>
+    <MonoCecilPath>Mono.Cecil.dll</MonoCecilPath>
+    <MonoModRuntimeDetourPath>MonoMod.RuntimeDetour.dll</MonoModRuntimeDetourPath>
+    <MonoModUtilsPath>MonoMod.Utils.dll</MonoModUtilsPath>
+    <ModPublishPath Condition="'$(ModPublishPath)' == ''">$(ModLoaderPath)\Mods</ModPublishPath>
+  </PropertyGroup>
+
+	<ItemGroup>
+    <Reference Include="TowerFall">
+      <HintPath>$(TowerFallDirPath)$(TowerFallPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MMHOOK_TowerFall">
+      <HintPath>$(TowerFallDirPath)$(HookPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FNA">
+      <HintPath>$(TowerFallDirPath)$(FNAPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(TowerFallDirPath)$(MonoCecilPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>$(TowerFallDirPath)$(MonoModRuntimeDetourPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>$(TowerFallDirPath)$(MonoModUtilsPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+	</ItemGroup>
+
+	<Target Name="ModDeployAndZip" AfterTargets="Build">
+		<FortRise.Configuration.ModTask
+				ModName="$(ModName)"
+				ModVersion="$(ModVersion)"
+				ModPublishPath="$(ModPublishPath)"
+				ModEnableZip="$(ModEnableZip)"
+				ModZipPath="$(ModZipPath)"
+        ModProjectDir="$(ProjectDir)"
+        ModTargetDir="$(TargetDir)"
+        ModEnablePublish="$(ModEnablePublish)"
+		/>
+	</Target>
+
+</Project>

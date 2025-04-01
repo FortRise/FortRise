@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Configuration.props"/>
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>TowerFall</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
     <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>

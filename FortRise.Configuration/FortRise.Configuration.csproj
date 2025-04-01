@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <Nullable>enable</Nullable>
+
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>NU5128</NoWarn>
+    <Version>1.0.7</Version>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>FortRise.Configuration</PackageId>
+    <Authors>Teuria</Authors>
+    <Description>A package to help FortRise mod developers to structure their C# mod project</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="9.0.3" PrivateAssets="all" />
+    <PackageReference Include="Ignore" Version="0.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="$(MSBuildProjectDirectory)\.release\**" />
+    <None Include="..\README.md" PackagePath="\" Pack="True" />
+    <None Include="..\LICENSE" PackagePath="\" Pack="True" />
+    <None Include="build\package.targets" PackagePath="build\$(PackageId).targets" Pack="True" />
+    <None Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="build\$(PackageId).dll" Pack="True" Visible="True" />
+    <None Include="$(OutputPath)\System.Text.Json.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\Ignore.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\Microsoft.Bcl.AsyncInterfaces.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\System.IO.Pipelines.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\System.Text.Encodings.Web.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\System.Threading.Tasks.Extensions.dll" PackagePath="build\" Pack="True" Visible="False" />
+  </ItemGroup>
+</Project>
