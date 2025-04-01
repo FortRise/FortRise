@@ -17,16 +17,19 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
     public void Run(string exePath, string patchFile) 
     {
         var asm = LoadAssembly(patchFile);
-        Directory.SetCurrentDirectory(Path.GetFullPath(Path.GetDirectoryName(exePath)));
+        Directory.SetCurrentDirectory(Path.GetFullPath(Path.GetDirectoryName(exePath)!));
 
         // run the game
-        asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+        if (asm.EntryPoint is not null)
+        {
+            asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+        }
     }
 
     public void GenerateHooks(Stream stream, string patchFile)
     {
         Environment.SetEnvironmentVariable("MONOMOD_HOOKGEN_PRIVATE", "1");
-        string mmhookPath = Path.Combine(Path.GetDirectoryName(patchFile), "MMHOOK_TowerFall.dll");
+        string mmhookPath = Path.Combine(Path.GetDirectoryName(patchFile)!, "MMHOOK_TowerFall.dll");
         using (var modder = new MonoModder()
         {
             Input = stream,

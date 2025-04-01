@@ -9,6 +9,7 @@
 		<ApplicationManifest>../app.manifest</ApplicationManifest>
     <PublishDir>../artifacts/FortRise.v5.0.0-beta.2-$(RuntimeIdentifier)/FortRise</PublishDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>

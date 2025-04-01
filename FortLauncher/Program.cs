@@ -23,11 +23,11 @@ internal class Program
         bool canOverride = File.Exists("launch_override.json");
 
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        string exePath;
+        string? exePath;
         LaunchOverride launchOverride = default;
         if (!canOverride)
         {
-            exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+            exePath = LocateExecutable(baseDirectory);
         }
         else 
         {
@@ -35,7 +35,7 @@ internal class Program
             launchOverride = JsonSerializer.Deserialize(jsonOverride, LaunchOverrideContext.Default.LaunchOverride);
             if (string.IsNullOrEmpty(launchOverride.GamePath))
             {
-                exePath = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+                exePath = LocateExecutable(baseDirectory);
             }
             else 
             {
@@ -44,10 +44,10 @@ internal class Program
         }
 
         // Check if the game is not present
-        if (!File.Exists(exePath))
+        if (exePath is null || !File.Exists(exePath))
         {
+            exePath = null;
             SDL.SDL_Init(SDL.SDL_InitFlags.SDL_INIT_VIDEO);
-            bool overrided = false;
             unsafe 
             {
                 using RawString yes = "yes";
@@ -100,13 +100,12 @@ internal class Program
                 }
             }
 
-            string path = FileDialog.ResultPath;
+            string? path = FileDialog.ResultPath;
 
             // we might need a good way to filter out the files, but hardcoding should do for now
             if (!string.IsNullOrEmpty(path) && path.EndsWith("TowerFall.exe"))
             {
                 exePath = path;
-                overrided = true;
             }
             else 
             {
@@ -115,7 +114,7 @@ internal class Program
 
             SDL.SDL_Quit();
 
-            if (!overrided)
+            if (exePath is null)
             {
                 SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "TowerFall not found!", IntPtr.Zero);
                 return -1;
@@ -141,7 +140,7 @@ internal class Program
 
     private static bool CheckLegacyFortRiseInstalled(string exePath)
     {
-        var txt = Path.Combine(Path.GetDirectoryName(exePath), "PatchVersion.txt");
+        var txt = Path.Combine(Path.GetDirectoryName(exePath)!, "PatchVersion.txt");
         return File.Exists(txt);
     }
 
@@ -149,12 +148,12 @@ internal class Program
     {
         string patchFile = Path.GetFullPath("TowerFall.Patch.dll");
         string mmFile = Path.GetFullPath("TowerFall.FortRise.mm.dll");
-		string steamworksPath = Path.Combine(Path.GetDirectoryName(exePath), "Steamworks.NET.dll");
+		string steamworksPath = Path.Combine(Path.GetDirectoryName(exePath)!, "Steamworks.NET.dll");
 
 		bool isSteam = File.Exists(steamworksPath);
 
         bool shouldSkip = false;
-        string mmSumStr = null;
+        string? mmSumStr = null;
         if (File.Exists(mmFile))
         {
             Stream mmStream = File.OpenRead(mmFile);
@@ -246,4 +245,24 @@ internal class Program
 
 		return memoryStream;
 	}
+
+    private static string? LocateExecutable(string baseDirectory)
+    {
+        string? path;
+        path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+        if (File.Exists(path))
+        {
+            return path;
+        }
+
+        // second attempt
+        path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall.exe"));
+        if (File.Exists(path))
+        {
+            return path;
+        }
+
+        // nope
+        return null;
+    }
 }

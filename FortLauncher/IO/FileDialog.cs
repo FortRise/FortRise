@@ -31,18 +31,21 @@ public ref struct Property
 
 public static class FileDialog 
 {
-    public static volatile bool IsOpened;
-    public static string ResultPath;
+    public static bool IsOpened => isOpened;
+    public static string? ResultPath => resultPath;
+
+    private static volatile bool isOpened;
+    private static string? resultPath;
     private static unsafe void OnOpenActionDialog(IntPtr userdata, IntPtr filelist, int filter) 
     {
         if (filelist == IntPtr.Zero)
         {
-            IsOpened = false;
+            isOpened = false;
             return;
         }
         if (*(byte*)filelist == IntPtr.Zero) 
         {
-            IsOpened = false;
+            isOpened = false;
             return;
         }
         byte **files = (byte**)filelist;
@@ -56,31 +59,31 @@ public static class FileDialog
 
         if (count <= 0)
         {
-            IsOpened = false;
+            isOpened = false;
             return;
         }
 
         string file = Encoding.UTF8.GetString(files[0], count);
-        ResultPath = file;
-        IsOpened = false;
+        resultPath = file;
+        isOpened = false;
     }
 
-    public static unsafe void OpenFile(string path = null, Property property = default) 
+    public static unsafe void OpenFile(string? path = null, Property property = default) 
     {
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE);
     }
 
-    public static unsafe void Save(string path = null, Property property = default) 
+    public static unsafe void Save(string? path = null, Property property = default) 
     {
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE);
     }
 
-    public static unsafe void OpenFolder(Action<string> action, string path = null) 
+    public static unsafe void OpenFolder(string? path = null) 
     {
         ShowDialog(path, default, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER);
     }
 
-    private static unsafe void ShowDialog(string path = null, Property property = default, SDL.SDL_FileDialogType access = SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE) 
+    private static unsafe void ShowDialog(string? path = null, Property property = default, SDL.SDL_FileDialogType access = SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE) 
     {
         RawString name = default;
         RawString pattern = default;
@@ -116,7 +119,7 @@ public static class FileDialog
             SDL.SDL_SetStringProperty(properties, SDL.SDL_PROP_FILE_DIALOG_LOCATION_STRING, path);
         }
 
-        IsOpened = true;
+        isOpened = true;
 
         SDL.SDL_ShowFileDialogWithProperties(access, OnOpenActionDialog, IntPtr.Zero, properties);
 
