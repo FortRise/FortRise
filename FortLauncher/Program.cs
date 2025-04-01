@@ -8,6 +8,7 @@ using Mono.Cecil;
 using YYProject.XXHash;
 using SDL3;
 using FortLauncher.IO;
+using System.Collections.Generic;
 
 namespace FortLauncher;
 
@@ -18,6 +19,7 @@ internal class Program
 
     public static int Main(string[] args)
     {
+        Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "1");
         Console.WriteLine($"[FortRise] Version: {Version}");
 
         bool canOverride = File.Exists("launch_override.json");
@@ -175,11 +177,20 @@ internal class Program
             mmSumStr = mmSum.ToString();
         }
 
-        var arglist = args.ToList();
-        arglist.Add("--version");
-        arglist.Add(Version.ToString());
+        var argList = new List<string>();
 
-        FortRiseHandler handler = new FortRiseHandler(baseDirectory, arglist);
+        foreach (var arg in args)
+        {
+            if (arg == "--enable-trace")
+            {
+                Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "0");
+            }
+            argList.Add(arg);
+        }
+        argList.Add("--version");
+        argList.Add(Version.ToString());
+
+        FortRiseHandler handler = new FortRiseHandler(baseDirectory, argList);
 
         if (!shouldSkip)
         {
@@ -207,6 +218,7 @@ internal class Program
         }
 
         handler.Run(exePath, patchFile);
+        Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "");
         return 0;
     }
 
