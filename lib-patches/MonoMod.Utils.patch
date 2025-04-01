@@ -1,0 +1,13 @@
+diff --git a/src/MonoMod.Utils/Logs/DebugLog.cs b/src/MonoMod.Utils/Logs/DebugLog.cs
+index 278132ac..812ed21c 100644
+--- a/src/MonoMod.Utils/Logs/DebugLog.cs
++++ b/src/MonoMod.Utils/Logs/DebugLog.cs
+@@ -175,7 +175,7 @@ namespace MonoMod.Logs
+         }
+ 
+         public static bool IsWritingLog => Instance.ShouldLog;
+-        internal bool AlwaysLog => replayQueue is not null || Debugger.IsAttached;
++        internal bool AlwaysLog => (replayQueue is not null || Debugger.IsAttached) && Environment.GetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG") != "1";
+         internal bool ShouldLog => subscriptions.ActiveLevels is not LogLevelFilter.None || AlwaysLog;
+         internal bool RecordHoles => recordHoles || subscriptions.DetailLevels is not LogLevelFilter.None;
+ 
