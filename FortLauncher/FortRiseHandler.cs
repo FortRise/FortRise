@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using Mono.Cecil;
 using MonoMod;
@@ -114,6 +115,40 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
                 return null;
             }
             return context.LoadFromAssemblyPath(path);
+        };
+
+        AssemblyLoadContext.Default.ResolvingUnmanagedDll += (asm, name) => 
+        {
+            string unmanagedFolders = string.Empty;
+            string dllFormat = ".dll";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                unmanagedFolders = "lib64";
+                dllFormat = ".so";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+            {
+                unmanagedFolders = "osx";
+                dllFormat = ".dylib";
+            }
+
+            if (unmanagedFolders == string.Empty)
+            {
+                if (NativeLibrary.TryLoad(name + ".dll", out nint handle))
+                {
+                    return handle;
+                }
+            }
+            else 
+            {
+                var file = Path.GetFullPath(Path.Combine(unmanagedFolders, "lib" + name + dllFormat));
+                if (NativeLibrary.TryLoad(file, out nint handle))
+                {
+                    return handle;
+                }
+            }
+
+            return IntPtr.Zero;
         };
 
         return asm;
