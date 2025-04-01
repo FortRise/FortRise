@@ -57,7 +57,7 @@ public static partial class RiseCore
                         else 
                         {
                             Logger.Warning($"[Relinker] Found unknown {name}");
-                            int dot = name.IndexOf(".");
+                            int dot = name.IndexOf('.');
                             if (dot < 0)
                                 continue;
                             string nameRelinkedNeutral = name.Substring(0, dot);
@@ -127,17 +127,18 @@ public static partial class RiseCore
         }
 
         public static Assembly Relink(
-            ModuleMetadata meta, string asmName, Stream stream) 
+            ModuleMetadata meta, ReadOnlySpan<char> name, Stream stream) 
         {
             ModuleDefinition module = null;
-            asmName = asmName.Replace(" ", "_");
+            Span<char> asmName = stackalloc char[name.Length];
+            name.Replace(asmName, ' ', '_');
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
 
             var cachedPath = Path.Combine(dirPath, $"{asmName}.{meta.Name}.dll");
-            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+            var cachedChecksumPath = string.Concat(cachedPath.AsSpan(0, cachedPath.Length - 4), ".sum");
 
             var checksums = new string[2];
             checksums[0] = GameChecksum;
@@ -180,7 +181,7 @@ public static partial class RiseCore
                 modder.Input = stream;
                 modder.OutputPath = cachedPath;
 
-                var metaPath = meta.DLL.Substring(0, meta.DLL.Length - 4) + ".pdb";
+                var metaPath = string.Concat(meta.DLL.AsSpan(0, meta.DLL.Length - 4), ".pdb");
                 modder.ReaderParameters.SymbolStream = OpenSymbol(meta, metaPath);
                 modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
 
@@ -313,16 +314,17 @@ public static partial class RiseCore
             }
         }
 
-        public static Assembly FakeRelink(ModuleMetadata meta, string asmName, Stream stream)
+        public static Assembly FakeRelink(ModuleMetadata meta, ReadOnlySpan<char> name, Stream stream)
         {
-            asmName = asmName.Replace(" ", "_");
+            Span<char> asmName = stackalloc char[name.Length];
+            name.Replace(asmName, ' ', '_');
 
             var dirPath = Path.Combine(GameRootPath, "Mods", "_RelinkerCache");
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
 
             var cachedPath = Path.Combine(dirPath, $"{asmName}.{meta.Name}.dll");
-            var cachedChecksumPath = cachedPath.Substring(0, cachedPath.Length - 4) + ".sum";
+            var cachedChecksumPath = string.Concat(cachedPath.AsSpan(0, cachedPath.Length - 4), ".sum");
 
             var checksums = new string[2];
             checksums[0] = GameChecksum;
