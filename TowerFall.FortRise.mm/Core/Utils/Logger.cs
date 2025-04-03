@@ -11,25 +11,9 @@ public static class Logger
 {
     public enum LogLevel { Info, Warning, Error, Debug, Verbose, Assert}
     private static StringBuilder builder = new();
-    private static IConsole consoleWindow;
 
     public static LogLevel Verbosity = LogLevel.Info;
 
-    public static void AttachConsole(IConsole window)
-    {
-        try
-        {
-            window?.Attach();
-            consoleWindow = window;
-        }
-        catch {}
-    }
-
-    public static void DetachConsole()
-    {
-        consoleWindow?.Detach();
-        consoleWindow = null;
-    }
 
     private static void LogInternal(LogLevel level, string message, int lineNumber)
     {
@@ -55,13 +39,13 @@ public static class Logger
         catch (ArgumentOutOfRangeException)
         {
         }
-        if (consoleWindow != null)
-            WriteLine(consoleWindow, text, level);
+
+        WriteLine(text, level);
         if (level == LogLevel.Assert)
             Debugger.Break();
     }
 
-    private static void WriteLine(IConsole console, string text, LogLevel level)
+    private static void WriteLine(string text, LogLevel level)
     {
         var colors = level switch
         {
@@ -72,7 +56,7 @@ public static class Logger
             LogLevel.Verbose => $"\u001b[95m",
             _ => "\u001b[96m"
         };
-        console.StdOut.WriteLine($"\u001b[37m({DateTime.Now.ToString("HH:mm:ss")}) {colors}{text}\u001b[0m");
+        Console.WriteLine($"\u001b[37m({DateTime.Now.ToString("HH:mm:ss")}) {colors}{text}\u001b[0m");
     }
 
     public static void Log(

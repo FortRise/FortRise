@@ -712,20 +712,6 @@ public static partial class RiseCore
         module.InternalUnload();
     }
 
-
-    internal static IConsole ConsoleAttachment()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return new WindowConsole();
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return new LinuxConsole();
-        }
-        return null;
-    }
-
     public static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
     {
         List<string> detours = DetourLogs;

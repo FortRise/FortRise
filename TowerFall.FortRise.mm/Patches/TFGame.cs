@@ -139,18 +139,6 @@ namespace TowerFall
                 patchFile = Path.Combine(RiseCore.GameRootPath, "PacthVersion.txt");
             }
             
-            if (RiseCore.DebugMode)
-            {
-                try 
-                {
-                    Logger.AttachConsole(RiseCore.ConsoleAttachment());
-                }
-                catch (Exception e) 
-                {
-                    Logger.Error("Failed to attach console.");
-                    Logger.Error(e.ToString());
-                }
-            }
             TFGame.WriteLineToLoadLog("Initializing Steam...");
             if (!TryInit())
                 goto Exit;
@@ -191,7 +179,6 @@ namespace TowerFall
             }
 
             Exit:
-            Logger.DetachConsole();
             Logger.WriteToFile("fortRiseLog.txt");
             Environment.Exit(0);
         }
