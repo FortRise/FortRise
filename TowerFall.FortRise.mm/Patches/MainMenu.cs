@@ -90,26 +90,6 @@ namespace TowerFall
             }
         }
 
-        public void CreateModOptions() 
-        {
-
-        }
-
-        public void DestroyModOptions() 
-        {
-
-        }
-
-        public void CreateMods() 
-        {
-
-        }
-
-        public void DestroyMods() 
-        {
-
-        }
-
         [MonoModIgnore]
         private extern void InitOptions(List<OptionsButton> buttons);
 
