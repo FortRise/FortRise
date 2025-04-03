@@ -22,7 +22,14 @@ public static class CustomMenuStateRegistry
     public static Dictionary<Type, MainMenu.MenuState> TypeToMenuStates = new Dictionary<Type, MainMenu.MenuState>();
     public static Dictionary<MainMenu.MenuState, CustomMenuStateLoader> MenuLoaders = new Dictionary<MainMenu.MenuState, CustomMenuStateLoader>();
     public static HashSet<MainMenu.MenuState> MenuStates = new HashSet<MainMenu.MenuState>();
-    private static ulong ID = 18;
+    private const ulong offset = 16;
+
+    internal static void LoadAllBuiltinMenuState()
+    {
+        Register(typeof(UIModMenu), null);
+        Register(typeof(UIModOptions), null);
+    }
+
 
     public static void Register(Type type, FortModule module)
     {
@@ -35,26 +42,24 @@ public static class CustomMenuStateRegistry
 
             string name = menuState.Name;
 
-            ConstructorInfo ctor = type.GetConstructor(new Type[1] { typeof(MainMenu) });
+            ConstructorInfo ctor = type.GetConstructor([typeof(MainMenu)]);
             CustomMenuStateLoader loader = null;
 
             if (ctor != null) 
             {
                 loader = (menu) => 
                 {
-                    var custom = (CustomMenuState)ctor.Invoke(new object[1] { menu });
+                    var custom = (CustomMenuState)ctor.Invoke([menu]);
                     return custom;
                 };
             }
 
-            var id = (MainMenu.MenuState)ID;
+            var id = (MainMenu.MenuState)offset + MenuStates.Count;
 
             StringToMenuStates[name] = id;
             TypeToMenuStates[type] = id;
             MenuLoaders[id] = loader;
             MenuStates.Add(id);
-
-            ID += 1;
         }
     }
 }

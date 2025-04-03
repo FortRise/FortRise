@@ -205,16 +205,16 @@ public static partial class RiseCore
             Version = FortRiseVersion
         };
         var fortRiseModule = new NoModule(fortRiseMetadata);
-        fortRiseModule.Register();
         InternalFortModules.Add(fortRiseModule);
         InternalModuleMetadatas.Add(fortRiseMetadata);
 
         AdventureModule = new AdventureModule();
         AdventureModule.InternalLoad();
-        AdventureModule.Register();
+        InternalFortModules.Add(AdventureModule);
+
         EntityRegistry.LoadAllBuiltinEnemies();
         QuestEventRegistry.LoadAllBuiltinEvents();
-        InternalFortModules.Add(AdventureModule);
+        CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 
         DetourManager.DetourApplied += info => {
             if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
@@ -535,7 +535,7 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module)
     {
-        if (module is NoModule)
+        if (module is NoModule or Adventure.AdventureModule)
             return;
 
         try
@@ -666,6 +666,7 @@ public static partial class RiseCore
                 }
             }
 
+            FortRise.CustomMenuStateRegistry.Register(type, module);
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
             // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows

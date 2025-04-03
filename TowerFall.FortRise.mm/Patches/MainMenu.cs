@@ -18,16 +18,21 @@ namespace TowerFall
     {
         private FortRise.FortModule currentModule;
 
-        private FortRiseUI currentUI;
-        private patch_MenuState state;
+        public FortRise.FortModule CurrentModule 
+        {
+            get => currentModule;
+            set => currentModule = value;
+        }
+
+        private MenuState state;
         [MonoModPublic]
-        private patch_MenuState switchTo;
-        public patch_MenuState BackState;
+        public MenuState switchTo;
+        public MenuState BackState;
 
 
 
         [MonoModIgnore]
-        public patch_MenuState State
+        public MenuState State
         {
             get
             {
@@ -40,10 +45,9 @@ namespace TowerFall
         }
 
         [MonoModIgnore]
-        public patch_MenuState OldState { get; set;  }
+        public MenuState OldState { get; set; }
 
-        [MonoModIgnore]
-        public MenuItem ToStartSelected { get; private set; }
+        public MenuItem ToStartSelected { get; [MonoModPublic] set; }
 
 
         public static patch_MatchSettings VersusMatchSettings;
@@ -86,155 +90,24 @@ namespace TowerFall
             }
         }
 
-
-        private void CreateModToggle() 
-        {
-            UIModToggler ui = new UIModToggler(this);
-            currentUI = ui;
-            ui.OnEnter();
-            ToStartSelected = ui.Container;
-        }
-
         public void CreateModOptions() 
         {
-            if (currentModule == null) 
-            {
-                CreateModToggle();
-                BackState = patch_MenuState.Mods;
-                TweenUICameraToY(2);
-                return;
-            }
-            var textContainer = new TextContainer(180);
 
-            textContainer.Selected = true;
-            if (RiseCore.UpdateChecks.HasUpdates.Contains(currentModule.Meta))
-            {
-                var updateButton = new TextContainer.ButtonText("UPDATE");
-                updateButton.Pressed(() => {
-                    UILoader loader = new UILoader();
-                    Add(loader);
-                    Task.Run(async () => {
-                        textContainer.Selected = false;
-                        var res = await RiseCore.UpdateChecks.DownloadUpdate(currentModule.Meta);
-                        loader.Finish();
-
-                        UIModal modal = new UIModal
-                        {
-                            AutoClose = true
-                        };
-                        modal.SetTitle("Update Status");
-                        if (!res.Check(out _, out string err))
-                        {
-                            modal.AddFiller(err);
-                            modal.AddItem("Ok", () => textContainer.Selected = true);
-                            Add(modal);
-                            Logger.Error(err);
-                            return;
-                        }
-                        modal.AddFiller("Restart Required!");
-                        modal.AddItem("Ok", () => textContainer.Selected = true);
-                        Add(modal);
-                    });
-                });
-                textContainer.Add(updateButton);
-            }
-
-            if (currentModule.Meta.Update is not null and { GH.Repository: not null })
-            {
-                var visitGithubButton = new TextContainer.ButtonText("VISIT GITHUB");
-                visitGithubButton.Pressed(() => {
-                    var repo = currentModule.Meta.Update.GH.Repository;
-                    RiseCore.UpdateChecks.OpenGithubURL(repo);
-                });
-
-                textContainer.Add(visitGithubButton);
-            }
-
-
-            currentModule.CreateSettings(textContainer);
-            Add(textContainer);
-
-            ToStartSelected = textContainer;
-            BackState = patch_MenuState.Mods;
-            TweenUICameraToY(2);
         }
 
         public void DestroyModOptions() 
         {
-            currentModule = null;
-            currentUI?.OnLeave();
-            currentUI = null;
+
         }
 
         public void CreateMods() 
         {
-            var textContainer = new TextContainer(160);
-            var toggleButton = new TextContainer.ButtonText("Toggle Mods");
-            toggleButton.Pressed(() => {
-                State = patch_MenuState.ModOptions;
-            });
-            textContainer.Add(toggleButton);
 
-            if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
-            {
-                var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
-                modButton.Pressed(RiseCore.UpdateChecks.OpenFortRiseUpdateURL);
-                textContainer.Add(modButton);
-            }
-
-            foreach (var mod in FortRise.RiseCore.InternalFortModules) 
-            {
-                var version = mod.Meta.Version.ToString();
-                var setupName = mod.Meta.Name + " v" + version.ToUpperInvariant();
-                string author = mod.Meta.Author ?? "";
-
-                string title;
-                if (string.IsNullOrEmpty(author))
-                {
-                    title = setupName.ToUpperInvariant();
-                }
-                else 
-                {
-                    title = setupName.ToUpperInvariant() + " - " + author.ToUpperInvariant();
-                }
-
-                bool hasUpdate = RiseCore.UpdateChecks.HasUpdates.Contains(mod.Meta);
-
-                if (hasUpdate)
-                {
-                    title += "<t=variants/newVariantsTagSmall>";
-                }
-
-                var modButton = new IconButtonText(title);
-                if (mod is not AdventureModule or NoModule) 
-                {
-                    modButton.Pressed(() => {
-                        State = patch_MenuState.ModOptions;
-                        currentModule = mod;
-                    });
-                }
-
-                textContainer.Add(modButton);
-            }
-            Add(textContainer);
-            ToStartSelected = textContainer;
-
-            BackState = patch_MenuState.Main;
-            TweenUICameraToY(1);
         }
 
         public void DestroyMods() 
         {
-            if (switchTo != patch_MenuState.ModOptions)
-            {
-                SaveOnTransition = true;
-                foreach (var mod in FortRise.RiseCore.InternalFortModules) 
-                {
-                    if (mod.InternalSettings == null)
-                        continue;
-                    mod.SaveSettings();
-                }
-            }
+
         }
 
         [MonoModIgnore]
@@ -285,7 +158,10 @@ namespace TowerFall
             BladeButton creditsButton;
             if (MainMenu.NoQuit)
             {
-                modsButtons = new patch_BladeButton(206 - 18f, "MODS", () => State = patch_MenuState.Mods);
+                modsButtons = new patch_BladeButton(206 - 18f, "MODS", () => {
+                    Logger.Info(ModRegisters.MenuState<UIModMenu>());
+                    State = ModRegisters.MenuState<UIModMenu>();
+                });
                 modsButtons.SetX(-50f);
 
                 list.Add(modsButtons);
@@ -296,7 +172,10 @@ namespace TowerFall
             }
             else
             {
-                modsButtons = new patch_BladeButton(192f - 18f, "MODS", () => State = patch_MenuState.Mods);
+                modsButtons = new patch_BladeButton(192f - 18f, "MODS", () => {
+                    Logger.Info(ModRegisters.MenuState<UIModMenu>());
+                    State = ModRegisters.MenuState<UIModMenu>();
+                });
                 modsButtons.SetX(-50f);
                 list.Add(modsButtons);
                 optionsButton = new BladeButton(192f, "OPTIONS", this.MainOptions);
@@ -341,17 +220,17 @@ namespace TowerFall
             }
             ToStartSelected = OldState switch 
             {
-                patch_MenuState.Options => optionsButton,
-                patch_MenuState.Archives => archivesButton,
-                patch_MenuState.Workshop => workshopButton,
-                patch_MenuState.Credits => creditsButton,
-                patch_MenuState.Mods => modsButtons,
-                patch_MenuState.CoOp when RollcallMode is RollcallModes.Quest or RollcallModes.DarkWorld => coOpButton,
+                MenuState.Options => optionsButton,
+                MenuState.Archives => archivesButton,
+                MenuState.Workshop => workshopButton,
+                MenuState.Credits => creditsButton,
+                MenuState.CoOp when RollcallMode is RollcallModes.Quest or RollcallModes.DarkWorld => coOpButton,
                 _ when RollcallMode is RollcallModes.Trials => trialsButton,
+                _ when OldState == ModRegisters.MenuState<UIModMenu>() => modsButtons,
                 _ => fightButton
 
             };
-            BackState = patch_MenuState.PressStart;
+            BackState = MenuState.PressStart;
             TweenBGCameraToY(0);
             MainMenu.CurrentMatchSettings = null;
         }
@@ -362,7 +241,7 @@ namespace TowerFall
             Add(new List<MenuItem>() {coopModeButton});
             ToStartSelected = coopModeButton;
 
-            BackState = patch_MenuState.Main;
+            BackState = MenuState.Main;
             TweenBGCameraToY(1);
 
             QuestButton questButton = new QuestButton(new Vector2(100f, 90f), new Vector2(-160f, 120f));
@@ -374,7 +253,7 @@ namespace TowerFall
         public override void Render()
         {
             orig_Render();
-            if (State == patch_MenuState.PressStart)
+            if (State == MenuState.PressStart)
             {
                 if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
                 {
@@ -384,7 +263,7 @@ namespace TowerFall
                     Draw.SpriteBatch.End();
                 }
             }
-            else if (State == patch_MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
+            else if (State == MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
             {
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
                 Draw.Texture(TFGame.MenuAtlas["variants/newVariantsTag"], new Vector2(20, (MainMenu.NoQuit ? 208 : 192) - 28), Color.White);
@@ -404,28 +283,6 @@ namespace TowerFall
                 y += 10;
             }
             Draw.SpriteBatch.End();
-        }
-
-        public enum patch_MenuState 
-        {
-            None,
-            Loading,
-            PressStart,
-            Main,
-            Fade,
-            Rollcall,
-            CoOp,
-            VersusOptions,
-            Variants,
-            TeamSelect,
-            Archives,
-            Workshop,
-            Options,
-            Credits,
-            ControlOptions,
-            KeyboardConfig,
-            Mods,
-            ModOptions
         }
     }
 }
