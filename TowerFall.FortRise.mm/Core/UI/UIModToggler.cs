@@ -9,7 +9,8 @@ using TowerFall;
 
 namespace FortRise;
 
-public class UIModToggler : FortRiseUI
+[CustomMenuState("ModToggler")]
+public class UIModToggler : CustomMenuState
 {
     private Dictionary<string, ModuleMetadata> modsMetadata = new();
     private Dictionary<string, bool> onOffs = new();
@@ -17,12 +18,10 @@ public class UIModToggler : FortRiseUI
     private HashSet<string> oldBlacklistedMods = new();
     public TextContainer Container;
 
-    private Scene scene;
-
-    public UIModToggler(Scene scene) 
+    public UIModToggler(MainMenu main) : base(main)
     {
-        this.scene = scene;
-        scene.Add(Container = new TextContainer(180));
+        Main.Add(Container = new TextContainer(180));
+        (Main as patch_MainMenu).ToStartSelected = Container;
     }
 
     private void ModifyAllButtons(bool enable) 
@@ -45,7 +44,7 @@ public class UIModToggler : FortRiseUI
             Sounds.ui_subclickOff.Play();
     }
 
-    public override void OnEnter()
+    public override void Create()
     {
         oldBlacklistedMods = RiseCore.Loader.BlacklistedMods;
         blacklistedMods = new HashSet<string>(oldBlacklistedMods);
@@ -137,7 +136,7 @@ public class UIModToggler : FortRiseUI
                     uiModal.RemoveSelf();
                 });
                 uiModal.AutoClose = true;
-                scene.Add(uiModal);
+                Main.Add(uiModal);
             };
         }
         toggleable.Change(on => {
@@ -256,7 +255,7 @@ public class UIModToggler : FortRiseUI
         }
     }
 
-    public override void OnLeave()
+    public override void Destroy()
     {
         bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
 
@@ -274,7 +273,6 @@ public class UIModToggler : FortRiseUI
         blacklistedMods = null;
         oldBlacklistedMods = null;
         Container = null;
-        scene = null;
         
 
         if (shouldRestart) 

@@ -28,6 +28,7 @@ public static class CustomMenuStateRegistry
     {
         Register(typeof(UIModMenu), null);
         Register(typeof(UIModOptions), null);
+        Register(typeof(UIModToggler), null);
     }
 
 

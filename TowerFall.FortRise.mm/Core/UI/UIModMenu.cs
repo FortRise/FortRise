@@ -86,28 +86,17 @@ public class UIModMenu : CustomMenuState
 [CustomMenuState("ModOptions")]
 public class UIModOptions : CustomMenuState
 {
-    private FortRiseUI currentUI;
-
     public UIModOptions(MainMenu main) : base(main)
     {
     }
 
-
-
-    private void CreateModToggle() 
-    {
-        UIModToggler ui = new UIModToggler(Main);
-        currentUI = ui;
-        ui.OnEnter();
-        (Main as patch_MainMenu).ToStartSelected = ui.Container;
-    }
 
     public override void Create()
     {
         var main = (Main as patch_MainMenu);
         if (main.CurrentModule == null) 
         {
-            CreateModToggle();
+            main.State = ModRegisters.MenuState<UIModToggler>();
             main.BackState = ModRegisters.MenuState<UIModMenu>();
             main.TweenUICameraToY(2);
             return;
@@ -167,10 +156,5 @@ public class UIModOptions : CustomMenuState
         main.TweenUICameraToY(2);
     }
 
-    public override void Destroy()
-    {
-        (Main as patch_MainMenu).CurrentModule = null;
-        currentUI?.OnLeave();
-        currentUI = null;
-    }
+    public override void Destroy() {}
 }

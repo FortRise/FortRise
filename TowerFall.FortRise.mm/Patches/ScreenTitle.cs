@@ -21,5 +21,6 @@ public class patch_ScreenTitle : ScreenTitle
         textures[patch_MainMenu.MenuState.None] = null;
         textures[ModRegisters.MenuState<UIModMenu>()] = TFGame.MenuAtlas["menuTitles/options"];
         textures[ModRegisters.MenuState<UIModOptions>()] = TFGame.MenuAtlas["menuTitles/options"];
+        textures[ModRegisters.MenuState<UIModToggler>()] = TFGame.MenuAtlas["menuTitles/options"];
     }
 }
