@@ -233,26 +233,6 @@ public static partial class RiseCore
             InternalMods.Add(modResource);
             RiseCore.InternalModuleMetadatas.Add(metadata);
 
-            if (metadata.DLL == string.Empty)
-            {
-                // Generate custom guids for DLL-Less mods
-                string generatedGuid;
-                if (string.IsNullOrEmpty(metadata.Author))
-                {
-                    Logger.Warning($"[Loader] [{metadata.Name}] Author is empty. Guids might conflict with other DLL-Less mods.");
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}";
-                }
-                else
-                    generatedGuid = $"{metadata.Name}.{metadata.Version}.{metadata.Author}";
-                if (ModuleGuids.Contains(generatedGuid))
-                {
-                    ErrorPanel.StoreError($"'{metadata.Name}' cannot load due to guid conflict with {generatedGuid}.");
-                    Logger.Error($"[Loader] [{metadata.Name}] Guid conflict with {generatedGuid}");
-                    return LoadError.Failure;
-                }
-                Logger.Verbose($"[Loader] [{metadata.Name}] Guid generated! {generatedGuid}");
-            }
-
             return new Unit();
         }
 
@@ -337,8 +317,6 @@ public static partial class RiseCore
                 module.InternalLoad();
                 lock (InternalFortModules)
                     InternalFortModules.Add(module);
-
-                ModuleGuids.Add(module.ID);
 
                 Logger.Info($"[Loader] {module.ID}: {module.Name} Loaded.");
                 break;

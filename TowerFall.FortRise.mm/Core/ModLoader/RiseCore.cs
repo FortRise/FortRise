@@ -55,7 +55,6 @@ public static partial class RiseCore
     /// </summary>
     public static ReadOnlyCollection<ModResource> Mods => InternalMods.AsReadOnly();
     internal static List<FortModule> InternalFortModules = new();
-    internal static HashSet<string> ModuleGuids = new();
     internal static HashSet<ModuleMetadata> InternalModuleMetadatas = new();
     internal static List<ModResource> InternalMods = new();
     internal static FortModule AdventureModule;
