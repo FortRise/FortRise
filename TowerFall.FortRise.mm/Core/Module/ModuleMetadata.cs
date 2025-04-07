@@ -21,10 +21,11 @@ public class ModuleUpdater
 }
 
 
-public class ModuleMetadata : IEquatable<ModuleMetadata>
+public partial class ModuleMetadata : IEquatable<ModuleMetadata>
 {
     public string Name { get; set; }
     public SemanticVersion Version { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
@@ -45,7 +46,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
 
-    private static Regex nameRegex = new Regex(@"^[\w\\s]+$");
+    private static Regex nameRegex = GeneratedNameRegex();
 
     public ModuleMetadata() {}
 
@@ -171,4 +172,7 @@ public class ModuleMetadata : IEquatable<ModuleMetadata>
         }
         return null;
     }
+
+    [GeneratedRegex(@"^[\w\\s.]+$")]
+    private static partial Regex GeneratedNameRegex();
 }

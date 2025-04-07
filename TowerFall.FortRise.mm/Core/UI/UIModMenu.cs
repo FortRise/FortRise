@@ -29,7 +29,7 @@ public class UIModMenu : CustomMenuState
         foreach (var mod in FortRise.RiseCore.InternalFortModules) 
         {
             var version = mod.Meta.Version.ToString();
-            var setupName = mod.Meta.Name + " v" + version.ToUpperInvariant();
+            var setupName = mod.Meta.DisplayName + " v" + version.ToUpperInvariant();
             string author = mod.Meta.Author ?? "";
 
             string title;
