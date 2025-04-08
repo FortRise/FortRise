@@ -206,20 +206,20 @@ public class CPUImage : IDisposable
     }
 
     public delegate IntPtr FNA3D_ReadImageStreamDelegate(Stream stream, out int width, out int height, out int len, int forceW = -1, int forceH = -1, bool zoom = false);
-    public static FNA3D_ReadImageStreamDelegate FNA3D_ReadImageStream = (FNA3D_ReadImageStreamDelegate)typeof(FNALoggerEXT).Assembly
+    public static FNA3D_ReadImageStreamDelegate FNA3D_ReadImageStream = typeof(FNALoggerEXT).Assembly
         .GetType("Microsoft.Xna.Framework.Graphics.FNA3D", true)
         .GetMethod("ReadImageStream", BindingFlags.Static | BindingFlags.Public)
-        .CreateDelegate(typeof(FNA3D_ReadImageStreamDelegate));
+        .CreateDelegate<FNA3D_ReadImageStreamDelegate>();
 
-    public static Action<IntPtr> FNA3D_Image_Free = (Action<IntPtr>)typeof(FNALoggerEXT).Assembly
+    public static Action<IntPtr> FNA3D_Image_Free = typeof(FNALoggerEXT).Assembly
         .GetType("Microsoft.Xna.Framework.Graphics.FNA3D", true)
         .GetMethod("FNA3D_Image_Free", BindingFlags.Static | BindingFlags.Public)
-        .CreateDelegate(typeof(Action<IntPtr>));
+        .CreateDelegate<Action<nint>>();
 
-    public static Action<Stream, int, int, int, int, IntPtr> WritePNGStream = (Action<Stream, int, int, int, int, IntPtr>)typeof(FNALoggerEXT).Assembly
+    public static Action<Stream, int, int, int, int, IntPtr> WritePNGStream = typeof(FNALoggerEXT).Assembly
         .GetType("Microsoft.Xna.Framework.Graphics.FNA3D", true)
         .GetMethod("WritePNGStream", BindingFlags.Static | BindingFlags.Public)
-        .CreateDelegate(typeof(Action<Stream, int, int, int, int, IntPtr>));
+        .CreateDelegate<Action<Stream, int, int, int, int, nint>>();
 }
 
 public sealed class FailedToLoadImageException : Exception {}
