@@ -1,8 +1,8 @@
 using System;
+using FortRise.Adventure.Entities;
 
 namespace FortRise.Adventure;
 
-[Fort("com.fortrise.adventure", "Adventure")]
 public sealed class AdventureModule : FortModule
 {
     public static AdventureModule Instance;
@@ -18,11 +18,32 @@ public sealed class AdventureModule : FortModule
         Meta = new ModuleMetadata() {
             Name = "Adventure",
             Author = "FortRise",
-            Version = new SemanticVersion("3.0.0"),
+            Version = new SemanticVersion("4.0.0"),
         };
 
         Name = "Adventure";
         ID = "com.fortrise.adventure";
+    }
+
+    public override void Initialize()
+    {
+        Registry.Enemies.RegisterEnemy("SlimeS", new() 
+        {
+            Name = "Slime Shield",
+            Loader = ShieldSlime.SlimeS
+        });
+
+        Registry.Enemies.RegisterEnemy("BlueSlimeS", new() 
+        {
+            Name = "Slime Shield",
+            Loader = ShieldSlime.BlueSlimeS
+        });
+
+        Registry.Enemies.RegisterEnemy("RedSlimeS", new() 
+        {
+            Name = "Slime Shield",
+            Loader = ShieldSlime.RedSlimeS
+        });
     }
 
     public override void Load()

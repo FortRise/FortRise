@@ -211,7 +211,6 @@ public static partial class RiseCore
         AdventureModule.InternalLoad();
         InternalFortModules.Add(AdventureModule);
 
-        EntityRegistry.LoadAllBuiltinEnemies();
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 

@@ -7,4 +7,5 @@ public interface IModRegistry
     ModPickups Pickups { get; }
     ModVariants Variants { get; }
     ModCommands Commands { get; }
+    ModEnemies Enemies { get; }
 }

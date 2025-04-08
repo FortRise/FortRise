@@ -1,7 +1,6 @@
 #pragma warning disable CS0618
 using System;
 using System.Reflection;
-using FortRise.Entities;
 using Microsoft.Xna.Framework;
 using MonoMod.Utils;
 using TowerFall;
@@ -13,15 +12,6 @@ namespace FortRise;
 /// </summary>
 public static class EntityRegistry 
 {
-    internal static void LoadAllBuiltinEnemies() 
-    {
-        AddEnemy<ShieldSlime>(RiseCore.AdventureModule, 
-            "FortRise/SlimeS = SlimeS", 
-            "FortRise/RedSlimeS = RedSlimeS",
-            "FortRise/BlueSlimeS = BlueSlimeS"
-        );
-    }
-
     public static void AddEnemy<T>(this FortModule module, params string[] names) 
     {
         AddEnemy(module, typeof(T), names);
@@ -116,5 +106,10 @@ public static class EntityRegistry
             Loaded:
             RiseCore.EnemyLoader[id] = loader;
         }
+    }
+
+    public static void AddEnemy(string id, EnemyConfiguration configuration)
+    {
+        RiseCore.EnemyLoader[id] = configuration.Loader;
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using TowerFall;
 
-namespace FortRise.Entities;
+namespace FortRise.Adventure.Entities;
 
 public class ShieldSlime : Slime
 {
@@ -19,17 +19,17 @@ public class ShieldSlime : Slime
             shield.Gain();
     }
 
-    public static Enemy SlimeS(Vector2 position, Facing facing) 
+    public static Enemy SlimeS(Vector2 position, Facing facing, Vector2[] nodes) 
     {
         return new ShieldSlime(position, facing, SlimeColors.Green);
     }
 
-    public static Enemy RedSlimeS(Vector2 position, Facing facing) 
+    public static Enemy RedSlimeS(Vector2 position, Facing facing, Vector2[] nodes) 
     {
         return new ShieldSlime(position, facing, SlimeColors.Red);
     }
 
-    public static Enemy BlueSlimeS(Vector2 position, Facing facing) 
+    public static Enemy BlueSlimeS(Vector2 position, Facing facing, Vector2[] nodes) 
     {
         return new ShieldSlime(position, facing, SlimeColors.Blue);
     }
