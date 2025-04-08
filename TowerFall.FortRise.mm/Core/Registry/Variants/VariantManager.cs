@@ -22,7 +22,6 @@ public class VariantManager : IDisposable
     /// <see cref="TowerFall.MatchVariants"/> is a TowerFall class for holding all the variants.
     /// </summary>
     public MatchVariants MatchVariants => main;
-    public static List<(Variant, ArrowTypes)> StartWithVariants = new();
 
     internal Dictionary<string, List<Variant>> ToAdd = new();
     internal int TotalCustomVariantsAdded;
@@ -134,8 +133,26 @@ public class VariantManager : IDisposable
         string variantPickupName = $"No{name}";
         if (!variantPickupName.EndsWith("Arrows"))
             variantPickupName += " Arrows";
-        
-        Pickups pickupData = PickupsRegistry.ArrowToPickupMapping[obj.Types];
+
+        Pickups pickupData = (Pickups)(-1);
+        foreach (var pickup in PickupsRegistry.PickupDatas.Values)
+        {
+            if (pickup.ArrowType == null)
+            {
+                continue;
+            }
+            if (pickup.ArrowType == obj.ArrowType)
+            {
+                pickupData = pickup.ID;
+                break;
+            }
+        }
+
+        if (pickupData == (Pickups)(-1))
+        {
+            throw new Exception($"An arrow '{obj.Name}' does not have a pickup type");
+        }
+
         AddPickupVariant(PickupsRegistry.PickupDatas[pickupData], arrowExcludeVariantIcon, variantPickupName, header);
 
         CreateLinks(main.StartWithBoltArrows, variant);
@@ -149,12 +166,12 @@ public class VariantManager : IDisposable
         CreateLinks(main.StartWithTriggerArrows, variant);
         CreateLinks(main.StartWithSuperBombArrows, variant);
         CreateLinks(main.StartWithToyArrows, variant);
-        foreach (var (other, _) in StartWithVariants) 
+        foreach (var (other, _) in main.StartWithVariants) 
         {
             CreateLinks(other, variant);
         }
 
-        StartWithVariants.Add((variant, obj.Types));
+        main.StartWithVariants.Add((variant, obj.Types));
     }
 
     public void AddPickupVariant(PickupData obj, Subtexture pickupExcludeVariantIcon) 

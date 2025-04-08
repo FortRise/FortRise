@@ -275,7 +275,6 @@ namespace TowerFall
         {
             Content = new ModContentManager(Services, Directory.GetCurrentDirectory());
             orig_LoadContent();
-            FortRise.RiseCore.ModsAfterLoad();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             orig_Initialize();
             FortRise.RiseCore.LogAllTypes();
@@ -332,13 +331,6 @@ namespace TowerFall
                     }
                     RiseCore.ResourceTree.AfterModdedLoadContent();
                     FortRise.RiseCore.RegisterMods();
-                    patch_TreasureSpawner.ExtendTreasures();
-                    patch_Arrow.ExtendArrows();
-                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
-                    Logger.Log("[LOAD] ...Level Data");
-                    GameData.Load();
-                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
-                    TowerPatchRegistry.Initialize();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
@@ -351,6 +343,20 @@ namespace TowerFall
                     Loader.Message = "INITIALIZING ARCHER DATA";
                     Logger.Log("[LOAD] ...Archer Data");
                     ArcherData.Initialize();
+
+                    Loader.Message = "INITIALIZING MODS";
+                    FortRise.RiseCore.Initialize();
+
+                    Arrow.Initialize();
+                    patch_Arrow.ExtendArrows();
+                    patch_TreasureSpawner.ExtendTreasures();
+
+                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
+                    Logger.Log("[LOAD] ...Level Data");
+                    GameData.Load();
+                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
+
+                    TowerPatchRegistry.Initialize();
 
                     Loader.Message = "INITIALIZING DEFAULT SESSION";
                     TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
@@ -372,7 +378,6 @@ namespace TowerFall
                     Loader.Message = "CACHING ENTITIES";
                     Logger.Log("[LOAD] ...Entity Caching");
                     TFGame.WriteLineToLoadLog("Initializing Entity Caching...");
-                    Arrow.Initialize();
                     Cache.Init<CatchShine>();
                     Cache.Init<LightFade>();
                     Cache.Init<Explosion>();
@@ -407,8 +412,6 @@ namespace TowerFall
                     Logger.Log("[LOAD] --- LOADING COMPLETE ---");
                     TFGame.WriteLineToLoadLog("Loading Complete!");
 
-                    Loader.Message = "INITIALIZING MODS";
-                    FortRise.RiseCore.Initialize();
 
                     TFGame.GameLoaded = true;
                     if (TaskHelper.WaitForAll()) 

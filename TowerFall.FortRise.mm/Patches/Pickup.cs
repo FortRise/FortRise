@@ -54,7 +54,7 @@ public class patch_Pickup : Pickup
         {
             Logger.Error("Pickup type cannot be found!");
             Sounds.ui_levelLock.Play(160f);
-            return new GemPickup(position, target);;
+            return new GemPickup(position, target);
         }
         return data.PickupLoader(position, target, playerIndex);
     }

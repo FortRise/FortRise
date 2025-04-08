@@ -31,6 +31,7 @@ public class PickupData
     public string Name;
     public Pickups ID;
     public float Chance;
+    public Type ArrowType;
     public PickupLoader PickupLoader;
 }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Monocle;
-using MonoMod.Utils;
 using TowerFall;
 
 namespace FortRise;
@@ -46,8 +45,13 @@ public static class PickupsRegistry
             if (pickup is null)
                 continue;
 
-            var pickupName = pickup.Name ?? $"{type.Namespace}.{type.Name}";
-            Register(type, module, pickupName, pickup.Chance);
+            string id = $"{module.Meta.Name}/{pickup.Name}";
+            Register(id, new PickupConfiguration() 
+            {
+                Name = pickup.Name,
+                Chance = pickup.Chance,
+                PickupType = type
+            });
         }
 
         foreach (var pickup in type.GetCustomAttributes<CustomArrowPickupAttribute>()) 
@@ -55,80 +59,87 @@ public static class PickupsRegistry
             if (pickup is null)
                 continue;
 
-            var pickupName = pickup.Name ?? $"{type.Namespace}.{type.Name}";
-            var arrowType = pickup.ArrowType;
-
-            ConstructorInfo ctor = type.GetConstructor(new Type[3] { typeof(Vector2), typeof(Vector2), typeof(ArrowTypes) });
-            PickupLoader loader = null;
-
-            var t = ArrowsRegistry.Types[arrowType];
-
-            if (ctor != null) 
+            string id = $"{module.Meta.Name}/{pickup.Name}";
+            Register(id, new PickupConfiguration() 
             {
-                loader = (pos, targetPos, idx) => (ArrowTypePickup)ctor.Invoke(new object[3] { pos, targetPos, t });
-            }
-            AddToArrowPickupTypeList(arrowType);
-            Register(type, module, pickupName, pickup.Chance, loader);
+                Name = pickup.Name,
+                Chance = pickup.Chance,
+                PickupType = type,
+                ArrowType = pickup.ArrowType,
+            });
         }
     }
 
-    public static void Register(Type type, FortModule module, string name, float chance)
+    public static void Register(string name, in PickupConfiguration configuration)
     {
-        ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Vector2), typeof(Vector2) });
         PickupLoader loader = null;
 
-        if (ctor != null) 
+        if (configuration.ArrowType != null)
         {
-            loader = (pos, targetPos, idx) => 
+            ConstructorInfo arrowCtor = configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(ArrowTypes)]);
+
+            if (arrowCtor != null)
             {
-                var custom = (Pickup)ctor.Invoke(new object[2] { pos, targetPos });
-                if (custom is CustomOrbPickup customOrb) 
+                Type arrowType = configuration.ArrowType;
+                string n = configuration.Name;
+                Option<Color> colA = configuration.Color;
+                Option<Color> colB = configuration.ColorB;
+                loader = (pos, targetPos, idx) => 
                 {
-                    var info = customOrb.CreateInfo();
-                    customOrb.Sprite = info.Sprite;
-                    customOrb.LightColor = info.Color.Invert();
-                    customOrb.Collider = info.Hitbox;
-                    customOrb.Border.Color = info.Color;
-                    customOrb.Sprite.Play(0);
-                    customOrb.Add(customOrb.Sprite);
-                }
+                    var pickup = (patch_ArrowTypePickup)arrowCtor.Invoke([pos, targetPos, ArrowsRegistry.Types[arrowType]]);
+                    if (string.IsNullOrEmpty(pickup.Name))
+                    {
+                        pickup.Name = n;
+                    }
+                    if (colA.TryGetValue(out Color col))
+                    {
+                        pickup.Color = col;
+                    }
 
-                return custom;
-            };
+                    if (colB.TryGetValue(out Color cb))
+                    {
+                        pickup.ColorB = cb;
+                    }
+                    return pickup;
+                };
+            }
         }
-        Register(type, module, name, chance, loader);
-    }
+        else
+        {
+            ConstructorInfo ctor = configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2)]);
+            if (ctor != null)
+            {
+                loader = (pos, targetPos, idx) => 
+                {
+                    var custom = (Pickup)ctor.Invoke([pos, targetPos]);
+                    if (custom is CustomOrbPickup customOrb) 
+                    {
+                        var info = customOrb.CreateInfo();
+                        customOrb.Sprite = info.Sprite;
+                        customOrb.LightColor = info.Color.Invert();
+                        customOrb.Collider = info.Hitbox;
+                        customOrb.Border.Color = info.Color;
+                        customOrb.Sprite.Play(0);
+                        customOrb.Add(customOrb.Sprite);
+                    }
 
-    public static void Register(Type type, FortModule module, string name, float chance, PickupLoader loader)
-    {
+                    return custom;
+                };
+            }
+        }
+
         const int offset = 21;
         var stride = (Pickups)offset + PickupDatas.Count;
         var pickupObject = new PickupData() 
         {
-            Name = name,
+            Name = configuration.Name,
             ID = stride,
-            Chance = chance,
+            Chance = configuration.Chance,
+            ArrowType = configuration.ArrowType,
             PickupLoader = loader
         };
         StringToTypes[name] = stride;
         PickupDatas[stride] = pickupObject;
-        Types.Add(type, stride);
-
-        if (type.IsCompatible(typeof(ArrowTypePickup)))
-        {
-            int index = ArrowPickups.Count;
-            AddToArrowPickupList(stride);
-            ArrowToPickupMapping.Add(ArrowsRegistry.Types[ArrowPickupsType[index]], ArrowPickups[index]);
-        }
-    }
-
-    public static void AddToArrowPickupList(Pickups pickups)
-    {
-        ArrowPickups.Add(pickups);
-    }
-
-    public static void AddToArrowPickupTypeList(Type type)
-    {
-        ArrowPickupsType.Add(type);
+        Types.Add(configuration.PickupType, stride);
     }
 }

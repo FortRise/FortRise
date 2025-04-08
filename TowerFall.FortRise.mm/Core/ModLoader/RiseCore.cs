@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Linq;
 using System.Xml;
@@ -46,7 +45,7 @@ public static partial class RiseCore
 
 
     /// <summary>
-    /// Contains a read-only access to all of the Fort Modules.
+    /// Contains a read-only access to all of the Modules.
     /// </summary>
     public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
 
@@ -58,6 +57,7 @@ public static partial class RiseCore
     internal static HashSet<ModuleMetadata> InternalModuleMetadatas = new();
     internal static List<ModResource> InternalMods = new();
     internal static FortModule AdventureModule;
+    internal static ModuleManager ModuleManager = new();
 
     public static List<string> DetourLogs = new List<string>();
 
@@ -139,14 +139,14 @@ public static partial class RiseCore
         }
 
         // Load mods here
-        Loader.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
+        ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
         var directory = Directory.GetDirectories(modDirectory);
         foreach (var dir in directory)
         {
             if (dir.Contains("_RelinkerCache"))
                 continue;
             var dirInfo = new DirectoryInfo(dir);
-            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(dirInfo.Name))
+            if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(dirInfo.Name))
                 continue;
 
             LoadDir(dir);
@@ -157,7 +157,7 @@ public static partial class RiseCore
             if (!file.EndsWith("zip"))
                 continue;
             var fileName = Path.GetFileName(file);
-            if (Loader.BlacklistedMods != null && Loader.BlacklistedMods.Contains(Path.GetFileName(fileName)))
+            if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(Path.GetFileName(fileName)))
                 continue;
 
             LoadZip(file);
@@ -249,7 +249,7 @@ public static partial class RiseCore
 
         AtlasReader.Initialize();
         RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
-        Loader.InitializeMods();
+        ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         if (!NoRichPresence)
             DiscordComponent.Create();
     }
@@ -494,11 +494,7 @@ public static partial class RiseCore
 
     internal static void Initialize()
     {
-        foreach (var fortModule in InternalFortModules)
-        {
-            fortModule.Initialize();
-            RiseCore.Events.Invoke_OnModInitialized(fortModule);
-        }
+        ModuleManager.Initialize();    
     }
 
     internal static void ModuleEnd()
@@ -521,9 +517,10 @@ public static partial class RiseCore
     {
         foreach (var mod in InternalFortModules)
         {
-            TowerFall.Loader.Message = ("Registering " + mod.Name + " Features").ToUpperInvariant();
+            TowerFall.Loader.Message = ("Registering " + mod.Meta.Name + " Features").ToUpperInvariant();
             mod.Register();
         }
+        FortRise.RiseCore.ModsAfterLoad();
     }
 
     internal static void WriteBlacklist(List<string> ctx, string path)

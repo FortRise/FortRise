@@ -1,0 +1,18 @@
+#nullable enable
+namespace FortRise;
+
+internal class ModRegistry : IModRegistry
+{
+    public ModArrows Arrows { get; }   
+    public ModPickups Pickups { get; }   
+    public ModVariants Variants { get; }
+    public ModCommands Commands { get; }
+
+    internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
+    {
+        Arrows = new ModArrows(metadata, manager);
+        Pickups = new ModPickups(metadata, manager);
+        Variants = new ModVariants(metadata, manager);
+        Commands = new ModCommands(metadata, manager);
+    }
+}

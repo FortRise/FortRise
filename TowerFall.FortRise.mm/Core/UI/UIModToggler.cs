@@ -46,7 +46,7 @@ public class UIModToggler : CustomMenuState
 
     public override void Create()
     {
-        oldBlacklistedMods = RiseCore.Loader.BlacklistedMods;
+        oldBlacklistedMods = RiseCore.ModuleManager.BlacklistedMods;
         blacklistedMods = new HashSet<string>(oldBlacklistedMods);
         var loadedMetadata = RiseCore.InternalMods.Select(x => x.Metadata);
         var enableAll = new TextContainer.ButtonText("Enabled All");
@@ -119,7 +119,7 @@ public class UIModToggler : CustomMenuState
     private TextContainer.Toggleable CreateButton(string modName, Dictionary<string, bool> onOffs) 
     {
         var toggleable = new TextContainer.Toggleable(modName, onOffs[modName]);
-        if (RiseCore.Loader.CantLoad.Contains(modName))
+        if (RiseCore.ModuleManager.CantLoad.Contains(modName))
         {
             toggleable.NotSelectedColor = Color.DarkRed;
             toggleable.SelectedColor = Color.Red;

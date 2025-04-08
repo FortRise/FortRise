@@ -12,6 +12,7 @@ public class patch_MatchVariants : MatchVariants
     internal Dictionary<string, Variant> InternalCustomVariants;
     public IReadOnlyDictionary<string, Variant> CustomVariants => InternalCustomVariants;
 
+    public List<(Variant, ArrowTypes)> StartWithVariants;
 
     private List<Variant> canRandoms;
     [MonoModIgnore]
@@ -24,6 +25,7 @@ public class patch_MatchVariants : MatchVariants
     public void ctor(bool noPerPlayer = false) 
     {
         InternalCustomVariants = new();
+        StartWithVariants = new();
 
         orig_ctor(noPerPlayer);
 
@@ -53,8 +55,78 @@ public class patch_MatchVariants : MatchVariants
 
         foreach (var random in manager.CanRandoms)
             canRandoms.Add(random);
-        Count = Variants.Length;
         manager.Dispose();
+
+        oldLength = Variants.Length;
+        Array.Resize(ref Variants, oldLength + VariantRegistry.Variants.Count);
+
+        count = oldLength;
+        foreach (var (name, value) in VariantRegistry.Variants)
+        {
+            var configuration = value.Configuration;
+            var flags = configuration.Flags;
+            Pickups[] itemExclusions = configuration.Exclusions;
+            bool perPlayer = flags.HasFlag(CustomVariantFlags.PerPlayer);
+            string description = configuration.Description?.ToUpperInvariant();
+            string header = configuration.Header?.ToUpperInvariant();
+
+            bool scrollEffect = flags.HasFlag(CustomVariantFlags.ScrollEffect);
+            bool hidden = flags.HasFlag(CustomVariantFlags.Hidden);
+            bool flag = flags.HasFlag(CustomVariantFlags.CanRandom);
+            bool tournamentRule1v = flags.HasFlag(CustomVariantFlags.TournamentRule1v1);
+            bool tournamentRule2v = flags.HasFlag(CustomVariantFlags.TournamentRule2v2);
+            bool unlisted = flags.HasFlag(CustomVariantFlags.Unlisted);
+            bool darkWorldDLC = flags.HasFlag(CustomVariantFlags.DarkWorldDLC);
+            int coopValue = 0;
+            if (flags.HasFlag(CustomVariantFlags.CoopCurses)) 
+            {
+                coopValue = -1;
+            }
+            else if (flags.HasFlag(CustomVariantFlags.CoopBlessing))
+            {
+                coopValue = 1;
+            }
+            var title = configuration.Title.ToUpperInvariant();
+            var icon = configuration.Icon;
+            var variant = new Variant(icon, title, description, itemExclusions, perPlayer, 
+                header, null, scrollEffect, hidden, flag, tournamentRule1v, 
+                tournamentRule2v, unlisted, darkWorldDLC, coopValue);
+            if (flag)
+            {
+                canRandoms.Add(variant);
+            }
+
+            TempVariantHolder.TempCustom.TryAdd(name, false);
+            InternalCustomVariants.Add(name, variant);
+            Variants[count] = variant;
+            count++;
+        }
+
+        // links
+        foreach (var (name, value) in VariantRegistry.Variants)
+        {
+            var variant = InternalCustomVariants[name];
+            var links = value.Configuration.Links;
+            if (links == null)
+            {
+                continue;
+            }
+            foreach (var link in links)
+            {
+                if (InternalCustomVariants.TryGetValue(link.Name, out Variant otherVariant))
+                {
+                    variant.AddLinks(otherVariant);
+                }
+                else 
+                {
+                    var field = typeof(MatchVariants).GetField(link.Name);
+                    Variant vanillaVariant = field.GetValue(this) as Variant;
+                    variant.AddLinks(vanillaVariant);
+                }
+            }
+        }
+
+        Count = Variants.Length;
     }
 
     public Variant GetCustomVariant(string name) 
@@ -66,7 +138,7 @@ public class patch_MatchVariants : MatchVariants
 
     public ArrowTypes GetStartArrowType(int playerIndex, ArrowTypes randomType) 
     {
-        foreach (var (arrowVariant, arrowTypes) in VariantManager.StartWithVariants)
+        foreach (var (arrowVariant, arrowTypes) in StartWithVariants)
         {
             if (!arrowVariant[playerIndex])
                 continue;

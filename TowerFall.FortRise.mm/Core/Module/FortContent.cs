@@ -8,8 +8,6 @@ using TowerFall;
 using FortRise.Adventure;
 using System.Xml;
 using FortRise.IO;
-using System.Diagnostics;
-using MonoMod;
 using System.Text.Json;
 
 namespace FortRise;

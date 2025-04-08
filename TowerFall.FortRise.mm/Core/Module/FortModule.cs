@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using FortRise.IO;
 using MonoMod;
-using TowerFall;
 
 namespace FortRise;
 
@@ -35,12 +33,27 @@ public abstract partial class patch_FortModule
 public abstract partial class FortModule
 {
     public bool Enabled { get; internal set; }
+    public ModuleMetadata Meta { get; internal set; }
     public string Name { get; internal set; }
     public string ID { get; internal set; }
-    public ModuleMetadata Meta { get; internal set; }
-    public bool SupportModDisabling { get; set; } = true;
-    public bool RequiredRestart { get; set; }
     public bool DisposeTextureAfterUnload { get; set; } = true;
+    public bool IsInitialized { get; internal set; }
+
+    public IModRegistry Registry 
+    {
+        get 
+        {
+            if (!IsInitialized)
+            {
+                throw new Exception("Mod is not initialized yet!");
+            }
+
+            return registry;
+        }
+        internal set => registry = value;
+    }
+
+    private IModRegistry registry;
 
     /// <summary>
     /// Use to let the mod loader know which settings type to initialize.
@@ -262,6 +275,7 @@ public abstract partial class FortModule
     /// </summary>
     public virtual void Initialize() {}
 
+
     /// <summary>
     /// Override this function and allows you to add your own variant using the <paramref name="manager"/>.
     /// </summary>
@@ -286,5 +300,15 @@ public abstract partial class FortModule
     public string GetRootPath()
     {
         return ModIO.GetRootPath();
+    }
+
+    public IModRegistry GetOtherRegistry(string modName)
+    {
+        return RiseCore.ModuleManager.GetRegistry(modName);
+    }
+
+    public IModRegistry GetOtherRegistry(ModuleMetadata metadata)
+    {
+        return RiseCore.ModuleManager.AddOrGetRegistry(metadata);
     }
 }

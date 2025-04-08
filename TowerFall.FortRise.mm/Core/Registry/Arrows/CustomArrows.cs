@@ -29,7 +29,8 @@ public class CustomArrowsAttribute : Attribute
 public class ArrowData
 {
     public ArrowLoader ArrowLoader;
+    public Type ArrowType;
     public string Name;
     public ArrowTypes Types;
-    public ArrowHUDLoader HudLoader;
+    public Subtexture Hud;
 }
