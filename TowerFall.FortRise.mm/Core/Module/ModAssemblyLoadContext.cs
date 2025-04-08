@@ -12,7 +12,7 @@ using Mono.Cecil;
 
 namespace FortRise;
 
-public sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyResolver
+internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyResolver
 {
     public ModuleMetadata Metadata { get; private set; }
     public static readonly string UnmanagedFolders;

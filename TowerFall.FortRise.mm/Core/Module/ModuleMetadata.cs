@@ -32,21 +32,17 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public ModuleMetadata[] Dependencies { get; set; } = null;
     public ModuleMetadata[] OptionalDependencies { get; set; } = null;
     public ModuleUpdater Update { get; set; } = null;
-    public string NativePath { get; set; } = string.Empty;
-    public string NativePathX86 { get; set; } = string.Empty;
 
     public string PathDirectory = string.Empty;
     public string PathZip = string.Empty;
     [JsonIgnore]
-    public ModAssemblyLoadContext AssemblyLoadContext { get; set; } = null;
+    internal ModAssemblyLoadContext AssemblyLoadContext { get; set; } = null;
 
     [JsonIgnore]
-    public byte[] Hash => RiseCore.GetChecksum(this);
+    internal byte[] Hash => RiseCore.GetChecksum(this);
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);
-
-    private static Regex nameRegex = GeneratedNameRegex();
 
     public ModuleMetadata() {}
 
@@ -105,8 +101,9 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public static Result<ModuleMetadata, string> ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
         var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream, metaJsonOptions);
+        var regex = GeneratedNameRegex();
 
-        if (!nameRegex.IsMatch(metadata.Name))
+        if (!regex.IsMatch(metadata.Name))
         {
             return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} name pattern is not allowed. Pattern allowed: (AaZz09_)");
         }
