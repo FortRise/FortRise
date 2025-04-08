@@ -7,7 +7,7 @@
     <RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
     <ApplicationIcon>../Icon.ico</ApplicationIcon>
 		<ApplicationManifest>../app.manifest</ApplicationManifest>
-    <PublishDir>../artifacts/FortRise.v5.0.0-beta.2-$(RuntimeIdentifier)/FortRise</PublishDir>
+    <PublishDir>../artifacts/FortRise.v5.0.0-beta.3-$(RuntimeIdentifier)/FortRise</PublishDir>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
