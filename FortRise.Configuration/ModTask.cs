@@ -219,6 +219,7 @@ public class ModuleMetadata
 {
     public string? Name { get; set; }
     public string? Version { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;

@@ -45,6 +45,7 @@
     <MonoCecilPath>Mono.Cecil.dll</MonoCecilPath>
     <MonoModRuntimeDetourPath>MonoMod.RuntimeDetour.dll</MonoModRuntimeDetourPath>
     <MonoModUtilsPath>MonoMod.Utils.dll</MonoModUtilsPath>
+    <MonoModPatcherPath>MonoMod.Patcher.dll</MonoModPatcherPath>
     <ModPublishPath Condition="'$(ModPublishPath)' == ''">$(ModLoaderPath)\Mods</ModPublishPath>
   </PropertyGroup>
 
@@ -67,6 +68,10 @@
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>$(TowerFallDirPath)$(MonoModRuntimeDetourPath)</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MonoMod.Patcher">
+      <HintPath>$(TowerFallDirPath)$(MonoModPatcherPath)</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
