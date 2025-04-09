@@ -116,12 +116,14 @@ public class patch_MatchVariants : MatchVariants
                 if (InternalCustomVariants.TryGetValue(link.Name, out Variant otherVariant))
                 {
                     variant.AddLinks(otherVariant);
+                    otherVariant.AddLinks(variant);
                 }
                 else 
                 {
                     var field = typeof(MatchVariants).GetField(link.Name);
                     Variant vanillaVariant = field.GetValue(this) as Variant;
                     variant.AddLinks(vanillaVariant);
+                    vanillaVariant.AddLinks(variant);
                 }
             }
         }
