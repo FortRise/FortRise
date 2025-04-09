@@ -32,4 +32,24 @@ internal class VariantMetadata : IVariant
         }
         return false;
     }
+
+    public bool IsActive()
+    {
+        var matchVariants = (MainMenu.CurrentMatchSettings.Variants as patch_MatchVariants)!;
+        if (matchVariants.CustomVariants.TryGetValue(Name, out Variant? variant))
+        {
+            return variant;
+        }
+        return false;
+    }
+
+    public bool IsActive(int playerIndex)
+    {
+        var matchVariants = (MainMenu.CurrentMatchSettings.Variants as patch_MatchVariants)!;
+        if (matchVariants.CustomVariants.TryGetValue(Name, out Variant? variant))
+        {
+            return variant[playerIndex];
+        }
+        return false;
+    }
 }
