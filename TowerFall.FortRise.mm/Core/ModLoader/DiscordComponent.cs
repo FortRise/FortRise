@@ -7,16 +7,16 @@ using TowerFall;
 
 namespace FortRise;
 
-public class DiscordComponent : GameComponent
+public sealed class DiscordComponent : GameComponent
 {
-    public static DiscordComponent Instance;
+    public static DiscordComponent Instance { get; internal set; }
     private Discord.Discord DiscordInstance;
     private Discord.Activity NextPresence;
     private bool dirty;
 
     private const string FortRiseIcon = "https://i.imgur.com/jMyu0Hl.png";
 
-    public DiscordComponent(Game game) : base(game)
+    internal DiscordComponent(Game game) : base(game)
     {
         UpdateOrder = -50000;
 
@@ -161,7 +161,6 @@ public class DiscordComponent : GameComponent
     {
         if (Instance == null) 
         {
-            Logger.Error("[Discord Presence] Discord Game SDK is not initialized yet.");
             return;
         }
         Instance.NextPresence = activity;
@@ -203,7 +202,7 @@ public class DiscordComponent : GameComponent
         }
     }
 
-    public static DiscordComponent Create() 
+    internal static DiscordComponent Create() 
     {
         if (Instance != null)
             return Instance;
