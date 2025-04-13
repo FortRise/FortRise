@@ -88,7 +88,7 @@ public static partial class patch_TFCommands
             Engine.Instance.Scene.LogTags();
         });
 
-        foreach (var module in FortRise.RiseCore.InternalFortModules) 
+        foreach (var module in FortRise.RiseCore.ModuleManager.InternalFortModules) 
         {
             var types = module.GetType().Assembly.GetTypes();
             foreach (var type in types) 

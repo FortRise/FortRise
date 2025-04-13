@@ -31,7 +31,7 @@ public class patch_MatchVariants : MatchVariants
 
         TempVariantHolder.TempCustom = new Dictionary<string, bool>();
         manager = new VariantManager(this);
-        foreach (var mod in RiseCore.InternalFortModules) 
+        foreach (var mod in RiseCore.ModuleManager.InternalFortModules) 
         {
             manager.SetContext(mod.Meta);
             mod.OnVariantsRegister(manager, noPerPlayer);

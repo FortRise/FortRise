@@ -41,19 +41,19 @@ public partial class RiseCore
     public sealed class ResourceTypeAudioEngine {}
     public sealed class ResourceTypeEffects {}
 
-    internal static HashSet<string> BlacklistedExtension = new() {
+    internal static HashSet<string> BlacklistedExtension = [
         ".csproj", ".cs", ".md", ".toml", ".aseprite", ".ase", ".xap"
-    };
+    ];
 
-    internal static HashSet<string> BlacklistedRootFolders = new() {
+    internal static HashSet<string> BlacklistedRootFolders = [
         "bin", "obj"
-    };
+    ];
 
-    internal static HashSet<string> BlacklistedCommonFolders = new() {
+    internal static HashSet<string> BlacklistedCommonFolders = [
         "packer/"
-    };
+    ];
 
-    private static char[] SplitSeparator = new char[1] { '/' };
+    private static readonly char[] SplitSeparator = ['/'];
 
     /// <summary>
     /// A class that contains a path and stream to your resource works both on folder and zip.
@@ -80,6 +80,12 @@ public partial class RiseCore
         public bool Contains(string path)
         {
             return RiseCore.ResourceTree.IsExist(this, path);
+        }
+
+        public RiseCore.Resource GetRelativePath(string path)
+        {
+            string actualPath = System.IO.Path.Combine(RootPath, path);
+            return RiseCore.ResourceTree.Get(actualPath);
         }
 
         public virtual void AssignType()
@@ -493,65 +499,6 @@ public partial class RiseCore
         }
     }
 
-    public class AdventureGlobalLevelResource : FolderModResource
-    {
-        public AdventureGlobalLevelResource() : base(Path.Combine(Calc.LOADPATH, "Mod", "Adventure"))
-        {
-        }
-
-        public override void Lookup(string prefix)
-        {
-            if (!Directory.Exists(FolderDirectory))
-                Directory.CreateDirectory(FolderDirectory);
-            var files = Directory.GetFiles(FolderDirectory);
-            for (int i = 0; i < files.Length; i++)
-            {
-                var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
-                    continue;
-                var simplifiedPath = filePath.Replace(FolderDirectory + '/', "");
-                var fileResource = new GlobalLevelResource(this, simplifiedPath, filePath);
-                Add(simplifiedPath, fileResource);
-            }
-            var folders = Directory.GetDirectories(FolderDirectory);
-            foreach (var folder in folders)
-            {
-                var fixedFolder = folder.Replace('\\', '/');
-                var simpliPath = fixedFolder.Replace(FolderDirectory + '/', "");
-                var newFolderResource = new GlobalLevelResource(this, simpliPath, fixedFolder);
-                Lookup(prefix, folder, FolderDirectory, newFolderResource);
-                Add(simpliPath, newFolderResource);
-            }
-        }
-
-        public void Lookup(string prefix, string path, string modDirectory, GlobalLevelResource folderResource)
-        {
-            var files = Directory.GetFiles(path);
-            Array.Sort(files);
-            for (int i = 0; i < files.Length; i++)
-            {
-                var filePath = files[i].Replace('\\', '/');
-                if (BlacklistedExtension.Contains(Path.GetExtension(filePath)))
-                    continue;
-                var simplifiedPath = filePath.Replace(modDirectory + '/', "");
-                var fileResource = new GlobalLevelResource(this, simplifiedPath, filePath);
-                Add(simplifiedPath, fileResource);
-                folderResource.Childrens.Add(fileResource);
-            }
-            var folders = Directory.GetDirectories(path);
-            Array.Sort(folders);
-            foreach (var folder in folders)
-            {
-                var fixedFolder = folder.Replace('\\', '/');
-                var simpliPath = fixedFolder.Replace(modDirectory + '/', "");
-                var newFolderResource = new GlobalLevelResource(this, simpliPath, prefix + simpliPath);
-                Lookup(prefix, folder, modDirectory, newFolderResource);
-                Add(simpliPath, newFolderResource);
-                folderResource.Childrens.Add(newFolderResource);
-            }
-        }
-    }
-
     public class FolderModResource : ModResource
     {
         public string FolderDirectory;
@@ -651,6 +598,17 @@ public partial class RiseCore
             {
                 res.AssignType();
             }
+        }
+
+        public static RiseCore.Resource Get(string path)
+        {
+            TreeMap.TryGetValue(path.Replace('\\', '/'), out var res);
+            if (res == null)
+            {
+                throw new Exception($"Resource path: '{path}' not found or does not exists.");
+            }
+
+            return res;
         }
 
         public static bool TryGetValue(string path, out RiseCore.Resource res)

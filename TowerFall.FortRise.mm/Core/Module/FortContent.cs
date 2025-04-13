@@ -36,12 +36,15 @@ public class FortContent
     private string contentPath = "Content";
 
     public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.Resources;
+    [Obsolete]
     public IReadOnlyDictionary<string, patch_Atlas> Atlases => atlases;
     private Dictionary<string, patch_Atlas> atlases = new();
 
+    [Obsolete]
     public IReadOnlyDictionary<string, patch_SFX> SFX => sfxes;
     private Dictionary<string, patch_SFX> sfxes = new();
 
+    [Obsolete]
     public IReadOnlyDictionary<string, patch_SpriteData> SpriteDatas => spriteDatas;
     private Dictionary<string, patch_SpriteData> spriteDatas = new();
 
@@ -50,15 +53,22 @@ public class FortContent
     private string requestedPath;
     private bool requestReload;
 
-    public string MetadataPath
+    [Obsolete]
+    public string MetadataPath => ContentRoot.Root;
+    
+    /// <summary>
+    /// The mod's root path.
+    /// </summary>
+    /// <value>Represent the prefix of your path to the virtual filesystem</value>
+    public RiseCore.Resource ContentRoot
     {
         get
         {
             if (ResourceSystem.Metadata == null)
             {
-                return "mod:::global:";
+                return RiseCore.ResourceTree.Get("mod:::global:");
             }
-            return $"mod:{ResourceSystem.Metadata.Name}";
+            return RiseCore.ResourceTree.Get($"mod:{ResourceSystem.Metadata.Name}");
         }
     }
 

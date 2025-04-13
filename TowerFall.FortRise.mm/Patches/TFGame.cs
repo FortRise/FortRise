@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
-using MonoMod.Utils;
 using SDL3;
 
 namespace TowerFall
@@ -325,7 +323,7 @@ namespace TowerFall
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
-                    foreach (var mods in RiseCore.InternalMods) 
+                    foreach (var mods in RiseCore.ModuleManager.InternalMods) 
                     {
                         mods.Content.LoadResources();
                     }
@@ -440,7 +438,7 @@ namespace TowerFall
                     patch_Music.Initialize();
                     patch_Audio.InitMusicSystems();
 
-                    foreach (var mods in RiseCore.InternalMods) 
+                    foreach (var mods in RiseCore.ModuleManager.InternalMods) 
                     {
                         mods.Content.LoadAudio();
                     }
@@ -474,7 +472,7 @@ namespace TowerFall
         private static async Task CheckModUpdate()
         {
             var tasks = new List<Task<Result<bool, string>>>();
-            foreach (var metadata in RiseCore.InternalModuleMetadatas)
+            foreach (var metadata in RiseCore.ModuleManager.InternalModuleMetadatas)
             {
                 if (metadata.Name is "FortRise" or "Adventure")
                 {

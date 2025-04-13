@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -46,9 +45,11 @@ public class UIModToggler : CustomMenuState
 
     public override void Create()
     {
+        Main.BackState = ModRegisters.MenuState<UIModMenu>();
+
         oldBlacklistedMods = RiseCore.ModuleManager.BlacklistedMods;
-        blacklistedMods = new HashSet<string>(oldBlacklistedMods);
-        var loadedMetadata = RiseCore.InternalMods.Select(x => x.Metadata);
+        blacklistedMods = [.. oldBlacklistedMods];
+        var loadedMetadata = RiseCore.ModuleManager.InternalMods.Select(x => x.Metadata);
         var enableAll = new TextContainer.ButtonText("Enabled All");
         enableAll.Pressed(() => ModifyAllButtons(true));
         var disableAll = new TextContainer.ButtonText("Disable All");
@@ -109,9 +110,9 @@ public class UIModToggler : CustomMenuState
                     continue;
                 }
             }
-            var isWhitelisted = !oldBlacklistedMods.Contains(folderName);
+            var isBlacklisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);
-            onOffs.Add(folderName, isWhitelisted);
+            onOffs.Add(folderName, isBlacklisted);
             Container.Add(CreateButton(folderName, onOffs));
         }
     }
@@ -198,7 +199,9 @@ public class UIModToggler : CustomMenuState
                         depName = folderName;
                     }
                     AddToBlacklist(depName);
-                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text.Equals(depName, StringComparison.InvariantCultureIgnoreCase))
+                        .Cast<TextContainer.Toggleable>()
+                        .FirstOrDefault();
                     item.Value = false;
                 }
             }
@@ -248,7 +251,9 @@ public class UIModToggler : CustomMenuState
                         depName = folderName;
                     }
                     RemoveToBlacklist(depName);
-                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text == depName.ToUpperInvariant()).Cast<TextContainer.Toggleable>().FirstOrDefault();
+                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text.Equals(depName, StringComparison.InvariantCultureIgnoreCase))
+                        .Cast<TextContainer.Toggleable>()
+                        .FirstOrDefault();
                     item.Value = true;
                 }
             }

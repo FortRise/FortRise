@@ -44,18 +44,6 @@ public static partial class RiseCore
     public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
 
-    /// <summary>
-    /// Contains a read-only access to all of the Modules.
-    /// </summary>
-    public static ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
-
-    /// <summary>
-    /// Contains a read-only access to all of the Mods' metadata and resource.
-    /// </summary>
-    public static ReadOnlyCollection<ModResource> Mods => InternalMods.AsReadOnly();
-    internal static List<FortModule> InternalFortModules = new();
-    internal static HashSet<ModuleMetadata> InternalModuleMetadatas = new();
-    internal static List<ModResource> InternalMods = new();
     internal static FortModule AdventureModule;
     internal static ModuleManager ModuleManager = new();
 
@@ -204,12 +192,12 @@ public static partial class RiseCore
             Version = FortRiseVersion
         };
         var fortRiseModule = new NoModule(fortRiseMetadata);
-        InternalFortModules.Add(fortRiseModule);
-        InternalModuleMetadatas.Add(fortRiseMetadata);
+        ModuleManager.InternalFortModules.Add(fortRiseModule);
+        ModuleManager.InternalModuleMetadatas.Add(fortRiseMetadata);
 
         AdventureModule = new AdventureModule();
         AdventureModule.InternalLoad();
-        InternalFortModules.Add(AdventureModule);
+        ModuleManager.InternalFortModules.Add(AdventureModule);
 
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
@@ -247,7 +235,6 @@ public static partial class RiseCore
         };
 
         AtlasReader.Initialize();
-        RiseCore.ResourceTree.AddMod(null, new AdventureGlobalLevelResource());
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         if (!NoRichPresence)
             DiscordComponent.Create();
@@ -488,7 +475,7 @@ public static partial class RiseCore
 
     internal static void LogAllTypes()
     {
-        Logger.Info(InternalMods.Count + " total of mods loaded");
+        Logger.Info(ModuleManager.InternalMods.Count + " total of mods loaded");
     }
 
     internal static void Initialize()
@@ -498,7 +485,7 @@ public static partial class RiseCore
 
     internal static void ModuleEnd()
     {
-        foreach (var t in InternalFortModules)
+        foreach (var t in ModuleManager.InternalFortModules)
         {
             t.InternalUnload();
         }
@@ -506,7 +493,7 @@ public static partial class RiseCore
 
     internal static void ModsAfterLoad()
     {
-        foreach (var mod in InternalFortModules)
+        foreach (var mod in ModuleManager.InternalFortModules)
         {
             mod.AfterLoad();
         }
@@ -514,7 +501,7 @@ public static partial class RiseCore
 
     internal static void RegisterMods()
     {
-        foreach (var mod in InternalFortModules)
+        foreach (var mod in ModuleManager.InternalFortModules)
         {
             TowerFall.Loader.Message = ("Registering " + mod.Meta.Name + " Features").ToUpperInvariant();
             mod.Register();
@@ -776,7 +763,7 @@ public static partial class RiseCore
     /// <returns>true if found, else false</returns>
     public static bool IsModExists(string modName)
     {
-        foreach (var module in InternalFortModules)
+        foreach (var module in ModuleManager.InternalFortModules)
         {
             if (module.Name == modName)
             {

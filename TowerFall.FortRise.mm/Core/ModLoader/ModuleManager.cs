@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -17,6 +18,20 @@ internal class ModDelayed(int requiredCount, ModuleMetadata metadata)
 internal class ModuleManager 
 {
     public enum LoadState { Load, Initialiazing, Ready }
+
+    /// <summary>
+    /// Contains a read-only access to all of the Modules.
+    /// </summary>
+    public ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
+
+    /// <summary>
+    /// Contains a read-only access to all of the Mods' metadata and resource.
+    /// </summary>
+    public ReadOnlyCollection<RiseCore.ModResource> Mods => InternalMods.AsReadOnly();
+    internal List<FortModule> InternalFortModules = new();
+    internal HashSet<ModuleMetadata> InternalModuleMetadatas = new();
+    internal List<RiseCore.ModResource> InternalMods = new();
+
 
     private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
     private Dictionary<string, IModRegistry> registries = new Dictionary<string, IModRegistry>();
@@ -115,9 +130,9 @@ internal class ModuleManager
         }
     }
 
-    public static bool CheckDependencyMetadata(ModuleMetadata metadata, bool storeError)
+    public bool CheckDependencyMetadata(ModuleMetadata metadata, bool storeError)
     {
-        foreach (var internalMetadata in RiseCore.InternalModuleMetadatas)
+        foreach (var internalMetadata in InternalModuleMetadatas)
         {
             if (metadata.Name != internalMetadata.Name)
             {
@@ -139,7 +154,7 @@ internal class ModuleManager
         return false;
     }
 
-    public static bool CheckDependencies(ModuleMetadata metadata, out int requiredDependencies)
+    public bool CheckDependencies(ModuleMetadata metadata, out int requiredDependencies)
     {
         requiredDependencies = 0;
         if (metadata.Dependencies != null)
@@ -235,8 +250,8 @@ internal class ModuleManager
             LoadAssembly(metadata, modResource, asm);
         }
 
-        RiseCore.InternalMods.Add(modResource);
-        RiseCore.InternalModuleMetadatas.Add(metadata);
+        InternalMods.Add(modResource);
+        InternalModuleMetadatas.Add(metadata);
 
         return new Unit();
     }
@@ -294,7 +309,7 @@ internal class ModuleManager
         }
     }
 
-    private static void LoadAssembly(ModuleMetadata metadata, RiseCore.ModResource resource, Assembly asm)
+    private void LoadAssembly(ModuleMetadata metadata, RiseCore.ModResource resource, Assembly asm)
     {
         foreach (var t in asm.GetTypes())
         {
@@ -319,7 +334,7 @@ internal class ModuleManager
             module.ParseArgs(RiseCore.ApplicationArgs);
             module.InternalLoad();
 
-            RiseCore.InternalFortModules.Add(module);
+            InternalFortModules.Add(module);
 
             Logger.Info($"[Loader] {module.ID}: {module.Name} Loaded.");
             continue;
@@ -329,12 +344,14 @@ internal class ModuleManager
     internal void Initialize()
     {
         State = LoadState.Initialiazing;
-        foreach (var fortModule in RiseCore.InternalFortModules)
+        foreach (var fortModule in InternalFortModules)
         {
             IModRegistry registry = AddOrGetRegistry(fortModule.Meta);
+            IModInterop interop = new ModInterop(this);
 
             fortModule.IsInitialized = true;
             fortModule.Registry = registry;
+            fortModule.Interop = interop;
             fortModule.Initialize();
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }

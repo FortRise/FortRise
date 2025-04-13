@@ -10,7 +10,7 @@ public class patch_SaveData : SaveData
 
     public string Save() 
     {
-        foreach (var module in RiseCore.InternalFortModules)
+        foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             module.SaveData();
         }
@@ -23,7 +23,7 @@ public class patch_SaveData : SaveData
     public static string Load() 
     {
         var error = orig_Load();
-        foreach (var module in RiseCore.InternalFortModules)
+        foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             module.LoadData();
         }
@@ -35,7 +35,7 @@ public class patch_SaveData : SaveData
     public void Verify() 
     {
         orig_Verify();
-        foreach (var module in RiseCore.InternalFortModules) 
+        foreach (var module in RiseCore.ModuleManager.InternalFortModules) 
         {
             module.VerifyData();
         }

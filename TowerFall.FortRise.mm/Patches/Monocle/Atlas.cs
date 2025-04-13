@@ -200,8 +200,8 @@ public static class AtlasExt
         }
         else if (content != null) 
         {
-            xmlPath = Path.Combine(content.MetadataPath, xmlPath);
-            imagePath = Path.Combine(content.MetadataPath, imagePath);
+            xmlPath = Path.Combine(content.ContentRoot.Root, xmlPath);
+            imagePath = Path.Combine(content.ContentRoot.Root, imagePath);
         }
         using var rootXmlStream = ModIO.OpenRead(xmlPath);
         using var rootImageStream = ModIO.OpenRead(imagePath);
