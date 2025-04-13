@@ -5,7 +5,7 @@ using System.Xml;
 using Monocle;
 
 // I am using namespace now for transition with FortRise 5
-namespace FortRise.IO;
+namespace FortRise;
 
 /// <summary>
 /// Utility class that can access to mods' content or outside of the mods' content in a portable way.
@@ -23,12 +23,12 @@ public static class ModIO
         return AppDomain.CurrentDomain.BaseDirectory;
     }
 
-    public static bool IsFolder(RiseCore.Resource resource)
+    public static bool IsFolder(IResourceInfo resource)
     {
         return resource.ResourceType == typeof(RiseCore.ResourceTypeFolder);
     }
 
-    public static bool IsFile(RiseCore.Resource resource)
+    public static bool IsFile(IResourceInfo resource)
     {
         return resource.ResourceType != typeof(RiseCore.ResourceTypeFolder);
     }
@@ -68,7 +68,7 @@ public static class ModIO
         return RiseCore.ResourceTree.IsExist(path) || Directory.Exists(path);
     }
 
-    public static XmlDocument LoadXml(RiseCore.Resource resource)
+    public static XmlDocument LoadXml(IResourceInfo resource)
     {
         var text = ModIO.OpenRead(resource);
         return patch_Calc.LoadXML(text);
@@ -92,9 +92,9 @@ public static class ModIO
         return Directory.GetFiles(path);
     }
 
-    public static string[] GetFiles(RiseCore.Resource res)
+    public static string[] GetFiles(IResourceInfo res)
     {
-        List<RiseCore.Resource> childs = new List<RiseCore.Resource>();
+        List<IResourceInfo> childs = [];
         foreach (var r in res.Childrens)
         {
             if (r.ResourceType == typeof(RiseCore.ResourceTypeFile))
@@ -121,9 +121,9 @@ public static class ModIO
         return Directory.GetDirectories(path);
     }
 
-    public static string[] GetDirectories(RiseCore.Resource res)
+    public static string[] GetDirectories(IResourceInfo res)
     {
-        List<RiseCore.Resource> childs = new List<RiseCore.Resource>();
+        List<IResourceInfo> childs = [];
         foreach (var r in res.Childrens)
         {
             if (r.ResourceType == typeof(RiseCore.ResourceTypeFolder))
@@ -141,7 +141,7 @@ public static class ModIO
         return directories;
     }
 
-    public static Stream OpenRead(RiseCore.Resource resource)
+    public static Stream OpenRead(IResourceInfo resource)
     {
         return resource.Stream;
     }
@@ -167,7 +167,7 @@ public static class ModIO
         return File.Open(path, mode);
     }
 
-    public static StreamReader OpenText(RiseCore.Resource resource)
+    public static StreamReader OpenText(IResourceInfo resource)
     {
         Stream fs = resource.Stream;
         return new StreamReader(fs);
@@ -193,7 +193,7 @@ public static class ModIO
         return File.ReadAllText(path);
     }
 
-    public static string ReadAllText(RiseCore.Resource resource)
+    public static string ReadAllText(IResourceInfo resource)
     {
         using var fs = resource.Stream;
         using TextReader tr = new StreamReader(fs);

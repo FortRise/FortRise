@@ -1,6 +1,6 @@
-using FortRise.IO;
 using Monocle;
 using MonoMod;
+using FortRise;
 
 namespace TowerFall;
 

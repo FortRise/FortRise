@@ -1,13 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
-using FortRise.IO;
-using MonoMod;
 
 namespace FortRise;
 
+[Obsolete("Just remove it, it will still work")]
 public class FortAttribute : Attribute
 {
     public string GUID;
@@ -20,22 +19,14 @@ public class FortAttribute : Attribute
     }
 }
 
-[MonoModRemove]
-public abstract partial class patch_FortModule
-{
-    public FortContent Content 
-    {
-        get;
-        internal set;
-    }
-}
-
 public abstract partial class FortModule
 {
     public bool Enabled { get; internal set; }
     public ModuleMetadata Meta { get; internal set; }
-    public string Name { get; internal set; }
-    public string ID { get; internal set; }
+    [Obsolete("Use 'Meta.DisplayName' or 'Meta.Name' instead")]
+    public string Name => string.IsNullOrEmpty(Meta.DisplayName) ? Meta.Name : Meta.DisplayName;
+    [Obsolete("Use 'Meta.Name' instead")]
+    public string ID => Meta.Name;
     public bool DisposeTextureAfterUnload { get; set; } = true;
     public bool IsInitialized { get; internal set; }
 
@@ -53,7 +44,21 @@ public abstract partial class FortModule
         internal set => registry = value;
     }
 
+    public IModInterop Interop 
+    {
+        get 
+        {
+            if (!IsInitialized)
+            {
+                throw new Exception("Mod is not initialized yet!");
+            }
+            return interop;
+        }
+        internal set => interop = value;
+    }
+
     private IModRegistry registry;
+    private IModInterop interop;
 
     /// <summary>
     /// Use to let the mod loader know which settings type to initialize.
@@ -69,13 +74,11 @@ public abstract partial class FortModule
     /// <summary>
     /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..
     /// </summary>
-    [MonoModLinkTo("FortRise.FortModule", "get_Content")]
-    [MonoModRemove]
-    public FortContent Content;
-
-    [MonoModLinkTo("FortRise.FortModule", "set_Content")]
-    [MonoModRemove]
-    public void s_Content(FortContent content) {}
+    public FortContent Content 
+    {
+        get;
+        internal set;
+    }
 
     /// <summary>
     /// Override this function to load your hooks, events, and set environment variables for your mod.
@@ -113,7 +116,7 @@ public abstract partial class FortModule
 
         try 
         {
-            var savePath = Path.Combine(GetRootPath(), "Saves", ID, $"{Name}.saveData.json");
+            var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, $"{Meta.Name}.saveData.json");
             if (!Directory.Exists(Path.GetDirectoryName(savePath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(savePath));
@@ -142,7 +145,7 @@ public abstract partial class FortModule
         {
             return;
         }
-        var savePath = Path.Combine(GetRootPath(), "Saves", ID, $"{Name}.saveData.json");
+        var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, $"{Meta.Name}.saveData.json");
         if (!Directory.Exists(Path.GetDirectoryName(savePath)))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(savePath));
@@ -165,7 +168,7 @@ public abstract partial class FortModule
         if (InternalSettings == null)
             return;
 
-        var path = Path.Combine(GetRootPath(), "Saves", ID, Name + ".settings" + ".json");
+        var path = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
         InternalSettings.Load(path);
     }
 
@@ -173,7 +176,7 @@ public abstract partial class FortModule
     {
         if (InternalSettings == null)
             return;
-        var path = Path.Combine(GetRootPath(), "Saves", ID, Name + ".settings" + ".json");
+        var path = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
         InternalSettings.Save(path);
     }
 
@@ -291,15 +294,33 @@ public abstract partial class FortModule
     }
 
     /// <inheritdoc cref="RiseCore.IsModExists(string)"/>
+    [Obsolete("FortModule could use 'Interop' instead")]
     public bool IsModExists(string modName)
     {
-        return RiseCore.IsModExists(modName);
+        return Interop.IsModExists(modName);
     }
+}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string GetRootPath()
+public interface IModInterop
+{
+    IReadOnlyList<IModResource> LoadedMods { get; }
+    IReadOnlyList<FortModule> LoadedFortModules {get; }
+    IModRegistry GetOtherRegistry(string modName);
+    IModRegistry GetOtherRegistry(ModuleMetadata metadata);
+
+    bool IsModExists(string name);
+}
+
+internal class ModInterop : IModInterop
+{
+    private readonly ModuleManager manager;
+
+    public IReadOnlyList<IModResource> LoadedMods => manager.Mods;
+    public IReadOnlyList<FortModule> LoadedFortModules => manager.Modules;
+
+    internal ModInterop(ModuleManager moduleManager)
     {
-        return ModIO.GetRootPath();
+        manager = moduleManager;
     }
 
     public IModRegistry GetOtherRegistry(string modName)
@@ -310,5 +331,18 @@ public abstract partial class FortModule
     public IModRegistry GetOtherRegistry(ModuleMetadata metadata)
     {
         return RiseCore.ModuleManager.AddOrGetRegistry(metadata);
+    }
+
+    public bool IsModExists(string name)
+    {
+        foreach (var mod in LoadedMods)
+        {
+            if (mod.Metadata.Name == name)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

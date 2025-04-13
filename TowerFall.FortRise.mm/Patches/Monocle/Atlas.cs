@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Xml;
 using FortRise;
-using FortRise.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
@@ -33,7 +31,7 @@ public class patch_Atlas : Atlas
     }
 
 
-    public static void MergeAtlas(RiseCore.Resource resource, patch_Atlas source, Atlas destination, string prefix) 
+    internal static void MergeAtlas(IResourceInfo resource, patch_Atlas source, Atlas destination, string prefix) 
     {
         foreach (var subTexture in source.SubTextures) 
         {
@@ -43,7 +41,7 @@ public class patch_Atlas : Atlas
         destination.GetAllInjectedAtlas().Add(resource.Root + resource.Path);
     }
 
-    public static void MergeTexture(RiseCore.Resource resource, Subtexture source, Atlas destination, string prefix) 
+    internal static void MergeTexture(IResourceInfo resource, Subtexture source, Atlas destination, string prefix) 
     {
         var pngPath = resource.RootPath;
         int indexOfSlash = pngPath.IndexOf('/');

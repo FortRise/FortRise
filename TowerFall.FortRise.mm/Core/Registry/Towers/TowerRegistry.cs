@@ -274,7 +274,7 @@ public static class TowerRegistry
             levelData.Path = fullPath + "/" + "level.oel";
             levelData.DataPath = fullPath + "/" + "data.xml";
 
-            RiseCore.Resource towerXmlResource = null;
+            IResourceInfo towerXmlResource = null;
             foreach (var child in map.Childrens) 
             {
                 if (!child.Path.Contains("tower.xml")) 
@@ -315,7 +315,7 @@ public static class TowerRegistry
             levelData.SetLevelSet(path);
             levelData.Levels = new();
 
-            RiseCore.Resource xmlResource = null;
+            IResourceInfo xmlResource = null;
             foreach (var child in map.Childrens) 
             {
                 if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) || 
@@ -424,8 +424,8 @@ public static class TowerRegistry
             levelData.SetLevelSet(path);
             levelData.Levels = new();
 
-            RiseCore.Resource xmlResource = null;
-            RiseCore.Resource iconResource = null;
+            IResourceInfo xmlResource = null;
+            IResourceInfo iconResource = null;
             foreach (var child in map.Childrens) 
             {
                 if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) || 
@@ -495,7 +495,7 @@ public static class TowerRegistry
             .Where(folder => folder.ResourceType == typeof(RiseCore.ResourceTypeTrialsTowerFolder)))
         {
             var path = map.FullPath.Substring(4).Replace("Content/Levels/Trials/", string.Empty);
-            RiseCore.Resource towerResource = null;
+            IResourceInfo towerResource = null;
             foreach (var child in map.Childrens) 
             {
                 if (child.Path.Contains("tower.xml")) 
@@ -543,7 +543,7 @@ public static class TowerRegistry
         }
     }
 
-    private static TowerTheme LoadTheme(XmlElement xml, RiseCore.Resource map) 
+    private static TowerTheme LoadTheme(XmlElement xml, IResourceInfo map) 
     {
         if (xml.HasChild("theme")) 
         {

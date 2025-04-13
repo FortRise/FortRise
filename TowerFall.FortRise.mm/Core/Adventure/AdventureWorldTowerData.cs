@@ -12,12 +12,12 @@ public class AdventureWorldTowerData : patch_DarkWorldTowerData
     public string Author;
     public bool Procedural;
     public int StartingLives = -1;
-    public int[] MaxContinues = new int[3] { -1, -1, -1 };
+    public int[] MaxContinues = [-1, -1, -1];
     public string RequiredMods;
     public AdventureWorldTowerStats Stats;
 
 
-    public void BuildIcon(RiseCore.Resource icon) 
+    public void BuildIcon(IResourceInfo icon) 
     {
         using var stream = icon.Stream;
         var json = JsonSerializer.Deserialize<OgmoLevelData>(stream);

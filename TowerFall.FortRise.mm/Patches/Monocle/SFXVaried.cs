@@ -1,7 +1,5 @@
-using System;
 using System.IO;
 using FortRise;
-using FortRise.IO;
 using Microsoft.Xna.Framework.Audio;
 using MonoMod;
 

@@ -20,9 +20,6 @@ public sealed class AdventureModule : FortModule
             Author = "FortRise",
             Version = new SemanticVersion("4.0.0"),
         };
-
-        Name = "Adventure";
-        ID = "com.fortrise.adventure";
     }
 
     public override void Initialize()

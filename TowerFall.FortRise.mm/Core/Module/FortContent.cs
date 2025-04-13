@@ -7,7 +7,6 @@ using System.Linq;
 using TowerFall;
 using FortRise.Adventure;
 using System.Xml;
-using FortRise.IO;
 using System.Text.Json;
 
 namespace FortRise;
@@ -21,7 +20,7 @@ namespace FortRise;
 /// </remarks>
 public class FortContent
 {
-    public delegate void DataLoaderHandler(RiseCore.Resource resource, string rootPath);
+    public delegate void DataLoaderHandler(IResourceInfo resource, string rootPath);
     public static event DataLoaderHandler DataLoader;
     /// <summary>
     /// A property where your default Content lookup is being used. Some methods are relying on this.
@@ -32,10 +31,10 @@ public class FortContent
         get => contentPath;
         set => contentPath = value;
     }
-    public readonly RiseCore.ModResource ResourceSystem;
+    public readonly IModResource ResourceSystem;
     private string contentPath = "Content";
 
-    public Dictionary<string, RiseCore.Resource> MapResource => ResourceSystem.Resources;
+    public Dictionary<string, IResourceInfo> MapResource => ResourceSystem.OwnedResources;
     [Obsolete]
     public IReadOnlyDictionary<string, patch_Atlas> Atlases => atlases;
     private Dictionary<string, patch_Atlas> atlases = new();
@@ -60,7 +59,7 @@ public class FortContent
     /// The mod's root path.
     /// </summary>
     /// <value>Represent the prefix of your path to the virtual filesystem</value>
-    public RiseCore.Resource ContentRoot
+    public IResourceInfo ContentRoot
     {
         get
         {
@@ -73,7 +72,7 @@ public class FortContent
     }
 
 
-    public RiseCore.Resource this[string path]
+    public IResourceInfo this[string path]
     {
         get
         {
@@ -83,7 +82,7 @@ public class FortContent
         }
     }
 
-    public FortContent(RiseCore.ModResource resource) : base()
+    public FortContent(IModResource resource) : base()
     {
         ResourceSystem = resource;
 
@@ -147,7 +146,7 @@ public class FortContent
 
     internal void LoadAudio()
     {
-        foreach (var child in ResourceSystem.Resources.Values.Where(x =>
+        foreach (var child in ResourceSystem.OwnedResources.Values.Where(x =>
             x.ResourceType == typeof(RiseCore.ResourceTypeWavFile) || x.ResourceType == typeof(RiseCore.ResourceTypeOggFile)))
         {
             if (child.Path.StartsWith("Content/Music"))
@@ -167,7 +166,7 @@ public class FortContent
             }
         }
 
-        foreach (var soundRes in ResourceSystem.Resources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeXMLSoundBank)))
+        foreach (var soundRes in ResourceSystem.OwnedResources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeXMLSoundBank)))
         {
             var child = soundRes.Value;
 
@@ -224,7 +223,7 @@ public class FortContent
             }
         }
 
-        foreach (var soundRes in ResourceSystem.Resources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeJSONSoundBank)))
+        foreach (var soundRes in ResourceSystem.OwnedResources.Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeJSONSoundBank)))
         {
             var child = soundRes.Value;
 
@@ -285,9 +284,9 @@ public class FortContent
         }
     }
 
-    private struct PackerResource(RiseCore.Resource resource, CPUImage image)
+    private struct PackerResource(IResourceInfo resource, CPUImage image)
     {
-        public RiseCore.Resource Resource = resource;
+        public IResourceInfo Resource = resource;
         public CPUImage Image = image;
     }
     private static TexturePacker<PackerResource> texturePacker;
@@ -295,7 +294,7 @@ public class FortContent
     internal void LoadResources() 
     {
         // Loads all atlas that has been crawled, this should only look for .png and .xml
-        foreach (var atlasRes in ResourceSystem.Resources.Where(x =>
+        foreach (var atlasRes in ResourceSystem.OwnedResources.Where(x =>
             x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlas)))
         {
             var child = atlasRes.Value;
@@ -350,15 +349,15 @@ public class FortContent
 
         if (ResourceSystem.Metadata.IsZipped) 
         {
-            Dictionary<Type, List<RiseCore.Resource>> resources = new Dictionary<Type, List<RiseCore.Resource>>() 
+            Dictionary<Type, List<IResourceInfo>> resources = new Dictionary<Type, List<IResourceInfo>>() 
             {
-                {typeof(RiseCore.ResourceTypeAtlasPng), new List<RiseCore.Resource>()},
-                {typeof(RiseCore.ResourceTypeBGAtlasPng), new List<RiseCore.Resource>()},
-                {typeof(RiseCore.ResourceTypeBossAtlasPng), new List<RiseCore.Resource>()},
-                {typeof(RiseCore.ResourceTypeMenuAtlasPng), new List<RiseCore.Resource>()},
+                {typeof(RiseCore.ResourceTypeAtlasPng), new List<IResourceInfo>()},
+                {typeof(RiseCore.ResourceTypeBGAtlasPng), new List<IResourceInfo>()},
+                {typeof(RiseCore.ResourceTypeBossAtlasPng), new List<IResourceInfo>()},
+                {typeof(RiseCore.ResourceTypeMenuAtlasPng), new List<IResourceInfo>()},
             };
 
-            foreach (var atlasPng in ResourceSystem.Resources
+            foreach (var atlasPng in ResourceSystem.OwnedResources
                 .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlasPng) || 
                             x.Value.ResourceType == typeof(RiseCore.ResourceTypeBGAtlasPng) ||
                             x.Value.ResourceType == typeof(RiseCore.ResourceTypeBossAtlasPng) ||
@@ -426,7 +425,7 @@ public class FortContent
         }
         else 
         {
-            foreach (var atlasPng in ResourceSystem.Resources
+            foreach (var atlasPng in ResourceSystem.OwnedResources
                 .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeAtlasPng) || 
                             x.Value.ResourceType == typeof(RiseCore.ResourceTypeBGAtlasPng) ||
                             x.Value.ResourceType == typeof(RiseCore.ResourceTypeBossAtlasPng) ||
@@ -458,7 +457,7 @@ public class FortContent
             }
         }
 
-        foreach (var spriteDataRes in ResourceSystem.Resources
+        foreach (var spriteDataRes in ResourceSystem.OwnedResources
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeSpriteData)))
         {
             var child = spriteDataRes.Value;
@@ -495,7 +494,7 @@ public class FortContent
             }
         }
 
-        foreach (var gameDataRes in ResourceSystem.Resources
+        foreach (var gameDataRes in ResourceSystem.OwnedResources
             .Where(x => x.Value.ResourceType == typeof(RiseCore.ResourceTypeGameData)))
         {
             var child = gameDataRes.Value;
@@ -578,13 +577,13 @@ public class FortContent
         return false;
     }
 
-    public bool TryGetValue(string path, out RiseCore.Resource value)
+    public bool TryGetValue(string path, out IResourceInfo value)
     {
         path = path.Replace('\\', '/');
         return MapResource.TryGetValue(path, out value);
     }
 
-    public RiseCore.Resource GetValue(string path)
+    public IResourceInfo GetValue(string path)
     {
         path = path.Replace('\\', '/');
         return MapResource[path];
@@ -602,17 +601,17 @@ public class FortContent
         }
     }
 
-    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path)
+    public IEnumerable<IResourceInfo> EnumerateFiles(string path)
     {
         path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder))
         {
             return folder.Childrens;
         }
-        return Enumerable.Empty<RiseCore.Resource>();
+        return Enumerable.Empty<IResourceInfo>();
     }
 
-    public IEnumerable<RiseCore.Resource> EnumerateFiles(string path, string filterExt)
+    public IEnumerable<IResourceInfo> EnumerateFiles(string path, string filterExt)
     {
         path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder))
@@ -662,14 +661,14 @@ public class FortContent
         return trackInfo;
     }
 
-    public RiseCore.Resource[] GetResources(string path)
+    public IResourceInfo[] GetResources(string path)
     {
         path = path.Replace('\\', '/');
         if (TryGetValue(path, out var folder))
         {
             return folder.Childrens.ToArray();
         }
-        return Array.Empty<RiseCore.Resource>();
+        return Array.Empty<IResourceInfo>();
     }
 
     /// <summary>
@@ -716,7 +715,7 @@ public class FortContent
         if (atlases.TryGetValue(path, out var atlasExisted))
             return atlasExisted;
 
-        RiseCore.Resource dataRes;
+        IResourceInfo dataRes;
         if (this.MapResource.TryGetValue(contentPath + "/" + path + ".xml", out var res))
         {
             dataRes = res;

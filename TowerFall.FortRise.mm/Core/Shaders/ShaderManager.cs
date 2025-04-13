@@ -10,7 +10,7 @@ public static class ShaderManager
     public static Dictionary<string, int> ShadersLookup = new();
     public static List<ShaderResource> Shaders = new();
 
-    public static T AddShader<T>(RiseCore.Resource fxRes, string passName, out int id) 
+    public static T AddShader<T>(IResourceInfo fxRes, string passName, out int id) 
     where T : ShaderResource, new()
     {
         using var fxStream = fxRes.Stream;

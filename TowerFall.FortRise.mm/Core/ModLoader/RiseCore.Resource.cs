@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using FortRise.IO;
 using Monocle;
 using TowerFall;
 
 namespace FortRise;
+
 
 public partial class RiseCore
 {
@@ -55,20 +55,66 @@ public partial class RiseCore
 
     private static readonly char[] SplitSeparator = ['/'];
 
+
     /// <summary>
     /// A class that contains a path and stream to your resource works both on folder and zip.
     /// </summary>
-    public abstract class Resource
+    public abstract class Resource : IResourceInfo
     {
         public string FullPath;
         public string Path;
         public string Root;
         public string RootPath => Root + Path;
-        public List<Resource> Childrens = new();
+        public List<IResourceInfo> Childrens = new();
         public ModResource Source;
         public Type ResourceType;
 
         public abstract Stream Stream { get; }
+
+        string IResourceInfo.FullPath
+        {
+            get => FullPath;
+            set => FullPath = value;
+        } 
+
+        string IResourceInfo.Path 
+        {
+            get => Path;
+            set => Path = value;
+        } 
+
+        string IResourceInfo.Root 
+        {
+            get => Root;
+            set => Root = value;
+        } 
+
+        IReadOnlyList<IResourceInfo> IResourceInfo.Childrens => Childrens;
+
+        IModResource IResourceInfo.Resource => Source;
+
+        Type IResourceInfo.ResourceType => ResourceType;
+
+        public string Text => ModIO.ReadAllText(this);
+        
+#nullable enable
+        public XmlDocument? Xml
+        {
+            get 
+            {
+                try 
+                {
+                    var xml = ModIO.LoadXml(this);
+                    return xml;
+                }
+                catch (XmlException ex)
+                {
+                    Logger.Error(ex.ToString());
+                    return null;
+                }
+            }
+        }
+#nullable disable
 
         public Resource(ModResource resource, string path, string fullPath)
         {
@@ -82,7 +128,7 @@ public partial class RiseCore
             return RiseCore.ResourceTree.IsExist(this, path);
         }
 
-        public RiseCore.Resource GetRelativePath(string path)
+        public IResourceInfo GetRelativePath(string path)
         {
             string actualPath = System.IO.Path.Combine(RootPath, path);
             return RiseCore.ResourceTree.Get(actualPath);
@@ -363,12 +409,17 @@ public partial class RiseCore
         }
     }
 
-    public abstract class ModResource : IDisposable
+    public abstract class ModResource : IModResource
     {
         public ModuleMetadata Metadata;
         public FortContent Content;
-        public Dictionary<string, Resource> Resources = new();
+        public Dictionary<string, IResourceInfo> Resources = new();
         private bool disposedValue;
+
+        ModuleMetadata IModResource.Metadata => Metadata;
+        FortContent IModResource.Content => Content;
+        public Dictionary<string, IResourceInfo> OwnedResources => Resources;
+
 
         public ModResource(ModuleMetadata metadata)
         {
@@ -382,7 +433,7 @@ public partial class RiseCore
         }
 
 
-        public void Add(string path, Resource resource)
+        public void Add(string path, IResourceInfo resource)
         {
             var rootName = (Metadata is not null ? Metadata.Name : "::global::");
             var rootPath = resource.Root = $"mod:{rootName}/";
@@ -571,11 +622,11 @@ public partial class RiseCore
 
     public static class ResourceTree
     {
-        public static Dictionary<string, Resource> TreeMap = new();
-        public static List<ModResource> ModResources = new();
+        public static Dictionary<string, IResourceInfo> TreeMap = new();
+        public static List<IModResource> ModResources = new();
 
 
-        public static void AddMod(ModuleMetadata metadata, ModResource resource)
+        public static void AddMod(ModuleMetadata metadata, IModResource resource)
         {
             var name = (metadata is not null ? metadata.Name : "::global::");
             var prefixPath = $"mod:{name}/";
@@ -592,15 +643,15 @@ public partial class RiseCore
             ModResources.Add(resource);
         }
 
-        internal static void Initialize(ModResource resource)
+        internal static void Initialize(IModResource resource)
         {
-            foreach (var res in resource.Resources.Values)
+            foreach (var res in resource.OwnedResources.Values)
             {
                 res.AssignType();
             }
         }
 
-        public static RiseCore.Resource Get(string path)
+        public static IResourceInfo Get(string path)
         {
             TreeMap.TryGetValue(path.Replace('\\', '/'), out var res);
             if (res == null)
@@ -611,7 +662,7 @@ public partial class RiseCore
             return res;
         }
 
-        public static bool TryGetValue(string path, out RiseCore.Resource res)
+        public static bool TryGetValue(string path, out IResourceInfo res)
         {
             return TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
         }
@@ -621,7 +672,7 @@ public partial class RiseCore
             return TreeMap.ContainsKey(path.Replace('\\', '/'));
         }
 
-        public static bool IsExist(Resource resource, string path)
+        public static bool IsExist(IResourceInfo resource, string path)
         {
             return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
         }
@@ -664,7 +715,7 @@ public partial class RiseCore
                     }
                 }
 
-                async Task DumpResource(Resource childResource, string line)
+                async Task DumpResource(IResourceInfo childResource, string line)
                 {
                     await tw.WriteLineAsync(line + "\t FullPath: " + childResource.FullPath);
                     await tw.WriteLineAsync(line + "\t Path: " + childResource.Path);

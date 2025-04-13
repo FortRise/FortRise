@@ -27,10 +27,10 @@ internal class ModuleManager
     /// <summary>
     /// Contains a read-only access to all of the Mods' metadata and resource.
     /// </summary>
-    public ReadOnlyCollection<RiseCore.ModResource> Mods => InternalMods.AsReadOnly();
+    public ReadOnlyCollection<IModResource> Mods => InternalMods.AsReadOnly();
     internal List<FortModule> InternalFortModules = new();
     internal HashSet<ModuleMetadata> InternalModuleMetadatas = new();
-    internal List<RiseCore.ModResource> InternalMods = new();
+    internal List<IModResource> InternalMods = new();
 
 
     private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
@@ -199,7 +199,7 @@ internal class ModuleManager
     public Result<Unit, LoadError> LoadModSkipDependecies(ModuleMetadata metadata)
     {
         Assembly asm = null;
-        RiseCore.ModResource modResource;
+        IModResource modResource;
         if (!string.IsNullOrEmpty(metadata.PathZip))
         {
             modResource = new RiseCore.ZipModResource(metadata);
@@ -309,7 +309,7 @@ internal class ModuleManager
         }
     }
 
-    private void LoadAssembly(ModuleMetadata metadata, RiseCore.ModResource resource, Assembly asm)
+    private void LoadAssembly(ModuleMetadata metadata, IModResource resource, Assembly asm)
     {
         foreach (var t in asm.GetTypes())
         {
@@ -317,32 +317,24 @@ internal class ModuleManager
             {
                 continue;
             }
-
-            var customAttribute = t.GetCustomAttribute<FortAttribute>();
-            if (customAttribute == null)
-            {
-                customAttribute = new FortAttribute($"unknown.{metadata.Author}.{metadata.Name}", metadata.Name);
-            }
-
             FortModule module = Activator.CreateInstance(t) as FortModule;
 
             module.Meta = metadata;
-            module.Name = customAttribute.Name;
-            module.ID = customAttribute.GUID;
             var content = resource.Content;
-            module.s_Content(content);
+            module.Content = content;
             module.ParseArgs(RiseCore.ApplicationArgs);
             module.InternalLoad();
 
             InternalFortModules.Add(module);
 
-            Logger.Info($"[Loader] {module.ID}: {module.Name} Loaded.");
+            Logger.Info($"[Loader] {module.Meta.Name} Loaded.");
             continue;
         }
     }
 
     internal void Initialize()
     {
+        var resLoaderHooks = new List<IResourceLoader>();
         State = LoadState.Initialiazing;
         foreach (var fortModule in InternalFortModules)
         {
@@ -353,12 +345,26 @@ internal class ModuleManager
             fortModule.Registry = registry;
             fortModule.Interop = interop;
             fortModule.Initialize();
+            if (fortModule is IResourceLoader loader)
+            {
+                resLoaderHooks.Add(loader);
+            }
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
 
         foreach (var batch in registryBatch)
         {
             batch.Invoke();
+        }
+
+        // run hooks
+
+        foreach (var loader in resLoaderHooks)
+        {
+            foreach (var mod in InternalMods)
+            {
+                loader.LoadResource(mod);
+            }
         }
     }
 

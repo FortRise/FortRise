@@ -10,7 +10,6 @@ namespace FortRise.Adventure;
 public class MapRendererNode : CompositeComponent
 {
     public XmlElement Xml;
-    public RiseCore.Resource Mod;
     public Subtexture Water;
     public Subtexture Land;
     public bool HideVanilla;

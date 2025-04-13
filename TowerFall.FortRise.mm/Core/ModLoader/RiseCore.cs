@@ -397,14 +397,14 @@ public static partial class RiseCore
     /// </summary>
     public static void AskForRestart(FortModule module)
     {
+        string name = module.Meta.Name;
         if (CantRestart)
         {
-            Logger.Warning($"[RESTART] {module.Name} asked for restart. But it was rejected as the game is not ready yet.");
+            Logger.Warning($"[RESTART] {name} asked for restart. But it was rejected as the game is not ready yet.");
             return;
         }
 
-        var moduleName = module.Name;
-        Logger.Info($"[RESTART] {module.Name} asked for restart. Restarting the game...");
+        Logger.Info($"[RESTART] {name} asked for restart. Restarting the game...");
         WillRestart = true;
         Engine.Instance.Exit();
     }
@@ -761,11 +761,12 @@ public static partial class RiseCore
     /// </summary>
     /// <param name="modName">A Fort name, not a metadata name</param>
     /// <returns>true if found, else false</returns>
+    [Obsolete("FortModule could use the 'Interop' instead")]
     public static bool IsModExists(string modName)
     {
         foreach (var module in ModuleManager.InternalFortModules)
         {
-            if (module.Name == modName)
+            if (module.Meta.Name == modName)
             {
                 return true;
             }
