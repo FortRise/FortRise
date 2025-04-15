@@ -48,10 +48,10 @@ public class patch_VersusCoinButton : VersusCoinButton
         }
         if (patch_MainMenu.VersusMatchSettings.IsCustom) 
         {
-            var gameMode = patch_MainMenu.VersusMatchSettings.CurrentCustomGameMode;
+            var gameMode = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
             if (gameMode != null) 
             {
-                customSprite = gameMode.coinSprite;
+                customSprite = gameMode.OverrideCoinSprite(null);
                 Add(customSprite);
             }
         }

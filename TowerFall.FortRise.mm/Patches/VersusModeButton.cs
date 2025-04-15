@@ -32,7 +32,7 @@ public class patch_VersusModeButton : VersusModeButton
         const int BuiltInModeCount = 3;
         base_Update();
 
-        string currentModeName = patch_MainMenu.VersusMatchSettings.CurrentModeName;
+        string currentModeName = patch_MainMenu.VersusMatchSettings.CustomVersusModeName;
         if (!Selected)
             return;
         
@@ -47,9 +47,9 @@ public class patch_VersusModeButton : VersusModeButton
             else 
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
-                var gameMode = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
-                MainMenu.VersusMatchSettings.Mode = gameMode.GameModeInternal;
-                patch_MainMenu.VersusMatchSettings.CurrentModeName = gameMode.ID;
+                var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
+                MainMenu.VersusMatchSettings.Mode = GameModeRegistry.GetGameModeModes(entry.Name);
+                patch_MainMenu.VersusMatchSettings.CustomVersusModeName = entry.Name;
             }
 
             ModeSwitch?.Invoke();
@@ -69,9 +69,9 @@ public class patch_VersusModeButton : VersusModeButton
             else 
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
-                var gameMode = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
-                MainMenu.VersusMatchSettings.Mode = gameMode.GameModeInternal;
-                patch_MainMenu.VersusMatchSettings.CurrentModeName = gameMode.ID;
+                var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
+                MainMenu.VersusMatchSettings.Mode = GameModeRegistry.GetGameModeModes(entry.Name);
+                patch_MainMenu.VersusMatchSettings.CustomVersusModeName = entry.Name;
             }
 
             ModeSwitch?.Invoke();
@@ -95,9 +95,13 @@ public class patch_VersusModeButton : VersusModeButton
 
     public static Subtexture GetModeIcon(Modes mode)
     {
-        if (patch_MainMenu.VersusMatchSettings.IsCustom && GameModeRegistry.TryGetGameMode(patch_MainMenu.VersusMatchSettings.CurrentModeName, out var gameMode)) 
+        if (patch_MainMenu.VersusMatchSettings.IsCustom) 
         {
-            return gameMode.Icon;
+            var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
+            if (entry != null)
+            {
+                return entry.Icon;
+            }
         }
         return orig_GetModeIcon(mode);
     }
@@ -106,9 +110,13 @@ public class patch_VersusModeButton : VersusModeButton
 
     public static string GetModeName(Modes mode)
     {
-        if (patch_MainMenu.VersusMatchSettings.IsCustom && GameModeRegistry.TryGetGameMode(patch_MainMenu.VersusMatchSettings.CurrentModeName, out var gameMode)) 
+        if (patch_MainMenu.VersusMatchSettings.IsCustom) 
         {
-            return gameMode.Name.ToUpperInvariant();
+            var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
+            if (entry != null)
+            {
+                return entry.Name.ToUpperInvariant();
+            }
         }
         return orig_GetModeName(mode);
     }

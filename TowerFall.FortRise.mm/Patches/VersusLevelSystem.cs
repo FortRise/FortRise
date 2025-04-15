@@ -77,7 +77,7 @@ public class patch_VersusLevelSystem : VersusLevelSystem
 		if (VersusTowerData.FixedFirst && lastLevel == null)
 		{
             var patchMatchSettings = (patch_MatchSettings)matchSettings;
-            if (patchMatchSettings.IsCustom && !patchMatchSettings.CurrentCustomGameMode.RespectFixedFirst)
+            if (patchMatchSettings.IsCustom && !patchMatchSettings.CustomVersusGameMode.IsRespectFixedFirst(patchMatchSettings))
             {
                 goto JUMP;
             }

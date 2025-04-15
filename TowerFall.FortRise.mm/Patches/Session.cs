@@ -77,9 +77,13 @@ namespace TowerFall
 					stats.RegisterVersusTowerSelection(MatchSettings.LevelSystem.ID.X);
 				}
 				SessionStats.MatchesPlayed++;
-                if (MatchSettings.IsCustom && GameModeRegistry.TryGetGameMode(MatchSettings.CurrentModeName, out var mode)) 
+                if (MatchSettings.IsCustom) 
                 {
-                    mode.StartGame(this);
+                    var gamemode = MatchSettings.CustomVersusGameMode;
+                    if (gamemode != null)
+                    {
+                        gamemode.OnStartGame(this);
+                    }
                 }
 			}
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)
@@ -111,9 +115,13 @@ namespace TowerFall
                     stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
                 }
 				SessionStats.MatchesPlayed++;
-                if (MatchSettings.IsCustom && GameModeRegistry.TryGetGameMode(MatchSettings.CurrentModeName, out var mode)) 
+                if (MatchSettings.IsCustom) 
                 {
-                    mode.StartGame(this);
+                    var gamemode = MatchSettings.CustomVersusGameMode;
+                    if (gamemode != null)
+                    {
+                        gamemode.OnStartGame(this);
+                    }
                 }
 			}
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)

@@ -8,4 +8,5 @@ public interface IModRegistry
     ModVariants Variants { get; }
     ModCommands Commands { get; }
     ModEnemies Enemies { get; }
+    ModGameModes GameModes { get; }
 }

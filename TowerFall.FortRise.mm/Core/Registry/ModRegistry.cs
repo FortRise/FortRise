@@ -7,8 +7,8 @@ internal class ModRegistry : IModRegistry
     public ModPickups Pickups { get; }   
     public ModVariants Variants { get; }
     public ModCommands Commands { get; }
-
     public ModEnemies Enemies { get; }
+    public ModGameModes GameModes { get; }
 
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -17,5 +17,6 @@ internal class ModRegistry : IModRegistry
         Variants = new ModVariants(metadata, manager);
         Commands = new ModCommands(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
+        GameModes = new ModGameModes(metadata, manager);
     }
 }

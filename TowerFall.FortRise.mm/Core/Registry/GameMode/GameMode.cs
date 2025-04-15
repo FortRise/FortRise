@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -8,7 +9,8 @@ namespace FortRise;
 /// A class to create custom gamemode for Versus or Co-Op (WIP) mode. By extending this class, 
 /// the mod loader will then proceed to register the class into the GameModeRegistry.
 /// </summary>
-public abstract class CustomGameMode 
+[Obsolete("Use the 'IVersusGamemode' instead")]
+public abstract class CustomGameMode : IVersusGameMode
 {
     /// <summary>
     /// The ID of your GameMode, this can only be set by the mod loader.
@@ -162,9 +164,81 @@ public abstract class CustomGameMode
         CoinOffset = 12;
         return DeathSkull.GetSprite();
     }
+
+    public void OnStartGame(Session session)
+    {
+        StartGame(session);
+    }
+
+    public RoundLogic OnCreateRoundLogic(Session session)
+    {
+        return CreateRoundLogic(session);
+    }
+
+    public Sprite<int> OverrideCoinSprite(Session session) 
+    {
+        return CoinSprite();
+    }
+
+
+#nullable enable
+    public bool IsTeamMode => TeamMode;
+    public int OverrideCoinOffset(Session? session) => CoinOffset;
+    public SFX OverrideEarnedCoinSFX(Session session) => EarnedCoinSound;
+    public SFX OverrideLoseCoinSFX(Session session) => LoseCoinSound;
+    public bool IsRespectFixedFirst(MatchSettings matchSettings) => RespectFixedFirst;
+    public int GetMinimumTeamPlayers(MatchSettings matchSettings) => TeamMinimumPlayers;
+    public int GetMinimumPlayers(MatchSettings matchSettings) => MinimumPlayers;
+
+    public static Sprite<int> SkullSprite() 
+    {
+        return DeathSkull.GetSprite();
+    }
+
+    public static int SkullSpriteOffset()
+    {
+        return 12;
+    }
 }
 
 /// <summary>
 /// An enum type used to specify where to put this game mode.
 /// </summary>
 public enum GameModeType { Versus, CoOp }
+
+public interface IVersusGameMode 
+{
+    string Name { get; }
+    Color NameColor => Color.White;
+    Subtexture Icon { get; }
+    bool IsTeamMode { get; }
+
+    void OnStartGame(Session session);
+    RoundLogic OnCreateRoundLogic(Session session);
+    Sprite<int> OverrideCoinSprite(Session session) => VersusCoinButton.GetCoinSprite();
+    int OverrideCoinOffset(Session? session) => 10;
+    SFX OverrideEarnedCoinSFX(Session session) => Sounds.sfx_multiCoinEarned;
+    SFX OverrideLoseCoinSFX(Session session) => Sounds.sfx_multiSkullNegative;
+    bool IsRespectFixedFirst(MatchSettings matchSettings) => false;
+    int GetMinimumTeamPlayers(MatchSettings matchSettings) => 3;
+    int GetMinimumPlayers(MatchSettings matchSettings) => 2;
+}
+
+public interface IVersusGameModeEntry 
+{
+    string Name { get; }
+    IVersusGameMode GameMode { get; }
+}
+
+internal class VersusGameModeEntry : IVersusGameModeEntry
+{
+    public string Name { get; init; }
+
+    public IVersusGameMode GameMode { get; init; }
+
+    public VersusGameModeEntry(string name, IVersusGameMode gameMode)
+    {
+        Name = name;
+        GameMode = gameMode;
+    }
+}

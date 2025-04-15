@@ -18,9 +18,13 @@ namespace TowerFall
 
         public static RoundLogic GetRoundLogic(patch_Session session) 
         {
-            if (session.MatchSettings.IsCustom && GameModeRegistry.TryGetGameMode(session.MatchSettings.CurrentModeName, out var mode)) 
+            if (session.MatchSettings.IsCustom) 
             {
-                return mode.CreateRoundLogic(session);
+                var gamemode = session.MatchSettings.CustomVersusGameMode;
+                if (gamemode != null)
+                {
+                    return gamemode.OnCreateRoundLogic(session);
+                }
             }
             return orig_GetRoundLogic(session);
         }

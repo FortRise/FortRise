@@ -1,22 +1,23 @@
+using System;
 using TowerFall;
 
 namespace FortRise;
 
 public static class ModRegisters
 {
-    public static TowerFall.Modes GameModeType<T>() 
+    [Obsolete("Use VersusGameModeType")]
+    public static TowerFall.Modes GameModeType<T>()
     where T : CustomGameMode
     {
-        if (GameModeRegistry.GameModeTypes.TryGetValue(typeof(T), out var idx))
-            return GameModeRegistry.VersusGameModes[idx].GameModeInternal;
-        return TowerFall.Modes.LastManStanding;
+        Logger.Error("This will not work anymore, use the new IVersusGamemode");
+        return Modes.LastManStanding;
     }
 
+    [Obsolete("Use VersusGameModeType")]
     public static TowerFall.Modes GameModeType(string name) 
     {
-        if (GameModeRegistry.GameModesMap.TryGetValue(name, out var idx))
-            return GameModeRegistry.VersusGameModes[GameModeRegistry.GameModeTypes[idx]].GameModeInternal;
-        return TowerFall.Modes.LastManStanding;
+        Logger.Error("This will not work anymore, use the new IVersusGamemode");
+        return Modes.LastManStanding;
     }
 
     public static ArrowData ArrowData(ArrowTypes types) 

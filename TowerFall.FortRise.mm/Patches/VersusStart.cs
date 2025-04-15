@@ -25,7 +25,7 @@ namespace TowerFall
 
         private OutlineText CustomModeText(object displayField) 
         {
-            var customGameMode = (session.MatchSettings as patch_MatchSettings).CurrentCustomGameMode;
+            var customGameMode = (session.MatchSettings as patch_MatchSettings).CustomVersusGameMode;
             if (customGameMode == null)
                 return null;
             var outlineText = new OutlineText(TFGame.Font, customGameMode.Name.ToUpperInvariant());

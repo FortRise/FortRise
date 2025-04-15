@@ -8,22 +8,32 @@ public class patch_MatchSettings : MatchSettings
 {
     private static int lastPlayers;
     public bool IsCustom;
-    public string CurrentModeName;
+
     public patch_Modes Mode;
     public patch_MatchSettings.patch_MatchLengths MatchLength;
     private static readonly float[] GoalMultiplier;
     public static int CustomGoal { get; set; } = 1;
-    public FortRise.CustomGameMode CurrentCustomGameMode 
+
+
+#nullable enable
+    public string? CustomVersusModeName { get; internal set; }
+    public IVersusGameMode? CustomVersusGameMode 
     {
         get 
         {
-            if (GameModeRegistry.TryGetGameMode(CurrentModeName, out var mode)) 
+            if (CustomVersusModeName is null)
             {
-                return mode;
+                return null;
             }
+            if (GameModeRegistry.RegistryVersusGameModes.TryGetValue(CustomVersusModeName, out IVersusGameModeEntry? versusGameMode))
+            {
+                return versusGameMode.GameMode;
+            }
+
             return null;
         }
-    } 
+    }
+#nullable disable
 
     public extern int orig_get_GoalScore();
 
@@ -47,10 +57,10 @@ public class patch_MatchSettings : MatchSettings
     {
         if (IsCustom) 
         {
-            var gameMode = CurrentCustomGameMode;
+            var gameMode = CustomVersusGameMode;
             if (gameMode != null) 
             {
-                return gameMode.TeamMode;
+                return gameMode.IsTeamMode;
             }
         }
         return Mode == patch_Modes.TeamDeathmatch;
@@ -62,16 +72,16 @@ public class patch_MatchSettings : MatchSettings
     {
         if (IsCustom) 
         {
-            if (CurrentCustomGameMode.TeamMode) 
+            if (CustomVersusGameMode.IsTeamMode) 
             {
-                if (TFGame.PlayerAmount >= CurrentCustomGameMode.TeamMinimumPlayers)
+                if (TFGame.PlayerAmount >= CustomVersusGameMode.GetMinimumTeamPlayers(this))
                 {
                     return true;
                 }
             }
             else 
             {
-                if (TFGame.PlayerAmount >= CurrentCustomGameMode.MinimumPlayers)
+                if (TFGame.PlayerAmount >= CustomVersusGameMode.GetMinimumPlayers(this))
                 {
                     return true;
                 }
@@ -113,5 +123,20 @@ public class patch_MatchSettings : MatchSettings
 
     [MonoModIgnore]
     private extern void orig_CleanSettingsVersus();
+
+    [Obsolete("Use 'CustomVersusModeName' instead")]
+    public string CurrentModeName;
+    [Obsolete("Use 'CustomVersusGameMode' instead")]
+    public FortRise.CustomGameMode CurrentCustomGameMode 
+    {
+        get 
+        {
+            if (GameModeRegistry.TryGetGameMode(CurrentModeName, out var mode)) 
+            {
+                return mode as CustomGameMode;
+            }
+            return null;
+        }
+    } 
     
 }

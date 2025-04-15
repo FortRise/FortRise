@@ -29,10 +29,10 @@ namespace TowerFall
             }
             if ((session.MatchSettings as patch_MatchSettings).IsCustom) 
             {
-                var gameMode = (session.MatchSettings as patch_MatchSettings).CurrentCustomGameMode;
+                var gameMode = (session.MatchSettings as patch_MatchSettings).CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    gameMode.EarnedCoinSound.Play(160f, 1f);
+                    gameMode.OverrideEarnedCoinSFX(session).Play(160f, 1f);
                     return;
                 }
             }
@@ -53,10 +53,10 @@ namespace TowerFall
 
             if ((session.MatchSettings as patch_MatchSettings).IsCustom) 
             {
-                var gameMode = (session.MatchSettings as patch_MatchSettings).CurrentCustomGameMode;
+                var gameMode = (session.MatchSettings as patch_MatchSettings).CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    gameMode.LoseCoinSound.Play(160f, 1f);
+                    gameMode.OverrideLoseCoinSFX(session).Play(160f, 1f);
                     return;
                 }
             }
@@ -88,10 +88,10 @@ namespace TowerFall
             }
             if ((session.MatchSettings as patch_MatchSettings).IsCustom) 
             {
-                var gameMode = (session.MatchSettings as patch_MatchSettings).CurrentCustomGameMode;
+                var gameMode = (session.MatchSettings as patch_MatchSettings).CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    gameMode.LoseCoinSound.Play(160f, 1f);
+                    gameMode.OverrideLoseCoinSFX(session).Play(160f, 1f);
                     return;
                 }
             }
@@ -102,10 +102,10 @@ namespace TowerFall
         {
             if (patch_MainMenu.VersusMatchSettings.IsCustom) 
             {
-                var gameMode = patch_MainMenu.VersusMatchSettings.CurrentCustomGameMode;
+                var gameMode = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    return gameMode.CoinSprite();
+                    return gameMode.OverrideCoinSprite(session);
                 }
             }
             return VersusCoinButton.GetCoinSprite();
@@ -115,10 +115,10 @@ namespace TowerFall
         {
             if (patch_MainMenu.VersusMatchSettings.IsCustom) 
             {
-                var gameMode = patch_MainMenu.VersusMatchSettings.CurrentCustomGameMode;
+                var gameMode = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    return gameMode.EarnedCoinSound;
+                    return gameMode.OverrideEarnedCoinSFX(session);
                 }
             }
             return Sounds.sfx_multiCoinEarned;
@@ -128,10 +128,10 @@ namespace TowerFall
         {
             if (patch_MainMenu.VersusMatchSettings.IsCustom) 
             {
-                var gameMode = patch_MainMenu.VersusMatchSettings.CurrentCustomGameMode;
+                var gameMode = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
                 if (gameMode != null) 
                 {
-                    return gameMode.CoinOffset;
+                    return gameMode.OverrideCoinOffset(session);
                 }
             }
             return 10;

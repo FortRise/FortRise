@@ -9,9 +9,13 @@ public static class GameModeRegistry
     internal static int ModesCount = 10;
     public static Dictionary<string, Type> GameModesMap = new();
     public static Dictionary<Type, int> GameModeTypes = new();
-    public static List<CustomGameMode> VersusGameModes = new();
+    public static List<IVersusGameModeEntry> VersusGameModes = new();
+    public static Dictionary<string, IVersusGameModeEntry> RegistryVersusGameModes = new();
+    public static Dictionary<Modes, IVersusGameModeEntry> ModesToVersusGameMode = new();
+    public static Dictionary<string, Modes> NameToModes = new();
 
-    public static bool TryGetGameMode(string name, out CustomGameMode mode) 
+    [Obsolete]
+    public static bool TryGetGameMode(string name, out IVersusGameModeEntry mode) 
     {
         if (GameModesMap.TryGetValue(name, out var type)) 
         {
@@ -25,6 +29,11 @@ public static class GameModeRegistry
         return false;
     }
 
+    public static Modes GetGameModeModes(string name) 
+    {
+        return NameToModes[name];
+    }
+
     public static void Register<T>(FortModule module) 
     {
         Register(typeof(T), module);
@@ -32,20 +41,29 @@ public static class GameModeRegistry
 
     public static void Register(Type type, FortModule module) 
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         if (type.IsSubclassOf(typeof(CustomGameMode)) && type.IsPublic) 
         {
             var instance = Activator.CreateInstance(type) as CustomGameMode;
             instance.Initialize();
             instance.coinSprite = instance.CoinSprite();
-            AddToVersus(type, instance);
+            Register(new VersusGameModeEntry("legacy/" + instance.Name, instance));
+            LegacyGameModes.Add(instance);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    internal static void AddToVersus(Type type, CustomGameMode gameMode) 
+    public static void Register(IVersusGameModeEntry gameMode)
     {
-        GameModesMap[gameMode.ID] = type;
-        GameModeTypes[type] = VersusGameModes.Count;
+        Modes mode = (Modes)ModesCount++;
         VersusGameModes.Add(gameMode);
-        gameMode.GameModeInternal = (Modes)ModesCount++;
+        RegistryVersusGameModes.Add(gameMode.Name, gameMode);
+        ModesToVersusGameMode.Add(mode, gameMode);
+        NameToModes.Add(gameMode.Name, mode);
     }
+
+
+#pragma warning disable CS0618 // Type or member is obsolete
+    public static List<CustomGameMode> LegacyGameModes = new();
+#pragma warning restore CS0618 // Type or member is obsolete
 }

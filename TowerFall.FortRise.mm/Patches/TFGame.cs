@@ -532,7 +532,8 @@ namespace TowerFall
                 yield return 0;
             }
             XNAFileDialog.GraphicsDevice = Engine.Instance.GraphicsDevice;
-            foreach (var gameMode in GameModeRegistry.VersusGameModes) 
+            // can be remove
+            foreach (var gameMode in GameModeRegistry.LegacyGameModes) 
             {
                 gameMode.InitializeSoundsInternal();
             }
