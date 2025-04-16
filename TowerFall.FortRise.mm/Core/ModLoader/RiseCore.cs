@@ -1,7 +1,6 @@
 using FortRise.Adventure;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -24,7 +23,6 @@ namespace FortRise;
 public delegate Enemy EnemyLoader(Vector2 position, Facing facing, Vector2[] nodes);
 public delegate DarkWorldBoss DarkWorldBossLoader(int difficulty);
 public delegate patch_Arrow ArrowLoader();
-public delegate Subtexture ArrowHUDLoader();
 public delegate Pickup PickupLoader(Vector2 position, Vector2 targetPosition, int playerIndex);
 public delegate LevelEntity LevelEntityLoader(XmlElement x, Vector2 position, Vector2[] nodes);
 public delegate CustomMenuState CustomMenuStateLoader(MainMenu menu);
@@ -39,22 +37,23 @@ public static partial class RiseCore
     /// A TowerFall root directory.
     /// </summary>
     public static string GameRootPath { get; internal set; }
-    public static Dictionary<string, EnemyLoader> EnemyLoader = new();
-    public static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
-    public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
+    internal static Dictionary<string, EnemyLoader> EnemyLoader = new();
+    internal static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
+    internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
 
     internal static FortModule AdventureModule;
     internal static ModuleManager ModuleManager = new();
+    internal static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
-    public static List<string> DetourLogs = new List<string>();
+    internal static List<string> DetourLogs = new List<string>();
 
     /// <summary>
     /// A current version of FortRise.
     /// <note>This should be not used to check for Latest Version and Current Version,
     /// this is an information for logging purposes.</note>
     /// </summary>
-    public static SemanticVersion FortRiseVersion;
+    public static SemanticVersion FortRiseVersion { get; internal set; }
     /// <summary>
     /// Checks if the OS that is currently running is Windows.
     /// </summary>
@@ -65,13 +64,13 @@ public static partial class RiseCore
     /// Checks if the FortRise is currently running on Debug Mode.
     /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
     /// </summary>
-    public static bool DebugMode;
+    public static bool DebugMode { get; private set; }
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
     public static bool NoErrorScene { get; private set; }
-    internal static bool NoRichPresence;
-    internal static bool DumpResources;
-    internal static bool DisableFortMods;
+    public static bool NoRichPresence { get; private set; }
+    public static bool DumpResources { get; private set; }
+    public static bool DisableFortMods { get; private set; }
     internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
@@ -79,7 +78,7 @@ public static partial class RiseCore
     /// <summary>
     /// Check if the game is about to restart.
     /// </summary>
-    public static bool WillRestart = false;
+    public static bool WillRestart { get; set; }
 
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath)
     {
@@ -126,7 +125,7 @@ public static partial class RiseCore
             File.Move(update, Path.Combine(modDirectory, filename));
         }
 
-        // Load mods here
+        // Load env mods here
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
         var directory = Directory.GetDirectories(modDirectory);
         foreach (var dir in directory)
@@ -137,7 +136,7 @@ public static partial class RiseCore
             if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(dirInfo.Name))
                 continue;
 
-            LoadDir(dir);
+            SetEnvDir(dir);
         }
         var files = Directory.GetFiles(modDirectory);
         foreach (var file in files)
@@ -148,9 +147,9 @@ public static partial class RiseCore
             if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(Path.GetFileName(fileName)))
                 continue;
 
-            LoadZip(file);
+            SetEnvZip(file);
         }
-        static void LoadDir(string dir)
+        static void SetEnvDir(string dir)
         {
             var metaPath = Path.Combine(dir, "env.json");
             if (!File.Exists(metaPath))
@@ -162,7 +161,7 @@ public static partial class RiseCore
             }
         }
 
-        static void LoadZip(string file)
+        static void SetEnvZip(string file)
         {
             using var zipFile = ZipFile.OpenRead(file);
 
@@ -240,7 +239,7 @@ public static partial class RiseCore
             DiscordComponent.Create();
     }
 
-    public static void ParseArgs(string[] args)
+    internal static void ParseArgs(string[] args)
     {
         var compiledArgs = new List<string>(args);
         if (File.Exists("launch.txt"))
@@ -440,21 +439,20 @@ public static partial class RiseCore
     [PatchFlags]
     internal static void Flags() {}
 
-    public static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
-    public static byte[] GetChecksum(string path)
+    internal static byte[] GetChecksum(string path)
     {
         using var fs = File.OpenRead(path);
         return ChecksumHasher.ComputeHash(fs);
     }
 
-    public static byte[] GetChecksum(ModuleMetadata meta)
+    internal static byte[] GetChecksum(ModuleMetadata meta)
     {
         return GetChecksum(meta.DLL);
     }
 
     // https://github.com/EverestAPI/Everest/blob/dev/Celeste.Mod.mm/Mod/Everest/Everest.cs
-    public static byte[] GetChecksum(ref Stream stream)
+    internal static byte[] GetChecksum(ref Stream stream)
     {
         if (!stream.CanSeek)
         {
@@ -695,7 +693,7 @@ public static partial class RiseCore
         module.InternalUnload();
     }
 
-    public static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
+    internal static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
     {
         List<string> detours = DetourLogs;
         if (detours.Count == 0)
