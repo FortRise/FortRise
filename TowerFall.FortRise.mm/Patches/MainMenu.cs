@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using FortRise;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil;
@@ -138,10 +136,7 @@ namespace TowerFall
             BladeButton creditsButton;
             if (MainMenu.NoQuit)
             {
-                modsButtons = new patch_BladeButton(206 - 18f, "MODS", () => {
-                    Logger.Info(ModRegisters.MenuState<UIModMenu>());
-                    State = ModRegisters.MenuState<UIModMenu>();
-                });
+                modsButtons = new patch_BladeButton(206 - 18f, "MODS", () => State = ModRegisters.MenuState<UIModMenu>());
                 modsButtons.SetX(-50f);
 
                 list.Add(modsButtons);
@@ -152,10 +147,7 @@ namespace TowerFall
             }
             else
             {
-                modsButtons = new patch_BladeButton(192f - 18f, "MODS", () => {
-                    Logger.Info(ModRegisters.MenuState<UIModMenu>());
-                    State = ModRegisters.MenuState<UIModMenu>();
-                });
+                modsButtons = new patch_BladeButton(192f - 18f, "MODS", () => State = ModRegisters.MenuState<UIModMenu>());
                 modsButtons.SetX(-50f);
                 list.Add(modsButtons);
                 optionsButton = new BladeButton(192f, "OPTIONS", this.MainOptions);
