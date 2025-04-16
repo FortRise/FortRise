@@ -85,10 +85,12 @@ namespace TowerFall
             {
                 if (parseVersion)
                 {
-                    if (!SemanticVersion.TryParse(arg, out RiseCore.FortRiseVersion))
+                    if (!SemanticVersion.TryParse(arg, out SemanticVersion version))
                     {
                         throw new Exception("Invalid FortRise Version");
                     }
+
+                    RiseCore.FortRiseVersion = version;
                     parseVersion = false;
                 }
                 if (arg == "--vanilla")
