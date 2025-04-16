@@ -3,13 +3,13 @@ using TowerFall;
 
 namespace FortRise;
 
-internal class VariantMetadata : IVariant
+internal class VariantEntry : IVariantEntry
 {
     public string Name { get; init; }
     public VariantConfiguration Configuration { get; init; }
 
 
-    public VariantMetadata(string name, VariantConfiguration configuration)
+    public VariantEntry(string name, VariantConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;

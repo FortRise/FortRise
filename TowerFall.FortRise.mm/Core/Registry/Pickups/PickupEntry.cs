@@ -3,13 +3,13 @@ using TowerFall;
 
 namespace FortRise;
 
-internal class PickupMetadata : IPickup
+internal class PickupEntry : IPickupEntry
 {
     public string Name { get; init; }
     public PickupConfiguration Configuration { get; init; }
 
 
-    public PickupMetadata(string name, PickupConfiguration configuration)
+    public PickupEntry(string name, PickupConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;

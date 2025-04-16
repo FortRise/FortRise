@@ -6,35 +6,35 @@ namespace FortRise;
 
 public class ModArrows 
 {
-    private readonly Dictionary<string, IArrow> entries = new Dictionary<string, IArrow>();
-    private readonly RegistryQueue<IArrow> registryQueue;
+    private readonly Dictionary<string, IArrowEntry> entries = new Dictionary<string, IArrowEntry>();
+    private readonly RegistryQueue<IArrowEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
     internal ModArrows(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IArrow>(Invoke);
+        registryQueue = manager.CreateQueue<IArrowEntry>(Invoke);
     }
 
-    public IArrow RegisterArrows(string id, ArrowConfiguration configuration)
+    public IArrowEntry RegisterArrows(string id, ArrowConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
 
-        IArrow arrow = new ArrowMetadata(name, configuration);
+        IArrowEntry arrow = new ArrowEntry(name, configuration);
         entries.Add(name, arrow);
         registryQueue.AddOrInvoke(arrow);
         return arrow;
     }
 
-    public IArrow? GetArrow(string id) 
+    public IArrowEntry? GetArrow(string id) 
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IArrow? value);
+        alternate.TryGetValue(name, out IArrowEntry? value);
         return value;
     }
 
-    internal void Invoke(IArrow entry)
+    internal void Invoke(IArrowEntry entry)
     {
         ArrowsRegistry.Register(entry.Name, entry.Configuration);
     }

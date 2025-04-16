@@ -3,13 +3,13 @@ using TowerFall;
 
 namespace FortRise;
 
-internal class ArrowMetadata : IArrow
+internal class ArrowEntry : IArrowEntry
 {
     public string Name { get; init; }
     public ArrowConfiguration Configuration { get; init; }
 
 
-    public ArrowMetadata(string name, ArrowConfiguration configuration)
+    public ArrowEntry(string name, ArrowConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;

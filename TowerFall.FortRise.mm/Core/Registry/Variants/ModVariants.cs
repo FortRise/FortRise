@@ -9,17 +9,17 @@ namespace FortRise;
 
 public class ModVariants
 {
-    private readonly Dictionary<string, IVariant> entries = new Dictionary<string, IVariant>();
-    private readonly RegistryQueue<IVariant> registryQueue;
+    private readonly Dictionary<string, IVariantEntry> entries = new Dictionary<string, IVariantEntry>();
+    private readonly RegistryQueue<IVariantEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
     internal ModVariants(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IVariant>(Invoke);
+        registryQueue = manager.CreateQueue<IVariantEntry>(Invoke);
     }
 
-    public IVariant RegisterVariant(string id, VariantConfiguration configuration) 
+    public IVariantEntry RegisterVariant(string id, VariantConfiguration configuration) 
     {
         var name = $"{metadata.Name}/{id}";
 
@@ -30,17 +30,17 @@ public class ModVariants
             header = metadata.Name;
         }
 
-        IVariant variant = new VariantMetadata(name, configuration with { Header = header });
+        IVariantEntry variant = new VariantEntry(name, configuration with { Header = header });
         entries.Add(name, variant);
         registryQueue.AddOrInvoke(variant);
         return variant;
     }
 
-    public IVariant? GetVariant(string id)
+    public IVariantEntry? GetVariant(string id)
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (alternate.TryGetValue(name, out IVariant? value))
+        if (alternate.TryGetValue(name, out IVariantEntry? value))
         {
             return value;
         }
@@ -55,7 +55,7 @@ public class ModVariants
         return variant;
     }
 
-    private static VariantMetadata CreateVanillaEntry(FieldInfo info)
+    private static VariantEntry CreateVanillaEntry(FieldInfo info)
     {
         string variantTitle = GetVariantTitle(info);
         Subtexture icon = MatchVariants.GetVariantIconFromName(info.Name);
@@ -117,7 +117,7 @@ public class ModVariants
             Flags = flags
         };
 
-        var variant = new VariantMetadata(info.Name, variantConfiguration);
+        var variant = new VariantEntry(info.Name, variantConfiguration);
         return variant;
     }
 
@@ -135,7 +135,7 @@ public class ModVariants
         return text.ToUpperInvariant();
     }
 
-    internal void Invoke(IVariant variant)
+    internal void Invoke(IVariantEntry variant)
     {
         VariantRegistry.Register(variant);
     }

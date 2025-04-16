@@ -3,7 +3,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public interface IVariant 
+public interface IVariantEntry 
 {
     string Name { get; init; }
     public VariantConfiguration Configuration { get; init; }

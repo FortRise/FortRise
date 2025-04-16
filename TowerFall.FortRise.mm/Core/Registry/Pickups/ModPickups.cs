@@ -5,26 +5,26 @@ namespace FortRise;
 
 public class ModPickups
 {
-    private readonly Dictionary<string, IPickup> entries = new Dictionary<string, IPickup>();
-    private readonly RegistryQueue<IPickup> registryQueue;
+    private readonly Dictionary<string, IPickupEntry> entries = new Dictionary<string, IPickupEntry>();
+    private readonly RegistryQueue<IPickupEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
     internal ModPickups(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IPickup>(Invoke);
+        registryQueue = manager.CreateQueue<IPickupEntry>(Invoke);
     }
 
-    public IPickup RegisterPickups(string id, PickupConfiguration configuration)
+    public IPickupEntry RegisterPickups(string id, PickupConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";       
-        IPickup pickup = new PickupMetadata(name, configuration);
+        IPickupEntry pickup = new PickupEntry(name, configuration);
         entries.Add(name, pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
     }
 
-    internal void Invoke(IPickup entry)
+    internal void Invoke(IPickupEntry entry)
     {
         PickupsRegistry.Register(entry.Name, entry.Configuration);
     }

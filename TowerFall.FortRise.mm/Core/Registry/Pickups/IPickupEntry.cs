@@ -3,7 +3,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public interface IPickup
+public interface IPickupEntry
 {
     string Name { get; init; }
     public PickupConfiguration Configuration { get; init; }

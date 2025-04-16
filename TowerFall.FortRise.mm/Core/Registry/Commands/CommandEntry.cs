@@ -1,13 +1,13 @@
 #nullable enable
 namespace FortRise;
 
-internal class CommandMetadata : ICommand
+internal class CommandEntry : ICommandEntry
 {
     public string Name { get; init; }
     public CommandConfiguration Configuration { get; init; }
 
 
-    public CommandMetadata(string name, CommandConfiguration configuration)
+    public CommandEntry(string name, CommandConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;

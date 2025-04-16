@@ -223,22 +223,3 @@ public interface IVersusGameMode
     int GetMinimumTeamPlayers(MatchSettings matchSettings) => 3;
     int GetMinimumPlayers(MatchSettings matchSettings) => 2;
 }
-
-public interface IVersusGameModeEntry 
-{
-    string Name { get; }
-    IVersusGameMode GameMode { get; }
-}
-
-internal class VersusGameModeEntry : IVersusGameModeEntry
-{
-    public string Name { get; init; }
-
-    public IVersusGameMode GameMode { get; init; }
-
-    public VersusGameModeEntry(string name, IVersusGameMode gameMode)
-    {
-        Name = name;
-        GameMode = gameMode;
-    }
-}

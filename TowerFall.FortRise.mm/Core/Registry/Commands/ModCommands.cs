@@ -6,25 +6,25 @@ namespace FortRise;
 
 public class ModCommands
 {
-    private readonly Dictionary<string, ICommand> entries = new Dictionary<string, ICommand>();
-    private readonly RegistryQueue<ICommand> registryQueue;
+    private readonly Dictionary<string, ICommandEntry> entries = new Dictionary<string, ICommandEntry>();
+    private readonly RegistryQueue<ICommandEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
     internal ModCommands(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<ICommand>(Invoke);
+        registryQueue = manager.CreateQueue<ICommandEntry>(Invoke);
     }
 
-    public ICommand RegisterCommands(string id, CommandConfiguration configuration)
+    public ICommandEntry RegisterCommands(string id, CommandConfiguration configuration)
     {
-        ICommand command = new CommandMetadata(id, configuration);
+        ICommandEntry command = new CommandEntry(id, configuration);
         entries.Add(id, command);
         registryQueue.AddOrInvoke(command);
         return command;
     }
 
-    internal void Invoke(ICommand entry)
+    internal void Invoke(ICommandEntry entry)
     {
         var commands = Engine.Instance.Commands;
         commands.RegisterCommand(entry.Name, entry.Configuration.Callback);

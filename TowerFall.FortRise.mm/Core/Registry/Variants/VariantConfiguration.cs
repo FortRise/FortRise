@@ -12,5 +12,5 @@ public readonly struct VariantConfiguration
     public string? Description { get; init; }
     public CustomVariantFlags Flags { get; init; }
     public Pickups[]? Exclusions { get; init; }
-    public IVariant[]? Links { get; init; }
+    public IVariantEntry[]? Links { get; init; }
 }
