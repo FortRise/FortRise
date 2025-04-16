@@ -31,7 +31,7 @@ namespace TowerFall
             var outlineText = new OutlineText(TFGame.Font, customGameMode.Name.ToUpperInvariant());
             outlineText.Color = Color.Transparent;
             outlineText.OutlineColor = Color.Transparent;
-            displayField.DynSetData("modeColor", customGameMode.NameColor);
+            DynamicData.For(displayField).Set("modeColor", customGameMode.NameColor);
             Add(outlineText);
             return outlineText;
         }
