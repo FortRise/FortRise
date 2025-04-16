@@ -50,12 +50,12 @@ internal class ModInterop : IModInterop
 
         if (mod is null)
         {
-            throw new ArgumentException($"The mod {modName} does not exists on the mod lists.");
+            return null;
         }
 
         if (minimumVersion.HasValue && minimumVersion.Value > mod.Meta.Version)
         {
-            throw new ArgumentException($"The minimum version requested for {modName} is {minimumVersion}, but it has {mod.Meta.Version} instead.");
+            return null;
         }
 
         ref var apiObject = ref CollectionsMarshal.GetValueRefOrAddDefault(apiCache, modName, out bool exists);
