@@ -26,13 +26,9 @@ public class FortContent
     /// A property where your default Content lookup is being used. Some methods are relying on this.
     /// </summary>
     /// <value>The <c>ContentPath</c> property represents your Content path.</value>
-    public string ContentPath
-    {
-        get => contentPath;
-        set => contentPath = value;
-    }
+    public string ContentPath => "Content";
+    
     public readonly IModResource ResourceSystem;
-    private string contentPath = "Content";
 
     public Dictionary<string, IResourceInfo> MapResource => ResourceSystem.OwnedResources;
     [Obsolete]
@@ -53,13 +49,13 @@ public class FortContent
     private bool requestReload;
 
     [Obsolete]
-    public string MetadataPath => ContentRoot.Root;
+    public string MetadataPath => Root.Root;
     
     /// <summary>
     /// The mod's root path.
     /// </summary>
     /// <value>Represent the prefix of your path to the virtual filesystem</value>
-    public IResourceInfo ContentRoot
+    public IResourceInfo Root
     {
         get
         {
@@ -88,7 +84,7 @@ public class FortContent
 
         if (ResourceSystem.Metadata != null && ResourceSystem.Metadata.IsDirectory) 
         {
-            var dir = Path.Combine(resource.Metadata.PathDirectory, contentPath);
+            var dir = Path.Combine(resource.Metadata.PathDirectory, ContentPath);
             if (!Directory.Exists(dir)) 
             {
                 return;
@@ -569,106 +565,23 @@ public class FortContent
         }
     }
 
-    public bool IsResourceExist(string path)
-    {
-        path = path.Replace('\\', '/');
-        if (MapResource.ContainsKey(path))
-            return true;
-        return false;
-    }
-
-    public bool TryGetValue(string path, out IResourceInfo value)
-    {
-        path = path.Replace('\\', '/');
-        return MapResource.TryGetValue(path, out value);
-    }
-
-    public IResourceInfo GetValue(string path)
-    {
-        path = path.Replace('\\', '/');
-        return MapResource[path];
-    }
-
-    public IEnumerable<string> EnumerateFilesString(string path)
-    {
-        path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder))
-        {
-            for (int i = 0; i < folder.Childrens.Count; i++)
-            {
-                yield return folder.Childrens[i].Path;
-            }
-        }
-    }
-
-    public IEnumerable<IResourceInfo> EnumerateFiles(string path)
-    {
-        path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder))
-        {
-            return folder.Childrens;
-        }
-        return Enumerable.Empty<IResourceInfo>();
-    }
-
-    public IEnumerable<IResourceInfo> EnumerateFiles(string path, string filterExt)
-    {
-        path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder))
-        {
-            // FIXME Need improvements, this is not what I want!!!
-            filterExt = filterExt.Replace("*", "");
-            foreach (var child in folder.Childrens)
-            {
-                if (!child.Path.Contains(filterExt))
-                    continue;
-                yield return child;
-            }
-        }
-    }
-
-    public string[] GetResourcesPath(string path)
-    {
-        path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder))
-        {
-            string[] childrens = new string[folder.Childrens.Count];
-            for (int i = 0; i < folder.Childrens.Count; i++)
-            {
-                childrens[i] = folder.Childrens[i].Path;
-            }
-            return childrens;
-        }
-        return Array.Empty<string>();
-    }
-
     public T LoadShader<T>(string path, string passName, out int id)
     where T : ShaderResource, new()
     {
         path = path.Replace('\\', '/');
-        var shaderPath = contentPath + "/" + path;
+        var shaderPath = ContentPath + "/" + path;
         return ShaderManager.AddShader<T>(this[shaderPath], passName, out id);
     }
 
     public TrackInfo LoadMusic(string path)
     {
         path = path.Replace('\\', '/');
-        var musicPath = contentPath + "/" + path;
+        var musicPath = ContentPath + "/" + path;
         var musicResource = this[musicPath];
         using var musicStream = musicResource.Stream;
         var resourceType = musicResource.ResourceType;
         var trackInfo = new TrackInfo(path, musicPath, resourceType);
         return trackInfo;
-    }
-
-    public IResourceInfo[] GetResources(string path)
-    {
-        path = path.Replace('\\', '/');
-        if (TryGetValue(path, out var folder))
-        {
-            return folder.Childrens.ToArray();
-        }
-        return Array.Empty<IResourceInfo>();
     }
 
     /// <summary>
@@ -688,8 +601,8 @@ public class FortContent
         if (atlases.TryGetValue(atlasID, out var atlasExisted))
             return atlasExisted;
 
-        using var data = this[contentPath + "/" + dataPath].Stream;
-        using var image = this[contentPath + "/" + imagePath].Stream;
+        using var data = this[ContentPath + "/" + dataPath].Stream;
+        using var image = this[ContentPath + "/" + imagePath].Stream;
         var atlas = AtlasExt.CreateAtlas(data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);
@@ -716,11 +629,11 @@ public class FortContent
             return atlasExisted;
 
         IResourceInfo dataRes;
-        if (this.MapResource.TryGetValue(contentPath + "/" + path + ".xml", out var res))
+        if (this.MapResource.TryGetValue(ContentPath + "/" + path + ".xml", out var res))
         {
             dataRes = res;
         }
-        else if (this.MapResource.TryGetValue(contentPath + "/" + path + ".json", out var res2))
+        else if (this.MapResource.TryGetValue(ContentPath + "/" + path + ".json", out var res2))
         {
             dataRes = res2;
         }
@@ -731,7 +644,7 @@ public class FortContent
         }
 
         using var data = dataRes.Stream;
-        using var image = this[contentPath + "/" + path + ".png"].Stream;
+        using var image = this[ContentPath + "/" + path + ".png"].Stream;
         var atlas = AtlasExt.CreateAtlas(data, image, ext);
         atlases.Add(atlasID, atlas);
         Logger.Verbose("[ATLAS] Loaded: " + atlasID);
@@ -751,47 +664,10 @@ public class FortContent
         if (spriteDatas.TryGetValue(path, out var spriteDataExist))
             return spriteDataExist;
 
-        using var xml = this[contentPath + "/" + path].Stream;
+        using var xml = this[ContentPath + "/" + path].Stream;
         var spriteData = SpriteDataExt.CreateSpriteData(xml, atlas);
         spriteDatas.Add(path, spriteData);
         return spriteData;
-    }
-
-    /// <summary>
-    /// Try to load SpriteData from a mod Content path. If it succeed, it returns true if it succeed, else false.
-    /// The SpriteData must have an attribute called "atlas" referencing the atlas path that exists to use to succeed.
-    /// This will use the <c>ContentPath</c> property, it's <c>Content</c> by default.
-    /// </summary>
-    /// <param name="path">A path to the SpriteData xml.</param>
-    /// <param name="result">A SpriteData instance to be use for sprite if it succeed, else null</param>
-    /// <returns>true if it succeed, else false</returns>
-    public bool TryLoadSpriteData(string path, out patch_SpriteData result)
-    {
-        path = path.Replace('\\', '/');
-        var id = path.Replace(".xml", "");
-        if (spriteDatas.TryGetValue(id, out var spriteDataExist))
-        {
-            result = spriteDataExist;
-            return true;
-        }
-
-        var filename = Path.GetFileName(id);
-
-        Atlas atlas = filename switch {
-            "spriteData" => TFGame.Atlas,
-            "menuSpriteData" => TFGame.MenuAtlas,
-            "bossSpriteData" => TFGame.BossAtlas,
-            "bgSpriteData" => TFGame.BGAtlas,
-            _ => null
-        };
-
-        using var xml = this[contentPath + "/" + path].Stream;
-        var data = SpriteDataExt.CreateSpriteDataFromAtlas(this, xml, (patch_Atlas)atlas);
-        
-        var spriteData = data;
-        spriteDatas.Add(id, spriteData);
-        result = spriteData;
-        return true;
     }
 
     /// <summary>
@@ -803,7 +679,7 @@ public class FortContent
     public Stream LoadStream(string path)
     {
         path = path.Replace('\\', '/');
-        return this[contentPath + "/" + path].Stream;
+        return this[ContentPath + "/" + path].Stream;
     }
 
     /// <summary>
@@ -840,7 +716,7 @@ public class FortContent
     public string LoadText(string path)
     {
         path = path.Replace('\\', '/');
-        using var stream = this[contentPath + "/" + path].Stream;
+        using var stream = this[ContentPath + "/" + path].Stream;
         using TextReader sr = new StreamReader(stream);
         return sr.ReadToEnd();
     }
@@ -853,7 +729,7 @@ public class FortContent
     public XmlDocument LoadXML(string path)
     {
         path = path.Replace('\\', '/');
-        using var stream = this[contentPath + "/" + path].Stream;
+        using var stream = this[ContentPath + "/" + path].Stream;
         return patch_Calc.LoadXML(stream);
     }
 
@@ -862,7 +738,7 @@ public class FortContent
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
             return val;
-        using var stream = this[contentPath + "/" + path].Stream;
+        using var stream = this[ContentPath + "/" + path].Stream;
         return SFXExt.CreateSFX(this, stream, obeysMasterPitch);
     }
 
@@ -871,7 +747,7 @@ public class FortContent
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
             return (patch_SFXInstanced)val;
-        using var stream = this[contentPath + "/" + path].Stream;
+        using var stream = this[ContentPath + "/" + path].Stream;
         return SFXInstancedExt.CreateSFXInstanced(this, stream, instances, obeysMasterPitch);
     }
 
@@ -880,7 +756,7 @@ public class FortContent
         path = path.Replace('\\', '/');
         if (sfxes.TryGetValue(path, out var val))
             return (patch_SFXLooped)val;
-        using var stream = this[contentPath + "/" + path].Stream;
+        using var stream = this[ContentPath + "/" + path].Stream;
         return SFXLoopedExt.CreateSFXLooped(this, stream, obeysMasterPitch);
     }
 
@@ -894,12 +770,12 @@ public class FortContent
         var stream = new Stream[amount];
         for (int i = 0; i < amount; i++)
         {
-            stream[i] = this[contentPath + "/" + path + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
+            stream[i] = this[ContentPath + "/" + path + SFXVariedExt.GetSuffix(i + 1) + currentExtension].Stream;
         }
         return SFXVariedExt.CreateSFXVaried(this, stream, amount, obeysMasterPitch);
     }
 
-    public void Dispose(bool disposeTexture)
+    internal void Dispose(bool disposeTexture)
     {
         ResourceSystem.Dispose();
         if (disposeTexture)
