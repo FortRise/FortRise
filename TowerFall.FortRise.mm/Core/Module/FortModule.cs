@@ -301,12 +301,17 @@ public abstract partial class FortModule
     }
 }
 
+#nullable enable
 public interface IModInterop
 {
     IReadOnlyList<IModResource> LoadedMods { get; }
     IReadOnlyList<FortModule> LoadedFortModules {get; }
-    IModRegistry GetOtherRegistry(string modName);
-    IModRegistry GetOtherRegistry(ModuleMetadata metadata);
+
+    string[]? GetTags(string modName);
+    string[] GetAllTags();
+    IReadOnlyList<IModResource> GetModsByTag(string tag);
+    IModRegistry? GetModRegistry(string modName);
+    IModRegistry? GetModRegistry(ModuleMetadata metadata);
 
     bool IsModExists(string name);
 }
@@ -323,15 +328,11 @@ internal class ModInterop : IModInterop
         manager = moduleManager;
     }
 
-    public IModRegistry GetOtherRegistry(string modName)
-    {
-        return RiseCore.ModuleManager.GetRegistry(modName);
-    }
-
-    public IModRegistry GetOtherRegistry(ModuleMetadata metadata)
-    {
-        return RiseCore.ModuleManager.AddOrGetRegistry(metadata);
-    }
+    public string[]? GetTags(string modName) => manager.GetTags(modName);
+    public string[] GetAllTags() => manager.GetAllTags();
+    public IReadOnlyList<IModResource> GetModsByTag(string tag) => manager.GetModsByTag(tag);
+    public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
+    public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);
 
     public bool IsModExists(string name)
     {

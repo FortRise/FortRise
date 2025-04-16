@@ -1,7 +1,6 @@
+#nullable enable
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Loader;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -11,32 +10,33 @@ namespace FortRise;
 public class ModuleUpdater 
 {
     [JsonPropertyName("Github")]
-    public Github GH { get; set; }
+    public Github? GH { get; set; }
 
     public class Github 
     {
-        public string Repository { get; set; }
-        public string TagRegex { get; set; }
+        public string? Repository { get; set; }
+        public string? TagRegex { get; set; }
     }
 }
 
 
 public partial class ModuleMetadata : IEquatable<ModuleMetadata>
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
     public SemanticVersion Version { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
-    public ModuleMetadata[] Dependencies { get; set; } = null;
-    public ModuleMetadata[] OptionalDependencies { get; set; } = null;
-    public ModuleUpdater Update { get; set; } = null;
+    public string[]? Tags { get; set; } = null;
+    public ModuleMetadata[]? Dependencies { get; set; } = null;
+    public ModuleMetadata[]? OptionalDependencies { get; set; } = null;
+    public ModuleUpdater? Update { get; set; } = null;
 
     public string PathDirectory = string.Empty;
     public string PathZip = string.Empty;
     [JsonIgnore]
-    internal ModAssemblyLoadContext AssemblyLoadContext { get; set; } = null;
+    internal ModAssemblyLoadContext? AssemblyLoadContext { get; set; } = null;
 
     [JsonIgnore]
     internal byte[] Hash => RiseCore.GetChecksum(this);
@@ -53,8 +53,11 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     }
 
 
-    public bool Equals(ModuleMetadata other)
+    public bool Equals(ModuleMetadata? other)
     {
+        if (other is null)
+            return false;
+
         if (other.Name != this.Name)
             return false;
 
@@ -71,7 +74,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
         return true;
     }
 
-    public override bool Equals(object obj) => Equals(obj as ModuleMetadata);
+    public override bool Equals(object? obj) => Equals(obj as ModuleMetadata);
 
 
     public override int GetHashCode()
@@ -101,6 +104,10 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public static Result<ModuleMetadata, string> ParseMetadata(string dirPath, Stream stream, bool zip = false)
     {
         var metadata = JsonSerializer.Deserialize<ModuleMetadata>(stream, metaJsonOptions);
+        if (metadata is null)
+        {
+            return Result<ModuleMetadata, string>.Error($"Json failed to parse on directory: '{dirPath}'");
+        }
         var regex = GeneratedNameRegex();
 
         if (!regex.IsMatch(metadata.Name))
@@ -109,7 +116,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
         }
 
         var fortRise = metadata.GetFortRiseMetadata();
-        if (fortRise != null)
+        if (fortRise! != null!)
         {
             if (RiseCore.FortRiseVersion < fortRise.Version)
             {
@@ -121,7 +128,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
             return Result<ModuleMetadata, string>.Error($"Mod Name: {metadata.Name} does not have FortRise dependency.");
         }
 
-        string zipPath = "";
+        string zipPath;
         if (!zip)
         {
             metadata.PathDirectory = dirPath;
@@ -129,7 +136,6 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
         else
         {
             zipPath = dirPath;
-            dirPath = Path.GetDirectoryName(dirPath);
             metadata.PathZip = zipPath;
         }
 
@@ -154,7 +160,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
 
     public static bool operator !=(ModuleMetadata lhs, ModuleMetadata rhs) => !(lhs == rhs);
 
-    public ModuleMetadata GetFortRiseMetadata() 
+    public ModuleMetadata? GetFortRiseMetadata() 
     {
         if (Dependencies == null)
         {

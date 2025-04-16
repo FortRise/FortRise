@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -31,6 +32,7 @@ internal class ModuleManager
     internal List<FortModule> InternalFortModules = new();
     internal HashSet<ModuleMetadata> InternalModuleMetadatas = new();
     internal List<IModResource> InternalMods = new();
+    internal HashSet<string> InternalTags = new();
 
 
     private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
@@ -252,6 +254,14 @@ internal class ModuleManager
 
         InternalMods.Add(modResource);
         InternalModuleMetadatas.Add(metadata);
+        if (metadata.Tags != null)
+        {
+            foreach (var tag in metadata.Tags)
+            {
+                InternalTags.Add(tag);
+            }
+        }
+        
 
         return new Unit();
     }
@@ -369,9 +379,48 @@ internal class ModuleManager
     }
 
 #nullable enable
+    internal IReadOnlyList<IModResource> GetModsByTag(string tag)
+    {
+        return [.. InternalMods.Where(x => 
+        {
+            var tags = x.Metadata.Tags;
+            if (tags is null)
+            {
+                return false;
+            }
+            return tags.Contains(tag);
+        })];
+    }
+
+    internal string[] GetAllTags()
+    {
+        return InternalTags.ToArray();
+    }
+
+    internal string[]? GetTags(string modName)
+    {
+        string[]? tags = null;
+        foreach (var mod in InternalMods)
+        {
+            if (mod.Metadata.Name == modName)
+            {
+                tags = mod.Metadata.Tags;
+                break;
+            }
+        }
+
+        return tags;
+    }
+
     internal IModRegistry? GetRegistry(string modName)
     {
         registries.TryGetValue(modName, out IModRegistry? value);
+        return value;
+    }
+
+    internal IModRegistry? GetRegistry(ModuleMetadata metadata)
+    {
+        registries.TryGetValue(metadata.Name, out IModRegistry? value);
         return value;
     }
 #nullable disable
