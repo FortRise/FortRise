@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
+using Nanoray.Pintail;
 
 namespace FortRise;
 
@@ -161,6 +163,10 @@ public abstract partial class FortModule
         }
     }
 
+#nullable enable
+    public virtual object? GetApi() => null;
+#nullable disable
+
     public void LoadSettings()
     {
         InternalSettings = (ModuleSettings)SettingsType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
@@ -309,28 +315,35 @@ public interface IModInterop
 
     string[]? GetTags(string modName);
     string[] GetAllTags();
+    IModResource? GetMod(string tag);
     IReadOnlyList<IModResource> GetModsByTag(string tag);
     IModRegistry? GetModRegistry(string modName);
     IModRegistry? GetModRegistry(ModuleMetadata metadata);
+
+    T? GetApi<T>(string name, Option<SemanticVersion> minimumVersion = default) where T : class;
 
     bool IsModExists(string name);
 }
 
 internal class ModInterop : IModInterop
 {
+    private readonly Dictionary<string, object?> apiCache = [];
     private readonly ModuleManager manager;
 
     public IReadOnlyList<IModResource> LoadedMods => manager.Mods;
     public IReadOnlyList<FortModule> LoadedFortModules => manager.Modules;
+    public IProxyManager<string> ProxyManager { get; private set; }
 
-    internal ModInterop(ModuleManager moduleManager)
+    internal ModInterop(ModuleManager moduleManager, IProxyManager<string> proxyManager)
     {
         manager = moduleManager;
+        ProxyManager = proxyManager;
     }
 
     public string[]? GetTags(string modName) => manager.GetTags(modName);
     public string[] GetAllTags() => manager.GetAllTags();
     public IReadOnlyList<IModResource> GetModsByTag(string tag) => manager.GetModsByTag(tag);
+    public IModResource? GetMod(string tag) => manager.GetMod(tag);
     public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
     public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);
 
@@ -345,5 +358,36 @@ internal class ModInterop : IModInterop
         }
 
         return false;
+    }
+
+    public T? GetApi<T>(string modName, Option<SemanticVersion> minimumVersion = default) where T : class
+    {
+        if (!typeof(T).IsInterface)
+            throw new ArgumentException($"The requested API type {typeof(T)} is not an interface.");
+
+        manager.NameToFortModule.TryGetValue(modName, out FortModule? mod);        
+
+        if (mod is null)
+        {
+            throw new ArgumentException($"The mod {modName} does not exists on the mod lists.");
+        }
+
+        if (minimumVersion.HasValue && minimumVersion.Value > mod.Meta.Version)
+        {
+            throw new ArgumentException($"The minimum version requested for {modName} is {minimumVersion}, but it has {mod.Meta.Version} instead.");
+        }
+
+        ref var apiObject = ref CollectionsMarshal.GetValueRefOrAddDefault(apiCache, modName, out bool exists);
+        if (!exists)
+        {
+            apiObject = mod.GetApi();
+        }
+
+        if (apiObject is null)
+        {
+            throw new ArgumentException($"The mod {modName} does not expose an API.");
+        }
+
+        return ProxyManager.ObtainProxy<string, T>(apiObject, modName, mod.Meta.Name);
     }
 }

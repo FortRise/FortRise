@@ -5,7 +5,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using Nanoray.Pintail;
 
 namespace FortRise;
 
@@ -20,6 +22,7 @@ internal class ModuleManager
 {
     public enum LoadState { Load, Initialiazing, Ready }
 
+    public LoadState State { get; set; }
     /// <summary>
     /// Contains a read-only access to all of the Modules.
     /// </summary>
@@ -34,14 +37,43 @@ internal class ModuleManager
     internal List<IModResource> InternalMods = new();
     internal HashSet<string> InternalTags = new();
 
+    internal Dictionary<string, FortModule> NameToFortModule = new Dictionary<string, FortModule>();
+    internal Dictionary<string, IModResource> NameToMod = new Dictionary<string, IModResource>();
+
 
     private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
     private Dictionary<string, IModRegistry> registries = new Dictionary<string, IModRegistry>();
-    public LoadState State { get; set; }
+    private IProxyManager<string> proxyManager;
 
     public enum LoadError { Delayed, Failure }
     internal HashSet<string> BlacklistedMods;
     internal HashSet<string> CantLoad = new();
+    
+    internal ModuleManager()
+    {
+        var moduleBuilders = new Dictionary<(string, string), ModuleBuilder>();
+        proxyManager = new ProxyManager<string>((proxyInfo) => {
+            var key = (proxyInfo.Target.Context, proxyInfo.Proxy.Context);
+
+            ref var moduleBuilder = ref CollectionsMarshal.GetValueRefOrAddDefault(moduleBuilders, key, out bool exists);
+
+            if (!exists)
+            {
+                string proxyAsmName = 
+                $"{GetType().Namespace}.Proxies{moduleBuilders.Count}, Version={GetType().Assembly.GetName().Version}, Culture=neutral";
+                var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(proxyAsmName), AssemblyBuilderAccess.RunAndCollect);
+                moduleBuilder = assemblyBuilder.DefineDynamicModule($"{GetType().Namespace}.Proxies");
+            }
+
+            return moduleBuilder;
+        },
+        new() 
+        {
+            ProxyPrepareBehavior = ProxyManagerProxyPrepareBehavior.Eager,
+            ProxyObjectInterfaceMarking = ProxyObjectInterfaceMarking.IncludeProxyTargetInstance | ProxyObjectInterfaceMarking.IncludeProxyInfo,
+            AccessLevelChecking = AccessLevelChecking.DisabledButOnlyAllowPublicMembers
+        });
+    }
 
     internal void LoadModsFromDirectory(string modPath)
     {
@@ -254,6 +286,7 @@ internal class ModuleManager
 
         InternalMods.Add(modResource);
         InternalModuleMetadatas.Add(metadata);
+        NameToMod.Add(metadata.Name, modResource);
         if (metadata.Tags != null)
         {
             foreach (var tag in metadata.Tags)
@@ -336,6 +369,7 @@ internal class ModuleManager
             module.InternalLoad();
 
             InternalFortModules.Add(module);
+            NameToFortModule.Add(metadata.Name, module);
 
             Logger.Info($"[Loader] {module.Meta.Name} Loaded.");
             continue;
@@ -349,7 +383,7 @@ internal class ModuleManager
         foreach (var fortModule in InternalFortModules)
         {
             IModRegistry registry = AddOrGetRegistry(fortModule.Meta);
-            IModInterop interop = new ModInterop(this);
+            IModInterop interop = new ModInterop(this, proxyManager);
 
             fortModule.IsInitialized = true;
             fortModule.Registry = registry;
@@ -410,6 +444,12 @@ internal class ModuleManager
         }
 
         return tags;
+    }
+
+    internal IModResource? GetMod(string modName)
+    {
+        NameToMod.TryGetValue(modName, out IModResource? resource);
+        return resource;
     }
 
     internal IModRegistry? GetRegistry(string modName)

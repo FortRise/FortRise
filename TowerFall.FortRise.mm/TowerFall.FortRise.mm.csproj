@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="Pintail" Version="2.8.1" />
   </ItemGroup>
 
   <ItemGroup>
