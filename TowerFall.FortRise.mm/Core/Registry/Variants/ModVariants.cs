@@ -158,30 +158,3 @@ public class ModVariants
         PresetRegistry.Register(preset);
     }
 }
-
-public readonly struct PresetConfiguration 
-{
-    public required string Name { get; init; }
-    public required Subtexture Icon { get; init; }
-    public required IVariantEntry[] Variants { get; init; }
-    public string? Description { get; init; }
-}
-
-public interface IVariantPresetEntry 
-{
-    string Name { get; }
-    PresetConfiguration Configuration { get; }
-}
-
-internal sealed class VariantPresetEntry : IVariantPresetEntry
-{
-    public string Name { get; init; }
-
-    public PresetConfiguration Configuration { get; init; }
-
-    public VariantPresetEntry(string name, PresetConfiguration configuration)
-    {
-        Name = name;
-        Configuration = configuration;
-    }
-}

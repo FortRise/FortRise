@@ -12,13 +12,3 @@ public static class VariantRegistry
         Variants.Add(variant.Name, variant);
     }
 }
-
-public static class PresetRegistry 
-{
-    public static List<IVariantPresetEntry> Presets = new List<IVariantPresetEntry>();
-
-    public static void Register(IVariantPresetEntry presetEntry)
-    {
-        Presets.Add(presetEntry);
-    }
-}
