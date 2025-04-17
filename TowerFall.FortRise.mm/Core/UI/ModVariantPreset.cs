@@ -16,6 +16,10 @@ public class ModVariantPreset : VariantButton
     {
         base.OnConfirm();
         Sounds.ui_click.Play(160f, 1f);
+        foreach (var variant in variants)
+        {
+            variant.Value = true;
+        }
     }
 
     protected override void OnSelect()
