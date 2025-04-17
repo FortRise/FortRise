@@ -196,7 +196,7 @@ public class patch_MatchVariants : MatchVariants
                 new ModVariantPreset(
                     preset.Configuration.Icon, 
                     preset.Configuration.Name.ToUpperInvariant(), 
-                    preset.Configuration.Description.ToUpperInvariant(),
+                    preset.Configuration.Description?.ToUpperInvariant() ?? "",
                     variants
                 )
             );
