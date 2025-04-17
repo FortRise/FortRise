@@ -9,24 +9,10 @@ namespace MonoMod;
 
 internal static partial class MonoModRules
 {
-    public static void AddReferenceIfMissing(ModuleDefinition module, AssemblyName asmName) {
-        if (!module.AssemblyReferences.Any(asmRef => asmRef.Name == asmName.Name)) {
-            module.AssemblyReferences.Add(AssemblyNameReference.Parse(asmName.FullName));
-        }
-    }
-
-    public static void AddReferenceIfMissing(ModuleDefinition module, string name) => 
-        AddReferenceIfMissing(
-            module,
-            Assembly.GetExecutingAssembly()
-            .GetReferencedAssemblies()
-            .First(asmName => asmName.Name == name));
 
     private static void GamePatch(MonoModder modder)
     {
         var module = modder.Module;
-        AddReferenceIfMissing(module, "System.Runtime");
-
         modder.PostProcessors += PostProcessMacros;
 
         TypeDefinition t_TFGame = modder.FindType("TowerFall.TFGame")?.Resolve();

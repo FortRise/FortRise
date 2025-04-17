@@ -67,7 +67,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
 
         try 
         {
-            using (MonoModder modder = new MonoModder()
+            using (var modder = new FortRiseMonoModder()
             {
                 Input = stream,
                 OutputPath = patchFile,
