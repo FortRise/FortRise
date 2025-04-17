@@ -39,7 +39,7 @@ public class ModVariants
         return variant;
     }
 
-    public IVariantPresetEntry RegisterPresets(string id, in PresetConfiguration configuration)
+    public IVariantPresetEntry RegisterPreset(string id, in PresetConfiguration configuration)
     {
         var name = $"{metadata.Name}/{id}";
 
