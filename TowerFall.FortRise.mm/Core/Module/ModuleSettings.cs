@@ -163,3 +163,10 @@ public class SettingsOptionsAttribute : Attribute
         Options = options;
     }
 }
+
+/// <summary>
+/// An attribute marker that hides or ignore the creation of this settings. Useful for creating custom settings.
+/// Note that the field will still be serialized.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class SettingsHideAttribute : Attribute {}

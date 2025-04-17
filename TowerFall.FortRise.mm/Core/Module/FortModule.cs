@@ -200,6 +200,12 @@ public abstract partial class FortModule
         {
             if (field.IsPrivate)
                 continue;
+            var isIgnored = field.GetCustomAttribute<SettingsHideAttribute>();
+            if (isIgnored is not null)
+            {
+                continue;
+            }
+
             var name = field.Name;
             var fieldType = field.FieldType;
             SettingsNumberAttribute attrib = null;
@@ -287,6 +293,7 @@ public abstract partial class FortModule
     /// </summary>
     /// <param name="manager">A <see cref="FortRise.VariantManager"/> use to add variant</param>
     /// <param name="noPerPlayer">Checks if the variant would not a per player variant, default is true</param>
+    [Obsolete("Use the new 'Registry.Variants' API")]
     public virtual void OnVariantsRegister(VariantManager manager, bool noPerPlayer = false) {}
     /// <summary>
     /// Override this function and allows you to parse a launch arguments that has been passed to the game.
