@@ -123,18 +123,19 @@ public partial class RiseCore
             Source = resource;
         }
 
-        public bool Contains(string path)
-        {
-            return RiseCore.ResourceTree.IsExist(this, path);
-        }
-
         public IResourceInfo GetRelativePath(string path)
         {
             string actualPath = System.IO.Path.Combine(RootPath, path);
             return RiseCore.ResourceTree.Get(actualPath);
         }
 
-        public virtual void AssignType()
+        public bool ExistsRelativePath(string path)
+        {
+            string actualPath = System.IO.Path.Combine(RootPath, path);
+            return RiseCore.ResourceTree.IsExist(actualPath);
+        }
+
+        public void AssignType()
         {
             var path = Path;
             var filename = System.IO.Path.GetFileName(path);
@@ -334,78 +335,6 @@ public partial class RiseCore
                 }
                 return entry.ExtractStream();
             } 
-        }
-    }
-
-    public class GlobalLevelResource : FileResource
-    {
-        public GlobalLevelResource(ModResource resource, string path, string fullPath) : base(resource, path, fullPath)
-        {
-        }
-
-
-        public override void AssignType()
-        {
-            var path = Path;
-            var filename = System.IO.Path.GetFileName(path);
-
-            if (path.StartsWith("DarkWorld"))
-            {
-                if (ResourceTree.IsExist(this, path + "/tower.xml"))
-                {
-                    ResourceType = typeof(ResourceTypeDarkWorldTowerFolder);
-                }
-                else AssignLevelFile();
-            }
-            else if (path.StartsWith("Versus"))
-            {
-                if (ResourceTree.IsExist(this, path + "/tower.xml"))
-                {
-                    ResourceType = typeof(ResourceTypeVersusTowerFolder);
-                }
-                else AssignLevelFile();
-            }
-            else if (path.StartsWith("Quest"))
-            {
-                if (ResourceTree.IsExist(this, path + "/tower.xml"))
-                {
-                    ResourceType = typeof(ResourceTypeQuestTowerFolder);
-                }
-                else AssignLevelFile();
-            }
-            else if (path.StartsWith("Trials"))
-            {
-                if (ResourceTree.IsExist(this, path + "/tower.xml"))
-                {
-                    ResourceType = typeof(ResourceTypeTrialsTowerFolder);
-                }
-                else AssignLevelFile();
-            }
-
-            else if (path.EndsWith(".xml"))
-            {
-                ResourceType = typeof(ResourceTypeXml);
-            }
-            else if (Childrens.Count != 0)
-            {
-                ResourceType = typeof(ResourceTypeFolder);
-            }
-            else
-            {
-                ResourceType = typeof(ResourceTypeFile);
-            }
-
-            void AssignLevelFile()
-            {
-                if (path.EndsWith(".json"))
-                {
-                    ResourceType = typeof(ResourceTypeJson);
-                }
-                else if (path.EndsWith(".oel"))
-                {
-                    ResourceType = typeof(ResourceTypeOel);
-                }
-            }
         }
     }
 

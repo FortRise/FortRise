@@ -23,8 +23,10 @@ public interface IResourceInfo
     Type ResourceType { get; }
     Stream Stream { get; }
 
-    void AssignType();
+    internal void AssignType();
     IResourceInfo GetRelativePath(string path);
+
+    bool ExistsRelativePath(string path);
 }
 
 public interface IModResource : IDisposable
