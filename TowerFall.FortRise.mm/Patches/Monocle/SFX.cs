@@ -77,7 +77,6 @@ public class patch_SFX : SFX
             instance.Volume = volume;
             instance.Pitch = ObeysMasterPitch ? Audio.MasterPitch : 0f;
             instance.Pan = SFX.CalculatePan(panX);
-            SoundEffectTracker.Track(instance);
             instance.Play();
         }
     }

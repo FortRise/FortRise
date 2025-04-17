@@ -155,7 +155,6 @@ public static class patch_Music
     internal static void Update()
     {
         audioEngine?.Update();
-        SoundEffectTracker.Update();
     }
 }
 
