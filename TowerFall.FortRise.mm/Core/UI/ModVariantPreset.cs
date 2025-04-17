@@ -16,6 +16,13 @@ public class ModVariantPreset : VariantButton
     {
         base.OnConfirm();
         Sounds.ui_click.Play(160f, 1f);
+        // disable all variants first 
+        foreach (var allVariant in MainMenu.VersusMatchSettings.Variants.Variants)
+        {
+            allVariant.Value = false;
+        }
+
+        // then enable what matters
         foreach (var variant in variants)
         {
             variant.Value = true;
