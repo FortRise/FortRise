@@ -182,6 +182,26 @@ public class patch_MatchVariants : MatchVariants
         {
             grid[0].Add(new VariantTournament2v2(true));
         }
+
+        foreach (var preset in PresetRegistry.Presets)
+        {
+            Variant[] variants = new Variant[preset.Configuration.Variants.Length];
+            for (int i = 0; i < variants.Length; i += 1)
+            {
+                var entry = preset.Configuration.Variants[i];
+                var variant = InternalCustomVariants[entry.Name];
+                variants[i] = variant;
+            }
+            grid[0].Add(
+                new ModVariantPreset(
+                    preset.Configuration.Icon, 
+                    preset.Configuration.Name.ToUpperInvariant(), 
+                    preset.Configuration.Description.ToUpperInvariant(),
+                    variants
+                )
+            );
+        }
+
         grid.Add(new List<VariantItem>());
         grid[1].Add(new VariantPreset(0));
         grid[1].Add(new VariantPreset(1));

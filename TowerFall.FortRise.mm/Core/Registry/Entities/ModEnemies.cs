@@ -16,7 +16,7 @@ public class ModEnemies
         registryQueue = manager.CreateQueue<IEnemyEntry>(Invoke);
     }
 
-    public IEnemyEntry RegisterEnemy(string id, EnemyConfiguration configuration)
+    public IEnemyEntry RegisterEnemy(string id, in EnemyConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
 

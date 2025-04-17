@@ -9,17 +9,20 @@ namespace FortRise;
 
 public class ModVariants
 {
-    private readonly Dictionary<string, IVariantEntry> entries = new Dictionary<string, IVariantEntry>();
-    private readonly RegistryQueue<IVariantEntry> registryQueue;
+    private readonly Dictionary<string, IVariantEntry> variantEntries = new Dictionary<string, IVariantEntry>();
+    private readonly RegistryQueue<IVariantEntry> variantRegistryQueue;
+    private readonly Dictionary<string, IVariantPresetEntry> presetEntries = new Dictionary<string, IVariantPresetEntry>();
+    private readonly RegistryQueue<IVariantPresetEntry> presetRegistryQueue;
     private readonly ModuleMetadata metadata;
 
     internal ModVariants(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IVariantEntry>(Invoke);
+        presetRegistryQueue = manager.CreateQueue<IVariantPresetEntry>(InvokePreset);
+        variantRegistryQueue = manager.CreateQueue<IVariantEntry>(InvokeVariant);
     }
 
-    public IVariantEntry RegisterVariant(string id, VariantConfiguration configuration) 
+    public IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration) 
     {
         var name = $"{metadata.Name}/{id}";
 
@@ -31,15 +34,25 @@ public class ModVariants
         }
 
         IVariantEntry variant = new VariantEntry(name, configuration with { Header = header });
-        entries.Add(name, variant);
-        registryQueue.AddOrInvoke(variant);
+        variantEntries.Add(name, variant);
+        variantRegistryQueue.AddOrInvoke(variant);
         return variant;
+    }
+
+    public IVariantPresetEntry RegisterPresets(string id, in PresetConfiguration configuration)
+    {
+        var name = $"{metadata.Name}/{id}";
+
+        IVariantPresetEntry preset = new VariantPresetEntry(name, configuration);
+        presetEntries.Add(name, preset);
+        presetRegistryQueue.AddOrInvoke(preset);
+        return preset;
     }
 
     public IVariantEntry? GetVariant(string id)
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
+        var alternate = variantEntries.GetAlternateLookup<ReadOnlySpan<char>>();
         if (alternate.TryGetValue(name, out IVariantEntry? value))
         {
             return value;
@@ -135,8 +148,40 @@ public class ModVariants
         return text.ToUpperInvariant();
     }
 
-    internal void Invoke(IVariantEntry variant)
+    internal void InvokeVariant(IVariantEntry variant)
     {
         VariantRegistry.Register(variant);
+    }
+
+    internal void InvokePreset(IVariantPresetEntry preset)
+    {
+        PresetRegistry.Register(preset);
+    }
+}
+
+public readonly struct PresetConfiguration 
+{
+    public required string Name { get; init; }
+    public required Subtexture Icon { get; init; }
+    public required IVariantEntry[] Variants { get; init; }
+    public string? Description { get; init; }
+}
+
+public interface IVariantPresetEntry 
+{
+    string Name { get; }
+    PresetConfiguration Configuration { get; }
+}
+
+internal sealed class VariantPresetEntry : IVariantPresetEntry
+{
+    public string Name { get; init; }
+
+    public PresetConfiguration Configuration { get; init; }
+
+    public VariantPresetEntry(string name, PresetConfiguration configuration)
+    {
+        Name = name;
+        Configuration = configuration;
     }
 }

@@ -15,7 +15,7 @@ public class ModPickups
         registryQueue = manager.CreateQueue<IPickupEntry>(Invoke);
     }
 
-    public IPickupEntry RegisterPickups(string id, PickupConfiguration configuration)
+    public IPickupEntry RegisterPickups(string id, in PickupConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";       
         IPickupEntry pickup = new PickupEntry(name, configuration);

@@ -16,7 +16,7 @@ public class ModArrows
         registryQueue = manager.CreateQueue<IArrowEntry>(Invoke);
     }
 
-    public IArrowEntry RegisterArrows(string id, ArrowConfiguration configuration)
+    public IArrowEntry RegisterArrows(string id, in ArrowConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
 
