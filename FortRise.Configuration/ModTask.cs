@@ -223,6 +223,7 @@ public class ModuleMetadata
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
+    public string[]? Tags { get; set; }
     public ModDependency[] Dependencies { get; set; } = null!;
     public ModDependency[] OptionalDependencies { get; set; } = null!;
     public ModuleUpdater Update { get; set; } = null!;
