@@ -28,17 +28,3 @@ public interface IResourceInfo
 
     bool ExistsRelativePath(string path);
 }
-
-public interface IModResource : IDisposable
-{
-    ModuleMetadata Metadata { get; }
-    FortContent Content { get; }
-    Dictionary<string, IResourceInfo> OwnedResources { get; }
-
-    internal void Lookup(string prefix);
-}
-
-public interface IResourceLoader 
-{
-    void LoadResource(IModResource modResource);
-}
