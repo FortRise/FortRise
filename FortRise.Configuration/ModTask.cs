@@ -196,9 +196,20 @@ public sealed class ModTask : Task
             meta.Name = ModName;
         }
 
-        if (string.IsNullOrEmpty(meta.Version))
+        string? version = meta.Version;
+
+        if (string.IsNullOrEmpty(version))
         {
-            meta.Version = ModVersion;
+            Log.LogError($"The '{readFile.Relative}' file does missing a required 'Version' field.");
+            metadataJson = null;
+            return false;
+        }
+
+        if (version!.Trim() != ModVersion.Trim())
+        {
+            Log.LogError($"The '{readFile.Relative}' file specifies a version of \"{version.Trim()}\" which does not match the <ModVersion> property of {ModVersion.Trim()}");
+            metadataJson = null;
+            return false;
         }
 
 
