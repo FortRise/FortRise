@@ -13,8 +13,6 @@ public static class PickupsRegistry
     public static Dictionary<string, Pickups> StringToTypes = new();
     public static Dictionary<Type, Pickups> Types = new();
     public static List<Pickups> ArrowPickups = new List<Pickups>();
-    public static List<Type> ArrowPickupsType = new List<Type>();
-    public static Dictionary<ArrowTypes, Pickups> ArrowToPickupMapping = new Dictionary<ArrowTypes, Pickups>();
 
     public static string TypesToString(Pickups pickups)
     {
@@ -132,7 +130,7 @@ public static class PickupsRegistry
         var stride = (Pickups)offset + PickupDatas.Count;
         var pickupObject = new PickupData() 
         {
-            Name = configuration.Name,
+            Name = name,
             ID = stride,
             Chance = configuration.Chance,
             ArrowType = configuration.ArrowType,
