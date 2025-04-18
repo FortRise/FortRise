@@ -1,5 +1,6 @@
 #pragma warning disable CS0618
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using MonoMod.Utils;
@@ -12,6 +13,8 @@ namespace FortRise;
 /// </summary>
 public static class EntityRegistry 
 {
+    public static Dictionary<string, EnemyLoader> EnemyLoader = new();
+
     public static void AddEnemy<T>(this FortModule module, params string[] names) 
     {
         AddEnemy(module, typeof(T), names);
@@ -104,7 +107,7 @@ public static class EntityRegistry
                 goto Loaded;
             }
             Loaded:
-            RiseCore.EnemyLoader[id] = loader;
+            EnemyLoader[id] = loader;
         }
     }
 

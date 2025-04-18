@@ -37,7 +37,7 @@ public static partial class RiseCore
     /// A TowerFall root directory.
     /// </summary>
     public static string GameRootPath { get; internal set; }
-    internal static Dictionary<string, EnemyLoader> EnemyLoader = new();
+    internal static Dictionary<string, EnemyLoader> EnemyLoader => EntityRegistry.EnemyLoader;
     internal static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
     internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
