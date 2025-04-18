@@ -3,3 +3,4 @@ obj/
 bin/
 artifacts/
 options.json
+release/

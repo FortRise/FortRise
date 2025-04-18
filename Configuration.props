@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <FortRiseVersion>5.0.0-beta.3</FortRiseVersion>
+    <FortRiseVersion>5.0.0</FortRiseVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>

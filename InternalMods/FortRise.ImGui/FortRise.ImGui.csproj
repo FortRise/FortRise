@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\Configuration.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <Version>$(FortRiseVersion)</Version>
+    <ModLoaderPath>..\..\FortLauncher\bin\Debug\net9.0\</ModLoaderPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" PrivateAssets="All" ExcludeAssets="runtime"/>
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
+    <PackageReference Include="MonoMod.RuntimeDetour" Version="25.2.3" PrivateAssets="All" ExcludeAssets="runtime"/>
+    <PackageReference Include="FortRise.Configuration" Version="1.2.0" />
+  </ItemGroup>
+
+</Project>
