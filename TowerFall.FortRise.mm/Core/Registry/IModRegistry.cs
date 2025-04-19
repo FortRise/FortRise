@@ -9,4 +9,5 @@ public interface IModRegistry
     ModCommands Commands { get; }
     ModEnemies Enemies { get; }
     ModGameModes GameModes { get; }
+    ModBackdrops Backdrops { get; }
 }

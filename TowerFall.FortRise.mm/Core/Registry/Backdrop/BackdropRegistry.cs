@@ -12,40 +12,66 @@ public static class BackdropRegistry
 
     public static Dictionary<string, BGElementLoader> BGElements = new Dictionary<string, BGElementLoader>();
 
-    public static void Register(Type type, FortModule module) 
+    public static void Register(string name, BackdropConfiguration configuration)
     {
-        foreach (var backdrop in type.GetCustomAttributes<CustomBackdropAttribute>()) 
+        ConstructorInfo ctor = configuration.BackdropType.GetConstructor([typeof(Level), typeof(XmlElement)]);
+
+        if (ctor != null)
         {
-            if (type is null)
+            Background.BGElement loader(Level level, XmlElement element)
             {
-                return;
+                return (Background.BGElement)ctor.Invoke([level, element]);
             }
 
-            var name = backdrop.Name;
-            ConstructorInfo ctor = type.GetConstructor(new Type[2] { typeof(Level), typeof(XmlElement) });
-
-            if (ctor != null)
-            {
-                BGElementLoader loader = (level, element) => {
-                    return (Background.BGElement)ctor.Invoke(new object[2] { level, element });
-                };
-
-                BGElements[name] = loader;
-            }
-            else 
-            {
-                Logger.Error($"[BackdropLoader] [{type.Name}] Constructor (TowerFall.Level, System.Xml.XmlElement) couldn't be found!");
-            }
+            BGElements[name] = loader;
+        }
+        else 
+        {
+            Logger.Error($"[BackdropLoader] [{name}] Constructor (TowerFall.Level, System.Xml.XmlElement) couldn't be found!");
         }
     }
 }
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public sealed class CustomBackdropAttribute : Attribute
+public readonly struct BackdropConfiguration 
 {
-    public string Name { get; set; }
-    public CustomBackdropAttribute(string name) 
+    public required Type BackdropType { get; init; }
+}
+
+public interface IBackdropEntry 
+{
+    public string Name { get; }
+    public BackdropConfiguration Configuration { get; }
+}
+
+internal sealed class BackdropEntry(string name, BackdropConfiguration configuration) : IBackdropEntry
+{
+    public string Name { get; init; } = name;
+    public BackdropConfiguration Configuration { get; init; } = configuration;
+}
+
+public class ModBackdrops 
+{
+    private readonly Dictionary<string, IBackdropEntry> entries = new Dictionary<string, IBackdropEntry>();
+    private readonly RegistryQueue<IBackdropEntry> registryQueue;
+    private readonly ModuleMetadata metadata;
+
+    internal ModBackdrops(ModuleMetadata metadata, ModuleManager manager)
     {
-        Name = name;
+        this.metadata = metadata;
+        registryQueue = manager.CreateQueue<IBackdropEntry>(Invoke);
+    }
+
+    public IBackdropEntry RegisterBackdrop(string id, in BackdropConfiguration configuration)
+    {
+        string name = $"{metadata.Name}/{id}";
+        IBackdropEntry command = new BackdropEntry(name, configuration);
+        entries.Add(name, command);
+        registryQueue.AddOrInvoke(command);
+        return command;
+    }
+
+    internal void Invoke(IBackdropEntry entry)
+    {
+        BackdropRegistry.Register(entry.Name, entry.Configuration);
     }
 }

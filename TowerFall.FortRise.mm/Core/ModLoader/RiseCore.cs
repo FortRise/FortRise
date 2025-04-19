@@ -651,7 +651,6 @@ public static partial class RiseCore
             FortRise.TowerPatchRegistry.Register(type, module);
             // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
             laziedRegisters.Add(() => FortRise.PickupsRegistry.Register(type, module));
-            FortRise.BackdropRegistry.Register(type, module);
             foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
             {
                 if (dwBoss is null)

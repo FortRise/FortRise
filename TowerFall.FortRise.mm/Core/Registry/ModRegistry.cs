@@ -9,6 +9,7 @@ internal class ModRegistry : IModRegistry
     public ModCommands Commands { get; }
     public ModEnemies Enemies { get; }
     public ModGameModes GameModes { get; }
+    public ModBackdrops Backdrops { get; }
 
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -18,5 +19,6 @@ internal class ModRegistry : IModRegistry
         Commands = new ModCommands(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
+        Backdrops = new ModBackdrops(metadata, manager);
     }
 }
