@@ -9,7 +9,7 @@
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>NU5128</NoWarn>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>FortRise.Configuration</PackageId>
@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" PrivateAssets="all" />
-    <PackageReference Include="Ignore" Version="0.2.1" PrivateAssets="all" />
+    <PackageReference Include="MAB.DotIgnore" Version="3.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@
     <None Include="build\package.targets" PackagePath="build\$(PackageId).targets" Pack="True" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="build\$(PackageId).dll" Pack="True" Visible="True" />
     <None Include="$(OutputPath)\System.Text.Json.dll" PackagePath="build\" Pack="True" Visible="False" />
-    <None Include="$(OutputPath)\Ignore.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(OutputPath)\MAB.DotIgnore.dll" PackagePath="build\" Pack="True" Visible="False" />
     <None Include="$(OutputPath)\Microsoft.Bcl.AsyncInterfaces.dll" PackagePath="build\" Pack="True" Visible="False" />
     <None Include="$(OutputPath)\System.IO.Pipelines.dll" PackagePath="build\" Pack="True" Visible="False" />
     <None Include="$(OutputPath)\System.Text.Encodings.Web.dll" PackagePath="build\" Pack="True" Visible="False" />

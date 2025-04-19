@@ -6,6 +6,8 @@ using System;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MAB.DotIgnore;
+using System.Linq;
 
 namespace FortRise.Configuration;
 
@@ -72,40 +74,59 @@ public sealed class ModTask : Task
 
         var fortIgnore = Path.Combine(projectDir, ".fortriseignore");
 
-        var ignore = new Ignore.Ignore();
+        IgnoreList? ignore = null;
 
         if (File.Exists(fortIgnore))
         {
-            using (var tr = File.OpenText(fortIgnore))
-            {
-                string line;
-                while ((line = tr.ReadLine()) != null)
-                {
-                    ignore.Add(line);
-                }
-            }
+            ignore = new IgnoreList(fortIgnore);
         }
 
+        AddToList(new DirectoryInfo(targetDir), ignore);
 
-        foreach (var file in Directory.EnumerateFiles(targetDir, "*", SearchOption.AllDirectories))
+        void AddToList(DirectoryInfo source, IgnoreList? ignore)
         {
-            if (file.Equals(".DS_Store", StringComparison.InvariantCultureIgnoreCase) ||
-                file.Equals("Thumbs.db", StringComparison.InvariantCultureIgnoreCase))
+            bool IsNotIgnoredDirectory(DirectoryInfo x)
             {
-                continue;
+                if (ignore is null)
+                {
+                    return true;
+                }
+                return !ignore.IsIgnored(x);
             }
 
-            if (file.EndsWith(".deps.json"))
+            bool IsNotIgnoredFile(FileInfo x)
             {
-                continue;
+                if (ignore is null)
+                {
+                    return true;
+                }
+                return !ignore.IsIgnored(x);
             }
 
-            if (ignore.IsIgnored(file))
+            foreach (var info in source.GetDirectories().Where(IsNotIgnoredDirectory))
             {
-                continue;
+                AddToList(info, ignore);
             }
 
-            list.Add(new ReadFile(file, targetDirUri.MakeRelativeUri(new Uri(file)).OriginalString));
+            foreach (var file in source.GetFiles().Where(IsNotIgnoredFile))
+            {
+                if (file.Name.Equals(".DS_Store", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (file.Name.Equals("Thumbs.db", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (file.Name.EndsWith(".deps.json"))
+                {
+                    continue;
+                }
+
+                list.Add(new ReadFile(file.FullName, targetDirUri.MakeRelativeUri(new Uri(file.FullName)).OriginalString));
+            }
         }
 
         return list;
