@@ -2,8 +2,13 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <FortRiseVersion>5.0.0</FortRiseVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <FortRiseVersion>5.0.0</FortRiseVersion>
+    <Tag>-beta.5</Tag>
+    <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)$(Tag)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
   </PropertyGroup>
 </Project>

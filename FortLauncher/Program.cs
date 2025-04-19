@@ -15,7 +15,7 @@ namespace FortLauncher;
 internal class Program 
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
-    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-beta.4");
+    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-beta.5");
 
     public static int Main(string[] args)
     {
@@ -127,6 +127,8 @@ internal class Program
             File.WriteAllText("launch_override.json", json);
         }
 
+        Console.WriteLine($"[FortRise] Game Path: {exePath}");
+
         if (CheckLegacyFortRiseInstalled(exePath))
         {
             SDL.SDL_ShowSimpleMessageBox(
@@ -165,7 +167,6 @@ internal class Program
             if (File.Exists(mmFile + ".sum"))
             {
                 ReadOnlySpan<char> sumSum = File.ReadAllText(mmFile + ".sum").Trim();
-                Console.WriteLine(mmSum.ToString() + " == " + sumSum.ToString());
 
                 if (mmSum.SequenceEqual(sumSum))
                 {
