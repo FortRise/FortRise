@@ -2,10 +2,14 @@
 	<Import Project="..\..\Configuration.props" />
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <Version>$(FortRiseVersion)</Version>
     <ModLoaderPath>..\..\FortLauncher\bin\Debug\net9.0\</ModLoaderPath>
+    <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PublishDir>..\..\$(ArtifactDirectory)\Internals</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,5 +18,24 @@
     <PackageReference Include="MonoMod.RuntimeDetour" Version="25.2.3" PrivateAssets="All" ExcludeAssets="runtime"/>
     <PackageReference Include="FortRise.Configuration" Version="1.2.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <LinuxMove Include="$(TargetDir)/runtimes/linux-x64/native/**/*"/>
+    <WinMove Include="$(TargetDir)/runtimes/win-x64/native/**/*"/>
+    <OSXMove Include="$(TargetDir)/runtimes/osx/native/**/*"/>
+  </ItemGroup>
+
+  <Target Name="MoveNativeRuntime" AfterTargets="CoreCompile">
+    <Message Text="Moving @(FilesToMove) folder"/>
+    <Move 
+      SourceFiles="@(LinuxMove)"
+      DestinationFolder="$(TargetDir)/Unmanaged/linux-x64"/>
+    <Move 
+      SourceFiles="@(WinMove)"
+      DestinationFolder="$(TargetDir)/Unmanaged/win-x64"/>
+    <Move 
+      SourceFiles="@(OSXMove)"
+      DestinationFolder="$(TargetDir)/Unmanaged/osx"/>
+  </Target>
 
 </Project>
