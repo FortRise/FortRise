@@ -32,6 +32,8 @@ public static class Logger
         var text = $"{logName} Ln: {lineNumber} {message}";
 
         builder.AppendLine(text);
+
+        WriteLine(text, level);
         try
         {
             Engine.Instance?.Commands?.Log(text);
@@ -39,8 +41,10 @@ public static class Logger
         catch (ArgumentOutOfRangeException)
         {
         }
+        catch (ArgumentException)
+        {
+        }
 
-        WriteLine(text, level);
         if (level == LogLevel.Assert)
             Debugger.Break();
     }
