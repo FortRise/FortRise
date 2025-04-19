@@ -16,6 +16,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 {
     public ModuleMetadata Metadata { get; private set; }
     public static readonly string UnmanagedFolders;
+    public const string Unmanaged = "Unmanaged";
     private string directoryDll;
     private bool isDisposed;
     private static Dictionary<string, AssemblyDefinition> loadAsm = new Dictionary<string, AssemblyDefinition>();
@@ -230,14 +231,14 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
         if (!string.IsNullOrEmpty(Metadata.PathDirectory))
         {
-            if (NativeLibrary.TryLoad(Path.Combine(directoryDll, "Unmanaged", UnmanagedFolders, libName), out IntPtr handle))
+            if (NativeLibrary.TryLoad(Path.Combine(directoryDll, Unmanaged, UnmanagedFolders, libName), out IntPtr handle))
             {
                 return handle;
             }
         }
         else if (!string.IsNullOrEmpty(Metadata.PathZip))
         {
-            string extractionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "_RelinkerCache", "Unmanaged", UnmanagedFolders, Metadata.Name);
+            string extractionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "_RelinkerCache", Unmanaged, UnmanagedFolders, Metadata.Name);
 
             string metaHash = Metadata.Hash.ToHexadecimalString();
 
@@ -249,7 +250,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
             if (!Directory.Exists(extractionPath))
             {
-                string unmanagedPath = Path.Combine("Unmanaged", UnmanagedFolders);
+                string unmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders);
                 using (ZipArchive zip = ZipFile.OpenRead(Metadata.PathZip))
                 {
                     foreach (ZipArchiveEntry entry in zip.Entries)
