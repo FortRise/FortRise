@@ -580,6 +580,70 @@ public class TextContainer : MenuItem
             Draw.OutlineTextCentered(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * SelectedWiggler.Value, 0f), color, Color.Black, 1f);
         }
     }
+
+    public class InputText : Item 
+    {
+        public enum InputBehavior { None, Sensitive }
+        public string Text;
+        public Action<string> OnInputEntered;
+        public string RenderingValue;
+        public string Value;
+
+        public Color SelectedColor = OptionsButton.SelectedColor;
+        public Color NotSelectedColor = OptionsButton.NotSelectedColor;
+        public bool Interactable = true;
+
+        public override bool IsHoverable => true;
+
+        public int WiggleDir;
+        public InputBehavior Behavior;
+
+        public InputText(string text, string initialValue, InputBehavior behavior = InputBehavior.None) 
+        {
+            Text = text.ToUpperInvariant();
+            Value = initialValue;
+            RenderingValue = initialValue?.ToUpperInvariant();
+            Behavior = behavior;
+        }
+
+        public override void ConfirmPressed()
+        {
+            UIInputText inputText = new UIInputText(Container, InputConfirmed, Vector2.Zero, Value);
+            Container.Scene.Add(inputText);
+            Container.Selected = false;
+        }
+
+        private void InputConfirmed(string value)
+        {
+            Value = value;
+            OnInputEntered?.Invoke(value);
+            RenderingValue = value.ToUpperInvariant();
+        }
+
+        public override void Render(Vector2 position, bool selected)
+        {
+            Vector2 vector = new Vector2(30f + 2f * this.ValueWiggler.Value * (float)this.WiggleDir, 0f);
+            Color color = base.Selected ? SelectedColor : NotSelectedColor;
+            Draw.OutlineTextJustify(TFGame.Font, Text, position + new Vector2(-5f, 0f) + new Vector2(5f * this.SelectedWiggler.Value, 0f), color, Color.Black, new Vector2(1f, 0.5f), 1f);
+
+            RenderValue(ref position, ref vector, ref color);
+        }
+
+        public void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color) 
+        {
+            if (RenderingValue != null)
+            {
+                if (Behavior == InputBehavior.Sensitive)
+                {
+                    Draw.OutlineTextJustify(TFGame.Font, "***", position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+                }
+                else 
+                {
+                    Draw.OutlineTextJustify(TFGame.Font, RenderingValue, position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+                }
+            }
+        }
+    }
 }
 
 public class IconButtonText : TextContainer.ButtonText

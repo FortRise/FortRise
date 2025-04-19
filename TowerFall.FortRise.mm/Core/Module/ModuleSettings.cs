@@ -170,3 +170,22 @@ public class SettingsOptionsAttribute : Attribute
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class SettingsHideAttribute : Attribute {}
+
+/// <summary>
+/// An attribute marker that makes the button shows a text input. Field should be marked as string when using this.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class SettingsInputAttribute : Attribute 
+{
+    public TextContainer.InputText.InputBehavior InputBehavior { get; }
+
+    public SettingsInputAttribute(TextContainer.InputText.InputBehavior inputBehavior)
+    {
+        InputBehavior = inputBehavior;
+    }
+
+    public SettingsInputAttribute()
+    {
+        InputBehavior = TextContainer.InputText.InputBehavior.None;
+    }
+}

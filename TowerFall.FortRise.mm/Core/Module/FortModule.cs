@@ -210,6 +210,7 @@ public abstract partial class FortModule
             var fieldType = field.FieldType;
             SettingsNumberAttribute attrib = null;
             SettingsOptionsAttribute optAttrib = null;
+            SettingsInputAttribute inputAttrib = null;
 
             var ownName = field.GetCustomAttribute<SettingsNameAttribute>();
             if (ownName != null)
@@ -248,11 +249,23 @@ public abstract partial class FortModule
             {
                 var defaultVal = (string)field.GetValue(settings);
                 var selectionOption = new TextContainer.SelectionOption(
-                    fullName, optAttrib.Options, Array.IndexOf<string>(optAttrib.Options, defaultVal));
+                    fullName, optAttrib.Options, Array.IndexOf(optAttrib.Options, defaultVal));
                 selectionOption.Change(x => {
                     field.SetValue(settings, x.Item1);
                 });
                 textContainer.Add(selectionOption);
+            }
+            else if ((fieldType == typeof(string)) && (inputAttrib = field.GetCustomAttribute<SettingsInputAttribute>()) != null)
+            {
+                var defaultVal = (string)field.GetValue(settings);
+                var inputText = new TextContainer.InputText(fullName, defaultVal, inputAttrib.InputBehavior)
+                {
+                    OnInputEntered = (str) =>
+                    {
+                        field.SetValue(settings, str);
+                    }
+                };
+                textContainer.Add(inputText);
             }
             else if ((fieldType == typeof(int) || fieldType == typeof(float)) &&
                 (attrib = field.GetCustomAttribute<SettingsNumberAttribute>()) != null)
