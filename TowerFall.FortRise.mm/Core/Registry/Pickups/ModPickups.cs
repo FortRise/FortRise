@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using TowerFall;
 
 namespace FortRise;
 
@@ -19,7 +20,7 @@ public class ModPickups
     public IPickupEntry RegisterPickups(string id, in PickupConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";       
-        IPickupEntry pickup = new PickupEntry(name, configuration);
+        IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), configuration);
         entries.Add(name, pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
@@ -35,6 +36,6 @@ public class ModPickups
 
     internal void Invoke(IPickupEntry entry)
     {
-        PickupsRegistry.Register(entry.Name, entry.Configuration);
+        PickupsRegistry.Register(entry.Name, entry.Pickups, entry.Configuration);
     }
 }

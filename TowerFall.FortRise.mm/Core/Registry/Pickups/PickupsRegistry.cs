@@ -44,7 +44,7 @@ public static class PickupsRegistry
                 continue;
 
             string id = $"{module.Meta.Name}/{pickup.Name}";
-            Register(id, new PickupConfiguration() 
+            Register(id, EnumPool.Obtain<Pickups>(), new PickupConfiguration() 
             {
                 Name = pickup.Name,
                 Chance = pickup.Chance,
@@ -58,7 +58,7 @@ public static class PickupsRegistry
                 continue;
 
             string id = $"{module.Meta.Name}/{pickup.Name}";
-            Register(id, new PickupConfiguration() 
+            Register(id, EnumPool.Obtain<Pickups>(), new PickupConfiguration() 
             {
                 Name = pickup.Name,
                 Chance = pickup.Chance,
@@ -68,7 +68,7 @@ public static class PickupsRegistry
         }
     }
 
-    public static void Register(string name, in PickupConfiguration configuration)
+    public static void Register(string name, Pickups pickups, in PickupConfiguration configuration)
     {
         PickupLoader loader = null;
 
@@ -126,8 +126,7 @@ public static class PickupsRegistry
             }
         }
 
-        const int offset = 21;
-        var stride = (Pickups)offset + PickupDatas.Count;
+        var stride = pickups;
         var pickupObject = new PickupData() 
         {
             Name = name,

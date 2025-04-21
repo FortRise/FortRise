@@ -7,12 +7,14 @@ internal class PickupEntry : IPickupEntry
 {
     public string Name { get; init; }
     public PickupConfiguration Configuration { get; init; }
+    public Pickups Pickups { get; init; }
 
 
-    public PickupEntry(string name, PickupConfiguration configuration)
+    public PickupEntry(string name, Pickups pickups, PickupConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;
+        Pickups = pickups;
     }
 
     public Pickups ToPickupType()
