@@ -648,7 +648,6 @@ public static partial class RiseCore
                 }
             }
 
-            FortRise.CustomMenuStateRegistry.Register(type, module);
             FortRise.ArrowsRegistry.Register(type, module);
             FortRise.TowerPatchRegistry.Register(type, module);
             // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
