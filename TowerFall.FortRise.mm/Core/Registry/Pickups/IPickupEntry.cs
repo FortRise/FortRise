@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using TowerFall;
 
 namespace FortRise;
@@ -9,5 +10,6 @@ public interface IPickupEntry
     public PickupConfiguration Configuration { get; init; }
     public Pickups Pickups { get; init; }
     
+    [Obsolete("Use Pickups instead")]
     public Pickups ToPickupType();
 }

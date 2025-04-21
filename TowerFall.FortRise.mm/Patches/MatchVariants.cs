@@ -95,6 +95,10 @@ public class patch_MatchVariants : MatchVariants
             {
                 canRandoms.Add(variant);
             }
+            if (value.Configuration.StartWith != null)
+            {
+                StartWithVariants.Add((variant, value.Configuration.StartWith.ArrowTypes));
+            }
 
             TempVariantHolder.TempCustom.TryAdd(name, false);
             InternalCustomVariants.Add(name, variant);
