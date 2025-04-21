@@ -10,6 +10,7 @@ internal class ModRegistry : IModRegistry
     public ModEnemies Enemies { get; }
     public ModGameModes GameModes { get; }
     public ModBackdrops Backdrops { get; }
+    public ModMenuStates MenuStates { get; }
 
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -20,5 +21,6 @@ internal class ModRegistry : IModRegistry
         Enemies = new ModEnemies(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
         Backdrops = new ModBackdrops(metadata, manager);
+        MenuStates = new ModMenuStates(metadata, manager);
     }
 }
