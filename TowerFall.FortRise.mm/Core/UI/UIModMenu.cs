@@ -8,7 +8,6 @@ using TowerFall;
 
 namespace FortRise;
 
-[CustomMenuState("Mods")]
 public class UIModMenu : CustomMenuState
 {
     private List<string> tagDisabled;

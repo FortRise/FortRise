@@ -8,7 +8,6 @@ using TowerFall;
 
 namespace FortRise;
 
-[CustomMenuState("ModToggler")]
 public class UIModToggler : CustomMenuState
 {
     private Dictionary<string, ModuleMetadata> modsMetadata = new();

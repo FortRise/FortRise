@@ -3,7 +3,6 @@ using TowerFall;
 
 namespace FortRise;
 
-[CustomMenuState("ModOptions")]
 public class UIModOptions : CustomMenuState
 {
     public UIModOptions(MainMenu main) : base(main)
