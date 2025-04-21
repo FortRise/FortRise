@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace FortRise;
@@ -22,6 +23,14 @@ public class ModPickups
         entries.Add(name, pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
+    }
+
+    public IPickupEntry? GetPickup(string id) 
+    {
+        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
+        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
+        alternate.TryGetValue(name, out IPickupEntry? value);
+        return value;
     }
 
     internal void Invoke(IPickupEntry entry)
