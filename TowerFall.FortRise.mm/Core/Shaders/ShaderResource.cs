@@ -38,12 +38,14 @@ public class ShaderResource
 
 public class MiscShaderResource : ShaderResource
 {
-    private Vector4 uColor = Vector4.One;
-    private Texture2D uTexture0;
-    private Texture2D uTexture1;
-    private Texture2D uTexture2;
+    public Vector4 uColor = Vector4.One;
+    public Texture2D uTexture0;
+    public Texture2D uTexture1;
+    public Texture2D uTexture2;
     
-
+    /// <summary>
+    /// Apply the <see cref="Microsoft.Xna.Framework.Graphics.Effect"/>. Recommend to use this inside of an immediate <see cref="Microsoft.Xna.Framework.Graphics.SpriteBatch"/>.
+    /// </summary>
     public override void Apply()
     {
         Shader.Parameters["uColor"].SetValue(uColor);
@@ -75,18 +77,35 @@ public class MiscShaderResource : ShaderResource
         base.Apply();
     }
 
+    /// <summary>
+    /// Override the texture slot 0 from the <see cref="Microsoft.Xna.Framework.Graphics.Effect"/>. Note that this texture could be a result of a rendered target from a 
+    /// <see cref="Microsoft.Xna.Framework.Graphics.SpriteBatch"/>  
+    /// </summary>
+    /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
+    /// <returns>This instance</returns>
     public MiscShaderResource UseTexture0(Texture2D texture) 
     {
         uTexture0 = texture;
         return this;
     }
 
+    /// <summary>
+    /// Override the texture slot 0 from the <see cref="Microsoft.Xna.Framework.Graphics.Effect"/>. Note that this texture could be used by TowerFall's
+    /// lighting layer. 
+    /// </summary>
+    /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
+    /// <returns>This instance</returns>
     public MiscShaderResource UseTexture1(Texture2D texture) 
     {
         uTexture1 = texture;
         return this;
     }
 
+    /// <summary>
+    /// Override the texture slot 0 from the <see cref="Microsoft.Xna.Framework.Graphics.Effect"/>.  
+    /// </summary>
+    /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
+    /// <returns>This instance</returns>
     public MiscShaderResource UseTexture2(Texture2D texture) 
     {
         uTexture2 = texture;
