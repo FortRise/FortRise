@@ -234,6 +234,8 @@ public static partial class RiseCore
         };
 
         AtlasReader.Initialize();
+        // load the internals first
+        ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         if (!NoRichPresence)
             DiscordComponent.Create();
