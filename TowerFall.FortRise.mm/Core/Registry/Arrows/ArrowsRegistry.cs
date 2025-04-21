@@ -12,6 +12,7 @@ public static class ArrowsRegistry
     public static Dictionary<ArrowTypes, ArrowData> ArrowDatas = new Dictionary<ArrowTypes, ArrowData>();
     public static Dictionary<Type, ArrowTypes> Types = new();
     public static Dictionary<string, ArrowTypes> StringToTypes = new();
+    public static HashSet<ArrowTypes> LowPriorityTypes = new();
 
 
     public static void Register<T>(FortModule module) 
@@ -29,7 +30,7 @@ public static class ArrowsRegistry
             var graphicFn = arrow.CreateHud ?? "CreateHud";
             MethodInfo graphic = type.GetMethod(graphicFn);
             string id = $"{module.Meta.Name}/{name}";
-            Register(id, new() 
+            Register(id, EnumPool.Obtain<ArrowTypes>(), new() 
             {
                 ArrowType = type,
                 HUD = graphic.Invoke(null, []) as Subtexture
@@ -37,10 +38,9 @@ public static class ArrowsRegistry
         }
     }
 
-    public static void Register(string name, in ArrowConfiguration configuration)
+    public static void Register(string name, ArrowTypes arrowTypes, in ArrowConfiguration configuration)
     {
-        const int offset = 11;
-        var stride = (ArrowTypes)offset + ArrowDatas.Count;
+        var stride = arrowTypes;
         var type = configuration.ArrowType;
         ConstructorInfo ctor = type.GetConstructor([]);
         ArrowLoader loader = null;
@@ -65,6 +65,9 @@ public static class ArrowsRegistry
             ArrowType = configuration.ArrowType
         };
         Types.Add(type, stride);
-
+        if (configuration.LowPriority)
+        {
+            LowPriorityTypes.Add(stride);
+        }
     }
 }

@@ -8,5 +8,5 @@ public interface IArrowEntry
     string Name { get; init; }
     public ArrowConfiguration Configuration { get; init; }
 
-    public ArrowTypes ToArrowTypes();
+    public ArrowTypes ArrowTypes { get; init; }
 }

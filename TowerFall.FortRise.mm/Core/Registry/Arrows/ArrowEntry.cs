@@ -7,16 +7,12 @@ internal class ArrowEntry : IArrowEntry
 {
     public string Name { get; init; }
     public ArrowConfiguration Configuration { get; init; }
+    public ArrowTypes ArrowTypes { get; init; }
 
-
-    public ArrowEntry(string name, ArrowConfiguration configuration)
+    public ArrowEntry(string name, ArrowTypes arrowtypes, ArrowConfiguration configuration)
     {
         Name = name;
         Configuration = configuration;
-    }
-
-    public ArrowTypes ToArrowTypes()
-    {
-        return ModRegisters.ArrowType(Name);
+        ArrowTypes = arrowtypes;
     }
 }

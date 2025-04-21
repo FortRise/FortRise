@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using TowerFall;
 
 namespace FortRise;
 
@@ -20,7 +21,7 @@ public class ModArrows
     {
         string name = $"{metadata.Name}/{id}";
 
-        IArrowEntry arrow = new ArrowEntry(name, configuration);
+        IArrowEntry arrow = new ArrowEntry(name, EnumPool.Obtain<ArrowTypes>(), configuration);
         entries.Add(name, arrow);
         registryQueue.AddOrInvoke(arrow);
         return arrow;
@@ -36,6 +37,6 @@ public class ModArrows
 
     internal void Invoke(IArrowEntry entry)
     {
-        ArrowsRegistry.Register(entry.Name, entry.Configuration);
+        ArrowsRegistry.Register(entry.Name, entry.ArrowTypes, entry.Configuration);
     }
 }
