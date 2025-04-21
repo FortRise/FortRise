@@ -4,6 +4,7 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FortRise.Adventure;
 
 namespace FortRise;
 
@@ -39,9 +40,10 @@ public static class TowerPatchRegistry
 
     private static void Versus(ITowerHook patcher) 
     {
+        var versusTowers = GetAllTowerIncludingCustom();
         foreach (var name in patcher.TargetTowers)
         {
-            var tower = GameData.VersusTowers
+            var tower = versusTowers
                 .Where(x => name == x.GetLevelID())
                 .FirstOrDefault();
             if (tower == null) 
@@ -53,6 +55,26 @@ public static class TowerPatchRegistry
             tower.ApplyPatch(versusCtx);
         }
     }
+
+    private static List<VersusTowerData> GetAllTowerIncludingCustom()
+    {
+        var tower = new List<VersusTowerData>();
+        foreach (var versusTower in GameData.VersusTowers)
+        {
+            tower.Add(versusTower);
+        }
+
+        foreach (var adventureVersusTower in TowerRegistry.VersusTowerSets.Values)
+        {
+            foreach (var vt in adventureVersusTower)
+            {
+                tower.Add(vt);
+            }
+        }
+
+        return tower;
+    }
+
 
     // private static void DarkWorld(ITowerHook patcher) 
     // {
