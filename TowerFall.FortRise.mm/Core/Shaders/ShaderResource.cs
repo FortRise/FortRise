@@ -24,12 +24,19 @@ public class ShaderResource
         this.effectPass = shader.Techniques[0].Passes[passName];
     }
 
+    /// <summary>
+    /// Swap the current pass from an <see cref="Microsoft.Xna.Framework.Graphics.Effect"/> .
+    /// </summary>
+    /// <param name="passName">A name of the pass</param>
     public void SwapPass(string passName) 
     {
         this.passName = passName;
         effectPass = shader.Techniques[0].Passes[passName];
     }
 
+    /// <summary>
+    /// Apply the <see cref="Microsoft.Xna.Framework.Graphics.Effect"/>. Recommend to use this inside of an immediate <see cref="Microsoft.Xna.Framework.Graphics.SpriteBatch"/>.
+    /// </summary>
     public virtual void Apply() 
     {
         effectPass.Apply();
