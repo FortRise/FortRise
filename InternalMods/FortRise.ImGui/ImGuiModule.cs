@@ -56,6 +56,7 @@ internal sealed class ImGuiModule : FortModule
         renderer = new ImGuiRenderer(Engine.Instance);
         renderer.RebuildFontAtlas();
 
+        TabItemManager.Instance.Register(new SceneInfoTab());
         TabItemManager.Instance.Register(new ArrowTab());
         TabItemManager.Instance.Register(new PickupTab());
         TabItemManager.Instance.Register(new EnemyTab());
