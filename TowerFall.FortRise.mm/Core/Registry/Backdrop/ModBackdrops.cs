@@ -17,10 +17,10 @@ public class ModBackdrops
     public IBackdropEntry RegisterBackdrop(string id, in BackdropConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        IBackdropEntry command = new BackdropEntry(name, configuration);
-        entries.Add(name, command);
-        registryQueue.AddOrInvoke(command);
-        return command;
+        IBackdropEntry backdrop = new BackdropEntry(name, configuration);
+        entries.Add(name, backdrop);
+        registryQueue.AddOrInvoke(backdrop);
+        return backdrop;
     }
 
     public IBackdropEntry? GetBackdrop(string id)

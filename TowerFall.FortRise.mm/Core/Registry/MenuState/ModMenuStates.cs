@@ -18,10 +18,10 @@ public class ModMenuStates
     public IMenuStateEntry RegisterMenuState(string id, in MenuStateConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        IMenuStateEntry command = new MenuStateEntry(name, configuration, EnumPool.Obtain<MainMenu.MenuState>());
-        entries.Add(name, command);
-        registryQueue.AddOrInvoke(command);
-        return command;
+        IMenuStateEntry menuState = new MenuStateEntry(name, configuration, EnumPool.Obtain<MainMenu.MenuState>());
+        entries.Add(name, menuState);
+        registryQueue.AddOrInvoke(menuState);
+        return menuState;
     }
 
     public IMenuStateEntry? GetMenuState(string id)
