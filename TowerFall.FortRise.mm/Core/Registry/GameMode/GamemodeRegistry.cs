@@ -47,7 +47,7 @@ public static class GameModeRegistry
             var instance = Activator.CreateInstance(type) as CustomGameMode;
             instance.Initialize();
             instance.coinSprite = instance.CoinSprite();
-            Register(new VersusGameModeEntry("legacy/" + instance.Name, instance));
+            Register(new VersusGameModeEntry("legacy/" + instance.Name, EnumPool.Obtain<Modes>(), instance));
             LegacyGameModes.Add(instance);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -55,7 +55,7 @@ public static class GameModeRegistry
 
     public static void Register(IVersusGameModeEntry gameMode)
     {
-        Modes mode = (Modes)ModesCount++;
+        Modes mode = gameMode.Modes;
         VersusGameModes.Add(gameMode);
         RegistryVersusGameModes.Add(gameMode.Name, gameMode);
         ModesToVersusGameMode.Add(mode, gameMode);

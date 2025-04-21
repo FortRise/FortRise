@@ -1,14 +1,19 @@
+using TowerFall;
+
 namespace FortRise;
 
 internal class VersusGameModeEntry : IVersusGameModeEntry
 {
     public string Name { get; init; }
 
-    public IVersusGameMode GameMode { get; init; }
+    public IVersusGameMode VersusGameMode { get; init; }
 
-    public VersusGameModeEntry(string name, IVersusGameMode gameMode)
+    public Modes Modes { get; init; }
+
+    public VersusGameModeEntry(string name, Modes modes, IVersusGameMode versusGameMode)
     {
         Name = name;
-        GameMode = gameMode;
+        Modes = modes;
+        VersusGameMode = versusGameMode;
     }
 }

@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using TowerFall;
 
 namespace FortRise;
 
@@ -19,14 +20,15 @@ public class ModGameModes
     {
         string id = $"{metadata.Name}/{gameMode.Name}";
         VersusGameModeEntry entry;
-        entries.Add(id, entry = new VersusGameModeEntry(id, gameMode));
+        entries.Add(id, entry = new VersusGameModeEntry(id, EnumPool.Obtain<Modes>(), gameMode));
         registryQueue.AddOrInvoke(entry);
         return entry;
     }
 
     public IVersusGameModeEntry? GetVersusGameMode(string name)
     {
-        entries.TryGetValue(name, out IVersusGameModeEntry? gameMode);
+        string id = $"{metadata.Name}/{name}";
+        entries.TryGetValue(id, out IVersusGameModeEntry? gameMode);
         return gameMode;
     }
 

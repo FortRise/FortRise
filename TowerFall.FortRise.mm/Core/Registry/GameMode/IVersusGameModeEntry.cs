@@ -1,7 +1,10 @@
+using TowerFall;
+
 namespace FortRise;
 
 public interface IVersusGameModeEntry 
 {
     string Name { get; }
-    IVersusGameMode GameMode { get; }
+    IVersusGameMode VersusGameMode { get; }
+    Modes Modes { get; }
 }

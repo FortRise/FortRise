@@ -27,7 +27,7 @@ public class patch_MatchSettings : MatchSettings
             }
             if (GameModeRegistry.RegistryVersusGameModes.TryGetValue(CustomVersusModeName, out IVersusGameModeEntry? versusGameMode))
             {
-                return versusGameMode.GameMode;
+                return versusGameMode.VersusGameMode;
             }
 
             return null;
