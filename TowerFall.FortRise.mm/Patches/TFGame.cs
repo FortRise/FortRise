@@ -11,25 +11,16 @@ using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Mono.Cecil;
 using Monocle;
 using MonoMod;
+using MonoMod.Cil;
 using SDL3;
 
 namespace TowerFall
 {
     internal static class NativeMethods 
     {
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetDefaultDllDirectories(int directoryFlags);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern void AddDllDirectory(string lpPathName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetDllDirectory(string lpPathName);
-
         [DllImport("libc", SetLastError = true)]
         public static extern int mprotect(IntPtr ptr, nuint len, int prot);
     }
@@ -38,7 +29,6 @@ namespace TowerFall
     {
         private static string FILENAME;
         public static bool SoundLoaded;
-        private const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
         public static patch_Atlas FortRiseMenuAtlas;
         public static bool Loaded
@@ -612,6 +602,10 @@ namespace TowerFall
         [MonoModIgnore]
         private static extern string GetCloudSavePath();
 
+        [PatchTFGameOnSceneTransition]
+        [MonoModIgnore]
+        protected extern override void OnSceneTransition();
+
 
         [MonoModIfFlag("OS:Windows")]
         [MonoModPatch("<>c")]
@@ -626,6 +620,24 @@ namespace TowerFall
             [MonoModRemove]
             [MonoModPatch("<Load>b__118_0")]
             internal extern void Loadb__118_0();
+        }
+    }
+}
+
+namespace MonoMod
+{
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTFGameOnSceneTransition))]
+    internal class PatchTFGameOnSceneTransition : Attribute {}
+
+    internal static partial class MonoModRules 
+    {
+        public static void PatchTFGameOnSceneTransition(ILContext ctx, CustomAttribute attrib) 
+        {
+            var cursor = new ILCursor(ctx);
+            // this useless method call is causing issues for us, we need to remove it
+
+            cursor.GotoNext(instr => instr.MatchCallOrCallvirt("Monocle.Audio", "Stop"));
+            cursor.Remove();
         }
     }
 }
