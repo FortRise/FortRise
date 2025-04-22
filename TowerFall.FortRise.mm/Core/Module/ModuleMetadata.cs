@@ -10,12 +10,14 @@ namespace FortRise;
 public class ModuleUpdater 
 {
     [JsonPropertyName("Github")]
-    public Github? GH { get; set; }
+    public ModPublisher.Github? GH { get; set; }
+    [JsonPropertyName("GameBanana")]
+    public ModPublisher.GameBanana? GB { get; set; }
 
-    public class Github 
+    public abstract record ModPublisher 
     {
-        public string? Repository { get; set; }
-        public string? TagRegex { get; set; }
+        public record Github(string? Repository, string? TagRegex) : ModPublisher;
+        public record GameBanana(int? ID) : ModPublisher;
     }
 }
 

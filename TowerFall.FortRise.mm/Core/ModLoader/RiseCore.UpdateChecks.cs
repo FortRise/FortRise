@@ -8,23 +8,19 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace FortRise;
 
 public partial class RiseCore
 {
-    public static class UpdateChecks
+    public static partial class UpdateChecks
     {
         private const string API_REPO_REF_LINK = "https://api.github.com/repos/FortRise/FortRise/git/refs/tags";
         private static string version;
         internal static string UpdateMessage = "CHECKING FOR AN UPDATE...";
         public static bool FortRiseUpdateAvailable;
         public static HashSet<ModuleMetadata> HasUpdates = new HashSet<ModuleMetadata>();
-        public static Dictionary<ModuleMetadata, string> Tags = new Dictionary<ModuleMetadata, string>();
-        private static readonly Lock syncRoot = new Lock();
 
 
         public static bool IsUpdateAvailable(FortModule module)
@@ -39,113 +35,38 @@ public partial class RiseCore
 
         public static async Task<Result<bool, string>> CheckModUpdate(ModuleMetadata metadata)
         {
-            if (metadata.Update == null || metadata.Update.GH == null || string.IsNullOrEmpty(metadata.Update.GH.Repository))
+            if (metadata.Update is null)
             {
                 return false;
             }
-            var urlRepository = $"https://api.github.com/repos/{metadata.Update.GH.Repository}/git/refs/tags";
 
-            try
+            Result<bool, string> results = false;
+
+            if (metadata.Update.GH != null && !string.IsNullOrEmpty(metadata.Update.GH.Repository))
             {
-                string json;
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
-                    json = await client.GetStringAsync(urlRepository);
-                }
-
-                var updateRefs = JsonSerializer.Deserialize<UpdateRef[]>(json);
-
-                if (!string.IsNullOrEmpty(metadata.Update.GH.TagRegex))
-                {
-                    var regex = new Regex(metadata.Update.GH.TagRegex);
-                    var list = updateRefs
-                        .Where(x => regex.IsMatch(TrimUrl(x.Ref)))
-                        .Select(x => {
-                            x.Version = new SemanticVersion(regex.Match(new string(TrimUrl(x.Ref))).Groups[1].Value);
-                            return x;
-                        })
-                        .ToArray();
-
-                    updateRefs = list;
-                }
-
-                Array.Reverse(updateRefs);
-                var r = updateRefs[0];
-
-                lock (syncRoot)
-                {
-                    Tags.Add(metadata, new string(TrimUrl(r.Ref)));
-                }
-
-                if (r.Version == SemanticVersion.Empty)
-                {
-                    if (!SemanticVersion.TryParse(TrimUrl(r.Ref), out SemanticVersion version))
-                    {
-                        return "ERROR PARSING THE VERSION NUMBER.";
-                    }
-                    r.Version = version;
-                }
-
-
-                if (r.Version > metadata.Version)
-                {
-                    HasUpdates.Add(metadata);
-                }
-                
-                return true;
+                results = await Github.CheckModUpdate(metadata);
             }
-            catch (Exception ex)
+
+            if (metadata.Update.GB != null && metadata.Update.GB.ID != null)
             {
-                Logger.Error(ex);
-                return $"Could not get an update to {metadata.Name}.";
+                results = await GameBanana.CheckModUpdate(metadata);
             }
+            return results;
+
         }
 
         public static async Task<Result<bool, string>> DownloadUpdate(ModuleMetadata metadata)
         {
-            var tagName = Tags[metadata];
-
-            var urlTaggedRelease = $"https://api.github.com/repos/{metadata.Update.GH.Repository}/releases/tags/{tagName}";
-            try 
+            if (GameBanana.MetadataGBUpdates.Contains(metadata))
             {
-                string fortriseAgent = "FortRise/" + FortRiseVersion.ToString();
-                string json;
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
-                    json = await client.GetStringAsync(urlTaggedRelease);
-                }
-
-                var updateRelease = JsonSerializer.Deserialize<UpdateRelease>(json);
-                var firstAsset = updateRelease.Assets[0];
-
-                byte[] data;
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                    client.DefaultRequestHeaders.Add("Accept", "application/zip");
-                    data = await client.GetByteArrayAsync(firstAsset.BrowserDownloadUrl);
-                }
-
-                if (!ValidateReleaseByte(data))
-                {
-                    return "First release does not have a valid mod metadata.";
-                }
-
-                using (var fs = File.Create(Path.Combine("ModUpdater", firstAsset.Name)))
-                {
-                    fs.Write(data, 0, data.Length);
-                }
-                return true;
+                return await GameBanana.DownloadUpdate(metadata);
             }
-            catch (Exception ex)
+            if (Github.MetadataGHUpdates.Contains(metadata))
             {
-                Logger.Error(ex);
-                return "Could not get a download file from this repository.";
+                return await Github.DownloadUpdate(metadata);
             }
+
+            return false;
         }
 
         public static void OpenGithubURL(string repo)
@@ -153,13 +74,8 @@ public partial class RiseCore
             OpenURL($"https://github.com/{repo}");
         }
 
-        public static void OpenGithubModUpdateURL(ModuleMetadata metadata, string repo)
-        {
-            var releaseTag = Tags[metadata];
-            OpenURL($"https://github.com/{repo}/releases/tag/{releaseTag}");
-        }
 
-        private static bool ValidateReleaseByte(byte[] data)
+        internal static bool ValidateReleaseByte(byte[] data)
         {
             try 
             {
@@ -188,7 +104,7 @@ public partial class RiseCore
             }
         }
 
-        internal static async Task<Result<UpdateRef, string>> CheckFortRiseUpdate()
+        internal static async Task<Result<Github.UpdateRef, string>> CheckFortRiseUpdate()
         {
             try 
             {
@@ -197,7 +113,7 @@ public partial class RiseCore
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
                 var json = await client.GetStringAsync(API_REPO_REF_LINK);
 
-                var updateRefs = JsonSerializer.Deserialize<UpdateRef[]>(json);
+                var updateRefs = JsonSerializer.Deserialize<Github.UpdateRef[]>(json);
                 Array.Reverse(updateRefs);
 
                 return updateRefs[0];
@@ -231,7 +147,7 @@ public partial class RiseCore
             OpenURL(url);
         }
 
-        private static void OpenURL(string url)
+        internal static void OpenURL(string url)
         {
             try
             {
@@ -259,38 +175,112 @@ public partial class RiseCore
             }
         }
 
-        private static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> url)
+        internal static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> url)
         {
             int index = url.LastIndexOf('/');
             return url.Slice(index + 1);
         }
 
-        public struct UpdateRef
+        public static class GameBanana
         {
-            [JsonPropertyName("ref")]
-            public string Ref { get; set; }
+            public static HashSet<ModuleMetadata> MetadataGBUpdates = new HashSet<ModuleMetadata>();
+            public static async Task<Result<bool, string>> CheckModUpdate(ModuleMetadata metadata)
+            {
+                var urlMod = $"https://api.gamebanana.com/Core/Item/Data?itemtype=Mod&itemid={metadata.Update.GB.ID}&fields=Updates().aGetLatestUpdates()";
+                try
+                {
+                    string json;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                        json = await client.GetStringAsync(urlMod);
+                    }
 
-            [JsonIgnore]
-            [JsonConverter(typeof(SemanticVersionConverter))]
-            public SemanticVersion Version { get; set; }
-        }
+                    var updateInfos = JsonSerializer.Deserialize<UpdateInfo[][]>(json);
 
-        public struct UpdateRelease
-        {
-            [JsonPropertyName("tag_name")]
-            public string TagName { get; set; }
-            [JsonPropertyName("name")]
-            public string Name { get; set; }
-            [JsonPropertyName("assets")]
-            public UpdateReleaseAssets[] Assets { get; set; }
-        }
+                    if (updateInfos.Length == 0)
+                    {
+                        return false;
+                    }
 
-        public struct UpdateReleaseAssets 
-        {
-            [JsonPropertyName("name")]
-            public string Name { get; set; }
-            [JsonPropertyName("browser_download_url")]
-            public string BrowserDownloadUrl { get; set; }
+                    UpdateInfo info = updateInfos[0][0];
+                    if (!SemanticVersion.TryParse(info.Version, out SemanticVersion version))
+                    {
+                        return "ERROR, INVALID VERSION PARSING PATTERN";
+                    }
+
+                    if (version > metadata.Version)
+                    {
+                        HasUpdates.Add(metadata);
+                        MetadataGBUpdates.Add(metadata);
+                    }
+                    
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex);
+                    return $"Could not get an update to {metadata.Name}.";
+                }
+            }
+
+            public static async Task<Result<bool, string>> DownloadUpdate(ModuleMetadata metadata)
+            {
+                var urlTaggedRelease = $"https://api.gamebanana.com/Core/Item/Data?itemtype=Mod&itemid={metadata.Update.GB.ID}&fields=Files().aFiles()";
+                try 
+                {
+                    string fortriseAgent = "FortRise/" + FortRiseVersion.ToString();
+                    string json;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                        json = await client.GetStringAsync(urlTaggedRelease);
+                    }
+
+                    var updateRelease = JsonSerializer.Deserialize<Dictionary<string, DownloadInfo>[]>(json);
+                    var firstAsset = updateRelease[0].FirstOrDefault();
+                    if (firstAsset.Key == null)
+                    {
+                        return false;
+                    }
+
+                    byte[] data;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
+                        client.DefaultRequestHeaders.Add("Accept", "application/zip");
+                        data = await client.GetByteArrayAsync(firstAsset.Value.DownloadURL);
+                    }
+
+                    if (!UpdateChecks.ValidateReleaseByte(data))
+                    {
+                        return "First release does not have a valid mod metadata.";
+                    }
+
+                    using (var fs = File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModUpdater", $"{metadata.Name}.zip")))
+                    {
+                        fs.Write(data, 0, data.Length);
+                    }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex);
+                    return "Could not get a download file from this repository.";
+                }
+            }
+            
+            public struct UpdateInfo 
+            {
+                [JsonPropertyName("_sVersion")]
+                public string Version { get; set; }
+            }
+
+            public struct DownloadInfo 
+            {
+                [JsonPropertyName("_sDownloadUrl")]
+                public string DownloadURL { get; set; }
+            }
         }
     }
 }

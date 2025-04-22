@@ -153,10 +153,10 @@ public class UIModMenu : CustomMenuState
         container.ClearAll();
         foreach (var mod in GetMods()) 
         {
-            string title = mod.DisplayName;
+            string title = mod.DisplayName?.ToUpperInvariant();
             if (string.IsNullOrEmpty(title))
             {
-                title = mod.Name;
+                title = mod.Name.ToUpperInvariant();
             }
             bool hasUpdate = RiseCore.UpdateChecks.HasUpdates.Contains(mod);
 
@@ -167,7 +167,7 @@ public class UIModMenu : CustomMenuState
             container.AddMod(new () 
             {
                 OutlineColor = ModContainer.DefaultOutlineColor,
-                Title = title.ToUpperInvariant(),
+                Title = title,
                 Version = mod.Version.ToString().ToUpperInvariant(),
                 Metadata = mod
             });
