@@ -112,13 +112,36 @@ public static partial class RiseCore
         }
 
         // Check for updates
-        var updates = Directory.GetFiles(modUpdater).Where(x => x.EndsWith("zip"));
-        foreach (var update in updates)
+        string updaterPath = Path.Combine(modUpdater, "updater.json");
+        if (File.Exists(updaterPath))
         {
-            var filename = Path.GetFileName(update);
-            Logger.Info($"Updating {filename}");
-            File.Move(update, Path.Combine(modDirectory, filename));
+            var json = File.ReadAllText(updaterPath);
+            var updaterInfos = JsonSerializer.Deserialize<UpdateChecks.UpdaterInfo[]>(json, UpdateChecks.UpdaterInfoOptions);
+
+            foreach (var info in updaterInfos)
+            {
+                Logger.Info($"Updating {info.ModName} {info.Version} --> {info.ModName} {info.UpdateVersion}");
+                string oldMod = Path.Combine(modDirectory, info.ModPath);
+                if (info.IsZipped)
+                {
+                    if (File.Exists(oldMod))
+                    {
+                        File.Delete(oldMod);
+                    }
+                }
+                else 
+                {
+                    if (Directory.Exists(oldMod))
+                    {
+                        Directory.Delete(oldMod, true);
+                    }
+                }
+
+                File.Move(info.UpdateModPath, Path.Combine(modDirectory, Path.GetFileName(info.UpdateModPath)));
+            }
+            File.Delete(updaterPath);
         }
+
 
         // Load env mods here
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));

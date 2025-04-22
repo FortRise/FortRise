@@ -86,12 +86,6 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
         return version + name;
     }
 
-    public static Result<ModuleMetadata, string> ParseMetadata(string dir, string path)
-    {
-        using var jfs = File.OpenRead(path);
-        return ParseMetadata(dir, jfs);
-    }
-
     private static JsonSerializerOptions metaJsonOptions;
 
     static ModuleMetadata()
@@ -101,6 +95,12 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
             PropertyNameCaseInsensitive = true,
         };
         metaJsonOptions.Converters.Add(new SemanticVersionConverter());
+    }
+
+    public static Result<ModuleMetadata, string> ParseMetadata(string dir, string path)
+    {
+        using var jfs = File.OpenRead(path);
+        return ParseMetadata(dir, jfs);
     }
 
     public static Result<ModuleMetadata, string> ParseMetadata(string dirPath, Stream stream, bool zip = false)

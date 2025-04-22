@@ -111,15 +111,19 @@ public partial class RiseCore
                         data = await client.GetByteArrayAsync(firstAsset.BrowserDownloadUrl);
                     }
 
-                    if (!UpdateChecks.ValidateReleaseByte(data))
+                    if (!UpdateChecks.ValidateReleaseByte(data, out SemanticVersion version))
                     {
                         return "First release does not have a valid mod metadata.";
                     }
 
-                    using (var fs = File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModUpdater", firstAsset.Name)))
+                    string updatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModUpdater", firstAsset.Name);
+
+                    using (var fs = File.Create(updatePath))
                     {
                         fs.Write(data, 0, data.Length);
                     }
+
+                    AddToUpdaterList(metadata, updatePath, version);
                     return true;
                 }
                 catch (Exception ex)

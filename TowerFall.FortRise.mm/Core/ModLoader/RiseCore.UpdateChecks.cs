@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace FortRise;
@@ -16,11 +14,17 @@ public partial class RiseCore
 {
     public static partial class UpdateChecks
     {
+        internal static JsonSerializerOptions UpdaterInfoOptions = new();
         private const string API_REPO_REF_LINK = "https://api.github.com/repos/FortRise/FortRise/git/refs/tags";
         private static string version;
         internal static string UpdateMessage = "CHECKING FOR AN UPDATE...";
         public static bool FortRiseUpdateAvailable;
         public static HashSet<ModuleMetadata> HasUpdates = new HashSet<ModuleMetadata>();
+
+        static UpdateChecks()
+        {
+            UpdaterInfoOptions.Converters.Add(new SemanticVersionConverter());
+        }
 
 
         public static bool IsUpdateAvailable(FortModule module)
@@ -69,13 +73,43 @@ public partial class RiseCore
             return false;
         }
 
+        internal static void AddToUpdaterList(ModuleMetadata metadata, string updatePath, SemanticVersion updateVersion)
+        {
+            var updaterListFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModUpdater", "updater.json");
+            List<UpdaterInfo> updaterInfo;
+            if (!File.Exists(updaterListFile))
+            {
+                updaterInfo = new List<UpdaterInfo>();
+            }
+            else 
+            {
+                string jsonInput = File.ReadAllText(updaterListFile);
+                updaterInfo = JsonSerializer.Deserialize<List<UpdaterInfo>>(jsonInput, UpdaterInfoOptions);
+            }
+
+            string path;
+
+            if (metadata.IsZipped)
+            {
+                path = metadata.PathZip;
+            }
+            else 
+            {
+                path = metadata.PathDirectory;
+            }
+
+            updaterInfo.Add(new UpdaterInfo(metadata.Name, metadata.Version, updateVersion, path, updatePath, metadata.IsZipped));
+
+            string json = JsonSerializer.Serialize(updaterInfo, UpdaterInfoOptions);
+            File.WriteAllText(updaterListFile, json);
+        }
+
         public static void OpenGithubURL(string repo)
         {
             OpenURL($"https://github.com/{repo}");
         }
 
-
-        internal static bool ValidateReleaseByte(byte[] data)
+        internal static bool ValidateReleaseByte(byte[] data, out SemanticVersion version)
         {
             try 
             {
@@ -83,23 +117,27 @@ public partial class RiseCore
                 using var zip = new ZipArchive(ms);
                 var entry = zip.GetEntry("meta.json");
 
+                version = default;
                 if (entry == null)
                 {
                     return false;
                 }
 
                 using var jsonMs = entry.ExtractStream();
-                if (!ModuleMetadata.ParseMetadata(null, jsonMs).Check(out _, out string err))
+                if (!ModuleMetadata.ParseMetadata(null, jsonMs).Check(out ModuleMetadata m, out string err))
                 {
                     Logger.Error(err);
                     return false;
                 }
+
+                version = m.Version;
 
                 return true;
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
+                version = default;
                 return false;
             }
         }
@@ -178,109 +216,17 @@ public partial class RiseCore
         internal static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> url)
         {
             int index = url.LastIndexOf('/');
-            return url.Slice(index + 1);
+            return url[(index + 1)..];
         }
 
-        public static class GameBanana
+        public struct UpdaterInfo(string modName, SemanticVersion version, SemanticVersion updateVersion, string modPath, string updateModPath, bool isZipped)
         {
-            public static HashSet<ModuleMetadata> MetadataGBUpdates = new HashSet<ModuleMetadata>();
-            public static async Task<Result<bool, string>> CheckModUpdate(ModuleMetadata metadata)
-            {
-                var urlMod = $"https://api.gamebanana.com/Core/Item/Data?itemtype=Mod&itemid={metadata.Update.GB.ID}&fields=Updates().aGetLatestUpdates()";
-                try
-                {
-                    string json;
-                    using (var client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                        json = await client.GetStringAsync(urlMod);
-                    }
-
-                    var updateInfos = JsonSerializer.Deserialize<UpdateInfo[][]>(json);
-
-                    if (updateInfos.Length == 0)
-                    {
-                        return false;
-                    }
-
-                    UpdateInfo info = updateInfos[0][0];
-                    if (!SemanticVersion.TryParse(info.Version, out SemanticVersion version))
-                    {
-                        return "ERROR, INVALID VERSION PARSING PATTERN";
-                    }
-
-                    if (version > metadata.Version)
-                    {
-                        HasUpdates.Add(metadata);
-                        MetadataGBUpdates.Add(metadata);
-                    }
-                    
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex);
-                    return $"Could not get an update to {metadata.Name}.";
-                }
-            }
-
-            public static async Task<Result<bool, string>> DownloadUpdate(ModuleMetadata metadata)
-            {
-                var urlTaggedRelease = $"https://api.gamebanana.com/Core/Item/Data?itemtype=Mod&itemid={metadata.Update.GB.ID}&fields=Files().aFiles()";
-                try 
-                {
-                    string fortriseAgent = "FortRise/" + FortRiseVersion.ToString();
-                    string json;
-                    using (var client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                        json = await client.GetStringAsync(urlTaggedRelease);
-                    }
-
-                    var updateRelease = JsonSerializer.Deserialize<Dictionary<string, DownloadInfo>[]>(json);
-                    var firstAsset = updateRelease[0].FirstOrDefault();
-                    if (firstAsset.Key == null)
-                    {
-                        return false;
-                    }
-
-                    byte[] data;
-                    using (var client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                        client.DefaultRequestHeaders.Add("Accept", "application/zip");
-                        data = await client.GetByteArrayAsync(firstAsset.Value.DownloadURL);
-                    }
-
-                    if (!UpdateChecks.ValidateReleaseByte(data))
-                    {
-                        return "First release does not have a valid mod metadata.";
-                    }
-
-                    using (var fs = File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModUpdater", $"{metadata.Name}.zip")))
-                    {
-                        fs.Write(data, 0, data.Length);
-                    }
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex);
-                    return "Could not get a download file from this repository.";
-                }
-            }
-            
-            public struct UpdateInfo 
-            {
-                [JsonPropertyName("_sVersion")]
-                public string Version { get; set; }
-            }
-
-            public struct DownloadInfo 
-            {
-                [JsonPropertyName("_sDownloadUrl")]
-                public string DownloadURL { get; set; }
-            }
+            public string ModName { get; set; } = modName;
+            public SemanticVersion Version { get; set; } = version;
+            public SemanticVersion UpdateVersion { get; set; } = updateVersion;
+            public string ModPath { get; set; } = modPath;
+            public string UpdateModPath { get; set; } = updateModPath;
+            public bool IsZipped { get; set; } = isZipped;
         }
     }
 }
