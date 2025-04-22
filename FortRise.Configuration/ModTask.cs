@@ -5,7 +5,6 @@ using System.IO;
 using System;
 using System.IO.Compression;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using MAB.DotIgnore;
 using System.Linq;
 
@@ -193,16 +192,16 @@ public sealed class ModTask : Task
     {
         JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions 
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true
+            WriteIndented = true,
         };
+
+        metadataJson = null;
 
         if (readFile.Relative != "meta.json")
         {
-            metadataJson = null;
             return true;
         }
+
 
         string json;
         using (var fs = File.OpenText(readFile.Absolute)) 
@@ -210,21 +209,21 @@ public sealed class ModTask : Task
             json = fs.ReadToEnd();
         }
 
-        var meta = JsonSerializer.Deserialize<ModuleMetadata>(json, metaJsonOptions)!;
+        var meta = JsonSerializer.Deserialize<InsensitiveDictionary>(json, metaJsonOptions)!;
 
-        if (string.IsNullOrEmpty(meta.Name))
+        if (!meta.ContainsKey("Name"))
         {
-            meta.Name = ModName;
+            meta["Name"] = ModName;
         }
 
-        string? version = meta.Version;
-
-        if (string.IsNullOrEmpty(version))
+        if (!meta.TryGetValue("Version", out object? obj))
         {
             Log.LogError($"The '{readFile.Relative}' file does missing a required 'Version' field.");
-            metadataJson = null;
             return false;
         }
+
+        string? version = (string)obj;
+
 
         if (version!.Trim() != ModVersion.Trim())
         {
@@ -241,41 +240,4 @@ public sealed class ModTask : Task
 
 public record struct ReadFile(string Absolute, string Relative);
 
-public class ModDependency 
-{
-    public string? Name { get; set; }
-    public string? Version { get; set; }
-}
-
-public class ModuleMetadata 
-{
-    public string? Name { get; set; }
-    public string? Version { get; set; }
-    public string DisplayName { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Author { get; set; } = string.Empty;
-    public string DLL { get; set; } = string.Empty;
-    public string[]? Tags { get; set; }
-    public ModDependency[] Dependencies { get; set; } = null!;
-    public ModDependency[] OptionalDependencies { get; set; } = null!;
-    public ModuleUpdater Update { get; set; } = null!;
-}
-
-public class ModuleUpdater 
-{
-    [JsonPropertyName("Github")]
-    public Github? GH { get; set; }
-    [JsonPropertyName("GameBanana")]
-    public GameBanana? GB { get; set; }
-
-    public class Github 
-    {
-        public string? Repository { get; set; }
-        public string? TagRegex { get; set; }
-    }
-
-    public class GameBanana
-    {
-        public int? ID { get; set; }
-    }
-}
+internal sealed class InsensitiveDictionary() : Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) {}
