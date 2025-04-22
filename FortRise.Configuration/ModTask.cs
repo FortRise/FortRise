@@ -222,7 +222,7 @@ public sealed class ModTask : Task
             return false;
         }
 
-        string? version = (string)obj;
+        string? version = ((JsonElement)obj).GetString();
 
 
         if (version!.Trim() != ModVersion.Trim())
