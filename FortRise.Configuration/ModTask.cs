@@ -265,10 +265,17 @@ public class ModuleUpdater
 {
     [JsonPropertyName("Github")]
     public Github? GH { get; set; }
+    [JsonPropertyName("GameBanana")]
+    public GameBanana? GB { get; set; }
 
     public class Github 
     {
         public string? Repository { get; set; }
         public string? TagRegex { get; set; }
+    }
+
+    public class GameBanana
+    {
+        public int? ID { get; set; }
     }
 }
