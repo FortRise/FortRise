@@ -43,7 +43,7 @@ namespace TowerFall
         {
             orig_ctor(session, xml);
             ActiveShaders = new();
-            if (!RiseCore.DebugMode || session.GetLevelSet() == "TowerFall") 
+            if (session.GetLevelSet() == "TowerFall") 
                 return;
             
             var levelSystem = session.MatchSettings.LevelSystem;

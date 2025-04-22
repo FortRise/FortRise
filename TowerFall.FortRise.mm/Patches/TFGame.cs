@@ -66,8 +66,6 @@ namespace TowerFall
             orig_ctor(noIntro || RiseCore.NoIntro);
 
             FortRise.RiseCore.ModuleStart();
-            if (!RiseCore.NoIntro && !noIntro)
-                this.noIntro = RiseCore.DebugMode;
         }
 
         [MonoModReplace]

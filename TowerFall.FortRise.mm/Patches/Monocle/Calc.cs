@@ -109,9 +109,6 @@ public static class patch_Calc
     [MonoModReplace]
     public static void Log(params object[] obj) 
     {
-        if (!RiseCore.DebugMode)
-            return;
-
         foreach (object obj2 in obj)
         {
             Logger.Log(obj2);

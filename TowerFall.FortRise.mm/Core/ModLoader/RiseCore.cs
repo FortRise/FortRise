@@ -60,11 +60,6 @@ public static partial class RiseCore
     /// <value>true if the OS is running on Windows, otherwise false.</value>
     public static bool IsWindows { get; internal set; }
 
-    /// <summary>
-    /// Checks if the FortRise is currently running on Debug Mode.
-    /// <note>It is better to use conditionals if the runtime debugging is not needed.</note>
-    /// </summary>
-    public static bool DebugMode { get; private set; }
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
     public static bool NoErrorScene { get; private set; }
@@ -243,26 +238,31 @@ public static partial class RiseCore
 
     internal static void ParseArgs(string[] args)
     {
+        string file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launch.txt");
         var compiledArgs = new List<string>(args);
-        if (File.Exists("launch.txt"))
+        if (File.Exists(file))
         {
-            using var fs = File.OpenText("launch.txt");
+            using var fs = File.OpenText(file);
             string argPass;
             while ((argPass = fs.ReadLine()) != null)
             {
-                if (argPass.Trim().StartsWith(";") || string.IsNullOrEmpty(argPass))
+                if (string.IsNullOrEmpty(argPass) || argPass.Trim().StartsWith(';'))
+                {
                     continue;
+                }
                 var splittedArgs = argPass.Trim().Split(' ');
                 foreach (var splittedArg in splittedArgs)
                 {
                     if (!compiledArgs.Contains(splittedArg))
+                    {
                         compiledArgs.Add(argPass.Trim());
+                    }
                 }
             }
         }
         else
         {
-            using var fs = File.CreateText("launch.txt");
+            using var fs = File.CreateText(file);
             fs.WriteLine("; Add any of available launch arguments here.");
             fs.WriteLine("; Lines starting with ; are ignored, so all of the arguments are disabled.");
             fs.WriteLine("");
@@ -280,10 +280,6 @@ public static partial class RiseCore
             var arg = compiledArgs[cursor];
             switch (arg)
             {
-            case "--debug":
-                DebugMode = true;
-                Logger.Verbosity = Logger.LogLevel.Debug;
-                break;
             case "--verbose":
                 Logger.Verbosity = Logger.LogLevel.Assert;
                 break;

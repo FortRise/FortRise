@@ -29,20 +29,10 @@ public static partial class patch_TFCommands
         });
         commands.RegisterCommand("detours", args => 
         {
-            if (!RiseCore.DebugMode) 
-            {
-                commands.Log("Command only available in Debug Mode");
-                return;
-            }
             RiseCore.LogDetours(Logger.LogLevel.Info);
         });
         commands.RegisterCommand("hitbox", args => 
         {
-            if (!RiseCore.DebugMode) 
-            {
-                commands.Log("Command only available in Debug Mode");
-                return;
-            }
             if (Engine.Instance.Scene is not Level) 
             {
 				commands.Log("Command can only be used during gameplay!");
@@ -52,11 +42,6 @@ public static partial class patch_TFCommands
         });
         commands.RegisterCommand("summon", args => 
         {
-            if (!RiseCore.DebugMode) 
-            {
-                commands.Log("Command only available in Debug Mode");
-                return;
-            }
             if (Engine.Instance.Scene is not patch_Level level) 
             {
 				commands.Log("Command can only be used during gameplay!");
