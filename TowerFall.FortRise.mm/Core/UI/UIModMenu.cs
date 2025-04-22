@@ -314,7 +314,7 @@ internal class ModContainer : MenuItem
             return;
         }
 
-        if (MenuInput.Left)
+        if (LeftItem is not null && MenuInput.Left)
         {
             currentSelected.OutlineColor = DefaultOutlineColor;
             Selected = false;
