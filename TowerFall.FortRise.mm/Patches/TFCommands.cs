@@ -1,6 +1,8 @@
 using System.Reflection;
 using Monocle;
 using FortRise;
+using System.IO;
+using System;
 
 namespace TowerFall;
 
@@ -66,7 +68,16 @@ public static partial class patch_TFCommands
             string name = "dumplevel.oel";
             if (args.Length > 0)
                 name = args[0] + ".oel";
-            level.XML.OwnerDocument.Save("DUMP/" + name);
+
+            string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DUMP");
+
+            if (!Directory.Exists(dumpDir))
+            {
+                Directory.CreateDirectory(dumpDir);
+            }
+            
+            string path = Path.Combine(dumpDir, name);
+            level.XML.OwnerDocument.Save(path);
         });
         commands.RegisterCommand("logtags", args => 
         {
