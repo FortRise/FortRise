@@ -25,15 +25,22 @@ public class patch_SFX : SFX
     {
     }
 
-    [MonoModLinkTo("Monocle.SFX", "System.Void .ctor(System.Boolean)")]
-    [MonoModIgnore]
-    public void thisctor(bool obeysMasterPitch) {}
+    [MonoModConstructor]
+    [MonoModReplace]
+    internal void ctor(bool obeysMasterPitch) 
+    {
+        ObeysMasterPitch = obeysMasterPitch;
+        lock (patch_Audio.pitchList)
+        {
+            patch_Audio.pitchList.Add(this);
+        }
+    }
 
     [MonoModConstructor]
     [MonoModReplace]
     public void ctor(string filename, bool obeysMasterPitch = true) 
     {
-        thisctor(obeysMasterPitch);
+        ctor(obeysMasterPitch);
         string path = Audio.LOAD_PREFIX + filename + ".wav";
         if (!ModIO.IsDirectoryOrFileExists(path)) 
         {
@@ -55,7 +62,7 @@ public class patch_SFX : SFX
     [MonoModConstructor]
     public void ctor(Stream stream, bool obeysMasterPitch = true) 
     {
-        thisctor(obeysMasterPitch);
+        ctor(obeysMasterPitch);
         try
         {
             Data = SoundEffect.FromStream(stream);

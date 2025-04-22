@@ -13,6 +13,7 @@ public static class patch_Audio
     public static Dictionary<string, TrackInfo> TrackMap = new();
     private static IMusicSystem currentSystem;
     internal static List<SFX> loopList;
+    internal static List<SFX> pitchList;
 
     internal static void InitMusicSystems() 
     {
