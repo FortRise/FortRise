@@ -8,7 +8,6 @@
 
   <PropertyGroup>
     <FortRiseVersion>5.0.0</FortRiseVersion>
-    <Tag>-beta.6</Tag>
-    <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)$(Tag)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
+    <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
   </PropertyGroup>
 </Project>

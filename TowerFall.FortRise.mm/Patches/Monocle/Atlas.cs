@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Xml;
 using FortRise;
 using Microsoft.Xna.Framework;
@@ -45,7 +46,7 @@ public class patch_Atlas : Atlas
     {
         var pngPath = resource.RootPath;
         int indexOfSlash = pngPath.IndexOf('/');
-        var key = Path.ChangeExtension(pngPath.Substring(indexOfSlash + 1)
+        var key = Path.ChangeExtension(pngPath[(indexOfSlash + 1)..]
             .Replace("Content/Atlas/atlas/", "")
             .Replace("Content/Atlas/menuAtlas/", "")
             .Replace("Content/Atlas/bossAtlas/", "")
@@ -53,11 +54,10 @@ public class patch_Atlas : Atlas
         
         var filename = Path.GetFileName(key);
 
-        if (filename.StartsWith("(")) 
+        if (filename.StartsWith('(')) 
         {
-            int index = filename.IndexOf('(');
             int ending = key.IndexOf(')');
-            var actualKey = key.Substring(0, ending);
+            var actualKey = key[..ending];
 
             var tagPath = Path.ChangeExtension(pngPath, "tag");
             if (ModIO.IsFileExists(tagPath)) 
@@ -68,15 +68,17 @@ public class patch_Atlas : Atlas
 
                 foreach (var tag in tags) 
                 {
-                    if (dest.TaggedSubTextures.TryGetValue(tag, out var textures)) 
+                    ref Dictionary<string, Subtexture> textures = ref CollectionsMarshal.GetValueRefOrAddDefault(dest.TaggedSubTextures, tag, out bool exists);
+                    if (exists)
                     {
                         textures.Add(actualKey.Replace("(", ""), source);
                     }
                     else 
                     {
-                        var newTextures = new Dictionary<string, Subtexture>();
-                        newTextures.Add(actualKey.Replace("(", ""), source);
-                        dest.TaggedSubTextures.Add(tag, newTextures);
+                        textures = new Dictionary<string, Subtexture>
+                        {
+                            { actualKey.Replace("(", ""), source }
+                        };
                     }
                 }
             }

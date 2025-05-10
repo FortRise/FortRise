@@ -61,9 +61,9 @@ public class FortContent
         {
             if (ResourceSystem.Metadata == null)
             {
-                return RiseCore.ResourceTree.Get("mod:::global:");
+                return RiseCore.ResourceTree.Get("mod:::global:/");
             }
-            return RiseCore.ResourceTree.Get($"mod:{ResourceSystem.Metadata.Name}");
+            return RiseCore.ResourceTree.Get($"mod:{ResourceSystem.Metadata.Name}/Content");
         }
     }
 

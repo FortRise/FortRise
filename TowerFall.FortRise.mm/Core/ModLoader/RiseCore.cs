@@ -538,16 +538,7 @@ public static partial class RiseCore
         if (module is NoModule or Adventure.AdventureModule)
             return;
 
-        try
-        {
-            module.LoadContent();
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"[Register] [{module.Meta.Name}] There was an error trying to load a content.");
-            Logger.Error(ex.ToString());
-            return;
-        }
+        module.LoadContent();
 
         module.Enabled = true;
         List<Action> laziedRegisters = new List<Action>();
