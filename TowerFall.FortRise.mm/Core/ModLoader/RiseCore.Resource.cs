@@ -129,6 +129,12 @@ public partial class RiseCore
             return RiseCore.ResourceTree.Get(actualPath);
         }
 
+        public bool TryGetRelativePath(string path, out IResourceInfo resource)
+        {
+            string actualPath = System.IO.Path.Combine(RootPath, path);
+            return RiseCore.ResourceTree.TryGetValue(path, out resource);
+        }
+
         public bool ExistsRelativePath(string path)
         {
             string actualPath = System.IO.Path.Combine(RootPath, path);
@@ -582,18 +588,41 @@ public partial class RiseCore
 
         public static IResourceInfo Get(string path)
         {
-            TreeMap.TryGetValue(path.Replace('\\', '/'), out var res);
-            if (res == null)
+            if (!TryGetValue(path, out var res))
             {
                 throw new Exception($"Resource path: '{path}' not found or does not exists.");
             }
-
             return res;
         }
 
         public static bool TryGetValue(string path, out IResourceInfo res)
         {
-            return TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
+            TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
+            if (res == null)
+            {
+                if (path.EndsWith('/'))
+                {
+                    path = path[0..(path.Length - 1)];
+                    TreeMap.TryGetValue(path, out res);
+                    if (res != null)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    path += '/';
+                    TreeMap.TryGetValue(path, out res);
+                    if (res != null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         public static bool IsExist(string path)

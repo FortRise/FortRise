@@ -71,7 +71,7 @@ public static class patch_Music
 
     public static void Play(TrackInfo info) 
     {
-        if (currentSong == info.ResourcePath)
+        if (currentSong == info.Resource.RootPath)
             return;
         
         Stop();
@@ -79,12 +79,12 @@ public static class patch_Music
         if (audioEngine == null)
             return;
 
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.ResourcePath);
+        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource.RootPath);
         if (audioSystem != null) 
         {
             patch_Audio.PlayMusic(audioSystem, info);
         }
-        currentSong = info.ResourcePath;
+        currentSong = info.Resource.RootPath;
     }
 
     private static void PlayInternal(string filepath) 
@@ -112,7 +112,7 @@ public static class patch_Music
 
     public static void PlayImmediate(TrackInfo info) 
     {
-        if (currentSong == info.ResourcePath)
+        if (currentSong == info.Resource.RootPath)
             return;
         
         audioCategory.Stop(AudioStopOptions.Immediate);
@@ -121,12 +121,12 @@ public static class patch_Music
         if (audioEngine == null)
             return;
 
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.ResourcePath);
+        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource.RootPath);
         if (audioSystem != null) 
         {
             patch_Audio.PlayMusic(audioSystem, info);
         }
-        currentSong = info.ResourcePath;
+        currentSong = info.Resource.RootPath;
     }
 
     [MonoModReplace]

@@ -25,6 +25,7 @@ public interface IResourceInfo
 
     internal void AssignType();
     IResourceInfo GetRelativePath(string path);
+    bool TryGetRelativePath(string path, out IResourceInfo resource);
 
     bool ExistsRelativePath(string path);
 }

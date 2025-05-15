@@ -5,24 +5,22 @@ namespace FortRise;
 public struct TrackInfo 
 {
     public string Name;
-    public string ResourcePath;
-    public Type ResourceType;
+    public IResourceInfo Resource;
 
-    public TrackInfo(string name, string resourcePath, Type extension) 
+    public TrackInfo(string name, IResourceInfo resource) 
     {
         Name = name;
-        ResourcePath = resourcePath;
-        ResourceType = extension;
+        Resource = resource;
     }
 
     public AudioTrack Create() 
     {
-        var stream = RiseCore.ResourceTree.TreeMap[ResourcePath].Stream;
-        if (ResourceType == typeof(RiseCore.ResourceTypeOggFile)) 
+        var stream = Resource.Stream;
+        if (Resource.ResourceType == typeof(RiseCore.ResourceTypeOggFile)) 
         {
             return new OggAudioTrack(stream);
         }
-        if (ResourceType == typeof(RiseCore.ResourceTypeWavFile)) 
+        if (Resource.ResourceType == typeof(RiseCore.ResourceTypeWavFile)) 
         {
             return new WavAudioTrack(stream);
         }
