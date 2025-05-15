@@ -17,10 +17,6 @@ internal sealed class ImGuiModule : FortModule
     private ImGuiRenderer renderer = null!;
 
 
-    private Hook hook_Engine_Draw = null!;
-    private Hook hook_Commands_UpdateOpen = null!;
-    private Hook hook_Commands_Render = null!;
-
     public override Type SettingsType => typeof(ImGuiSettings);
     public ImGuiSettings Settings => (ImGuiSettings)InternalSettings;
     public static ImGuiModule Instance { get; private set; } = null!;
@@ -30,17 +26,17 @@ internal sealed class ImGuiModule : FortModule
         Instance = this;
         Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Engine), "Draw"),
-            new HarmonyMethod(Engine_Draw_Postfix)
+            postfix: new HarmonyMethod(Engine_Draw_Postfix)
         );
 
         Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Commands), "HandleKey"),
-            new HarmonyMethod(Commands_HandleKey_Prefix)
+            prefix: new HarmonyMethod(Commands_HandleKey_Prefix)
         );
 
         Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Commands), "Render"),
-            new HarmonyMethod(Commands_Render_Prefix)
+            prefix: new HarmonyMethod(Commands_Render_Prefix)
         );
     }
 
@@ -78,7 +74,7 @@ internal sealed class ImGuiModule : FortModule
         return false;
     }
 
-    private static bool Commands_Render_Prefix(Action<Commands> orig, Commands self)
+    private static bool Commands_Render_Prefix()
     {
         return !ImGuiModule.Instance.Settings.IsEnabled;
     }
@@ -94,7 +90,12 @@ internal sealed class ImGuiModule : FortModule
         {
             if (!ImGuiModule.Instance.imguiOpened)
             {
-                ImGuiModule.Instance.mouseOpened = Engine.Instance.IsMouseVisible;
+                ImGuiModule.Instance.mouseOpened = __instance.IsMouseVisible;
+            }
+
+            if (gameTime.ElapsedGameTime == TimeSpan.Zero) // prevents crash when moving a window
+            {
+                goto SKIP;
             }
             renderer.BeforeLayout(gameTime);
             ImGui.Begin("Debug Window");
@@ -115,20 +116,21 @@ internal sealed class ImGuiModule : FortModule
                 ImGui.EndTabBar();
             }
 
-
             ImGui.End();
+
+            SKIP:
             renderer.AfterLayout();
             ImGuiModule.Instance.imguiOpened = true;
         }
         else
         {
             ImGuiModule.Instance.imguiOpened = false;
-            Engine.Instance.IsMouseVisible = ImGuiModule.Instance.imguiOpened;
+            __instance.IsMouseVisible = ImGuiModule.Instance.imguiOpened;
         }
 
         if (ImGuiModule.Instance.imguiOpened)
         {
-            Engine.Instance.IsMouseVisible = true;
+            __instance.IsMouseVisible = true;
         }
     }
 }

@@ -15,11 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.5" PrivateAssets="All" ExcludeAssets="runtime"/>
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
-    <PackageReference Include="FortRise.Configuration" Version="1.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="0Harmony" Private="False" HintPath="$(ModLoaderPath)\0Harmony.dll" />
+    <PackageReference Include="FortRise.Configuration" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>
