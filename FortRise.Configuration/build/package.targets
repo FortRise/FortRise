@@ -50,6 +50,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+    <Reference Include="0Harmony" Private="False" HintPath="$(ModLoaderPath)\0Harmony.dll" />
     <Reference Include="TowerFall">
       <HintPath>$(TowerFallDirPath)$(TowerFallPath)</HintPath>
       <Private>False</Private>

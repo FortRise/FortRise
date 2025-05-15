@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HarmonyLib;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -22,30 +23,29 @@ internal sealed class ImGuiModule : FortModule
 
     public override Type SettingsType => typeof(ImGuiSettings);
     public ImGuiSettings Settings => (ImGuiSettings)InternalSettings;
+    public static ImGuiModule Instance { get; private set; } = null!;
 
     public override void Load()
     {
-        hook_Engine_Draw = new Hook(
-            typeof(Engine).GetMethod("Draw", BindingFlags.NonPublic | BindingFlags.Instance)!,
-            Engine_Draw_patch
+        Instance = this;
+        Harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(Engine), "Draw"),
+            new HarmonyMethod(Engine_Draw_Postfix)
         );
 
-        hook_Commands_UpdateOpen = new Hook(
-            typeof(Commands).GetMethod("HandleKey", BindingFlags.NonPublic | BindingFlags.Instance)!,
-            Commands_HandleKey_patch
+        Harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(Commands), "HandleKey"),
+            new HarmonyMethod(Commands_HandleKey_Prefix)
         );
 
-        hook_Commands_Render = new Hook(
-            typeof(Commands).GetMethod("Render", BindingFlags.NonPublic | BindingFlags.Instance)!,
-            Commands_Render_patch
+        Harmony.Patch(
+            AccessTools.DeclaredMethod(typeof(Commands), "Render"),
+            new HarmonyMethod(Commands_Render_Prefix)
         );
     }
 
     public override void Unload()
     {
-        hook_Engine_Draw.Dispose();
-        hook_Commands_UpdateOpen.Dispose();
-        hook_Commands_Render.Dispose();
     }
 
     public override object? GetApi() => new ApiImplementation();
@@ -62,41 +62,39 @@ internal sealed class ImGuiModule : FortModule
         TabItemManager.Instance.Register(new EnemyTab());
     }
 
-    private void Commands_HandleKey_patch(Action<Commands, Keys> orig, Commands self, Keys key)
+    private static bool Commands_HandleKey_Prefix(Commands __instance, Keys key)
     {
-        if (!Settings.IsEnabled)
+        if (!ImGuiModule.Instance.Settings.IsEnabled)
         {
-            orig(self, key);
-            return;
+            return true;
         }
+
         if (key == Keys.OemTilde)
         {
-            DynamicData.For(self).Set("canOpen", false);
-            self.Open = false;
+            DynamicData.For(__instance).Set("canOpen", false);
+            __instance.Open = false;
         }
+
+        return false;
     }
 
-    private void Commands_Render_patch(Action<Commands> orig, Commands self)
+    private static bool Commands_Render_Prefix(Action<Commands> orig, Commands self)
     {
-        if (Settings.IsEnabled)
+        return !ImGuiModule.Instance.Settings.IsEnabled;
+    }
+
+    private static void Engine_Draw_Postfix(Engine __instance, GameTime gameTime)
+    {
+        if (!ImGuiModule.Instance.Settings.IsEnabled)
         {
             return;
         }
-        orig(self);
-    }
-
-    private void Engine_Draw_patch(Action<Engine, GameTime> orig, Engine self, GameTime gameTime)
-    {
-        orig(self, gameTime);
-        if (!Settings.IsEnabled)
+        var renderer = ImGuiModule.Instance.renderer;
+        if (renderer != null && __instance.Commands.Open)
         {
-            return;
-        }
-        if (renderer != null && self.Commands.Open)
-        {
-            if (!imguiOpened)
+            if (!ImGuiModule.Instance.imguiOpened)
             {
-                mouseOpened = Engine.Instance.IsMouseVisible;
+                ImGuiModule.Instance.mouseOpened = Engine.Instance.IsMouseVisible;
             }
             renderer.BeforeLayout(gameTime);
             ImGui.Begin("Debug Window");
@@ -120,15 +118,15 @@ internal sealed class ImGuiModule : FortModule
 
             ImGui.End();
             renderer.AfterLayout();
-            imguiOpened = true;
+            ImGuiModule.Instance.imguiOpened = true;
         }
-        else 
+        else
         {
-            imguiOpened = false;
-            Engine.Instance.IsMouseVisible = mouseOpened;
+            ImGuiModule.Instance.imguiOpened = false;
+            Engine.Instance.IsMouseVisible = ImGuiModule.Instance.imguiOpened;
         }
 
-        if (imguiOpened)
+        if (ImGuiModule.Instance.imguiOpened)
         {
             Engine.Instance.IsMouseVisible = true;
         }

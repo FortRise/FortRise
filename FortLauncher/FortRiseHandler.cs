@@ -48,7 +48,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
                 File.Delete(mmhookPath);
             }
 
-            modder.Log("[HookGen] Starting HookGenerator");
+            modder.Log("[HookGen] Starting HookGenerator for compatibility reason");
             var gen = new HookGenerator(modder, Path.GetFileName(mmhookPath));
             using (var mOut = gen.OutputModule)
             {

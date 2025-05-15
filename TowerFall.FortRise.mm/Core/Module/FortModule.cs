@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using HarmonyLib;
 
 namespace FortRise;
 
@@ -69,6 +70,7 @@ public abstract partial class FortModule
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
+    public Harmony Harmony { get; internal set; }
 
     /// <summary>
     /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..

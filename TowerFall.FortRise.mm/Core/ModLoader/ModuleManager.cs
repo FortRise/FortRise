@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using HarmonyLib;
 using Nanoray.Pintail;
 
 namespace FortRise;
@@ -363,8 +364,8 @@ internal class ModuleManager
             FortModule module = Activator.CreateInstance(t) as FortModule;
 
             module.Meta = metadata;
-            var content = resource.Content;
-            module.Content = content;
+            module.Harmony = new Harmony(metadata.Name);
+            module.Content = resource.Content;
             module.ParseArgs(RiseCore.ApplicationArgs);
             module.InternalLoad();
 
