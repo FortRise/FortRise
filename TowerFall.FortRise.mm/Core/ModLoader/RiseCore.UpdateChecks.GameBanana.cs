@@ -35,6 +35,11 @@ public partial class RiseCore
                         return false;
                     }
 
+                    if (updateInfos[0].Length == 0)
+                    {
+                        return false;
+                    }
+
                     UpdateInfo info = updateInfos[0][0];
                     if (!SemanticVersion.TryParse(info.Version, out SemanticVersion version))
                     {
@@ -43,6 +48,7 @@ public partial class RiseCore
 
                     if (version > metadata.Version)
                     {
+                        Logger.Warning($"Update {metadata.Name} {metadata.Version} -> {metadata.Name} {metadata.Version}");
                         HasUpdates.Add(metadata);
                         MetadataGBUpdates.Add(metadata);
                     }
