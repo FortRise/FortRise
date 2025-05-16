@@ -197,10 +197,15 @@ internal class Program
         {
 			if (isSteam)
 			{
-				using MemoryStream steamworksStream = Remove32BitFlags(steamworksPath);
+                using var steamAssemblyEditor = new AssemblyEditor(steamworksPath);
+                steamAssemblyEditor.Add(new Remove32BitFlagsPatcher());
+                using var steamworksStream = steamAssemblyEditor.Write();
 				File.WriteAllBytes(Path.Combine(baseDirectory, "Steamworks.NET.dll"), steamworksStream.ToArray());
 			}
-			using Stream tfStream = Remove32BitFlags(exePath);
+
+            using var towerFallAssemblyEditor = new AssemblyEditor(exePath);
+            towerFallAssemblyEditor.Add(new Remove32BitFlagsPatcher());
+            using MemoryStream tfStream = towerFallAssemblyEditor.Write();
 
 			if (!handler.TryPatch(tfStream, patchFile))
 			{
@@ -240,24 +245,6 @@ internal class Program
         stream.Seek(pos, SeekOrigin.Begin);
         return hash;
     }
-
-	private static MemoryStream Remove32BitFlags(string modulePath)
-	{
-		MemoryStream memoryStream = new MemoryStream();
-		using (FileStream fs = File.OpenRead(modulePath))
-		{
-			ModuleDefinition module = ModuleDefinition.ReadModule(fs);
-			if (Environment.Is64BitProcess)
-			{
-				Console.WriteLine($"[FortRise] Removing 32 bit flags from '{Path.GetFileName(modulePath)}'");
-				// remove 32 bit flags from TowerFall
-				module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
-			}
-			module.Write(memoryStream);
-		}
-
-		return memoryStream;
-	}
 
     private static string? LocateExecutable(string baseDirectory)
     {
