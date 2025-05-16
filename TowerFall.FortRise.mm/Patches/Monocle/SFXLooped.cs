@@ -64,7 +64,7 @@ public static class SFXLoopedExt
                     Logger.Error("[Atlas] You cannot use SFXLoopedExt.CreateSFXLooped while FortContent is null");
                     return null;
                 }
-                using var stream = content[filename].Stream;
+                using var stream = content.Root.GetRelativePath(filename).Stream;
                 return CreateSFXLooped(content, stream, obeysMasterPitch);
             }
         }

@@ -237,7 +237,7 @@ internal class ModuleManager
         IModResource modResource;
         if (!string.IsNullOrEmpty(metadata.PathZip))
         {
-            modResource = new RiseCore.ZipModResource(metadata);
+            modResource = new ZipModResource(metadata);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
 
@@ -257,7 +257,7 @@ internal class ModuleManager
         }
         else if (!string.IsNullOrEmpty(metadata.PathDirectory))
         {
-            modResource = new RiseCore.FolderModResource(metadata);
+            modResource = new FolderModResource(metadata);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
             var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);

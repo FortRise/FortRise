@@ -101,7 +101,7 @@ public static class SFXVariedExt
                 var contentStreams = new Stream[amount];
                 for (int i = 0; i < amount; i++) 
                 {
-                    contentStreams[i] = content[filename + GetSuffix(i + 1) + currentExtension].Stream;
+                    contentStreams[i] = content.Root.GetRelativePath(filename + GetSuffix(i + 1) + currentExtension).Stream;
                 }
                 return CreateSFXVaried(content, contentStreams, amount, obeysMasterPitch);
             }

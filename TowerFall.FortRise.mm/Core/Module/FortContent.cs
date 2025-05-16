@@ -124,14 +124,16 @@ public class FortContent
         {
             if (child.Path.StartsWith("Content/Music"))
             {
+                var root = child.Resource.Metadata.Name + "/";
                 var path = child.Path.Replace("Content/Music/", "");
+                var id = root + path;
 
                 var indexOfSlash = child.Path.IndexOf('/');
                 if (indexOfSlash != -1)
                 {
-                    var trackInfo = new TrackInfo(path, child);
-                    patch_Audio.TrackMap[path] = trackInfo;
-                    Logger.Verbose($"[MUSIC] [{child.Root}] Added '{path}' to TrackMap.");
+                    var trackInfo = new TrackInfo(id, child);
+                    patch_Audio.TrackMap[id] = trackInfo;
+                    Logger.Verbose($"[MUSIC] [{child.Resource.Metadata.Name}] Added '{id}' to TrackMap.");
                 }
                 continue;
             }
@@ -141,7 +143,7 @@ public class FortContent
         {
             var child = soundRes.Value;
 
-            XmlElement soundBank = ModIO.LoadXml(child)["SoundBank"];
+            XmlElement soundBank = child.Xml["SoundBank"];
 
             foreach (XmlElement sfx in soundBank)
             {
@@ -549,7 +551,18 @@ public class FortContent
     public patch_SpriteData LoadSpriteData(string path, patch_Atlas atlas)
     {
         using var xml = Root.GetRelativePath(path).Stream;
-        var spriteData = SpriteDataExt.CreateSpriteData(xml, atlas);
+        XmlDocument xmlDocument = patch_Calc.LoadXML(xml);
+        var sprites = new Dictionary<string, XmlElement>();
+        foreach (object item in xmlDocument["SpriteData"])
+        {
+            if (item is XmlElement)
+            {
+                sprites.Add((item as XmlElement).Attr("id"), item as XmlElement);
+            }
+        }
+        var spriteData = new patch_SpriteData();
+
+        spriteData.SetAtlasAndSprite(atlas, sprites);
         return spriteData;
     }
 

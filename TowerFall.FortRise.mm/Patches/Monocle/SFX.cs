@@ -108,7 +108,7 @@ public static class SFXExt
                     Logger.Error("[Atlas] You cannot use SFXExt.CreateSFX while FortContent is null");
                     return null;
                 }
-                using var stream = content[filename].Stream;
+                using var stream = content.Root.GetRelativePath(filename).Stream;
                 return CreateSFX(content, stream, obeysMasterPitch);
             }
         }

@@ -68,7 +68,7 @@ public static class SFXInstancedExt
                     Logger.Error("[Atlas] You cannot use SFXInstancedExt.CreateSFXInstanced while FortContent is null");
                     return null;
                 }
-                using var stream = content[filename].Stream;
+                using var stream = content.Root.GetRelativePath(filename).Stream;
                 return CreateSFXInstanced(content, stream, instances, obeysMasterPitch);
             }
         }
