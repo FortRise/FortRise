@@ -70,7 +70,7 @@ public abstract partial class FortModule
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
-    public Harmony Harmony { get; internal set; }
+    public IHarmony Harmony { get; internal set; }
 
     /// <summary>
     /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..
