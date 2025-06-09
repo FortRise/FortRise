@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
 public class MapRendererNode : CompositeComponent
 {

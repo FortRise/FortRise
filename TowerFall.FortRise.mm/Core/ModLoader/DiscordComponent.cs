@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
@@ -317,7 +316,7 @@ public sealed class DiscordComponent : GameComponent
             }
             else 
             {
-                var data = (trialTowerData as AdventureTrialsTowerData).Stats;
+                var data = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialTowerData.GetLevelID());
                 if (data.UnlockedGold)
                     typeCompletion++;
                 if (data.UnlockedDiamond)

@@ -1,6 +1,5 @@
 using System;
 using FortRise;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;

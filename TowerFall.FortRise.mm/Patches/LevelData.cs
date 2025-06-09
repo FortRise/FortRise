@@ -5,6 +5,8 @@ namespace TowerFall;
 
 public class patch_LevelData : LevelData
 {
+    public string Author;
+    public bool Procedural;
     public string LevelID;
     internal string InternalLevelSet;
     public string LevelSet 
@@ -27,6 +29,12 @@ public class patch_LevelData : LevelData
             
             return InternalLevelSet = levelSet.ToString();
         }
+    }
+
+    [MonoModConstructor]
+    public void ctor()
+    {
+        Author = "";
     }
 
     [MonoModIgnore]

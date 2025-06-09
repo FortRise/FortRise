@@ -1,15 +1,16 @@
+using System;
 using System.Collections.Generic;
 using Monocle;
 using TowerFall;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
-public sealed class AdventureCategoryButton : patch_MapButton
+public sealed class CustomLevelCategoryButton : patch_MapButton
 {
-    public AdventureType Type;
-    public AdventureCategoryButton(AdventureType type) : base("TOWER CATEGORY")
+    public MainMenu.RollcallModes Mode;
+    public CustomLevelCategoryButton(MainMenu.RollcallModes mode) : base("TOWER CATEGORY")
     {
-        Type = type;
+        Mode = mode;
     }
 
     public override void OnConfirm()
@@ -37,30 +38,24 @@ public sealed class AdventureCategoryButton : patch_MapButton
         });
         textContainer.Add(towerFallButton);
 
-        List<string> sets = null;
-        switch (Type) 
+        List<string> sets = Mode switch
         {
-        case AdventureType.Quest:
-            sets = TowerRegistry.QuestLevelSets;
-            break;
-        case AdventureType.DarkWorld:
-            sets = TowerRegistry.DarkWorldLevelSets;
-            break;
-        case AdventureType.Versus:
-            sets = TowerRegistry.VersusLevelSets;
-            break;
-        case AdventureType.Trials:
-            sets = TowerRegistry.TrialsLevelSet;
-            break;
-        }
+            MainMenu.RollcallModes.Versus => TowerRegistry.VersusLevelSets,
+            MainMenu.RollcallModes.Quest => TowerRegistry.QuestLevelSets,
+            MainMenu.RollcallModes.DarkWorld => TowerRegistry.DarkWorldLevelSets,
+            MainMenu.RollcallModes.Trials => TowerRegistry.TrialsLevelSet,
+            _ => throw new NotImplementedException()
+        };
 
         int startIndex = 0;
         for (int i = 0; i < sets.Count; i++) 
         {
             var item = sets[i];
             if (Map.GetLevelSet() == item)
+            {
                 startIndex = i + 2;
-            var modButton = new BowButton(UncategorizedIfGlobal(item));
+            }
+            var modButton = new BowButton(item);
             modButton.Pressed(() => {
                 ChangeLevelSet(item);
                 textContainer.RemoveSelf();
@@ -72,29 +67,20 @@ public sealed class AdventureCategoryButton : patch_MapButton
         textContainer.Selection = startIndex;
         textContainer.Selected = true;
         textContainer.TweenIn();
-
-        string UncategorizedIfGlobal(string item) 
-        {
-            if (item == "::global::") 
-            {
-                return "Uncategorized";
-            }
-            return item;
-        }
     }
 
     private void ChangeLevelSet(string levelSet) 
     {
         if (levelSet == null)  
         {
-            Map.ExitAdventure();
+            Map.ExitCustomLevels();
             Map.MapPaused = false;
             return;
         }
 
         Map.Renderer.ChangeLevelSet(levelSet);
         Map.SetLevelSet(levelSet);
-        Map.GotoAdventure(Map.CurrentAdventureType);
+        Map.ChangeLevelSet();
         Map.MapPaused = false;
     }
 

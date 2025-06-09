@@ -1,6 +1,5 @@
 using System;
 using FortRise;
-using FortRise.Adventure;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
@@ -90,13 +89,17 @@ namespace TowerFall
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
                 if (this.IsOfficialLevelSet())
+                {
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
+                }
                 else 
                 {
-                    var adventureTower = TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
-                    adventureTower.Stats.Attempts += 1;
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
+                    {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
+                    }
                 }
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
@@ -128,13 +131,17 @@ namespace TowerFall
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
                 if (this.IsOfficialLevelSet())
+                {
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
+                }
                 else 
                 {
-                    var adventureTower = TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
-                    adventureTower.Stats.Attempts += 1;
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
+                    {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
+                    }
                 }
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);

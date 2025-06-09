@@ -7,7 +7,11 @@ public class patch_QuestLevelData : QuestLevelData
 {
     public string Path;
     public string DataPath;
-    public patch_QuestLevelData(int id, XmlElement xml) :base(0, null)
+
+    [MonoModIgnore]
+    [MonoModLinkTo("TowerFall.LevelData", "Author")]
+    public string Author;
+    public patch_QuestLevelData(int id, XmlElement xml) : base(0, null)
     {
     }
 

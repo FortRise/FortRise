@@ -1,4 +1,4 @@
-using FortRise.Adventure;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -28,7 +28,7 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
 
     public override void Update()
     {
-        if (map.Selection is TrialsMapButton or AdventureMapButton)
+        if (map.Selection is TrialsMapButton)
             orig_Update();
     }
 
@@ -37,37 +37,54 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
     private void RefreshLevelStats()
     {
         var levelSet = map.GetLevelSet();
+        long bestTime;
+        bool unlockedDevTime;
+        bool unlockedDiamond;
+        bool unlockedGold;
+        ulong attempts;
         if (levelSet == "TowerFall")
         {
-            orig_RefreshLevelStats();
-            return;
+            var trialsLevelStats = SaveData.Instance.Trials.Levels[statsID.X][statsID.Y];
+            bestTime = trialsLevelStats.BestTime;
+            unlockedDevTime = trialsLevelStats.UnlockedDevTime;
+            unlockedDiamond = trialsLevelStats.UnlockedDiamond;
+            unlockedGold = trialsLevelStats.UnlockedGold;
+            attempts = trialsLevelStats.Attempts;
         }
-        var trialsLevelStats = ((AdventureTrialsTowerData[])TowerRegistry.TrialsGet(levelSet, statsID.X))[statsID.Y].Stats;
-        if (trialsLevelStats.BestTime == 0L)
+        else
+        {
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(TowerRegistry.TrialsGet(levelSet, statsID.X, statsID.Y).GetLevelID());
+            bestTime = trialsLevelStats.BestTime;
+            unlockedDevTime = trialsLevelStats.UnlockedDevTime;
+            unlockedDiamond = trialsLevelStats.UnlockedDiamond;
+            unlockedGold = trialsLevelStats.UnlockedGold;
+            attempts = trialsLevelStats.Attempts;
+        }
+        if (bestTime == 0L)
         {
             levelBestTimeString = "";
         }
         else
         {
-            levelBestTimeString = TrialsResults.GetTimeString(trialsLevelStats.BestTime);
-            if (trialsLevelStats.UnlockedDevTime)
+            levelBestTimeString = TrialsResults.GetTimeString(bestTime);
+            if (unlockedDevTime)
             {
                 levelMedalIcon = devIcon;
             }
-            else if (trialsLevelStats.UnlockedDiamond)
+            else if (unlockedDiamond)
             {
                 levelMedalIcon = diamondIcon;
             }
-            else if (trialsLevelStats.UnlockedGold)
+            else if (unlockedGold)
             {
                 levelMedalIcon = goldIcon;
             }
         }
-        if (trialsLevelStats.Attempts == 0UL)
+        if (attempts == 0UL)
         {
             levelAttemptsString = "";
             return;
         }
-        levelAttemptsString = trialsLevelStats.Attempts.ToString();
+        levelAttemptsString = attempts.ToString();
     }
 }

@@ -2,19 +2,19 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using TowerFall;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
-public class AdventureModuleSaveData : ModuleSaveData
+public class FortRiseModuleSaveData : ModuleSaveData
 {
     [JsonPropertyName("World")]
     [JsonInclude]
-    public AdventureWorldStats AdventureWorld = new AdventureWorldStats();
+    public FortRiseDarkWorldStats AdventureWorld = new FortRiseDarkWorldStats();
     [JsonPropertyName("Quest")]
     [JsonInclude]
-    public AdventureQuestStats AdventureQuest = new AdventureQuestStats();
+    public FortRiseQuestStats AdventureQuest = new FortRiseQuestStats();
     [JsonPropertyName("Trials")]
     [JsonInclude]
-    public AdventureTrialsStats AdventureTrials = new AdventureTrialsStats();
+    public FortRiseTrialsStats AdventureTrials = new FortRiseTrialsStats();
     [JsonPropertyName("Locations")]
     [JsonInclude]
     public List<string> LevelLocations = new List<string>();

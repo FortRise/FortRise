@@ -4,7 +4,6 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FortRise.Adventure;
 
 namespace FortRise;
 

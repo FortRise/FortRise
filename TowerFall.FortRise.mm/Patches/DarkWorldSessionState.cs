@@ -1,4 +1,4 @@
-using FortRise.Adventure;
+using FortRise;
 using MonoMod;
 
 namespace TowerFall;
@@ -44,7 +44,7 @@ public class patch_DarkWorldSessionState : DarkWorldSessionState
         if (session.GetLevelSet() != "TowerFall")
         {
             int id = session.MatchSettings.LevelSystem.ID.X;
-            var tower = TowerRegistry.DarkWorldGet(session.GetLevelSet(), id);
+            patch_DarkWorldTowerData tower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(session.GetLevelSet(), id);
             var amountContinue = tower.MaxContinues[(int)session.MatchSettings.DarkWorldDifficulty];
             if (amountContinue >= 0)
             {

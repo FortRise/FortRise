@@ -325,9 +325,6 @@ namespace MonoMod
                 var Session = ctx.Module.GetType("TowerFall.Session");
                 var GetLevelSet = ctx.Module.GetType("TowerFall.SessionExt").FindMethod("System.String GetLevelSet(TowerFall.Session)");
 
-                var MapButton = ctx.Module.GetType("TowerFall.MapButton");
-                var InitQuestStartLevelGraphics = MapButton.FindMethod("Monocle.Image[] InitQuestStartLevelGraphics(System.Int32,System.String)");
-
                 var cursor = new ILCursor(ctx);
                 ILLabel label = null;
 
@@ -359,15 +356,6 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldstr, "TowerFall");
                 cursor.Emit(OpCodes.Call, op_Equality);
                 cursor.Emit(OpCodes.Brfalse_S, label);
-
-                cursor.GotoNext(MoveType.Before, instr => instr.MatchCallOrCallvirt("TowerFall.MapButton", "InitQuestStartLevelGraphics"));
-                cursor.Next.Operand = InitQuestStartLevelGraphics;
-
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, f__4this);
-                cursor.Emit(OpCodes.Callvirt, get_Level);
-                cursor.Emit(OpCodes.Callvirt, get_Session);
-                cursor.Emit(OpCodes.Call, GetLevelSet);
             });
         }
 

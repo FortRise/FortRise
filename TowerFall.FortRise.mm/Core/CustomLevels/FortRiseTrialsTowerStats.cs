@@ -1,101 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using Monocle;
 using TowerFall;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
-public sealed partial class AdventureQuestStats 
-{
-    [JsonInclude]
-    public Dictionary<string, AdventureQuestTowerStats> Towers = new Dictionary<string, AdventureQuestTowerStats>();
-
-    public AdventureQuestTowerStats AddOrGet(string name) 
-    {
-        ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
-        if (!exists) 
-        {
-            stats = new AdventureQuestTowerStats();
-        }
-        return stats;
-    }
-}
-
-public partial class AdventureQuestTowerStats
-{
-    [JsonInclude]
-    public bool Revealed;
-    [JsonInclude]
-    public bool CompletedNormal;
-    [JsonInclude]
-    public bool CompletedHardcore;
-    [JsonInclude]
-    public bool CompletedNoDeaths;
-    [JsonInclude]
-    public long Best1PTime;
-    [JsonInclude]
-    public long Best2PTime;
-    [JsonInclude]
-    public ulong TotalDeaths;
-    [JsonInclude]
-    public ulong TotalAttempts;
-
-
-    public void BeatNormal()
-    {
-        CompletedNormal = true;
-    }
-
-    public void BeatHardcore(int players, long time, bool noDeaths)
-    {
-        CompletedNormal = (CompletedHardcore = true);
-        if (noDeaths)
-        {
-            CompletedNoDeaths = true;
-        }
-        if (players == 1)
-        {
-            if (Best1PTime == 0L)
-            {
-                Best1PTime = time;
-                return;
-            }
-            Best1PTime = Math.Min(Best1PTime, time);
-            return;
-        }
-        else
-        {
-            if (Best2PTime == 0L)
-            {
-                Best2PTime = time;
-                return;
-            }
-            Best2PTime = Math.Min(this.Best2PTime, time);
-            return;
-        }
-    }
-}
-
-
-public sealed partial class AdventureTrialsStats 
-{
-    [JsonInclude]
-    public Dictionary<string, AdventureTrialsTowerStats> Towers = new Dictionary<string, AdventureTrialsTowerStats>();
-
-    public AdventureTrialsTowerStats AddOrGet(string name) 
-    {
-        ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
-        if (!exists)
-        {
-            stats = new AdventureTrialsTowerStats();
-        }
-        return stats;
-    }
-}
-
-public partial class AdventureTrialsTowerStats 
+// can't extends this from TrialsLevelStats since is a struct for gosh sake..
+public partial class FortRiseTrialsTowerStats 
 {
     [JsonInclude]
     public bool UnlockedGold;

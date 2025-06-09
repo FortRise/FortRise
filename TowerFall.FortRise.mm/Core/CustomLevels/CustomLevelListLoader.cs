@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
-public sealed class AdventureListLoader : Entity 
+public sealed class CustomLevelListLoader : Entity 
 {
     private patch_MapScene map;
     private List<MapButton> buttons;
@@ -18,15 +17,18 @@ public sealed class AdventureListLoader : Entity
     private Tween introTween;
     private int startingID;
 
-    public AdventureListLoader(patch_MapScene map, int id) : base(0) 
+    public CustomLevelListLoader(patch_MapScene map, int id) : base(0) 
     {
         startingID = id;
         this.map = map;
         Depth = -100000;
         Visible = false;
         buttons = new List<MapButton>();
-        if (map.CurrentAdventureType != AdventureType.Trials)
-            buttons.Add(new AdventureCategoryButton(map.CurrentAdventureType));
+
+        if (map.Mode != MainMenu.RollcallModes.Trials)
+        {
+            buttons.Add(new CustomLevelCategoryButton(map.Mode));
+        }
         
         spinTween = Tween.Create(Tween.TweenMode.Persist, Ease.BackOut, 18, false);
         spinTween.OnUpdate = t => spin = MathHelper.Lerp(tweenStart, tweenEnd, t.Eased);
@@ -39,16 +41,16 @@ public sealed class AdventureListLoader : Entity
         introTween = Tween.Create(Tween.TweenMode.Persist, Ease.CubeOut, 4, true);
 
         var lockedLevels = new List<MapButton>();
-        switch (map.GetCurrentAdventureType()) 
+        switch (map.Mode) 
         {
-        case AdventureType.DarkWorld: 
+        case MainMenu.RollcallModes.DarkWorld: 
         {
             var set = map.GetLevelSet() ?? TowerRegistry.DarkWorldLevelSets[0];
             var currentLevel = TowerRegistry.DarkWorldTowerSets[set];
             map.SetLevelSet(set);
             for (int j = 0; j < currentLevel.Count; j++)
             {
-                var mapButton = new AdventureMapButton(currentLevel[j], map.CurrentAdventureType);
+                var mapButton = new DarkWorldMapButton(currentLevel[j]);
                 if (mapButton.Locked)
                 {
                     lockedLevels.Add(mapButton);
@@ -58,14 +60,14 @@ public sealed class AdventureListLoader : Entity
             }
         }
             break;
-        case AdventureType.Quest: 
+        case MainMenu.RollcallModes.Quest: 
         {
             var set = map.GetLevelSet() ?? TowerRegistry.QuestLevelSets[0];
             var currentLevel = TowerRegistry.QuestTowerSets[set];
             map.SetLevelSet(set);
             for (int j = 0; j < currentLevel.Count; j++)
             {
-                var mapButton = new AdventureMapButton(currentLevel[j], map.CurrentAdventureType);
+                var mapButton = new QuestMapButton(currentLevel[j]);
                 if (mapButton.Locked)
                 {
                     lockedLevels.Add(mapButton);
@@ -75,14 +77,14 @@ public sealed class AdventureListLoader : Entity
             }
         }
             break;
-        case AdventureType.Versus:
+        case MainMenu.RollcallModes.Versus:
         {
             var set = map.GetLevelSet() ?? TowerRegistry.VersusLevelSets[0];
             var currentLevel = TowerRegistry.VersusTowerSets[set];
             map.SetLevelSet(set);
             for (int j = 0; j < currentLevel.Count; j++)
             {
-                var mapButton = new AdventureMapButton(currentLevel[j], set, map.CurrentAdventureType);
+                var mapButton = new VersusMapButton(currentLevel[j]);
                 if (mapButton.Locked)
                 {
                     lockedLevels.Add(mapButton);
@@ -92,12 +94,12 @@ public sealed class AdventureListLoader : Entity
             }
         }
             break;
-        case AdventureType.Trials:
+        case MainMenu.RollcallModes.Trials:
         {
             var set = map.GetLevelSet() ?? TowerRegistry.TrialsLevelSet[0];
             var currentLevels = TowerRegistry.TrialsTowerSets[set];
             var list = new List<MapButton[]>();        
-            var adv = new AdventureCategoryButton(map.CurrentAdventureType);
+            var adv = new CustomLevelCategoryButton(map.Mode);
             buttons.Add(adv);
             list.Add(new MapButton[] { adv, adv, adv });
             if (currentLevels.Count == 0)
@@ -109,7 +111,7 @@ public sealed class AdventureListLoader : Entity
                 var array = new MapButton[currentLevels[0].Length];
                 for (int j = 0; j < array.Length; j++) 
                 {
-                    buttons.Add(array[j] = new AdventureMapButton(currentLevels[i][j], set, map.CurrentAdventureType));
+                    buttons.Add(array[j] = new TrialsMapButton(currentLevels[i][j]));
                 }
                 for (int k = 0; k < array.Length; k++) 
                 {
@@ -161,7 +163,9 @@ public sealed class AdventureListLoader : Entity
     {
         base.Update();
         if (finished)
+        {
             return;
+        }
         
         finished = true;
         if (buttons.Count > 0)
@@ -175,8 +179,11 @@ public sealed class AdventureListLoader : Entity
             {
                 startingID = map.Buttons.Count - 1;
             }
-            if (map.CurrentAdventureType != AdventureType.Trials)
+            if (map.Mode != MainMenu.RollcallModes.Trials)
+            {
                 map.LinkButtonsList();
+            }
+
             map.InitButtons(map.Buttons[startingID]);
             map.ScrollToButton(map.Selection);
             introTween.Stop();

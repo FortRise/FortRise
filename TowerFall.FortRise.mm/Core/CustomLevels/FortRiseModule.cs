@@ -1,24 +1,23 @@
 using System;
-using FortRise.Adventure.Entities;
+using FortRise.Entities;
 
-namespace FortRise.Adventure;
+namespace FortRise;
 
-public sealed class AdventureModule : FortModule
+public sealed class FortRiseModule : FortModule
 {
-    public static AdventureModule Instance;
+    public static FortRiseModule Instance;
 
-    public override Type SaveDataType => typeof(AdventureModuleSaveData);
-    public static AdventureModuleSaveData SaveData => (AdventureModuleSaveData)Instance.InternalSaveData;
+    public override Type SaveDataType => typeof(FortRiseModuleSaveData);
+    public static FortRiseModuleSaveData SaveData => (FortRiseModuleSaveData)Instance.InternalSaveData;
 
-    public AdventureModule()
+    public FortRiseModule()
     {
         Instance = this;
 
         // Internal things, don't try this in your own mods.
         Meta = new ModuleMetadata() {
-            Name = "Adventure",
-            Author = "FortRise",
-            Version = new SemanticVersion("4.0.0"),
+            Name = "FortRise",
+            Version = RiseCore.FortRiseVersion,
         };
     }
 

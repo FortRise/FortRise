@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Xml;
-using FortRise.Adventure;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -56,7 +56,6 @@ public class patch_TrialsRoundLogic : TrialsRoundLogic
             array[y].Attempts = array[y].Attempts + 1UL;
             return;
         }
-        var stats = (tower as AdventureTrialsTowerData).Stats;
-        stats.Attempts += 1;
+        FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.GetLevelID()).Attempts += 1;
     }
 }

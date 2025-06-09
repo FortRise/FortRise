@@ -1,4 +1,4 @@
-using FortRise.Adventure;
+using FortRise;
 using MonoMod;
 
 namespace TowerFall;
@@ -27,7 +27,7 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
 
     public override void Update()
     {
-        if (map.Selection is DarkWorldMapButton or AdventureMapButton)
+        if (map.Selection is DarkWorldMapButton)
             orig_Update();
         else
             base_Update();
@@ -39,37 +39,41 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
     {
         base.Update();
     }
-
-    private extern void orig_RefreshLevelStats();
     
+    [MonoModReplace]
     private void RefreshLevelStats() 
     {
         var levelSet = map.GetLevelSet();
+        DarkWorldTowerStats stats;
         if (levelSet == "TowerFall")
         {
-            orig_RefreshLevelStats();
-            return;
+            stats = SaveData.Instance.DarkWorld.Towers[statsID];
         }
-        var adventureWorldTowerStats = TowerRegistry.DarkWorldGet(levelSet, statsID).Stats;
+        else
+        {
+            var data = TowerRegistry.DarkWorldGet(levelSet, statsID);
+            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(data.GetLevelID());
+        }
+
         long bestTime;
         int mostCurses;
         switch (TFGame.PlayerAmount)
         {
         default:
-            bestTime = adventureWorldTowerStats.Best1PTime;
-            mostCurses = adventureWorldTowerStats.Most1PCurses;
+            bestTime = stats.Best1PTime;
+            mostCurses = stats.Most1PCurses;
             break;
         case 2:
-            bestTime = adventureWorldTowerStats.Best2PTime;
-            mostCurses = adventureWorldTowerStats.Most2PCurses;
+            bestTime = stats.Best2PTime;
+            mostCurses = stats.Most2PCurses;
             break;
         case 3:
-            bestTime = adventureWorldTowerStats.Best3PTime;
-            mostCurses = adventureWorldTowerStats.Most3PCurses;
+            bestTime = stats.Best3PTime;
+            mostCurses = stats.Most3PCurses;
             break;
         case 4:
-            bestTime = adventureWorldTowerStats.Best4PTime;
-            mostCurses = adventureWorldTowerStats.Most4PCurses;
+            bestTime = stats.Best4PTime;
+            mostCurses = stats.Most4PCurses;
             break;
         }
         if (bestTime <= 0L)
@@ -92,19 +96,19 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
         {
             this.levelCursesString = mostCurses.ToString() + " CURSES";
         }
-        if (adventureWorldTowerStats.Deaths == 0UL)
+        if (stats.Deaths == 0UL)
         {
             this.levelDeathsString = "";
         }
         else
         {
-            this.levelDeathsString = adventureWorldTowerStats.Deaths.ToString();
+            this.levelDeathsString = stats.Deaths.ToString();
         }
-        if (adventureWorldTowerStats.Attempts == 0UL)
+        if (stats.Attempts == 0UL)
         {
             this.levelAttemptsString = "";
             return;
         }
-        this.levelAttemptsString = adventureWorldTowerStats.Attempts.ToString();
+        this.levelAttemptsString = stats.Attempts.ToString();
     }
 }

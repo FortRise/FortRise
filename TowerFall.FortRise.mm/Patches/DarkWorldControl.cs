@@ -131,10 +131,6 @@ namespace TowerFall
 
         private extern void orig_DoBossLevelSetup(int bossID, List<Pickups> treasure);
 
-        [PatchDarkWorldControlStartMatchSequence]
-        [MonoModIgnore]
-        private extern IEnumerator StartMatchSequence();
-
         private void FixedEmptyPortal() 
         {
             // allPortals isn't required, as it will not be empty anyway..
@@ -171,11 +167,8 @@ namespace TowerFall
 
 namespace MonoMod 
 {
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlStartMatchSequence))]
-    public class PatchDarkWorldControlStartMatchSequence : Attribute {}
-
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchDarkWorldControlLevelSequence))]
-    public class PatchDarkWorldControlLevelSequence : Attribute {}
+    internal class PatchDarkWorldControlLevelSequence : Attribute {}
 
     internal static partial class MonoModRules 
     {
@@ -210,34 +203,6 @@ namespace MonoMod
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.Emit(OpCodes.Ldfld, f__4this);
                 cursor.Emit(OpCodes.Call, FixedEmptyPortal);
-            });
-        }
-
-        public static void PatchDarkWorldControlStartMatchSequence(MethodDefinition method, CustomAttribute attrib) 
-        {
-            MethodDefinition complete = method.GetEnumeratorMoveNext();
-            new ILContext(complete).Invoke(ctx => {
-                var f__4this = ctx.Method.DeclaringType.FindField("<>4__this");
-                var HUD = ctx.Module.GetType("TowerFall.HUD");
-                var get_Level = HUD.FindMethod("TowerFall.Level get_Level()");
-                var Level = ctx.Module.GetType("TowerFall.Level");
-                var get_Session = Level.FindMethod("TowerFall.Session get_Session()");
-                var Session = ctx.Module.GetType("TowerFall.Session");
-                var GetLevelSet = ctx.Module.GetType("TowerFall.SessionExt").FindMethod("System.String GetLevelSet(TowerFall.Session)");
-
-                var MapButton = ctx.Module.GetType("TowerFall.MapButton");
-                var InitDarkWorldStartLevelGraphics = MapButton.FindMethod("Monocle.Image[] InitDarkWorldStartLevelGraphics(System.Int32,System.String)");
-                var cursor = new ILCursor(ctx);
-
-                cursor.GotoNext(MoveType.Before, instr => instr.MatchCallOrCallvirt("TowerFall.MapButton", "InitDarkWorldStartLevelGraphics"));
-
-                cursor.Next.Operand = InitDarkWorldStartLevelGraphics;
-
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, f__4this);
-                cursor.Emit(OpCodes.Callvirt, get_Level);
-                cursor.Emit(OpCodes.Callvirt, get_Session);
-                cursor.Emit(OpCodes.Call, GetLevelSet);
             });
         }
     }

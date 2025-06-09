@@ -1,5 +1,5 @@
 using System;
-using FortRise.Adventure;
+using FortRise;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod;
@@ -32,7 +32,7 @@ namespace TowerFall
 
         public override void Update()
         {
-            if (map.Selection is QuestMapButton or AdventureMapButton)
+            if (map.Selection is QuestMapButton)
                 orig_Update();
             else
                 base_Update();
@@ -45,17 +45,21 @@ namespace TowerFall
             base.Update();
         }
 
-        private extern void orig_RefreshLevelStats();
-
+        [MonoModReplace]
         private void RefreshLevelStats()
         {
             var levelSet = map.GetLevelSet();
+            QuestTowerStats questTowerStats;
             if (levelSet == "TowerFall")
             {
-                orig_RefreshLevelStats();
-                return;
+                questTowerStats = SaveData.Instance.Quest.Towers[statsID];
             }
-            var questTowerStats = ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, statsID)).Stats;
+            else
+            {
+                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(TowerRegistry.QuestGet(levelSet, statsID).GetLevelID());
+            }
+
+
             if (questTowerStats.TotalDeaths == 0UL)
             {
                 levelDeathsString = "";

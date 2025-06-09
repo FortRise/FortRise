@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using FortRise.Adventure;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -76,7 +76,7 @@ public class patch_TrialsControl : TrialsControl
         }
         else 
         {
-            var trialsLevelStats = (trialsLevelData as AdventureTrialsTowerData).Stats;
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID());
             nextGoal = trialsLevelStats.NextGoal;
             bestTime = trialsLevelStats.BestTime;
             smallAward = trialsLevelStats.GetNextSmallAwardIcon();
@@ -117,24 +117,34 @@ public class patch_TrialsControl : TrialsControl
         }));
     }
 
-    private extern IEnumerator orig_WinSequence();
-
-    private IEnumerator WinSequence() 
+    [MonoModReplace]
+    private IEnumerator WinSequence()
     {
         TrialsLevelData trialsLevelData = (this.Level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
-        if (trialsLevelData.GetLevelSet() == "TowerFall") 
-        {
-            yield return orig_WinSequence();
-            yield break;
-        }
-        yield return AdventureWinSequence(trialsLevelData as AdventureTrialsTowerData);
-    }
 
-    private IEnumerator AdventureWinSequence(AdventureTrialsTowerData trialsLevelData) 
-    {
+        long oldBest;
+        bool oldUnlockGold;
+        bool oldUnlockDiamond;
+        bool oldUnlockDevTime;
         Point id = trialsLevelData.ID;
-        var trialsLevelStats = trialsLevelData.Stats;
-        long oldBest = trialsLevelStats.BestTime;
+
+        if (trialsLevelData.IsOfficialLevelSet())
+        {
+            TrialsLevelStats trialsLevelStats = SaveData.Instance.Trials.Levels[id.X][id.Y];
+            oldBest = trialsLevelStats.BestTime;
+            oldUnlockGold = trialsLevelStats.UnlockedGold;
+            oldUnlockDiamond = trialsLevelStats.UnlockedDiamond;
+            oldUnlockDevTime = trialsLevelStats.UnlockedDevTime;
+        }
+        else
+        {
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID());
+            oldBest = trialsLevelStats.BestTime;
+            oldUnlockGold = trialsLevelStats.UnlockedGold;
+            oldUnlockDiamond = trialsLevelStats.UnlockedDiamond;
+            oldUnlockDevTime = trialsLevelStats.UnlockedDevTime;
+        }
+
         long currentTime = this.time.Ticks;
         bool newBestTime = false;
         bool unlockGold = false;
@@ -150,24 +160,52 @@ public class patch_TrialsControl : TrialsControl
         {
             Sounds.sfx_trainingSuccess.Play(160f, 1f);
         }
-        if (trialsLevelStats.BestTime == 0L || currentTime < trialsLevelStats.BestTime)
+        if (oldBest == 0L || currentTime < oldBest)
         {
             newBestTime = true;
-            trialsLevelData.Stats.BestTime = currentTime;
-            if (!trialsLevelStats.UnlockedGold && this.time <= trialsLevelData.Goals[0])
+            if (trialsLevelData.IsOfficialLevelSet())
+            {
+                SaveData.Instance.Trials.Levels[id.X][id.Y].BestTime = currentTime;
+            }
+            else
+            {
+                FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).BestTime = currentTime;
+            }
+            if (!oldUnlockGold && this.time <= trialsLevelData.Goals[0])
             {
                 unlockGold = true;
-                trialsLevelData.Stats.UnlockedGold = true;
+                if (trialsLevelData.IsOfficialLevelSet())
+                {
+                    SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedGold = true;
+                }
+                else
+                {
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedGold = true;
+                }
             }
-            if (!trialsLevelStats.UnlockedDiamond && this.time <= trialsLevelData.Goals[1])
+            if (!oldUnlockDiamond && this.time <= trialsLevelData.Goals[1])
             {
                 unlockDiamond = true;
-                trialsLevelData.Stats.UnlockedDiamond = true;
+                if (trialsLevelData.IsOfficialLevelSet())
+                {
+                    SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedDiamond = true;
+                }
+                else
+                {
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedDiamond = true;
+                }
             }
-            if (!trialsLevelStats.UnlockedDevTime && this.time <= trialsLevelData.Goals[2])
+            if (!oldUnlockDevTime && this.time <= trialsLevelData.Goals[2])
             {
                 unlockDevTime = true;
-                trialsLevelData.Stats.UnlockedDevTime = true;
+                if (trialsLevelData.IsOfficialLevelSet())
+                {
+                    SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedDevTime = true;
+                }
+                else
+                {
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedDevTime = true;
+                }
             }
         }
         yield return 40;
@@ -176,7 +214,8 @@ public class patch_TrialsControl : TrialsControl
         {
             Image img = this.images[i];
             Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.BackOut, 40, true);
-            tween.OnUpdate = t => {
+            tween.OnUpdate = delegate(Tween t)
+            {
                 img.Scale = Vector2.One * MathHelper.Lerp(0.6f, 1f, t.Eased);
             };
             this.Add(tween);

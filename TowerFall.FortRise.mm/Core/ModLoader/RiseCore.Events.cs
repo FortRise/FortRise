@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FortRise.Adventure;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TowerFall;
@@ -220,9 +219,9 @@ public static partial class RiseCore
         /// <summary>
         /// Called after an adventure dark world tower has been added.
         /// </summary>
-        public static event AdventureTowerAddHandler<AdventureWorldTowerData> OnAdventureDarkWorldTowerDataAdd;
+        public static event AdventureTowerAddHandler<DarkWorldTowerData> OnAdventureDarkWorldTowerDataAdd;
 
-        internal static void Invoke_OnAdventureDarkWorldTowerDataAdd(string levelSet, AdventureWorldTowerData towerData)
+        internal static void Invoke_OnAdventureDarkWorldTowerDataAdd(string levelSet, DarkWorldTowerData towerData)
         {
             OnAdventureDarkWorldTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -230,8 +229,8 @@ public static partial class RiseCore
         /// <summary>
         /// Called after an adventure quest tower has been added.
         /// </summary>
-        public static event AdventureTowerAddHandler<AdventureQuestTowerData> OnAdventureQuestTowerDataAdd;
-        internal static void Invoke_OnAdventureQuestTowerDataAdd(string levelSet, AdventureQuestTowerData towerData)
+        public static event AdventureTowerAddHandler<QuestLevelData> OnAdventureQuestTowerDataAdd;
+        internal static void Invoke_OnAdventureQuestTowerDataAdd(string levelSet, QuestLevelData towerData)
         {
             OnAdventureQuestTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -239,8 +238,8 @@ public static partial class RiseCore
         /// <summary>
         /// Called after an adventure versus tower has been added.
         /// </summary>
-        public static event AdventureTowerAddHandler<AdventureVersusTowerData> OnAdventureVersusTowerDataAdd;
-        internal static void Invoke_OnAdventureVersusTowerDataAdd(string levelSet, AdventureVersusTowerData towerData)
+        public static event AdventureTowerAddHandler<VersusTowerData> OnAdventureVersusTowerDataAdd;
+        internal static void Invoke_OnAdventureVersusTowerDataAdd(string levelSet, VersusTowerData towerData)
         {
             OnAdventureVersusTowerDataAdd?.Invoke(levelSet, towerData);
         }
@@ -248,8 +247,8 @@ public static partial class RiseCore
         /// <summary>
         /// Called after an adventure trials towers has been added.
         /// </summary>
-        public static event AdventureTowersAddHandler<AdventureTrialsTowerData> OnAdventureTrialsTowerDatasAdd;
-        internal static void Invoke_OnAdventureTrialsTowerDatasAdd(string levelSet, AdventureTrialsTowerData[] towerData)
+        public static event AdventureTowersAddHandler<TrialsLevelData> OnAdventureTrialsTowerDatasAdd;
+        internal static void Invoke_OnAdventureTrialsTowerDatasAdd(string levelSet, TrialsLevelData[] towerData)
         {
             OnAdventureTrialsTowerDatasAdd?.Invoke(levelSet, towerData);
         }

@@ -5,7 +5,6 @@ using Monocle;
 using System.Collections.Generic;
 using System.Linq;
 using TowerFall;
-using FortRise.Adventure;
 using System.Xml;
 using System.Text.Json;
 using Mono.Cecil;

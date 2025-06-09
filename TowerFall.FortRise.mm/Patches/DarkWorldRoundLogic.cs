@@ -1,4 +1,4 @@
-using FortRise.Adventure;
+using FortRise;
 using Microsoft.Xna.Framework;
 using MonoMod;
 
@@ -27,7 +27,7 @@ public class patch_DarkWorldRoundLogic : DarkWorldRoundLogic
         if ((Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData.GetLevelSet() != "TowerFall")
         {
             var tower = TowerRegistry.DarkWorldGet(Session.GetLevelSet(), Session.MatchSettings.LevelSystem.ID.X);
-            tower.Stats.Deaths += 1;
+            FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.GetLevelID()).Deaths += 1;
         }
         else 
         {

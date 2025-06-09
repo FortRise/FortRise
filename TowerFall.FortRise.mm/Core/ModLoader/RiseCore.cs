@@ -1,4 +1,3 @@
-using FortRise.Adventure;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -203,17 +202,10 @@ public static partial class RiseCore
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 
-        var fortRiseMetadata = new ModuleMetadata() {
-            Name = "FortRise",
-            Version = FortRiseVersion
-        };
-        var fortRiseModule = new NoModule(fortRiseMetadata);
-        ModuleManager.InternalFortModules.Add(fortRiseModule);
-        ModuleManager.InternalModuleMetadatas.Add(fortRiseMetadata);
-
-        AdventureModule = new AdventureModule();
+        AdventureModule = new FortRiseModule();
         AdventureModule.InternalLoad();
         ModuleManager.InternalFortModules.Add(AdventureModule);
+        ModuleManager.InternalModuleMetadatas.Add(AdventureModule.Meta);
 
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
@@ -535,7 +527,7 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module)
     {
-        if (module is NoModule or Adventure.AdventureModule)
+        if (module is NoModule or FortRiseModule)
             return;
 
         module.LoadContent();

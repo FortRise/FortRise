@@ -1,9 +1,13 @@
 using FortRise;
+using MonoMod;
 
 namespace TowerFall;
 
 public class patch_VersusTowerData : VersusTowerData 
 {
+    [MonoModIgnore]
+    [MonoModLinkTo("TowerFall.LevelData", "Author")]
+    public string Author;
     public float[] TreasureChances;
     public bool NoPatching;
     internal VersusTowerPatchContext InternalPatch;

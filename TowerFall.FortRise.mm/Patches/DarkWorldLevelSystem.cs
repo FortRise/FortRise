@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Xml;
 using FortRise;
-using FortRise.Adventure;
 using Monocle;
 using MonoMod;
 
@@ -24,11 +23,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
     {
         get 
         {
-            if (DarkWorldTowerData is AdventureWorldTowerData towerData) 
-            {
-                return towerData.Procedural;
-            }
-            return false;
+            return ((patch_DarkWorldTowerData)DarkWorldTowerData).Procedural;
         }
     }
 
@@ -59,20 +54,22 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
             int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
             randomSeed = file;
             var levelFile = DarkWorldTowerData.Levels[file];
-            if (DarkWorldTowerData is AdventureWorldTowerData data) 
+
+            // Load custom levels
+            if (DarkWorldTowerData.GetLevelSet() != "TowerFall")
             {
                 using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
-                if (levelFile.EndsWith("json")) 
+                if (levelFile.EndsWith("json"))
                 {
                     return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
                 }
-                else 
+                else
                 {
                     return patch_Calc.LoadXML(level)["level"];
                 }
             }
             
-            // Load vanilla levels instead
+            // Load vanilla levels 
             using Stream stream = File.OpenRead(levelFile);
             return patch_Calc.LoadXML(stream)["level"];
         }

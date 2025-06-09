@@ -1,4 +1,3 @@
-using FortRise.Adventure;
 using TowerFall;
 
 namespace FortRise;
@@ -19,9 +18,11 @@ public static partial class RiseCore
         {
             if (levelSet != "TowerFall") 
             {
-                TowerRegistry.DarkWorldGet(levelSet, levelID).Stats.Complete(
+                var data = TowerRegistry.DarkWorldGet(levelSet, levelID);
+                FortRiseModule.SaveData.AdventureWorld.AddOrGet(data.GetLevelID()).Complete(
                     difficulties, playerAmount, time,
                     continues, deaths, curses);
+
                 OnDarkWorldComplete_Result?.Invoke(levelID, difficulties, playerAmount, time, continues, deaths, curses);
                 return;
             }

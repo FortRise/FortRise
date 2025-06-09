@@ -1,4 +1,3 @@
-using FortRise.Adventure;
 using TowerFall;
 
 namespace FortRise;
@@ -17,11 +16,12 @@ public static partial class RiseCore
             var hardcoreMode = quest.Session.MatchSettings.QuestHardcoreMode;
             if (levelSet != "TowerFall")
             {
-                var customTower = ((AdventureQuestTowerData)TowerRegistry.QuestGet(levelSet, levelID)).Stats;
+                var customTower = TowerRegistry.QuestGet(levelSet, levelID);
+                var stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(customTower.GetLevelID());
                 if (hardcoreMode)
-                    customTower.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
+                    stats.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
                 else
-                    customTower.BeatNormal();
+                    stats.BeatNormal();
                 // TowerRegistry.DarkWorldGet(levelSet, levelID).Stats.Complete(
                 //     difficulties, playerAmount, time,
                 //     continues, deaths, curses);

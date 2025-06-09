@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using FortRise.Adventure;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -38,7 +38,7 @@ public class patch_TrialsTimes : TrialsTimes
         }
         else 
         {
-            var stats = (tower as AdventureTrialsTowerData).Stats;
+            var stats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.GetLevelID());
             unlockedGold = stats.UnlockedGold;
             unlockedDiamond = stats.UnlockedDiamond;
             unlockedDevTime = stats.UnlockedDevTime;

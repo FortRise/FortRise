@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using TowerFall;
 
-namespace FortRise.Adventure.Entities;
+namespace FortRise.Entities;
 
 public class ShieldSlime : Slime
 {
