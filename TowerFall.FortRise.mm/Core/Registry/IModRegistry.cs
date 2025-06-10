@@ -11,7 +11,9 @@ public interface IModRegistry
     ModGameModes GameModes { get; }
     ModBackdrops Backdrops { get; }
     ModMenuStates MenuStates { get; }
+    ModDarkWorldBosses DarkWorldBosses { get; }
+
+    ModTowers Towers { get; }
     ModTowerHooks TowerHooks { get; }
     ModQuestEvents QuestEvents { get; }
-    ModDarkWorldBosses DarkWorldBosses { get; }
 }
