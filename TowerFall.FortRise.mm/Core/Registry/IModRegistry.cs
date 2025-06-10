@@ -16,4 +16,5 @@ public interface IModRegistry
     ModTowers Towers { get; }
     ModTowerHooks TowerHooks { get; }
     ModQuestEvents QuestEvents { get; }
+    ModThemes Themes { get; }
 }

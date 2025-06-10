@@ -10,11 +10,14 @@ namespace TowerFall;
 public class patch_TowerTheme : TowerTheme 
 {
     public string ID; 
-    public IResourceInfo Mod;
+    public patch_TowerTheme() {}
     public patch_TowerTheme(XmlElement xml) {}
     public patch_TowerTheme(XmlElement xml, IResourceInfo mod) {}
 
     public extern void orig_ctor(XmlElement xml);
+
+    [MonoModConstructor]
+    public void ctor() {}
 
     [MonoModConstructor]
     public void ctor(XmlElement xml) 
@@ -27,7 +30,6 @@ public class patch_TowerTheme : TowerTheme
     [MonoModConstructor]
     public void ctor(XmlElement xml, IResourceInfo mod) 
     {
-        Mod = mod;
         Name = xml.ChildText("Name").ToUpperInvariant();
         ID = mod.Root.Substring(4) + xml.Attr("id", Name);
 
@@ -94,25 +96,5 @@ public class patch_TowerTheme : TowerTheme
             0.2f,
             0.2f
         };
-    }
-
-    public Guid GenerateThemeID() 
-    {
-        return Guid.Empty;
-    }
-}
-
-public static class TowerThemeExt 
-{
-    public static bool TryGetMod(this TowerTheme theme, out IResourceInfo mod) 
-    {
-        var moddedTheme = ((patch_TowerTheme)theme);
-        if (moddedTheme.Mod != null) 
-        {
-            mod = moddedTheme.Mod;
-            return true;
-        }
-        mod = null;
-        return false;
     }
 }
