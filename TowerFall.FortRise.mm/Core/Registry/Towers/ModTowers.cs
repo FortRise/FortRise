@@ -79,6 +79,7 @@ public class ModTowers
         string set = $"{metadata.Name}/{levelSet}";
         IVersusTowerEntry entry = new VersusTowerEntry(name, levelSet, configuration);
         versusTowerEntries.Add(name, entry);
+        versusTowerQueue.AddOrInvoke(entry);
         return entry;
     }
 
