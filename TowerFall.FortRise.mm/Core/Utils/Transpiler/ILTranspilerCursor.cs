@@ -7,9 +7,10 @@ using HarmonyLib;
 
 namespace FortRise.Transpiler;
 
-public sealed class ILTranspilerCursor
+internal sealed class ILTranspilerCursor
 {
     private readonly List<CodeInstruction> instructions;
+    private readonly List<CodeInstruction> resultingInstruction;
     private readonly ILGenerator il;
 
     public IList<CodeInstruction> Instructions => instructions;
@@ -25,52 +26,56 @@ public sealed class ILTranspilerCursor
     {
         this.instructions = [.. instructions];
         il = ctx;
+        resultingInstruction = new List<CodeInstruction>(5);
     }
 
-    public void GotoPrev(MoveType moveType, params Func<CursorInstruction, bool>[] matches)
+    public ILTranspilerCursor Reset()
     {
-        if (!TryGotoPrev(moveType, matches))
-        {
-            throw new Exception("Matches cannot be found!");
-        }
+        Index = 0;
+        return this;
     }
 
-    public void GotoNext(MoveType moveType, params Func<CursorInstruction, bool>[] matches)
+    public ILTranspilerCursor GotoPrev()
     {
-        if (!TryGotoNext(moveType, matches))
-        {
-            throw new Exception("Matches cannot be found!");
-        }
+        return GotoPrev(MoveType.Before, instrMatches: []);
     }
 
-    public void GotoPrev(params Func<CursorInstruction, bool>[] matches)
+    public ILTranspilerCursor GotoNext()
     {
+        return GotoNext(MoveType.Before, instrMatches: []);
+    }
+
+    public ILTranspilerCursor GotoPrev(params Span<InstructionMatcher> matches) =>
         GotoPrev(MoveType.Before, matches);
-    }
 
-    public void GotoNext(params Func<CursorInstruction, bool>[] matches)
-    {
+    public ILTranspilerCursor GotoNext(params Span<InstructionMatcher> matches) =>
         GotoNext(MoveType.Before, matches);
+
+    public ILTranspilerCursor GotoPrev(MoveType moveType, params Span<InstructionMatcher> instrMatches)
+    {
+        GotoPrev(moveType, out bool res, instrMatches);
+        if (!res)
+        {
+            throw new Exception("Match not found");
+        }
+        return this;
     }
 
-    public bool TryGotoPrev(params Func<CursorInstruction, bool>[] matches)
+    public ILTranspilerCursor GotoPrev(
+        MoveType moveType,
+        out bool result,
+        params Span<InstructionMatcher> instrMatches
+    )
     {
-        return TryGotoPrev(MoveType.Before, matches);
-    }
-
-    public bool TryGotoNext(params Func<CursorInstruction, bool>[] matches)
-    {
-        return TryGotoNext(MoveType.Before, matches);
-    }
-
-    public bool TryGotoPrev(MoveType moveType, params Func<CursorInstruction, bool>[] matches)
-    {
+        resultingInstruction.Clear();
         bool found = false;
-        var len = matches.Length;
+        var len = instrMatches.Length;
         if (len == 0)
         {
             Index -= 1;
-            return true;
+            resultingInstruction.Add(Instruction);
+            result = true;
+            return this;
         }
         int oldIndex = Index;
         for (; Index >= 0; Index -= 1)
@@ -79,11 +84,14 @@ public sealed class ILTranspilerCursor
             for (int j = 0; j < setInstructions.Count; j += 1)
             {
                 var instr = setInstructions[j];
-                if (!matches[j](new CursorInstruction(instr)))
+                if (!instrMatches[j].Check(instr))
                 {
+                    resultingInstruction.Clear();
                     found = false;
                     break;
                 }
+
+                resultingInstruction.Add(instr);
                 found = true;
             }
 
@@ -93,22 +101,42 @@ public sealed class ILTranspilerCursor
                 {
                     Index += len;
                 }
-                return true;
+
+                result = true;
+                return this;
             }
         }
 
         Index = oldIndex;
-        return false;
+        result = false;
+        return this;
     }
 
-    public bool TryGotoNext(MoveType moveType, params Func<CursorInstruction, bool>[] matches)
+    public ILTranspilerCursor GotoNext(MoveType moveType, params Span<InstructionMatcher> instrMatches)
     {
+        GotoNext(moveType, out bool res, instrMatches);
+        if (!res)
+        {
+            throw new Exception("Match not found");
+        }
+        return this;
+    }
+
+    public ILTranspilerCursor GotoNext(
+        MoveType moveType,
+        out bool result,
+        params Span<InstructionMatcher> instrMatches
+    )
+    {
+        resultingInstruction.Clear();
         bool found = false;
-        var len = matches.Length;
+        var len = instrMatches.Length;
         if (len == 0)
         {
             Index += 1;
-            return true;
+            resultingInstruction.Add(Instruction);
+            result = true;
+            return this;
         }
         int oldIndex = Index;
         for (; Index < instructions.Count; Index += 1)
@@ -121,11 +149,14 @@ public sealed class ILTranspilerCursor
             for (int j = 0; j < setInstructions.Count; j += 1)
             {
                 var instr = setInstructions[j];
-                if (!matches[j](new CursorInstruction(instr)))
+                if (!instrMatches[j].Check(instr))
                 {
+                    resultingInstruction.Clear();
                     found = false;
                     break;
                 }
+
+                resultingInstruction.Add(instr);
                 found = true;
             }
 
@@ -135,31 +166,63 @@ public sealed class ILTranspilerCursor
                 {
                     Index += len;
                 }
-                return true;
+
+                result = true;
+                return this;
             }
         }
 
         Index = oldIndex;
-        return false;
+        result = false;
+        return this;
     }
 
-    public void Emit(in OpCode opCodes)
+    public ILTranspilerCursor Encompass(Action<ILEncompasser> encompassAction)
+    {
+        encompassAction(new ILEncompasser(this));
+        return this;
+    }
+
+    public ILTranspilerCursor ExtractOperand(int index, out object? obj)
+    {
+        obj = resultingInstruction[index].operand;
+        return this;
+    }
+
+    public ILTranspilerCursor Emit(in OpCode opCodes)
     {
         instructions.Insert(Index, new CodeInstruction(opCodes));
         Index += 1;
+        return this;
     }
 
-    public void Emit(in OpCode opCodes, object? operand)
+    public ILTranspilerCursor Emit(in OpCode opCodes, object? operand)
     {
         instructions.Insert(Index, new CodeInstruction(opCodes, operand));
         Index += 1;
+        return this;
     }
 
-    public void EmitDelegate<T>(T del)
-    where T : Delegate
+    public ILTranspilerCursor Emit(in CodeInstruction instruction)
+    {
+        instructions.Insert(Index, instruction);
+        Index += 1;
+        return this;
+    }
+
+    public ILTranspilerCursor EmitDelegate<T>(T del)
+        where T : Delegate
     {
         instructions.Insert(Index, CodeInstruction.CallClosure(del));
         Index += 1;
+        return this;
+    }
+
+    public ILTranspilerCursor Emits(ReadOnlySpan<CodeInstruction> instructions)
+    {
+        this.instructions.InsertRange(Index, instructions);
+        Index += instructions.Length;
+        return this;
     }
 
     public Label CreateLabel()
@@ -169,13 +232,13 @@ public sealed class ILTranspilerCursor
 
     public void MarkLabel(in Label label)
     {
-        MarkLabel(label, Instruction);
+        MarkLabel(label, Next);
     }
 
     public Label MarkLabel()
     {
         var label = CreateLabel();
-        MarkLabel(label, Instruction);
+        MarkLabel(label, Next);
         return label;
     }
 
@@ -197,7 +260,7 @@ public sealed class ILTranspilerCursor
         return instructions;
     }
 
-    public void LogInstructions()
+    public ILTranspilerCursor LogInstructions()
     {
         var stringBuilder = new StringBuilder();
 
@@ -209,5 +272,6 @@ public sealed class ILTranspilerCursor
         }
 
         Console.WriteLine(stringBuilder.ToString());
+        return this;
     }
 }
