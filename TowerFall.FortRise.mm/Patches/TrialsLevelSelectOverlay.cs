@@ -1,6 +1,7 @@
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod;
 
 namespace TowerFall;
 
@@ -24,15 +25,11 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
     {
     }
 
-    public extern void orig_Update();
-
-    public override void Update()
+    [Prefix(nameof(Update))]
+    private bool Update_Prefix()
     {
-        if (map.Selection is TrialsMapButton)
-            orig_Update();
+        return map.Selection is TrialsMapButton;
     }
-
-    private extern void orig_RefreshLevelStats();
 
     private void RefreshLevelStats()
     {

@@ -16,17 +16,18 @@ public class patch_VersusModeButton : VersusModeButton
     }
 
     [MonoModLinkTo("TowerFall.BorderButton", "Update")]
-    public void base_Update() 
+    public void base_Update()
     {
         base.Update();
     }
 
     [MonoModLinkTo("TowerFall.BorderButton", "OnConfirm")]
-    protected void base_OnConfirm() 
+    protected void base_OnConfirm()
     {
         base.OnConfirm();
     }
 
+    [MonoModReplace]
     public override void Update()
     {
         const int BuiltInModeCount = 3;
@@ -35,16 +36,16 @@ public class patch_VersusModeButton : VersusModeButton
         string currentModeName = patch_MainMenu.VersusMatchSettings.CustomVersusModeName;
         if (!Selected)
             return;
-        
+
         if (currentIndex < GameModeRegistry.VersusGameModes.Count + BuiltInModeCount - 1 && MenuInput.Right)
         {
             currentIndex++;
-            if (currentIndex < 3) 
+            if (currentIndex < 3)
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = false;
                 MainMenu.VersusMatchSettings.Mode = (Modes)currentIndex + BuiltInModeCount;
             }
-            else 
+            else
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
                 var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
@@ -61,12 +62,12 @@ public class patch_VersusModeButton : VersusModeButton
         else if (currentIndex > 0 && MenuInput.Left)
         {
             currentIndex--;
-            if (currentIndex < 3) 
+            if (currentIndex < 3)
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = false;
                 MainMenu.VersusMatchSettings.Mode = (Modes)currentIndex + BuiltInModeCount;
             }
-            else 
+            else
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
                 var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
@@ -82,42 +83,66 @@ public class patch_VersusModeButton : VersusModeButton
         }
     }
 
-    private extern void orig_UpdateSides();
+    [MonoModIgnore]
+    private extern void UpdateSides();
+    
 
-    private void UpdateSides() 
+    [Prefix(nameof(UpdateSides))]
+    private void UpdateSides_Prefix()
     {
-        orig_UpdateSides();
         DrawRight = (currentIndex < GameModeRegistry.VersusGameModes.Count + 3 - 1);
         DrawLeft = currentIndex != 0;
     }
 
-    public extern static Subtexture orig_GetModeIcon(Modes mode);
-
-    public static Subtexture GetModeIcon(Modes mode)
-    {
-        if (patch_MainMenu.VersusMatchSettings.IsCustom) 
-        {
-            var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
-            if (entry != null)
-            {
-                return entry.Icon.Subtexture;
-            }
-        }
-        return orig_GetModeIcon(mode);
-    }
-
-    public extern static string orig_GetModeName(Modes mode);
-
+    [MonoModReplace]
     public static string GetModeName(Modes mode)
     {
-        if (patch_MainMenu.VersusMatchSettings.IsCustom) 
+        switch (mode)
         {
-            var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
-            if (entry != null)
+        case Modes.LastManStanding:
+            return "LAST MAN STANDING";
+        case Modes.HeadHunters:
+            return "HEADHUNTERS";
+        case Modes.TeamDeathmatch:
+            return "TEAM DEATHMATCH";
+        case Modes.Warlord:
+            return "WARLORD";
+        default:
+            if (patch_MainMenu.VersusMatchSettings.IsCustom)
             {
-                return entry.Name.ToUpperInvariant();
+                var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
+                if (entry != null)
+                {
+                    return entry.Name.ToUpperInvariant();
+                }
             }
+            throw new Exception("Cannot get name for mode! This should only be used for Versus modes");
         }
-        return orig_GetModeName(mode);
+    }
+
+    [MonoModReplace]
+    public static Subtexture GetModeIcon(Modes mode)
+    {
+        switch (mode)
+        {
+        case Modes.LastManStanding:
+            return TFGame.MenuAtlas["gameModes/lastManStanding"];
+        case Modes.HeadHunters:
+            return TFGame.MenuAtlas["gameModes/headhunters"];
+        case Modes.TeamDeathmatch:
+            return TFGame.MenuAtlas["gameModes/teamDeathmatch"];
+        case Modes.Warlord:
+            return TFGame.MenuAtlas["gameModes/warlord"];
+        default:
+            if (patch_MainMenu.VersusMatchSettings.IsCustom)
+            {
+                var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
+                if (entry != null)
+                {
+                    return entry.Icon.Subtexture;
+                }
+            }
+            throw new Exception("Cannot get icon for mode! This should only be used for Versus modes");
+        }
     }
 }

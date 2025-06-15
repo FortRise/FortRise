@@ -443,6 +443,7 @@ internal static partial class MonoModRules
         var origMethod = prefixCtx.Method.DeclaringType.FindMethod(methodName);
 
         bool isStatic = origMethod.IsStatic;
+        bool isUserStatic = prefixCtx.Method.IsStatic;
 
         var parameters = origMethod.Parameters;
         for (int i = 0; i < parameters.Count; i++)
@@ -476,7 +477,10 @@ internal static partial class MonoModRules
             cursor.IL.Body.Variables.Add(exists);
         }
 
-
+        if (!isUserStatic)
+        {
+            cursor.Emit(OpCodes.Ldarg_0);
+        }
         var varParam = CompareAndBuildParameter(identities, prefixCtx.Method);
         for (int i = 0; i < varParam.Count; i++)
         {
@@ -493,7 +497,14 @@ internal static partial class MonoModRules
             cursor.Emit(OpCodes.Ldarg, (ushort)p.Index);
         }
 
-        cursor.Emit(OpCodes.Call, prefixCtx.Method);
+        if (isUserStatic)
+        {
+            cursor.Emit(OpCodes.Call, prefixCtx.Method);
+        }
+        else
+        {
+            cursor.Emit(OpCodes.Callvirt, prefixCtx.Method);
+        }
 
         if (exists != null)
         {
@@ -515,6 +526,7 @@ internal static partial class MonoModRules
         var origMethod = postfixCtx.Method.DeclaringType.FindMethod(methodName);
 
         bool isStatic = origMethod.IsStatic;
+        bool isUserStatic = postfixCtx.Method.IsStatic;
 
         var parameters = origMethod.Parameters;
         for (int i = 0; i < parameters.Count; i++)
@@ -542,6 +554,10 @@ internal static partial class MonoModRules
 
         var lastNext = cursor.Next;
 
+        if (!isUserStatic)
+        {
+            cursor.Emit(OpCodes.Ldarg_0);
+        }
         if (origMethod.ReturnType.FullName == postfixCtx.Module.TypeSystem.Void.FullName)
         {
             var varParamVoid = CompareAndBuildParameter(identities, postfixCtx.Method);
@@ -555,7 +571,14 @@ internal static partial class MonoModRules
                 cursor.Emit(OpCodes.Ldarg, (ushort)p.Index);
             }
 
-            cursor.Emit(OpCodes.Call, postfixCtx.Method);
+            if (isUserStatic)
+            {
+                cursor.Emit(OpCodes.Call, postfixCtx.Method);
+            }
+            else
+            {
+                cursor.Emit(OpCodes.Callvirt, postfixCtx.Method);
+            }
         }
         else
         {
@@ -592,7 +615,14 @@ internal static partial class MonoModRules
                 }
             }
 
-            cursor.Emit(OpCodes.Call, postfixCtx.Method);
+            if (isUserStatic)
+            {
+                cursor.Emit(OpCodes.Call, postfixCtx.Method);
+            }
+            else
+            {
+                cursor.Emit(OpCodes.Callvirt, postfixCtx.Method);
+            }
         }
         cursor.Remove();
 

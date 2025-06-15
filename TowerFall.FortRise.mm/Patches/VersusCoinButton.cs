@@ -17,12 +17,9 @@ public class patch_VersusCoinButton : VersusCoinButton
     {
     }
 
-    public extern void orig_ctor(Vector2 position, Vector2 tweenFrom);
-
-    [MonoModConstructor]
-    public void ctor(Vector2 position, Vector2 tweenFrom)
+    [Postfix("System.Void .ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)")]
+    private void ctor_Postfix()
     {
-        orig_ctor(position, tweenFrom);
         patch_VersusModeButton.ModeSwitch += Switch;
         Switch();
     }

@@ -28,14 +28,16 @@ namespace TowerFall
         [PatchQuestLevelSelectOverlayCtor]
         public extern void ctor(MapScene map);
 
-        public extern void orig_Update();
-
-        public override void Update()
+        [Prefix(nameof(Update))]
+        private bool Update_Prefix()
         {
             if (map.Selection is QuestMapButton)
-                orig_Update();
-            else
-                base_Update();
+            {
+                return true;
+            }
+
+            base_Update();
+            return false;
         }
 
         [MonoModLinkTo("Monocle.Entity", "System.Void Update()")]
