@@ -10,7 +10,7 @@ public readonly struct ThemeConfiguration
     public ThemeConfiguration() {}
 
     public required string Name { get; init; }
-    public Subtexture? Icon { get; init; }
+    public ISubtextureEntry? Icon { get; init; }
     public string? Tileset { get; init; }
     public string? BGTileset { get; init; }
     public string? BackgroundID { get; init; }

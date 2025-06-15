@@ -197,8 +197,8 @@ public static partial class RiseCore
         /// <summary>
         /// Called after a mod initialized.
         /// </summary>
-        public static event Action<FortModule> OnModInitialized;
-        internal static void Invoke_OnModInitialized(FortModule module)
+        public static event Action<Mod> OnModInitialized;
+        internal static void Invoke_OnModInitialized(Mod module)
         {
             OnModInitialized?.Invoke(module);
         }

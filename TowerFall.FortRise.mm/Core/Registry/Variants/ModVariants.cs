@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Monocle;
 using TowerFall;
 
@@ -14,6 +15,7 @@ public class ModVariants
     private readonly Dictionary<string, IVariantPresetEntry> presetEntries = new Dictionary<string, IVariantPresetEntry>();
     private readonly RegistryQueue<IVariantPresetEntry> presetRegistryQueue;
     private readonly ModuleMetadata metadata;
+    private static Dictionary<string, IVariantEntry> vanillaCache = new();
 
     internal ModVariants(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -68,10 +70,14 @@ public class ModVariants
         return variant;
     }
 
-    private static VariantEntry CreateVanillaEntry(FieldInfo info)
+    private static IVariantEntry CreateVanillaEntry(FieldInfo info)
     {
+        ref var cache = ref CollectionsMarshal.GetValueRefOrAddDefault(vanillaCache, info.Name, out bool exists);
+        if (exists)
+        {
+            return cache!;
+        }
         string variantTitle = GetVariantTitle(info);
-        Subtexture icon = MatchVariants.GetVariantIconFromName(info.Name);
 
         var customAttribs = info.GetCustomAttributes();
         Pickups[]? exclusions = null;
@@ -123,7 +129,7 @@ public class ModVariants
         var variantConfiguration = new VariantConfiguration() 
         {
             Title = variantTitle,
-            Icon = icon,
+            Icon = new SubtextureEntry(() => MatchVariants.GetVariantIconFromName(info.Name)),
             Exclusions = exclusions,
             Description = description,
             Header = header,
@@ -131,7 +137,7 @@ public class ModVariants
         };
 
         var variant = new VariantEntry(info.Name, variantConfiguration);
-        return variant;
+        return cache = variant;
     }
 
     private static string GetVariantTitle(FieldInfo field)

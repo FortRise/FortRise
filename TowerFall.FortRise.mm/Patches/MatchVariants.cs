@@ -7,7 +7,7 @@ using MonoMod;
 
 namespace TowerFall;
 
-public class patch_MatchVariants : MatchVariants 
+public class patch_MatchVariants : MatchVariants
 {
     internal Dictionary<string, Variant> InternalCustomVariants;
     public IReadOnlyDictionary<string, Variant> CustomVariants => InternalCustomVariants;
@@ -19,32 +19,35 @@ public class patch_MatchVariants : MatchVariants
     public static int Count { get; private set; }
     internal VariantManager manager;
 
-    public void orig_ctor(bool noPerPlayer = false) {}
+    public void orig_ctor(bool noPerPlayer = false) { }
 
     [MonoModConstructor]
-    public void ctor(bool noPerPlayer = false) 
+    public void ctor(bool noPerPlayer = false)
     {
         InternalCustomVariants = new();
         StartWithVariants = new();
 
         orig_ctor(noPerPlayer);
+        StoreVanillaVariantsAsCustom();
 
-        TempVariantHolder.TempCustom = new Dictionary<string, bool>();
         manager = new VariantManager(this);
-        foreach (var mod in RiseCore.ModuleManager.InternalFortModules) 
+        foreach (var mod in RiseCore.ModuleManager.InternalFortModules)
         {
             manager.SetContext(mod.Meta);
-            mod.OnVariantsRegister(manager, noPerPlayer);
+            if (mod is FortModule module)
+            {
+                module.OnVariantsRegister(manager, noPerPlayer);
+            }
         }
 
 
         int oldLength = Variants.Length;
         Array.Resize(ref Variants, manager.TotalCustomVariantsAdded + Variants.Length);
         int count = 0;
-        foreach (var key in manager.ToAdd.Keys) 
+        foreach (var key in manager.ToAdd.Keys)
         {
-            var list = manager.ToAdd[key]; 
-            for (int i = oldLength; i < oldLength + list.Count; i++) 
+            var list = manager.ToAdd[key];
+            for (int i = oldLength; i < oldLength + list.Count; i++)
             {
                 Variants[i] = list[count];
                 count++;
@@ -78,7 +81,7 @@ public class patch_MatchVariants : MatchVariants
             bool unlisted = flags.HasFlag(CustomVariantFlags.Unlisted);
             bool darkWorldDLC = flags.HasFlag(CustomVariantFlags.DarkWorldDLC);
             int coopValue = 0;
-            if (flags.HasFlag(CustomVariantFlags.CoopCurses)) 
+            if (flags.HasFlag(CustomVariantFlags.CoopCurses))
             {
                 coopValue = -1;
             }
@@ -87,9 +90,9 @@ public class patch_MatchVariants : MatchVariants
                 coopValue = 1;
             }
             var title = configuration.Title.ToUpperInvariant();
-            var icon = configuration.Icon;
-            var variant = new Variant(icon, title, description, itemExclusions, perPlayer, 
-                header, null, scrollEffect, hidden, flag, tournamentRule1v, 
+            var icon = configuration.Icon.Subtexture;
+            var variant = new Variant(icon, title, description, itemExclusions, perPlayer,
+                header, null, scrollEffect, hidden, flag, tournamentRule1v,
                 tournamentRule2v, unlisted, darkWorldDLC, coopValue);
             if (flag)
             {
@@ -100,7 +103,6 @@ public class patch_MatchVariants : MatchVariants
                 StartWithVariants.Add((variant, value.Configuration.StartWith.ArrowTypes));
             }
 
-            TempVariantHolder.TempCustom.TryAdd(name, false);
             InternalCustomVariants.Add(name, variant);
             Variants[count] = variant;
             count++;
@@ -122,7 +124,7 @@ public class patch_MatchVariants : MatchVariants
                     variant.AddLinks(otherVariant);
                     otherVariant.AddLinks(variant);
                 }
-                else 
+                else
                 {
                     var field = typeof(MatchVariants).GetField(link.Name);
                     Variant vanillaVariant = field.GetValue(this) as Variant;
@@ -135,14 +137,14 @@ public class patch_MatchVariants : MatchVariants
         Count = Variants.Length;
     }
 
-    public Variant GetCustomVariant(string name) 
+    public Variant GetCustomVariant(string name)
     {
         return InternalCustomVariants[name];
     }
 
     public extern ArrowTypes orig_GetStartArrowType(int playerIndex, ArrowTypes randomType);
 
-    public ArrowTypes GetStartArrowType(int playerIndex, ArrowTypes randomType) 
+    public ArrowTypes GetStartArrowType(int playerIndex, ArrowTypes randomType)
     {
         foreach (var (arrowVariant, arrowTypes) in StartWithVariants)
         {
@@ -158,9 +160,9 @@ public class patch_MatchVariants : MatchVariants
     public List<Pickups> GetItemExclusions(bool customTower)
     {
         var list = orig_GetItemExclusions(customTower);
-        foreach (var customVariant in InternalCustomVariants.Values) 
+        foreach (var customVariant in InternalCustomVariants.Values)
         {
-            if (customVariant.Value && customVariant.ItemExclusions != null) 
+            if (customVariant.Value && customVariant.ItemExclusions != null)
             {
                 list.AddRange(customVariant.ItemExclusions);
             }
@@ -198,8 +200,8 @@ public class patch_MatchVariants : MatchVariants
             }
             grid[0].Add(
                 new ModVariantPreset(
-                    preset.Configuration.Icon, 
-                    preset.Configuration.Name.ToUpperInvariant(), 
+                    preset.Configuration.Icon.Subtexture,
+                    preset.Configuration.Name.ToUpperInvariant(),
                     preset.Configuration.Description?.ToUpperInvariant() ?? "",
                     variants
                 )
@@ -238,7 +240,7 @@ public class patch_MatchVariants : MatchVariants
                     // we do want its index though..
                     columnIndex += 1;
                     headerFilter[variant.Header] = columnIndex;
-                }    
+                }
             }
             // delay all of the modded variants that had headers since we want all non-headers variant
             // to be place at the top
@@ -385,4 +387,19 @@ public class patch_MatchVariants : MatchVariants
         return items;
     }
 
+    private void StoreVanillaVariantsAsCustom()
+    {
+        var fields = GetType().GetFields();
+        foreach (var field in fields)
+        {
+            if (field.FieldType != typeof(Variant))
+            {
+                continue;
+            }
+            string variantName = field.Name;
+            var value = (Variant)field.GetValue(this);
+
+            InternalCustomVariants.Add(variantName, value);
+        }
+    }
 }

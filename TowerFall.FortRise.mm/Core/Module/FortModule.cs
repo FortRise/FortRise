@@ -19,46 +19,16 @@ public class FortAttribute : Attribute
     }
 }
 
-public abstract partial class FortModule
+public abstract partial class FortModule : Mod
 {
     public bool Enabled { get; internal set; }
-    public ModuleMetadata Meta { get; internal set; }
+    public bool DisposeTextureAfterUnload { get; set; } = true;
+    
     [Obsolete("Use 'Meta.DisplayName' or 'Meta.Name' instead")]
     public string Name => string.IsNullOrEmpty(Meta.DisplayName) ? Meta.Name : Meta.DisplayName;
     [Obsolete("Use 'Meta.Name' instead")]
     public string ID => Meta.Name;
-    public bool DisposeTextureAfterUnload { get; set; } = true;
-    public bool IsInitialized { get; internal set; }
 
-    public IModRegistry Registry 
-    {
-        get 
-        {
-            if (!IsInitialized)
-            {
-                throw new Exception("Mod is not initialized yet!");
-            }
-
-            return registry;
-        }
-        internal set => registry = value;
-    }
-
-    public IModInterop Interop 
-    {
-        get 
-        {
-            if (!IsInitialized)
-            {
-                throw new Exception("Mod is not initialized yet!");
-            }
-            return interop;
-        }
-        internal set => interop = value;
-    }
-
-    private IModRegistry registry;
-    private IModInterop interop;
 
     /// <summary>
     /// Use to let the mod loader know which settings type to initialize.
@@ -70,7 +40,46 @@ public abstract partial class FortModule
     public ModuleSettings InternalSettings;
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
-    public IHarmony Harmony { get; internal set; }
+
+    protected FortModule(IModContent content, IModuleContext context) : base(content, context)
+    {
+        OnLoad += InternalLoad;
+        OnInitialize += InternalInitialize;
+        OnUnload += InternalUnload;
+        OnLoadContent += InternalLoadContent;
+    }
+
+    protected FortModule() : this(null, null)
+    {
+        OnLoad += InternalLoad;
+        OnInitialize += InternalInitialize;
+        OnUnload += InternalUnload;
+        OnLoadContent += InternalLoadContent;
+    }
+
+    public IHarmony Harmony
+    {
+        get
+        {
+            return Context.Harmony;
+        }
+    }
+
+    public IModRegistry Registry
+    {
+        get
+        {
+            return Context.Registry;
+        }
+    }
+
+    public IModInterop Interop 
+    {
+        get 
+        {
+            return Context.Interop;
+        }
+    }
 
     /// <summary>
     /// The module's mod content which use to load atlases, spriteDatas, SFXes, etc..
@@ -96,14 +105,21 @@ public abstract partial class FortModule
     /// </summary>
     public abstract void Unload();
 
-    internal void InternalLoad()
+    internal void InternalLoad(IModuleContext context)
     {
+        Context.Events.OnModLoadingFinished += OnAfterLoad;
         LoadSettings();
         Load();
     }
 
-    internal void InternalUnload()
+    public void OnAfterLoad(object sender, EventArgs e)
     {
+        AfterLoad();
+    }
+
+    internal void InternalUnload(IModuleContext context)
+    {
+        Context.Events.OnModLoadingFinished -= OnAfterLoad;
         Content?.Unload(DisposeTextureAfterUnload);
         Unload();
     }
@@ -162,8 +178,18 @@ public abstract partial class FortModule
         }
     }
 
+    public override ModuleSaveData CreateSaveData()
+    {
+        return (ModuleSaveData)SaveDataType?.GetConstructor([]).Invoke([]);
+    }
+
+    public override ModuleSettings CreateSettings()
+    {
+        return (ModuleSettings)SettingsType?.GetConstructor([]).Invoke([]);
+    }
+
 #nullable enable
-    public virtual object? GetApi() => null;
+    public override object? GetApi() => null;
 #nullable disable
 
     public void LoadSettings()
@@ -286,11 +312,21 @@ public abstract partial class FortModule
         }
     }
 
+    internal void InternalInitialize(IModuleContext context)
+    {
+        Initialize();
+    }
+
+    internal void InternalLoadContent(IModuleContext context, IModContent content)
+    {
+        LoadContent();
+    }
+
     /// <summary>
     /// Override this function and this is called after all mods are loaded and
     /// this mod is registered.
     /// </summary>
-    public virtual void AfterLoad() {}
+    public virtual void AfterLoad() { }
     /// <summary>
     /// Override this function and load your contents here such as <see cref="Monocle.Atlas"/>,
     /// <see cref="Monocle.SFX"/>, <see cref="Monocle.SpriteData"/>, etc.. <br/>
@@ -310,13 +346,7 @@ public abstract partial class FortModule
     /// <param name="noPerPlayer">Checks if the variant would not a per player variant, default is true</param>
     [Obsolete("Use the new 'Registry.Variants' API")]
     public virtual void OnVariantsRegister(VariantManager manager, bool noPerPlayer = false) {}
-    /// <summary>
-    /// Override this function and allows you to parse a launch arguments that has been passed to the game.
-    /// </summary>
-    /// <param name="args">A launch arguments that has been passed to the game</param>
-    public virtual void ParseArgs(string[] args)
-    {
-    }
+
 
     /// <inheritdoc cref="RiseCore.IsModExists(string)"/>
     [Obsolete("FortModule could use 'Interop' instead")]

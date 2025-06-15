@@ -13,6 +13,7 @@ internal class ModRegistry : IModRegistry
     public ModMenuStates MenuStates { get; }
     public ModDarkWorldBosses DarkWorldBosses { get; }
     // Pre-loaded Content
+    public ModTilesets Tilesets { get; }
     public ModThemes Themes { get; }
 
     // Loaded Content
@@ -32,10 +33,14 @@ internal class ModRegistry : IModRegistry
         GameModes = new ModGameModes(metadata, manager);
         Backdrops = new ModBackdrops(metadata, manager);
         MenuStates = new ModMenuStates(metadata, manager);
-        TowerHooks = new ModTowerHooks(metadata, manager);
-        QuestEvents = new ModQuestEvents(metadata, manager);
+
         DarkWorldBosses = new ModDarkWorldBosses(metadata, manager);
+
+        Tilesets = new ModTilesets(metadata, manager);
         Themes = new ModThemes(metadata, manager);
         Towers = new ModTowers(metadata, manager);
+
+        TowerHooks = new ModTowerHooks(metadata, manager);
+        QuestEvents = new ModQuestEvents(metadata, manager);
     }
 }

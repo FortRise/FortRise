@@ -22,7 +22,7 @@ public class ModDarkWorldBosses
     {
         string name = $"{metadata.Name}/{id}";
 
-        IDarkWorldBossEntry enemy = new DarkWorldBossEntry(name, configuration);
+        IDarkWorldBossEntry enemy = new DarkWorldBossEntry(name, IDPool.Obtain("boss"), configuration);
         entries.Add(name, enemy);
         registryQueue.AddOrInvoke(enemy);
         return enemy;
@@ -52,7 +52,9 @@ public class ModDarkWorldBosses
             };
             goto Loaded;
         }
+
         Loaded:
-        RiseCore.DarkWorldBossLoader[bossName] = loader;
+        DarkWorldBossRegistry.DarkWorldBosses[bossName] = entry.BossID;
+        DarkWorldBossRegistry.DarkWorldBossLoader[entry.BossID] = loader;
     }
 }

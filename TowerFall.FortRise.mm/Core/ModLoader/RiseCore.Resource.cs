@@ -72,21 +72,29 @@ public partial class RiseCore
             }
         }
 
+        private static string Modize(ReadOnlySpan<char> path)
+        {
+            Span<char> dest = path.Length < 2048 ? stackalloc char[path.Length] : new char[path.Length];
+            path.Replace(dest, '\\', '/');
+            return new string(dest);
+        }
+
         public static IResourceInfo Get(string path)
         {
             if (!TryGetValue(path, out var res))
             {
-                throw new Exception($"Resource path: '{path}' not found or does not exists.");
+                throw new Exception($"Resource path: '{Modize(path)}' not found or does not exists.");
             }
             return res;
         }
 
         public static bool TryGetValue(string path, out IResourceInfo res)
         {
-            TreeMap.TryGetValue(path.Replace('\\', '/'), out res);
+            var modizedPath = Modize(path);
+            TreeMap.TryGetValue(modizedPath, out res);
             if (res == null)
             {
-                if (path.EndsWith('/'))
+                if (modizedPath.EndsWith('/'))
                 {
                     path = path[0..(path.Length - 1)];
                     TreeMap.TryGetValue(path, out res);
@@ -97,7 +105,7 @@ public partial class RiseCore
                 }
                 else
                 {
-                    path += '/';
+                    modizedPath += '/';
                     TreeMap.TryGetValue(path, out res);
                     if (res != null)
                     {
@@ -113,12 +121,12 @@ public partial class RiseCore
 
         public static bool IsExist(string path)
         {
-            return TreeMap.ContainsKey(path.Replace('\\', '/'));
+            return TreeMap.ContainsKey(Modize(path));
         }
 
         public static bool IsExist(IResourceInfo resource, string path)
         {
-            return TreeMap.ContainsKey((resource.Root + path).Replace('\\', '/'));
+            return TreeMap.ContainsKey((resource.Root + Modize(path)));
         }
 
         // If you were expecting this feature, please use the RiseCore.Events.OnAfterModdedLoadContent event instead.
@@ -128,7 +136,7 @@ public partial class RiseCore
             {
                 if (mod.Content == null)
                     continue;
-                Events.Invoke_OnAfterModdedLoadContent(mod.Content);
+                // Events.Invoke_OnAfterModdedLoadContent(mod.Content);
             }
         }
 

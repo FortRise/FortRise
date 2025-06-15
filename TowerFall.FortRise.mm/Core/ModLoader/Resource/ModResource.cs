@@ -9,14 +9,14 @@ public abstract class ModResource : IModResource
     private bool disposedValue;
 
     public ModuleMetadata Metadata { get; private set; }
-    public FortContent Content { get; private set; }
+    public IModContent Content { get; private set; }
     public Dictionary<string, IResourceInfo> OwnedResources => Resources;
 
 
-    public ModResource(ModuleMetadata metadata)
+    public ModResource(ModuleMetadata metadata, IModContent content)
     {
         Metadata = metadata;
-        Content = new FortContent(this);
+        Content = content;
     }
 
 

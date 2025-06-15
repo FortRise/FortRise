@@ -38,10 +38,10 @@ public abstract class CustomGameMode : IVersusGameMode
     /// <summary>
     /// A huge icon that shows up on the gamemode selection.
     /// </summary>
-    public Subtexture Icon 
+    public ISubtextureEntry Icon 
     { 
-        get => icon; 
-        set => icon = value; 
+        get => null; 
+        set => icon = null; 
     }
     private Subtexture icon = TFGame.MenuAtlas["gameModes/lastManStanding"];
 

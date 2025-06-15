@@ -33,7 +33,27 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         var mask = versusTowerData.ModTreasureMask();
         thisctor(session, mask, versusTowerData.SpecialArrowRate, versusTowerData.ArrowShuffle);
-    } 
+    }
+
+    private void ResizeIfNeeded(ref int[] mask, ref float[] chances)
+    {
+        if (PickupsRegistry.PickupDatas.Count == 0)
+        {
+            return; // No need
+        }
+
+        int treasureCount = 21 + PickupsRegistry.PickupDatas.Count;
+
+        if (mask.Length != treasureCount)
+        {
+            Array.Resize(ref mask, treasureCount);
+        }
+
+        if (chances.Length != treasureCount)
+        {
+            Array.Resize(ref chances, treasureCount);
+        }
+    }
 
     [MonoModConstructor]
     [MonoModReplace]
@@ -41,10 +61,16 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         var levelSystem = (session.MatchSettings.LevelSystem as VersusLevelSystem);
         float[] newTreasureChances;
-        if (levelSystem != null) 
+        if (levelSystem != null)
+        {
             newTreasureChances = levelSystem.VersusTowerData.GetTreasureChances();
-        else 
+        }
+        else
+        {
             newTreasureChances = TreasureSpawner.DefaultTreasureChances;
+        }
+
+        ResizeIfNeeded(ref mask, ref newTreasureChances);
         
         Session = session;
         Random = new Random();

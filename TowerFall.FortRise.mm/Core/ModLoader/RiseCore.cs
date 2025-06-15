@@ -40,7 +40,7 @@ public static partial class RiseCore
     internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
 
-    internal static FortModule AdventureModule;
+    internal static Mod FortRiseModule;
     internal static ModuleManager ModuleManager = new();
     internal static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
@@ -199,13 +199,15 @@ public static partial class RiseCore
 
     internal static void ModuleStart()
     {
+        // warm up
+        IDPool.Obtain("boss");
+        IDPool.Obtain("boss");
+        IDPool.Obtain("boss");
+        IDPool.Obtain("boss");
         RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 
-        AdventureModule = new FortRiseModule();
-        AdventureModule.InternalLoad();
-        ModuleManager.InternalFortModules.Add(AdventureModule);
-        ModuleManager.InternalModuleMetadatas.Add(AdventureModule.Meta);
+        FortRiseModule = ModuleManager.CreateFortRiseModule();
 
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
@@ -246,8 +248,11 @@ public static partial class RiseCore
         // load the internals first
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
+        ModuleManager.EventsManager.OnModLoadingFinishedInvoke();
         if (!NoRichPresence)
+        {
             DiscordComponent.Create();
+        }
     }
 
     internal static void ParseArgs(string[] args)
@@ -497,15 +502,7 @@ public static partial class RiseCore
     {
         foreach (var t in ModuleManager.InternalFortModules)
         {
-            t.InternalUnload();
-        }
-    }
-
-    internal static void ModsAfterLoad()
-    {
-        foreach (var mod in ModuleManager.InternalFortModules)
-        {
-            mod.AfterLoad();
+            t.OnUnload?.Invoke(t.Context);
         }
     }
 
@@ -514,9 +511,8 @@ public static partial class RiseCore
         foreach (var mod in ModuleManager.InternalFortModules)
         {
             TowerFall.Loader.Message = ("Registering " + mod.Meta.Name + " Features").ToUpperInvariant();
-            mod.Register();
+            // mod.Register();
         }
-        FortRise.RiseCore.ModsAfterLoad();
     }
 
     internal static void WriteBlacklist(List<string> ctx, string path)
@@ -527,7 +523,7 @@ public static partial class RiseCore
 
     internal static void Register(this FortModule module)
     {
-        if (module is NoModule or FortRiseModule)
+        if (module is NoModule)
             return;
 
         module.LoadContent();
@@ -690,7 +686,7 @@ public static partial class RiseCore
 
     internal static void Unregister(this FortModule module)
     {
-        module.InternalUnload();
+        // module.InternalUnload();
     }
 
     internal static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)

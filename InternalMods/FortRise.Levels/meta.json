@@ -1,0 +1,11 @@
+{
+    "name": "FortRise.Levels",
+    "version": "5.0.0",
+    "dependencies": [
+        {
+            "name": "FortRise",
+            "version": "5.0.0-beta.3"
+        }
+    ],
+    "dll": "FortRise.Levels.dll"
+}

@@ -27,22 +27,23 @@ internal class ModuleManager
     /// <summary>
     /// Contains a read-only access to all of the Modules.
     /// </summary>
-    public ReadOnlyCollection<FortModule> Modules => InternalFortModules.AsReadOnly();
+    public ReadOnlyCollection<Mod> Modules => InternalFortModules.AsReadOnly();
 
     /// <summary>
     /// Contains a read-only access to all of the Mods' metadata and resource.
     /// </summary>
     public ReadOnlyCollection<IModResource> Mods => InternalMods.AsReadOnly();
-    internal List<FortModule> InternalFortModules = new();
+    internal List<Mod> InternalFortModules = new();
     internal HashSet<ModuleMetadata> InternalModuleMetadatas = new();
     internal List<IModResource> InternalMods = new();
     internal HashSet<string> InternalTags = new();
+    internal ModEventsManager EventsManager = new();
 
-    internal Dictionary<string, FortModule> NameToFortModule = new Dictionary<string, FortModule>();
+    internal Dictionary<string, Mod> NameToFortModule = new Dictionary<string, Mod>();
     internal Dictionary<string, IModResource> NameToMod = new Dictionary<string, IModResource>();
 
 
-    private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
+    private Queue<RegistryQueue> registryBatch = new Queue<RegistryQueue>();
     private Dictionary<string, IModRegistry> registries = new Dictionary<string, IModRegistry>();
     private IProxyManager<string> proxyManager;
 
@@ -235,42 +236,39 @@ internal class ModuleManager
     {
         Assembly asm = null;
         IModResource modResource;
+        IModContent content;
         if (!string.IsNullOrEmpty(metadata.PathZip))
         {
-            modResource = new ZipModResource(metadata);
+            content = new ModContent(metadata, this);
+            modResource = new ZipModResource(metadata, content);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
 
-            if (!RiseCore.DisableFortMods)
+            using var zip = ZipFile.OpenRead(metadata.PathZip);
+            var dllPath = metadata.DLL.Replace('\\', '/');
+            var dllMeta = zip.GetEntry(dllPath);
+            if (dllMeta != null)
             {
-                using var zip = ZipFile.OpenRead(metadata.PathZip);
-                var dllPath = metadata.DLL.Replace('\\', '/');
-                var dllMeta = zip.GetEntry(dllPath);
-                if (dllMeta != null)
-                {
-                    metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
+                metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
-                    using var dll = dllMeta.ExtractStream();
-                    asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
-                }
+                using var dll = dllMeta.ExtractStream();
+                asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
             }
         }
         else if (!string.IsNullOrEmpty(metadata.PathDirectory))
         {
-            modResource = new FolderModResource(metadata);
+            content = new ModContent(metadata, this);
+            modResource = new FolderModResource(metadata, content);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
             var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
 
-            if (!RiseCore.DisableFortMods)
+            if (File.Exists(fullDllPath))
             {
-                if (File.Exists(fullDllPath))
-                {
-                    metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
+                metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
-                    using var stream = File.OpenRead(fullDllPath);
-                    asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
-                }
+                using var stream = File.OpenRead(fullDllPath);
+                asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
             }
         }
         else
@@ -282,7 +280,7 @@ internal class ModuleManager
 
         if (asm != null)
         {
-            LoadAssembly(metadata, modResource, asm);
+            LoadAssembly(metadata, content, asm);
         }
 
         InternalMods.Add(modResource);
@@ -353,55 +351,75 @@ internal class ModuleManager
         }
     }
 
-    private void LoadAssembly(ModuleMetadata metadata, IModResource resource, Assembly asm)
+    private void LoadAssembly(ModuleMetadata metadata, IModContent content, Assembly asm)
     {
         foreach (var t in asm.GetTypes())
         {
-            if (t.BaseType != typeof(FortModule))
+            Mod mod;
+            if (t.BaseType == typeof(FortModule))
+            {
+                var fortMod = Activator.CreateInstance(t) as FortModule;
+                fortMod.Context = GetModuleContext(metadata);
+                fortMod.ModContent = content;
+                fortMod.Content = new FortContent(GetMod(metadata.Name), metadata);
+                mod = fortMod;
+            }
+            else if (t.BaseType == typeof(Mod))
+            {
+                mod = Activator.CreateInstance(t, [content, GetModuleContext(metadata)]) as Mod;
+            }
+            else
             {
                 continue;
             }
-            FortModule module = Activator.CreateInstance(t) as FortModule;
 
-            module.Meta = metadata;
-            module.Harmony = new LimitedHarmony(new Harmony(metadata.Name));
-            module.Content = resource.Content;
-            module.ParseArgs(RiseCore.ApplicationArgs);
-            module.InternalLoad();
 
-            InternalFortModules.Add(module);
-            NameToFortModule.Add(metadata.Name, module);
+            mod.Meta = metadata;
+            mod.ParseArgs(RiseCore.ApplicationArgs);
+            mod.OnLoad?.Invoke(mod.Context);
 
-            Logger.Info($"[Loader] {module.Meta.Name} Loaded.");
-            continue;
+            InternalFortModules.Add(mod);
+            NameToFortModule.Add(metadata.Name, mod);
+
+            Logger.Info($"[Loader] {mod.Meta.Name} {mod.Meta.Version} Loaded.");
         }
+    }
+
+    private IModuleContext GetModuleContext(ModuleMetadata metadata)
+    {
+        return new ModuleContext(
+            AddOrGetRegistry(metadata),
+            new ModInterop(this, metadata, proxyManager),
+            new ModEvents(EventsManager),
+            new LimitedHarmony(new Harmony(metadata.Name))
+        );
     }
 
     internal void Initialize()
     {
         var resLoaderHooks = new List<IResourceLoader>();
         State = LoadState.Initialiazing;
+
+        while (true)
+        {
+            if (registryBatch.TryDequeue(out var res))
+            {
+                res.Invoke();
+                continue;
+            }
+            break;
+        }
+
         foreach (var fortModule in InternalFortModules)
         {
-            IModRegistry registry = AddOrGetRegistry(fortModule.Meta);
-            IModInterop interop = new ModInterop(this, proxyManager);
-
-            fortModule.IsInitialized = true;
-            fortModule.Registry = registry;
-            fortModule.Interop = interop;
-            fortModule.Initialize();
+            fortModule.OnInitialize?.Invoke(fortModule.Context);
             if (fortModule is IResourceLoader loader)
             {
                 resLoaderHooks.Add(loader);
             }
+            EventsManager.OnModInitializeInvoke(fortModule.Meta);
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
-
-        foreach (var batch in registryBatch)
-        {
-            batch.Invoke();
-        }
-
         // run hooks
 
         foreach (var loader in resLoaderHooks)
@@ -411,12 +429,29 @@ internal class ModuleManager
                 loader.LoadResource(mod);
             }
         }
+
+        EventsManager.OnModInitializingFinishedInvoke();
+    }
+
+    internal Mod CreateFortRiseModule()
+    {
+        var fortRiseMetadata = new ModuleMetadata()
+        {
+            Name = "FortRise",
+            Version = RiseCore.FortRiseVersion,
+        };
+
+        var module = new FortRiseModule(new ModContent(fortRiseMetadata, this), GetModuleContext(fortRiseMetadata));
+        InternalFortModules.Add(module);
+        InternalModuleMetadatas.Add(module.Meta);
+
+        return module;
     }
 
 #nullable enable
     internal IReadOnlyList<IModResource> GetModsByTag(string tag)
     {
-        return [.. InternalMods.Where(x => 
+        return [.. InternalMods.Where(x =>
         {
             var tags = x.Metadata.Tags;
             if (tags is null)
@@ -445,6 +480,26 @@ internal class ModuleManager
         }
 
         return tags;
+    }
+
+    internal IReadOnlyList<IModResource> GetModDependents(string modName)
+    {
+        List<IModResource> list = [];
+        foreach (var mod in InternalMods)
+        {
+            var dependencies = mod.Metadata.Dependencies;
+            for (int i = 0; i < dependencies?.Length; i++)
+            {
+                var dependency = dependencies[i];
+                if (dependency.Name == modName)
+                {
+                    list.Add(mod);
+                    break;
+                }
+            }
+        }
+
+        return list;
     }
 
     internal IModResource? GetMod(string modName)
@@ -482,7 +537,32 @@ internal class ModuleManager
     where T : class
     {
         var registryQueue = new RegistryQueue<T>(this, invoker);
-        registryBatch.Add(registryQueue);
+        registryBatch.Enqueue(registryQueue);
         return registryQueue;
+    }
+}
+
+#nullable enable
+internal sealed class ModEventsManager
+{
+    public event EventHandler<ModuleMetadata>? OnModInitialize;
+    public event EventHandler? OnModLoadingFinished;
+    public event EventHandler? OnModInitializingFinished;
+
+    public ModEventsManager() { }
+
+    internal void OnModInitializeInvoke(ModuleMetadata moduleMetadata)
+    {
+        OnModInitialize?.Invoke(null, moduleMetadata);
+    }
+
+    internal void OnModLoadingFinishedInvoke()
+    {
+        OnModLoadingFinished?.Invoke(null, null!);
+    }
+
+    internal void OnModInitializingFinishedInvoke()
+    {
+        OnModInitializingFinished?.Invoke(null, null!);
     }
 }

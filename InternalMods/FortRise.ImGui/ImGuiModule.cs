@@ -10,53 +10,56 @@ using MonoMod.Utils;
 
 namespace FortRise.ImGuiLib;
 
-internal sealed class ImGuiModule : FortModule
+internal sealed class ImGuiModule : Mod
 {
     private bool imguiOpened;
     private bool mouseOpened;
     private ImGuiRenderer renderer = null!;
 
-
-    public override Type SettingsType => typeof(ImGuiSettings);
-    public ImGuiSettings Settings => (ImGuiSettings)InternalSettings;
-    public static ImGuiModule Instance { get; private set; } = null!;
-
-    public override void Load()
+    public ImGuiModule(IModContent content, IModuleContext context) : base(content, context)
     {
         Instance = this;
-        Harmony.Patch(
+
+        context.Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Engine), "Draw"),
             postfix: new HarmonyMethod(Engine_Draw_Postfix)
         );
 
-        Harmony.Patch(
+        context.Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Commands), "HandleKey"),
             prefix: new HarmonyMethod(Commands_HandleKey_Prefix)
         );
 
-        Harmony.Patch(
+        context.Harmony.Patch(
             AccessTools.DeclaredMethod(typeof(Commands), "Render"),
             prefix: new HarmonyMethod(Commands_Render_Prefix)
         );
-    }
-
-    public override void Unload()
-    {
-    }
-
-    public override object? GetApi() => new ApiImplementation();
-    
-
-    public override void Initialize()
-    {
-        renderer = new ImGuiRenderer(Engine.Instance);
-        renderer.RebuildFontAtlas();
 
         TabItemManager.Instance.Register(new SceneInfoTab());
         TabItemManager.Instance.Register(new ArrowTab());
         TabItemManager.Instance.Register(new PickupTab());
         TabItemManager.Instance.Register(new EnemyTab());
+
+        OnInitialize += OnInitialization;
     }
+
+    private void OnInitialization(IModuleContext context)
+    {
+        renderer = new ImGuiRenderer(Engine.Instance);
+        renderer.RebuildFontAtlas();
+    }
+
+    public ImGuiSettings Settings => Instance.GetSettings<ImGuiSettings>()!;
+    public static ImGuiModule Instance { get; private set; } = null!;
+
+    public override ModuleSettings? CreateSettings()
+    {
+        return new ImGuiSettings();
+    }
+
+
+    public override object? GetApi() => new ApiImplementation();
+    
 
     private static bool Commands_HandleKey_Prefix(Commands __instance, Keys key)
     {

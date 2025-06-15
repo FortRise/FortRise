@@ -46,7 +46,9 @@ public static class TowerRegistry
     public static void DarkWorldAdd(string levelSet, DarkWorldTowerData data) 
     {
         if (levelSet == string.Empty)
+        {
             levelSet = "UNCATEGORIZED";
+        }
         if (DarkWorldTowerSets.TryGetValue(levelSet, out var val)) 
         {
             data.ID.X = val.Count;

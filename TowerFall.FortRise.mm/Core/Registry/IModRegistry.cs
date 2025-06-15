@@ -13,6 +13,7 @@ public interface IModRegistry
     ModMenuStates MenuStates { get; }
     ModDarkWorldBosses DarkWorldBosses { get; }
 
+    ModTilesets Tilesets { get; }
     ModTowers Towers { get; }
     ModTowerHooks TowerHooks { get; }
     ModQuestEvents QuestEvents { get; }

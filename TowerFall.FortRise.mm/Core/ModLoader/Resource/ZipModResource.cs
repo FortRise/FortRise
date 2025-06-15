@@ -13,7 +13,7 @@ public class ZipModResource : ModResource
     public ZipArchive Zip;
 
 
-    public ZipModResource(ModuleMetadata metadata) : base(metadata)
+    public ZipModResource(ModuleMetadata metadata, IModContent content) : base(metadata, content)
     {
         Zip = ZipFile.OpenRead(metadata.PathZip);
     }

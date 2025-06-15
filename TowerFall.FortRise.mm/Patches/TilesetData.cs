@@ -12,16 +12,18 @@ public class patch_TilesetData : TilesetData
     {  
         [MonoModIgnore]
         get => null; 
+        [MonoModPublic]
         [MonoModIgnore]
-        private set => throw new System.Exception(value.ToString()); 
+        set => throw new System.Exception(value.ToString()); 
     }
 
     public Subtexture Texture
     {  
         [MonoModIgnore]
         get => null; 
+        [MonoModPublic]
         [MonoModIgnore]
-        private set => throw new System.Exception(value.ToString()); 
+        set => throw new System.Exception(value.ToString()); 
     }
     [MonoModConstructor]
     internal void ctor() {}

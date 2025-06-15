@@ -48,14 +48,6 @@ public static class patch_GameData
             trialTowers.SetLevelID(correctName);
         }
 
-        TFGame.WriteLineToLoadLog("Loading Adventure World Tower Data...");
-
-        TowerRegistry.LoadQuest();
-        TowerRegistry.LoadDarkWorld();
-        TowerRegistry.LoadVersus();
-        TowerRegistry.LoadTrials();
-
-
         patch_MapScene.FixedStatic();
         RiseCore.Events.Invoke_OnAfterDataLoad();
     }

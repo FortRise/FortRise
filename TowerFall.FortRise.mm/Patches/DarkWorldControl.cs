@@ -20,55 +20,7 @@ namespace TowerFall
 
         private List<Pickups> midwayTreasure;
         private bool bossMode;
-        [PostPatchEnableTempVariant]
-        public static void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData) 
-        {
-            patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
-            if (levelData.ActiveVariant.CustomVariants != null) 
-            {
-                foreach (var variant in matchVariant.CustomVariants) 
-                {
-                    var key = variant.Key;
-                    if (!levelData.ActiveVariant.CustomVariants.TryGetValue(key, out var val)) 
-                    {
-                        continue;
-                    }
-                    if (!variant.Value && val) 
-                    {
-                        TempVariantHolder.TempCustom[key] = true;
-                        matchVariant.CustomVariants[key].Value = true;
-                    }
-                }
-            }
 
-            JumpLanding();
-        }
-
-
-        [PostPatchDisableTempVariant]
-        public static void DisableTempVariants(Level level) 
-        {
-            patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
-            var modified = new List<string>();
-            foreach (var variant in TempVariantHolder.TempCustom) 
-            {
-                var variantKey = variant.Key;
-                var variantVal = variant.Value;
-                if (variantVal) 
-                {
-                    modified.Add(variantKey);
-                    matchVariant.GetCustomVariant(variantKey).Value = false;
-                }
-            }
-            foreach (var modifiedVariant in modified) 
-            {
-                TempVariantHolder.TempCustom[modifiedVariant] = false;
-            }
-            JumpLanding();
-        }
-
-        // Doing this will prevent the instruction jumping on a void
-        private static void JumpLanding() {}
 
         [PatchDarkWorldControlLevelSequence]
         private extern IEnumerator orig_LevelSequence();
@@ -80,19 +32,14 @@ namespace TowerFall
                 return;
             
             var levelSession = Level.Session;
-            var themeMusic = Level.Session.MatchSettings.LevelSystem.Theme.Music;
+            var themeMusic = levelSession.MatchSettings.LevelSystem.Theme.Music;
             levelSession.SongTimer = 0;
             Music.Play(themeMusic);
         }
 
         private IEnumerator LevelSequence() 
         {
-            patch_DarkWorldControl.DisableTempVariants(Level);
             var matchSettings = Level.Session.MatchSettings;
-
-            patch_DarkWorldLevelSystem darkWorld = matchSettings.LevelSystem as patch_DarkWorldLevelSystem;
-            var levelData = darkWorld.GetLevelData(matchSettings.DarkWorldDifficulty, Level.Session.RoundIndex);
-            patch_DarkWorldControl.ActivateTempVariants(Level, levelData);
 
             if (matchSettings.Variants.SlowTime)
             {
@@ -110,23 +57,33 @@ namespace TowerFall
             yield return orig_LevelSequence();
         }
 
+        [MonoModReplace]
         private void DoBossLevelSetup(int bossID, List<Pickups> treasure) 
         {
-            //FIXME Will probably not do this soon
-            var levelData = (Level.Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).GetLevelData(base.Level.Session.MatchSettings.DarkWorldDifficulty, base.Level.Session.RoundIndex) as patch_DarkWorldTowerData.patch_LevelData;
+            var levelData = (Level.Session.MatchSettings.LevelSystem as patch_DarkWorldLevelSystem)
+                .GetLevelData(base.Level.Session.MatchSettings.DarkWorldDifficulty, base.Level.Session.RoundIndex);
 
-            if (!string.IsNullOrEmpty(levelData.CustomBossName)) 
+			this.midwayTreasure = treasure;
+			int darkWorldDifficulty = (int)base.Level.Session.MatchSettings.DarkWorldDifficulty;
+            
+            switch (bossID)
             {
-                if (RiseCore.DarkWorldBossLoader.TryGetValue(levelData.CustomBossName, out var val)) 
-                {
-                    this.midwayTreasure = treasure;
-                    int darkWorldDifficulty = (int)base.Level.Session.MatchSettings.DarkWorldDifficulty;
-                    Level.Add(val(darkWorldDifficulty));
-                    return;
-                }
-                Logger.Error($"Failed to spawn boss type name: {levelData.CustomBossName}. Falling back to Amaranth Boss");
+                case 0:
+                    Level.Add(new AmaranthBoss(darkWorldDifficulty));
+                    break;
+                case 1:
+                    Level.Add(new DreadwoodBossControl(darkWorldDifficulty));
+                    break;
+                case 2:
+                    Level.Add(new CyclopsEye(darkWorldDifficulty));
+                    break;
+                case 3:
+                    Level.Add(new CataclysmEye(darkWorldDifficulty));
+                    break;
+                default:
+                    Level.Add(DarkWorldBossRegistry.DarkWorldBossLoader[bossID]?.Invoke(darkWorldDifficulty));
+                    break;
             }
-            orig_DoBossLevelSetup(bossID, treasure);
         }
 
         private extern void orig_DoBossLevelSetup(int bossID, List<Pickups> treasure);
@@ -145,7 +102,6 @@ namespace TowerFall
                 
                 var towerData = (Level.Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData;
                 var id = towerData.GetLevelID();
-                Logger.Warning($"[DARK WORLD][{id}] does not have {portalName}.");
                 portals.AddRange(allPortals);
             }
         }

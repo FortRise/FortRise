@@ -95,9 +95,6 @@ public class VariantManager : IDisposable
         main.InternalCustomVariants.Add(metadata.Name + "/" + info.Name, variant);
         
         TotalCustomVariantsAdded++;
-
-        if (!TempVariantHolder.TempCustom.ContainsKey(info.Name))
-            TempVariantHolder.TempCustom.Add(info.Name, false);
         
         if (ToAdd.TryGetValue(header, out var toAdd)) 
         {

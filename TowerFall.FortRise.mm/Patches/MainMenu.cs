@@ -14,9 +14,9 @@ namespace TowerFall
 {
     public partial class patch_MainMenu : MainMenu
     {
-        private FortRise.FortModule currentModule;
+        private FortRise.Mod currentModule;
 
-        public FortRise.FortModule CurrentModule 
+        public FortRise.Mod CurrentModule 
         {
             get => currentModule;
             set => currentModule = value;

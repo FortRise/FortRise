@@ -7,7 +7,7 @@ namespace FortRise;
 public interface IModResource : IDisposable
 {
     ModuleMetadata Metadata { get; }
-    FortContent Content { get; }
+    IModContent Content { get; }
     Dictionary<string, IResourceInfo> OwnedResources { get; }
 
     internal void Lookup(string prefix);

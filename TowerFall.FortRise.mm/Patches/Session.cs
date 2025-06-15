@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FortRise;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -15,24 +16,68 @@ namespace TowerFall
         public string LevelSet;
         [MonoModIgnore]
         public TreasureSpawner TreasureSpawner { get; private set; }
+        private List<Variant> temporarilyActivatedVariants;
 
         public patch_Session(MatchSettings settings) : base(settings)
         {
         }
 
+
+        [Prefix("System.Void .ctor(TowerFall.MatchSettings)")]
+        private static void ctor_Prefix(patch_Session __instance)
+        {
+            __instance.temporarilyActivatedVariants = new();
+        }
+
         public patch_MatchSettings MatchSettings;
 
-        public extern void orig_LevelLoadStart(Level level);
-
-        public void LevelLoadStart(Level level) 
+        private void ActivateTempVariants(Level level, patch_DarkWorldTowerData.patch_LevelData levelData)
         {
-            orig_LevelLoadStart(level);
-            var levelType = this.IsOfficialLevelSet() ? "vanilla" : "modded";
+            if (levelData.Variants == null)
+            {
+                return;
+            }
+            patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
+            foreach (var variant in levelData.Variants)
+            {
+                var v = matchVariant.GetCustomVariant(variant);
+                if (v.CoOpValue != 0)
+                {
+                    if (v.Value)
+                    {
+                        continue;
+                    }
+                    v.Value = true;
+                    temporarilyActivatedVariants.Add(v);
+                }
+            }
+        }
+
+        public void DisableTempVariants(Level level)
+        {
+            foreach (var temp in temporarilyActivatedVariants)
+            {
+                temp.Value = false;
+            }
+            temporarilyActivatedVariants.Clear();
+        }
+
+        [Postfix(nameof(LevelLoadStart))]
+        public static void LevelLoadStart_Postfix(patch_Session __instance, Level level)
+        {
+            __instance.DisableTempVariants(__instance.CurrentLevel);
+            var matchSettings = __instance.MatchSettings;
+
+            patch_DarkWorldLevelSystem darkWorld = matchSettings.LevelSystem as patch_DarkWorldLevelSystem;
+            var levelData = darkWorld.GetLevelData(matchSettings.DarkWorldDifficulty, __instance.RoundIndex);
+            __instance.ActivateTempVariants(__instance.CurrentLevel, levelData);
+
+            var levelType = __instance.IsOfficialLevelSet() ? "vanilla" : "modded";
             level.AssignTag(levelType);
-            var set = this.GetLevelSet();
+            var set = __instance.GetLevelSet();
             level.AssignTag("set=" + set);
-            level.AssignTag("theme=" + ((patch_TowerTheme)(MatchSettings.LevelSystem.Theme)).ID);
-            var levelSystem = MatchSettings.LevelSystem;
+            level.AssignTag("theme=" + ((patch_TowerTheme)(matchSettings.LevelSystem.Theme)).ID);
+            var levelSystem = matchSettings.LevelSystem;
             switch (levelSystem) 
             {
             case DarkWorldLevelSystem dwSystem:

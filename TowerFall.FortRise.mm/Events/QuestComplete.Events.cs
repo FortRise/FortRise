@@ -17,7 +17,7 @@ public static partial class RiseCore
             if (levelSet != "TowerFall")
             {
                 var customTower = TowerRegistry.QuestGet(levelSet, levelID);
-                var stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(customTower.GetLevelID());
+                var stats = FortRise.FortRiseModule.SaveData.AdventureQuest.AddOrGet(customTower.GetLevelID());
                 if (hardcoreMode)
                     stats.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
                 else

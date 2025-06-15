@@ -18,7 +18,7 @@ namespace FortRise;
 /// This class is only use for getting a mod content inside of a module.
 /// This will not interact the filesystem outside of the mod content.
 /// </remarks>
-public class FortContent
+public class FortContent : IModContent
 {
     public delegate void DataLoaderHandler(IResourceInfo resource, string rootPath);
     public static event DataLoaderHandler DataLoader;
@@ -56,6 +56,8 @@ public class FortContent
         }
     }
 
+    public ModuleMetadata Metadata { get; init; }
+
     [Obsolete("Use the IResourceInfo.Root.GetRelativePath() instead")]
     public IResourceInfo this[string path]
     {
@@ -67,9 +69,10 @@ public class FortContent
         }
     }
 
-    public FortContent(IModResource resource) : base()
+    public FortContent(IModResource resource, ModuleMetadata metadata)
     {
         ResourceSystem = resource;
+        Metadata = metadata;
     }
 
     private void OnReload(object sender, FileSystemEventArgs e)
@@ -394,22 +397,6 @@ public class FortContent
 
             switch (filename)
             {
-            case "themeData.xml":
-            {
-                var xmlThemes = ModIO.LoadXml(child)["ThemeData"];
-                foreach (XmlElement xmlTheme in xmlThemes)
-                {
-                    var atlas = xmlTheme.Attr("atlas", "Atlas/atlas");
-                    var themeID = xmlTheme.Attr("id", xmlTheme.Name);
-                    ExtendedGameData.Defer(() =>
-                    {
-                        var towerTheme = new patch_TowerTheme(xmlTheme, child);
-                        TowerFall.GameData.Themes[child.Root.Substring(4) + themeID] = towerTheme;
-                        Logger.Verbose("[TOWER THEME] Loaded: " + child.Root.Substring(4) + themeID);
-                    }, 0);
-                }
-            }
-                break;
             case "bgData.xml":
             {
                 var xmlBGs = ModIO.LoadXml(child)["backgrounds"];
@@ -658,7 +645,17 @@ public class FortContent
 
     internal void Dispose(bool disposeTexture)
     {
-        ResourceSystem.Dispose();
+        // ResourceSystem.Dispose();
+    }
+
+    public ISubtextureEntry LoadTexture(IResourceInfo file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ISubtextureEntry LoadTexture(Func<Subtexture> callback)
+    {
+        throw new NotImplementedException();
     }
 
     private struct WatchTexture(Type type, Subtexture texture)

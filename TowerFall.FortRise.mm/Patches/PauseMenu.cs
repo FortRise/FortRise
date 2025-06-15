@@ -68,7 +68,6 @@ namespace TowerFall
         [MonoModReplace]
         private void DarkWorldMap() 
         {
-            patch_DarkWorldControl.DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
             var mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             Engine.Instance.Scene = mapScene;
@@ -79,7 +78,6 @@ namespace TowerFall
         [MonoModReplace]
         private void DarkWorldMapAndSave() 
         {
-            patch_DarkWorldControl.DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             mapScene.ShouldSave = true;
@@ -110,20 +108,14 @@ namespace TowerFall
             this.level.Session.MatchSettings.LevelSystem.Dispose();
         }
 
-        private extern void orig_Quit();
 
-        private void Quit() 
+        [Prefix("Quit")]
+        [Prefix("QuitAndSave")]
+        [Prefix(nameof(DarkWorldMap))]
+        [Prefix(nameof(DarkWorldMapAndSave))]
+        private static void DisableTempVariantsIfCan(patch_PauseMenu __instance)
         {
-            patch_DarkWorldControl.DisableTempVariants(level);
-            orig_Quit();
-        }
-
-        private extern void orig_QuitAndSave();
-
-        public void QuitAndSave() 
-        {
-            patch_DarkWorldControl.DisableTempVariants(level);
-            orig_QuitAndSave();
+            (__instance.level.Session as patch_Session).DisableTempVariants(__instance.level);
         }
 
         [MonoModReplace]

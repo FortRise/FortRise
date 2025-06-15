@@ -115,8 +115,6 @@ public class UIModMenu : CustomMenuState
             Main.SaveOnTransition = true;
             foreach (var mod in RiseCore.ModuleManager.InternalFortModules) 
             {
-                if (mod.InternalSettings == null)
-                    continue;
                 mod.SaveSettings();
             }
         }

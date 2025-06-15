@@ -100,7 +100,7 @@ public class patch_VersusModeButton : VersusModeButton
             var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
             if (entry != null)
             {
-                return entry.Icon;
+                return entry.Icon.Subtexture;
             }
         }
         return orig_GetModeIcon(mode);

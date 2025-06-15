@@ -315,7 +315,10 @@ namespace TowerFall
 
                     foreach (var mods in RiseCore.ModuleManager.InternalMods) 
                     {
-                        mods.Content.LoadResources();
+                        if (mods is FortModule fortModule)
+                        {
+                            fortModule.Content.LoadResources();
+                        }
                     }
                     RiseCore.ResourceTree.AfterModdedLoadContent();
                     FortRise.RiseCore.RegisterMods();
@@ -332,17 +335,17 @@ namespace TowerFall
                     Logger.Log("[LOAD] ...Archer Data");
                     ArcherData.Initialize();
 
+                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
+                    Logger.Log("[LOAD] ...Level Data");
+                    GameData.Load();
+                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
+
                     Loader.Message = "INITIALIZING MODS";
                     FortRise.RiseCore.Initialize();
 
                     Arrow.Initialize();
                     patch_Arrow.ExtendArrows();
                     patch_TreasureSpawner.ExtendTreasures();
-
-                    Loader.Message = "INITIALIZING LEVEL DATA (1/2)";
-                    Logger.Log("[LOAD] ...Level Data");
-                    GameData.Load();
-                    Loader.Message = "INITIALIZING LEVEL DATA (2/2)";
 
                     TowerPatchRegistry.Initialize();
 
@@ -428,10 +431,10 @@ namespace TowerFall
                     patch_Music.Initialize();
                     patch_Audio.InitMusicSystems();
 
-                    foreach (var mods in RiseCore.ModuleManager.InternalMods) 
-                    {
-                        mods.Content.LoadAudio();
-                    }
+                    // foreach (var mods in RiseCore.ModuleManager.InternalMods) 
+                    // {
+                    //     mods.Content.LoadAudio();
+                    // }
 
                     Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
 

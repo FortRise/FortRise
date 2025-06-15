@@ -9,7 +9,7 @@ public interface IVersusGameMode
 {
     string Name { get; }
     Color NameColor => Color.White;
-    Subtexture Icon { get; }
+    ISubtextureEntry Icon { get; }
     bool IsTeamMode { get; }
 
     void OnStartGame(Session session);

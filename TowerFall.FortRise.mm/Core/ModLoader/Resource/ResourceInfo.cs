@@ -81,7 +81,7 @@ public abstract class ResourceInfo : IResourceInfo
     public bool TryGetRelativePath(string path, out IResourceInfo resource)
     {
         string actualPath = System.IO.Path.Combine(RootPath, path);
-        return RiseCore.ResourceTree.TryGetValue(path, out resource);
+        return RiseCore.ResourceTree.TryGetValue(actualPath, out resource);
     }
 
     public bool ExistsRelativePath(string path)

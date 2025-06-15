@@ -42,7 +42,7 @@ public class ModThemes
         towerTheme.Name = entry.Configuration.Name.ToUpperInvariant();
         towerTheme.ID = entry.Name;
 
-        towerTheme.Icon = entry.Configuration.Icon ?? TFGame.MenuAtlas["sacredGround"];
+        towerTheme.Icon = entry.Configuration.Icon?.Subtexture ?? TFGame.MenuAtlas["sacredGround"];
         towerTheme.TowerType = entry.Configuration.TowerType;
         towerTheme.MapPosition = entry.Configuration.MapPosition;
         towerTheme.Music = entry.Configuration.Music ?? "SacredGround";
@@ -80,14 +80,15 @@ public class ModThemes
                 0.2f,
                 0.2f
             ];
-            return;
         }
-
-        towerTheme.InvisibleOpacities = entry.Configuration.InvisibleOpacities;
-
-        for (int i = 0; i < towerTheme.InvisibleOpacities.Length; i++)
+        else
         {
-            towerTheme.InvisibleOpacities[i] = 0.2f + towerTheme.InvisibleOpacities[i] * 0.1f;
+            towerTheme.InvisibleOpacities = entry.Configuration.InvisibleOpacities;
+
+            for (int i = 0; i < towerTheme.InvisibleOpacities.Length; i++)
+            {
+                towerTheme.InvisibleOpacities[i] = 0.2f + towerTheme.InvisibleOpacities[i] * 0.1f;
+            }
         }
 
         GameData.Themes[entry.Name] = towerTheme;

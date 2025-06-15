@@ -158,11 +158,11 @@ namespace TowerFall
         }
 
         [MonoModIgnore]
-        [PreFixing("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelEntered()", true)]
+        [GlobalPreFix("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelEntered()", true)]
         public extern override void Begin();
 
         [MonoModIgnore]
-        [PostFixing("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelExited()", true)]
+        [GlobalPostFix("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelExited()", true)]
         public extern void orig_End();
 
         public override void End() 
@@ -176,7 +176,7 @@ namespace TowerFall
         }
 
         [MonoModIgnore]
-        [PostFixing("TowerFall.Level", "System.Void DebugModeRender()")]
+        [GlobalPostFix("TowerFall.Level", "System.Void DebugModeRender()")]
         public extern override void Render();
 
         public void DebugModeRender() 

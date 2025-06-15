@@ -22,20 +22,20 @@ public static class ArrowsRegistry
 
     public static void Register(Type type, FortModule module) 
     {
-        foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
-        {
-            if (type is null)
-                return;
-            var name = arrow.Name ?? $"{type.Namespace}.{type.Name}";
-            var graphicFn = arrow.CreateHud ?? "CreateHud";
-            MethodInfo graphic = type.GetMethod(graphicFn);
-            string id = $"{module.Meta.Name}/{name}";
-            Register(id, EnumPool.Obtain<ArrowTypes>(), new() 
-            {
-                ArrowType = type,
-                HUD = graphic.Invoke(null, []) as Subtexture
-            });
-        }
+        // foreach (var arrow in type.GetCustomAttributes<CustomArrowsAttribute>()) 
+        // {
+        //     if (type is null)
+        //         return;
+        //     var name = arrow.Name ?? $"{type.Namespace}.{type.Name}";
+        //     var graphicFn = arrow.CreateHud ?? "CreateHud";
+        //     MethodInfo graphic = type.GetMethod(graphicFn);
+        //     string id = $"{module.Meta.Name}/{name}";
+        //     Register(id, EnumPool.Obtain<ArrowTypes>(), new() 
+        //     {
+        //         ArrowType = type,
+        //         HUD = graphic.Invoke(null, []) as Subtexture
+        //     });
+        // }
     }
 
     public static void Register(string name, ArrowTypes arrowTypes, in ArrowConfiguration configuration)
@@ -60,7 +60,7 @@ public static class ArrowsRegistry
         {
             ArrowLoader = loader,
             Types = stride,
-            Hud = configuration.HUD,
+            Hud = configuration.HUD.Subtexture,
             Name = name,
             ArrowType = configuration.ArrowType
         };

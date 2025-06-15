@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InternalMods", "InternalMod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.ImGui", "InternalMods\FortRise.ImGui\FortRise.ImGui.csproj", "{CDA0DDBC-C924-479D-A146-99CAD462C611}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.Levels", "InternalMods\FortRise.Levels\FortRise.Levels.csproj", "{EC61D458-237A-485C-9431-BF9331AC34E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,11 +73,24 @@ Global
 		{CDA0DDBC-C924-479D-A146-99CAD462C611}.Release|x64.Build.0 = Release|Any CPU
 		{CDA0DDBC-C924-479D-A146-99CAD462C611}.Release|x86.ActiveCfg = Release|Any CPU
 		{CDA0DDBC-C924-479D-A146-99CAD462C611}.Release|x86.Build.0 = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Debug|x86.Build.0 = Debug|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|x64.Build.0 = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC61D458-237A-485C-9431-BF9331AC34E5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CDA0DDBC-C924-479D-A146-99CAD462C611} = {7A24DD53-3F63-6561-F8E3-DE7E18FDE481}
+		{EC61D458-237A-485C-9431-BF9331AC34E5} = {7A24DD53-3F63-6561-F8E3-DE7E18FDE481}
 	EndGlobalSection
 EndGlobal

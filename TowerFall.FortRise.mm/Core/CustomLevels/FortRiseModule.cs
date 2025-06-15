@@ -3,50 +3,43 @@ using FortRise.Entities;
 
 namespace FortRise;
 
-public sealed class FortRiseModule : FortModule
+public sealed class FortRiseModule : Mod
 {
     public static FortRiseModule Instance;
+    public static FortRiseModuleSaveData SaveData => Instance.GetSaveData<FortRiseModuleSaveData>();
 
-    public override Type SaveDataType => typeof(FortRiseModuleSaveData);
-    public static FortRiseModuleSaveData SaveData => (FortRiseModuleSaveData)Instance.InternalSaveData;
-
-    public FortRiseModule()
+    public FortRiseModule(IModContent content, IModuleContext context) : base(content, context)
     {
         Instance = this;
 
         // Internal things, don't try this in your own mods.
-        Meta = new ModuleMetadata() {
+        Meta = new ModuleMetadata()
+        {
             Name = "FortRise",
             Version = RiseCore.FortRiseVersion,
         };
-    }
 
-    public override void Initialize()
-    {
-        Registry.Enemies.RegisterEnemy("SlimeS", new() 
+        Context.Registry.Enemies.RegisterEnemy("SlimeS", new()
         {
             Name = "Slime Shield",
             Loader = ShieldSlime.SlimeS
         });
 
-        Registry.Enemies.RegisterEnemy("BlueSlimeS", new() 
+        Context.Registry.Enemies.RegisterEnemy("BlueSlimeS", new()
         {
             Name = "Slime Shield",
             Loader = ShieldSlime.BlueSlimeS
         });
 
-        Registry.Enemies.RegisterEnemy("RedSlimeS", new() 
+        Context.Registry.Enemies.RegisterEnemy("RedSlimeS", new()
         {
             Name = "Slime Shield",
             Loader = ShieldSlime.RedSlimeS
         });
     }
 
-    public override void Load()
+    public override ModuleSaveData CreateSaveData()
     {
-    }
-
-    public override void Unload()
-    {
+        return new FortRiseModuleSaveData();
     }
 }

@@ -6,7 +6,7 @@ namespace FortRise;
 public class FolderModResource : ModResource
 {
     public string FolderDirectory;
-    public FolderModResource(ModuleMetadata metadata) : base(metadata)
+    public FolderModResource(ModuleMetadata metadata, IModContent content) : base(metadata, content)
     {
         FolderDirectory = metadata.PathDirectory.Replace('\\', '/');
     }

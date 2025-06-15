@@ -10,13 +10,15 @@ internal class ModInterop : IModInterop
 {
     private readonly Dictionary<string, object?> apiCache = [];
     private readonly ModuleManager manager;
+    private readonly ModuleMetadata metadata;
 
     public IReadOnlyList<IModResource> LoadedMods => manager.Mods;
-    public IReadOnlyList<FortModule> LoadedFortModules => manager.Modules;
+    public IReadOnlyList<Mod> LoadedFortModules => manager.Modules;
     public IProxyManager<string> ProxyManager { get; private set; }
 
-    internal ModInterop(ModuleManager moduleManager, IProxyManager<string> proxyManager)
+    internal ModInterop(ModuleManager moduleManager, ModuleMetadata metadata, IProxyManager<string> proxyManager)
     {
+        this.metadata = metadata;
         manager = moduleManager;
         ProxyManager = proxyManager;
     }
@@ -25,6 +27,8 @@ internal class ModInterop : IModInterop
     public string[] GetAllTags() => manager.GetAllTags();
     public IReadOnlyList<IModResource> GetModsByTag(string tag) => manager.GetModsByTag(tag);
     public IModResource? GetMod(string tag) => manager.GetMod(tag);
+    public IReadOnlyList<IModResource> GetModDependents() => manager.GetModDependents(metadata.Name);
+    
     public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
     public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);
 
@@ -46,7 +50,7 @@ internal class ModInterop : IModInterop
         if (!typeof(T).IsInterface)
             throw new ArgumentException($"The requested API type {typeof(T)} is not an interface.");
 
-        manager.NameToFortModule.TryGetValue(modName, out FortModule? mod);        
+        manager.NameToFortModule.TryGetValue(modName, out Mod? mod);        
 
         if (mod is null)
         {

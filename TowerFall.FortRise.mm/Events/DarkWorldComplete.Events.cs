@@ -19,7 +19,7 @@ public static partial class RiseCore
             if (levelSet != "TowerFall") 
             {
                 var data = TowerRegistry.DarkWorldGet(levelSet, levelID);
-                FortRiseModule.SaveData.AdventureWorld.AddOrGet(data.GetLevelID()).Complete(
+                FortRise.FortRiseModule.SaveData.AdventureWorld.AddOrGet(data.GetLevelID()).Complete(
                     difficulties, playerAmount, time,
                     continues, deaths, curses);
 
