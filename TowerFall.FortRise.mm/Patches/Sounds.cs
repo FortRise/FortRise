@@ -9,9 +9,31 @@ public static class patch_Sounds
 {
     public static Dictionary<string, SFX> SoundsLoaded { get; private set; } = new Dictionary<string, SFX>();
 
-    public static void AddSFX(FortContent content, ReadOnlySpan<char> id, SFX sfx) 
+    public static void LoadModdedCharacterSounds()
+    {
+        var characters = Sounds.Characters;
+        Array.Resize(ref characters, CharacterSoundsRegistry.ModdedSounds.Count + characters.Length);
+        int initialIndex = characters.Length - 1;
+        for (int i = 0; i < CharacterSoundsRegistry.ModdedSounds.Count; i++)
+        {
+            characters[initialIndex] = CharacterSoundsRegistry.ModdedSounds[i];
+            initialIndex += 1;
+        }
+
+        Sounds.Characters = characters;
+    }
+
+    public static void AddSFX(FortContent content, ReadOnlySpan<char> id, SFX sfx)
     {
         ReadOnlySpan<char> name = content.ResourceSystem.Metadata.Name;
+
+        var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
+        lookup[$"{name}/{id}"] = sfx;
+    }
+
+    public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx) 
+    {
+        ReadOnlySpan<char> name = metadata.Name;
 
         var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
         lookup[$"{name}/{id}"] = sfx;

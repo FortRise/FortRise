@@ -129,7 +129,7 @@ public class ModVariants
         var variantConfiguration = new VariantConfiguration() 
         {
             Title = variantTitle,
-            Icon = new SubtextureEntry(() => MatchVariants.GetVariantIconFromName(info.Name)),
+            Icon = new SubtextureEntry(null!, () => MatchVariants.GetVariantIconFromName(info.Name), SubtextureAtlasDestination.MenuAtlas),
             Exclusions = exclusions,
             Description = description,
             Header = header,

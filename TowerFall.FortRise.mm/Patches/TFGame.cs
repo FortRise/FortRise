@@ -444,6 +444,7 @@ namespace TowerFall
                         Logger.Log("[LOAD] ...SFX" );
                         TFGame.WriteLineToLoadLog("Loading Sounds...");
                         Sounds.Load();
+                        patch_Sounds.LoadModdedCharacterSounds();
                     }
 
                     SoundLoaded = true;

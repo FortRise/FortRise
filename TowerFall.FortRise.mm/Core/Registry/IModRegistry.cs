@@ -3,6 +3,11 @@ namespace FortRise;
 
 public interface IModRegistry
 {
+    ModSubtextures Subtextures { get; }
+    ModSprites Sprites { get; }
+    ModSFXs SFXs { get; }
+    ModCharacterSounds CharacterSounds { get; }
+    ModArchers Archers { get; }
     ModArrows Arrows { get; }   
     ModPickups Pickups { get; }
     ModVariants Variants { get; }

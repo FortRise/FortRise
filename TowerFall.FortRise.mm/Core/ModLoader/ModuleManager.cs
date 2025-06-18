@@ -239,7 +239,7 @@ internal class ModuleManager
         IModContent content;
         if (!string.IsNullOrEmpty(metadata.PathZip))
         {
-            content = new ModContent(metadata, this);
+            content = new ModContent(metadata);
             modResource = new ZipModResource(metadata, content);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
@@ -257,7 +257,7 @@ internal class ModuleManager
         }
         else if (!string.IsNullOrEmpty(metadata.PathDirectory))
         {
-            content = new ModContent(metadata, this);
+            content = new ModContent(metadata);
             modResource = new FolderModResource(metadata, content);
 
             RiseCore.ResourceTree.AddMod(metadata, modResource);
@@ -441,7 +441,7 @@ internal class ModuleManager
             Version = RiseCore.FortRiseVersion,
         };
 
-        var module = new FortRiseModule(new ModContent(fortRiseMetadata, this), GetModuleContext(fortRiseMetadata));
+        var module = new FortRiseModule(new ModContent(fortRiseMetadata), GetModuleContext(fortRiseMetadata));
         InternalFortModules.Add(module);
         InternalModuleMetadatas.Add(module.Meta);
 

@@ -39,7 +39,7 @@ public class ModTowers
     {
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
-        IVersusTowerEntry entry = new VersusTowerEntry(name, levelSet, configuration);
+        IVersusTowerEntry entry = new VersusTowerEntry(name, set, configuration);
         versusTowerEntries.Add(name, entry);
         versusTowerQueue.AddOrInvoke(entry);
         return entry;
@@ -54,7 +54,7 @@ public class ModTowers
     {
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
-        IQuestTowerEntry entry = new QuestTowerEntry(name, levelSet, configuration);
+        IQuestTowerEntry entry = new QuestTowerEntry(name, set, configuration);
         questTowerEntries.Add(name, entry);
         questTowerQueue.AddOrInvoke(entry);
         return entry;
@@ -69,7 +69,7 @@ public class ModTowers
     {
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
-        IDarkWorldTowerEntry entry = new DarkWorldTowerEntry(name, levelSet, configuration);
+        IDarkWorldTowerEntry entry = new DarkWorldTowerEntry(name, set, configuration);
         darkWorldTowerEntries.Add(name, entry);
         darkWorldTowerQueue.AddOrInvoke(entry);
         return entry;
@@ -84,7 +84,7 @@ public class ModTowers
     {
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
-        ITrialsTowerEntry entry = new TrialsTowerEntry(name, levelSet, configuration);
+        ITrialsTowerEntry entry = new TrialsTowerEntry(name, set, configuration);
         trialTowerEntries.Add(name, entry);
         trialTowerQueue.AddOrInvoke(entry);
         return entry;

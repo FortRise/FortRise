@@ -10,6 +10,17 @@ public static class IDPool
     public static Dictionary<string, int> PooledID = new Dictionary<string, int>();
     public static Dictionary<string, HashSet<int>> Freed = new Dictionary<string, HashSet<int>>();
 
+    internal static void WarmIndex(string id, int offset = 0)
+    {
+        ref var pool = ref CollectionsMarshal.GetValueRefOrAddDefault(PooledID, id, out bool exists);
+        if (!exists)
+        {
+            Freed[id] = new HashSet<int>();
+        }
+
+        pool = offset;
+    }
+
     public static int Obtain(string id)
     {
         ref var freedPool = ref CollectionsMarshal.GetValueRefOrAddDefault(Freed, id, out bool freedExists);

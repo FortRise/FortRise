@@ -65,12 +65,15 @@ namespace TowerFall
         [Postfix(nameof(LevelLoadStart))]
         private void LevelLoadStart_Postfix(Level level)
         {
-            DisableTempVariants(CurrentLevel);
             var matchSettings = MatchSettings;
 
-            patch_DarkWorldLevelSystem darkWorld = matchSettings.LevelSystem as patch_DarkWorldLevelSystem;
-            var levelData = darkWorld.GetLevelData(matchSettings.DarkWorldDifficulty, RoundIndex);
-            ActivateTempVariants(CurrentLevel, levelData);
+            if (matchSettings.LevelSystem is patch_DarkWorldLevelSystem darkWorld)
+            {
+                DisableTempVariants(CurrentLevel);
+
+                var levelData = darkWorld.GetLevelData(matchSettings.DarkWorldDifficulty, RoundIndex);
+                ActivateTempVariants(CurrentLevel, levelData);
+            }
 
             var levelType = this.IsOfficialLevelSet() ? "vanilla" : "modded";
             level.AssignTag(levelType);

@@ -17,21 +17,23 @@ namespace TowerFall
         {
         }
 
-        public extern void orig_Added();
-
-        public override void Added()
+        [Postfix(nameof(Added))]
+        private void Added_Postfix()
         {
-            orig_Added();
             RiseCore.Events.Player.Invoke_OnSpawn(this, PlayerIndex);
-        }
+            if (!Hair)
+            {
+                return;
+            }
 
-        public extern PlayerCorpse orig_Die(DeathCause deathCause, int killerIndex, bool brambled = false, bool laser = false);
+            var archerData = (patch_ArcherData)ArcherData;
+            var hairData = archerData.ExtraHairData;
+            var hair = (patch_PlayerHair)Hair;
 
-        public PlayerCorpse Die(DeathCause deathCause, int killerIndex, bool brambled = false, bool laser = false) 
-        {
-            PlayerCorpse corpsed = orig_Die(deathCause, killerIndex, brambled, laser);
-            RiseCore.Events.Player.Invoke_OnPlayerDie(this, PlayerIndex, deathCause, killerIndex, brambled, laser);
-            return corpsed;
+            hair.Color = hairData.Color;
+            hair.DuckingOffset = hairData.DuckingOffset;
+            hair.Offset = hairData.Offset;
+            hair.OutlineColor = hairData.OutlineColor;
         }
 
         [MonoModIgnore]

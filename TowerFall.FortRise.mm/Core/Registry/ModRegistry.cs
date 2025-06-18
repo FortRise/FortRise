@@ -3,6 +3,11 @@ namespace FortRise;
 
 internal class ModRegistry : IModRegistry
 {
+    public ModSubtextures Subtextures { get; }
+    public ModSprites Sprites { get; }
+    public ModSFXs SFXs { get; }
+    public ModCharacterSounds CharacterSounds { get; }
+    public ModArchers Archers { get; }
     public ModArrows Arrows { get; }   
     public ModPickups Pickups { get; }   
     public ModVariants Variants { get; }
@@ -23,8 +28,14 @@ internal class ModRegistry : IModRegistry
     public ModTowerHooks TowerHooks { get; }
     public ModQuestEvents QuestEvents { get; }
 
+
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
     {
+        Subtextures = new ModSubtextures(metadata, manager);
+        Sprites = new ModSprites(metadata, manager);
+        SFXs = new ModSFXs(metadata, manager);
+        CharacterSounds = new ModCharacterSounds(metadata, manager);
+        Archers = new ModArchers(metadata, manager);
         Arrows = new ModArrows(metadata, manager);
         Pickups = new ModPickups(metadata, manager);
         Variants = new ModVariants(metadata, manager);

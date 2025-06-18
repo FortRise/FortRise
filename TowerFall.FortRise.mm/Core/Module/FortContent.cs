@@ -7,7 +7,6 @@ using System.Linq;
 using TowerFall;
 using System.Xml;
 using System.Text.Json;
-using Mono.Cecil;
 
 namespace FortRise;
 
@@ -646,16 +645,6 @@ public class FortContent : IModContent
     internal void Dispose(bool disposeTexture)
     {
         // ResourceSystem.Dispose();
-    }
-
-    public ISubtextureEntry LoadTexture(IResourceInfo file)
-    {
-        throw new NotImplementedException();
-    }
-
-    public ISubtextureEntry LoadTexture(Func<Subtexture> callback)
-    {
-        throw new NotImplementedException();
     }
 
     private struct WatchTexture(Type type, Subtexture texture)

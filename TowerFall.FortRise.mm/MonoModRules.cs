@@ -521,7 +521,6 @@ internal static partial class MonoModRules
     {
         Dictionary<string, MethodParamIdentity> identities = new Dictionary<string, MethodParamIdentity>();
         string methodName = (string)attrib.ConstructorArguments[0].Value;
-        var type = postfixCtx.Method.DeclaringType;
 
         var origMethod = postfixCtx.Method.DeclaringType.FindMethod(methodName);
 
@@ -540,8 +539,6 @@ internal static partial class MonoModRules
             identities.Add(name, new MethodParamIdentity(name, index));
         }
 
-        bool canCallOriginalOrNot = postfixCtx.Method.ReturnType.FullName == postfixCtx.Module.TypeSystem.Boolean.FullName;
-
         var ctx = new ILContext(origMethod);
 
         var cursor = new ILCursor(ctx);
@@ -558,6 +555,8 @@ internal static partial class MonoModRules
         {
             cursor.Emit(OpCodes.Ldarg_0);
         }
+
+        VariableDefinition retVal = null;
         if (origMethod.ReturnType.FullName == postfixCtx.Module.TypeSystem.Void.FullName)
         {
             var varParamVoid = CompareAndBuildParameter(identities, postfixCtx.Method);
@@ -582,7 +581,7 @@ internal static partial class MonoModRules
         }
         else
         {
-            VariableDefinition retVal = new VariableDefinition(ctx.Module.ImportReference(origMethod.ReturnType));
+            retVal = new VariableDefinition(ctx.Module.ImportReference(origMethod.ReturnType));
             cursor.IL.Body.Variables.Add(retVal);
 
             cursor.Emit(OpCodes.Stloc, retVal);
@@ -628,6 +627,11 @@ internal static partial class MonoModRules
 
         cursor.Instrs.Insert(current, lastNext);
         lastNext.OpCode = OpCodes.Nop;
+        if (ctx.Method.ReturnType.FullName != "System.Void" && retVal != null)
+        {
+            cursor.Emit(OpCodes.Ldloc, retVal);
+        }
+        
         cursor.Emit(OpCodes.Ret);
     }
 
