@@ -25,6 +25,9 @@ internal sealed class LevelsModule : Mod
                 continue;
             }
 
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content);
+            SpriteDataLoader.LoadMenuSpriteData(registry, dependent.Content);
+            SpriteDataLoader.LoadCorpseSpriteData(registry, dependent.Content);
             ArcherLoader.Load(registry, dependent.Content);
             TilesetLoader.Load(registry, dependent.Content);
             ThemeLoader.Load(registry, dependent.Content);
@@ -32,17 +35,6 @@ internal sealed class LevelsModule : Mod
             QuestLoader.Load(registry, dependent.Content);
             DarkWorldLoader.Load(registry, dependent.Content);
             TrialsLoader.Load(registry, dependent.Content);
-        }
-    }
-}
-
-internal static class ArcherLoader
-{
-    internal static void Load(IModRegistry registry, IModContent content)
-    {
-        if (!content.Root.TryGetRelativePath("Atlas/GameData/archerData.xml", out IResourceInfo archers))
-        {
-            return;
         }
     }
 }
