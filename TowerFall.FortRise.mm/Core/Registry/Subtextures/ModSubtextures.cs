@@ -129,16 +129,25 @@ public class ModSubtextures
             Logger.Error($"[{metadata.Name}] Error loading a file naned: {file.RootPath}, file does not exists.");
             return null!;
         }
-        ref var subtexture = ref CollectionsMarshal.GetValueRefOrAddDefault(subtextureEntries, file.RootPath, out bool exists);
+
+        var name = $"{metadata.Name}/{id}";
+        ref var subtexture = ref CollectionsMarshal.GetValueRefOrAddDefault(subtextureEntries, name, out bool exists);
         if (exists)
         {
-            return subtexture!;
+            if (subtexture!.Path != file)
+            {
+                Logger.Warning($"[{metadata.Name}] The subtexture ID: {id} but with a different path has already been registered, overriding!");
+            }
+            else
+            {
+                return subtexture!;
+            }
         }
-        var name = $"{metadata.Name}/{id}";
         var entry = new SubtextureEntry(name, file, atlasDestination);
         subtexturesQueue.AddOrInvoke(entry);
         return subtexture = entry;
     }
+
     /// <summary>
     /// Load a texture from a callback.
     /// </summary>
@@ -149,9 +158,15 @@ public class ModSubtextures
     public ISubtextureEntry RegisterTexture(string id, Func<Subtexture> callback, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas)
     {
         var name = $"{metadata.Name}/{id}";
+        ref var subtexture = ref CollectionsMarshal.GetValueRefOrAddDefault(subtextureEntries, id, out bool exists);
+        if (exists)
+        {
+            Logger.Warning($"[{metadata.Name}] The subtexture ID: {id} has already been registered, overriding!");
+        }
+
         var entry = new SubtextureEntry(name, callback, atlasDestination);
         subtexturesQueue.AddOrInvoke(entry);
-        return entry;
+        return subtexture = entry;
     }
 
     private void Invoke(ISubtextureEntry entry)
