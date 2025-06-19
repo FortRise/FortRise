@@ -50,11 +50,19 @@ public class ModArchers
         return entry;
     }
 
+    public IArcherEntry? GetArcher(string id)
+    {
+        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
+        var alternate = archerEntries.GetAlternateLookup<ReadOnlySpan<char>>();
+        alternate.TryGetValue(name, out IArcherEntry? value);
+        return value;
+    }
+
     private void Invoke(IArcherEntry entry)
     {
         // resize this ahead of time
         int archerCount = ArcherData.Archers.Length;
-        int archerNewCount = archerEntries.Count + archerCount;
+        int archerNewCount = entry.Index + 1;
         if (archerNewCount != archerCount)
         {
             var archers = ArcherData.Archers;
@@ -128,7 +136,7 @@ public class ModArchers
             Gems = new ArcherData.GemInfo()
             {
                 Gameplay = entry.Configuration.Gems.Gameplay.Entry.ID,
-                Menu = entry.Configuration.Gems.Menu.Entry.ID   
+                Menu = entry.Configuration.Gems.Menu.Entry.ID
             },
             Statue = statue,
             Breathing = breathing,
@@ -142,10 +150,10 @@ public class ModArchers
                 ArcherData.Archers[entry.Index] = archerData;
                 break;
             case ArcherEntryType.Alt:
-                ArcherData.SecretArchers[entry.Index] = archerData;
+                ArcherData.AltArchers[entry.Index] = archerData;
                 break;
             case ArcherEntryType.Secret:
-                ArcherData.AltArchers[entry.Index] = archerData;
+                ArcherData.SecretArchers[entry.Index] = archerData;
                 break;
         }
     }
