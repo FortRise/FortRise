@@ -36,7 +36,7 @@ public class patch_ArcherData : ArcherData
 
     public patch_ArcherData() : base(null) {}
 
-    public HairInfo ExtraHairData;
+    public Option<HairInfo> ExtraHairData;
 
     [MonoModConstructor]
     public void ctor() {}

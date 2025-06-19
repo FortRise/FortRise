@@ -133,7 +133,7 @@ public class ModArchers
             Statue = statue,
             Breathing = breathing,
             Hair = entry.Configuration.Hair.HasValue,
-            ExtraHairData = entry.Configuration.Hair.Value
+            ExtraHairData = entry.Configuration.Hair
         };
 
         switch (entry.Type)

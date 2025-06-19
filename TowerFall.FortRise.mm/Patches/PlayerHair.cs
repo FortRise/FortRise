@@ -58,6 +58,13 @@ public class patch_PlayerHair : PlayerHair
     {
     }
 
+    [Prefix("System.Void .ctor(Monocle.Entity,Microsoft.Xna.Framework.Vector2,System.Single)")]
+    public void ctor_Prefix()
+    {
+        Color = Color.White;
+        OutlineColor = Color.Black;
+    }
+
     [MonoModReplace]
     public override void Render()
     {

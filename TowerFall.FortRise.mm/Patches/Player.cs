@@ -27,7 +27,11 @@ namespace TowerFall
             }
 
             var archerData = (patch_ArcherData)ArcherData;
-            var hairData = archerData.ExtraHairData;
+            if (!archerData.ExtraHairData.TryGetValue(out HairInfo hairData))
+            {
+                return;
+            }
+
             var hair = (patch_PlayerHair)Hair;
 
             hair.Color = hairData.Color;
