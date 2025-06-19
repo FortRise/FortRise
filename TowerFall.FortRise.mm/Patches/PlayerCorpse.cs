@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -51,8 +52,44 @@ public class patch_PlayerCorpse : PlayerCorpse
     private Action<Platform> onCollideH;
     private Action<Platform> onCollideV;
 
+    public PlayerHair Hair
+    {
+        [MonoModIgnore]
+        get;
+        [MonoModIgnore]
+        private set;
+    }
+
     public patch_PlayerCorpse(EnemyCorpses enemyCorpse, Vector2 position, Facing facing, int killerIndex) : base(enemyCorpse, position, facing, killerIndex)
     {
+    }
+
+    [MonoModLinkTo("TowerFall.PlayerCorpse", "System.Void .ctor(System.String,TowerFall.Allegiance,Microsoft.Xna.Framework.Vector2,TowerFall.Facing,System.Int32,System.Int32)")]
+    public void this_ctor(string corpseSpriteID, Allegiance teamColor, Vector2 position, Facing facing, int playerIndex, int killerIndex) { }
+
+    [MonoModConstructor]
+    [MonoModReplace]
+    public void ctor(Vector2 position, ArcherData archerData, Allegiance teamColor, Facing facing, int playerIndex, int killerIndex)
+    {
+        this_ctor(archerData.Corpse, teamColor, position, facing, playerIndex, killerIndex);
+        if (Hair == null && archerData.Hair)
+        {
+            Hair = new PlayerHair(this, new Vector2(0f, -6f), 1f);
+            Add(Hair);
+
+            var parcherData = (patch_ArcherData)archerData;
+            if (!parcherData.ExtraHairData.TryGetValue(out HairInfo hairData))
+            {
+                return;
+            }
+
+            var hair = (patch_PlayerHair)Hair;
+
+            hair.Color = hairData.Color;
+            hair.DuckingOffset = hairData.DuckingOffset;
+            hair.Offset = hairData.Offset;
+            hair.OutlineColor = hairData.OutlineColor;
+        }
     }
 
     [MonoModLinkTo("TowerFall.Actor", "System.Void .ctor(Microsoft.Xna.Framework.Vector2)")]
