@@ -12,8 +12,9 @@ public static class patch_Sounds
     public static void LoadModdedCharacterSounds()
     {
         var characters = Sounds.Characters;
+        int initialIndex = characters.Length;
         Array.Resize(ref characters, CharacterSoundsRegistry.ModdedSounds.Count + characters.Length);
-        int initialIndex = characters.Length - 1;
+
         for (int i = 0; i < CharacterSoundsRegistry.ModdedSounds.Count; i++)
         {
             characters[initialIndex] = CharacterSoundsRegistry.ModdedSounds[i];
