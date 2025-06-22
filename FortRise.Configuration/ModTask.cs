@@ -68,7 +68,10 @@ public sealed class ModTask : Task
 
         if (File.Exists(metadataFile))
         {
-            list.Add(new ReadFile(Path.GetFullPath(metadataFile), projectDirUri.MakeRelativeUri(new Uri(Path.GetFullPath(metadataFile))).OriginalString));
+            list.Add(new ReadFile(
+                Path.GetFullPath(metadataFile),
+                Uri.UnescapeDataString(projectDirUri.MakeRelativeUri(new Uri(Path.GetFullPath(metadataFile))).OriginalString))
+            );
         }
 
         var fortIgnore = Path.Combine(projectDir, ".fortriseignore");
@@ -124,7 +127,10 @@ public sealed class ModTask : Task
                     continue;
                 }
 
-                list.Add(new ReadFile(file.FullName, targetDirUri.MakeRelativeUri(new Uri(file.FullName)).OriginalString));
+                list.Add(new ReadFile(
+                    file.FullName,
+                    Uri.UnescapeDataString(targetDirUri.MakeRelativeUri(new Uri(file.FullName)).OriginalString))
+                );
             }
         }
 
