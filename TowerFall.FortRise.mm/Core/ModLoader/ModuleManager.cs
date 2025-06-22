@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using HarmonyLib;
+using Microsoft.Extensions.Logging;
 using Nanoray.Pintail;
 
 namespace FortRise;
@@ -50,18 +51,24 @@ internal class ModuleManager
     public enum LoadError { Delayed, Failure }
     internal HashSet<string> BlacklistedMods;
     internal HashSet<string> CantLoad = new();
+    private ILogger logger;
+    private ILoggerFactory loggerFactory;
     
-    internal ModuleManager()
+    internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
+        this.logger = logger;
+        this.loggerFactory = factory;
+
         var moduleBuilders = new Dictionary<(string, string), ModuleBuilder>();
-        proxyManager = new ProxyManager<string>((proxyInfo) => {
+        proxyManager = new ProxyManager<string>((proxyInfo) =>
+        {
             var key = (proxyInfo.Target.Context, proxyInfo.Proxy.Context);
 
             ref var moduleBuilder = ref CollectionsMarshal.GetValueRefOrAddDefault(moduleBuilders, key, out bool exists);
 
             if (!exists)
             {
-                string proxyAsmName = 
+                string proxyAsmName =
                 $"{GetType().Namespace}.Proxies{moduleBuilders.Count}, Version={GetType().Assembly.GetName().Version}, Culture=neutral";
                 var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(proxyAsmName), AssemblyBuilderAccess.RunAndCollect);
                 moduleBuilder = assemblyBuilder.DefineDynamicModule($"{GetType().Namespace}.Proxies");
@@ -69,7 +76,7 @@ internal class ModuleManager
 
             return moduleBuilder;
         },
-        new() 
+        new()
         {
             ProxyPrepareBehavior = ProxyManagerProxyPrepareBehavior.Eager,
             ProxyObjectInterfaceMarking = ProxyObjectInterfaceMarking.IncludeProxyTargetInstance | ProxyObjectInterfaceMarking.IncludeProxyInfo,
@@ -89,7 +96,7 @@ internal class ModuleManager
             var dirInfo = new DirectoryInfo(dir);
             if (BlacklistedMods != null && BlacklistedMods.Contains(dirInfo.Name))
             {
-                Logger.Verbose($"[Loader] Ignored {dir} as it's blacklisted");
+                logger.LogDebug("Ignored '{dir}' as it is blacklisted.", dir);
                 continue;
             }
             LoadDir(dir, delayedMods);
@@ -103,7 +110,7 @@ internal class ModuleManager
             var fileName = Path.GetFileName(file);
             if (BlacklistedMods != null && BlacklistedMods.Contains(Path.GetFileName(fileName)))
             {
-                Logger.Verbose($"[Loader] Ignored {file} as it's blacklisted");
+                logger.LogDebug("Ignored '{file}' as it is blacklisted.", file);
                 continue;
             }
             LoadZip(file, delayedMods);
@@ -180,6 +187,12 @@ internal class ModuleManager
                 if (storeError)
                 {
                     ErrorPanel.StoreError($"Outdated Dependency {metadata.Name} {metadata.Version} > {internalMetadata.Version}");
+                    logger.LogError(
+                        "Outdated Dependency {modName} {modVersion} > {targetModVersion}",
+                        metadata.Name,
+                        metadata.Version,
+                        internalMetadata.Version
+                    );
                 }
                 return false;
             }
@@ -273,7 +286,7 @@ internal class ModuleManager
         }
         else
         {
-            Logger.Error($"[Loader] Mod {metadata.Name} not found");
+            logger.LogError("Mod named: '{modName}' not found!", metadata.Name);
             ErrorPanel.StoreError($"'{metadata.Name}' not found!");
             return LoadError.Failure;
         }
@@ -341,6 +354,7 @@ internal class ModuleManager
                     CantLoad.Add(delayedMod.Metadata.PathZip);
                 }
 
+                logger.LogError("Mod named '{modName}' has missing dependencies.", delayedMod.Metadata.Name);
                 ErrorPanel.StoreError($"'{delayedMod.Metadata.Name}' has missing dependencies.");
             }
             else 
@@ -359,14 +373,17 @@ internal class ModuleManager
             if (t.BaseType == typeof(FortModule))
             {
                 var fortMod = Activator.CreateInstance(t) as FortModule;
-                fortMod.Context = GetModuleContext(metadata);
+                var logger = loggerFactory.CreateLogger(metadata.Name);
+                fortMod.Context = GetModuleContext(metadata, logger);
                 fortMod.ModContent = content;
+                fortMod.Logger = logger;
                 fortMod.Content = new FortContent(GetMod(metadata.Name), metadata);
                 mod = fortMod;
             }
             else if (t.BaseType == typeof(Mod))
             {
-                mod = Activator.CreateInstance(t, [content, GetModuleContext(metadata)]) as Mod;
+                var logger = loggerFactory.CreateLogger(metadata.Name);
+                mod = Activator.CreateInstance(t, [content, GetModuleContext(metadata, logger), logger]) as Mod;
             }
             else
             {
@@ -381,16 +398,17 @@ internal class ModuleManager
             InternalFortModules.Add(mod);
             NameToFortModule.Add(metadata.Name, mod);
 
-            Logger.Info($"[Loader] {mod.Meta.Name} {mod.Meta.Version} Loaded.");
+            logger.LogInformation("{modName} {modVersion} has been loaded.", mod.Meta.Name, mod.Meta.Version);
         }
     }
 
-    private IModuleContext GetModuleContext(ModuleMetadata metadata)
+    private IModuleContext GetModuleContext(ModuleMetadata metadata, ILogger logger)
     {
         return new ModuleContext(
             AddOrGetRegistry(metadata),
             new ModInterop(this, metadata, proxyManager),
             new ModEvents(EventsManager),
+            logger,
             new LimitedHarmony(new Harmony(metadata.Name))
         );
     }
@@ -441,7 +459,7 @@ internal class ModuleManager
             Version = RiseCore.FortRiseVersion,
         };
 
-        var module = new FortRiseModule(new ModContent(fortRiseMetadata), GetModuleContext(fortRiseMetadata));
+        var module = new FortRiseModule(new ModContent(fortRiseMetadata), GetModuleContext(fortRiseMetadata, logger), logger);
         InternalFortModules.Add(module);
         InternalModuleMetadatas.Add(module.Meta);
 
@@ -539,30 +557,5 @@ internal class ModuleManager
         var registryQueue = new RegistryQueue<T>(this, invoker);
         registryBatch.Enqueue(registryQueue);
         return registryQueue;
-    }
-}
-
-#nullable enable
-internal sealed class ModEventsManager
-{
-    public event EventHandler<ModuleMetadata>? OnModInitialize;
-    public event EventHandler? OnModLoadingFinished;
-    public event EventHandler? OnModInitializingFinished;
-
-    public ModEventsManager() { }
-
-    internal void OnModInitializeInvoke(ModuleMetadata moduleMetadata)
-    {
-        OnModInitialize?.Invoke(null, moduleMetadata);
-    }
-
-    internal void OnModLoadingFinishedInvoke()
-    {
-        OnModLoadingFinished?.Invoke(null, null!);
-    }
-
-    internal void OnModInitializingFinishedInvoke()
-    {
-        OnModInitializingFinished?.Invoke(null, null!);
     }
 }

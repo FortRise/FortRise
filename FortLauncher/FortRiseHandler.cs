@@ -4,18 +4,21 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Microsoft.Extensions.Logging;
 using Mono.Cecil;
 using MonoMod;
 using MonoMod.RuntimeDetour.HookGen;
 
 namespace FortLauncher;
 
-public class FortRiseHandler(string fortriseCWD, List<string> args)
+public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logger, ILoggerFactory factory)
 {
     public string[] Args = args.ToArray();
     private string cwd = fortriseCWD;
+    private ILogger logger = logger;
+    private ILoggerFactory factory = factory;
 
-    public void Run(string exePath, string patchFile) 
+    public void Run(string exePath, string patchFile)
     {
         var asm = LoadAssembly(patchFile);
         Directory.SetCurrentDirectory(Path.GetFullPath(Path.GetDirectoryName(exePath)!));
@@ -23,7 +26,19 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
         // run the game
         if (asm.EntryPoint is not null)
         {
+            var riseCore = asm.GetType("FortRise.RiseCore")?.GetMethod("LauncherPipe", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (riseCore != null)
+            {
+                riseCore.Invoke(null, [logger, factory]);
+            }
+
+            logger.LogInformation("Running the game!");
             asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+        }
+        else
+        {
+            logger.LogCritical("Cannot find the main entrypoint of the game.");
         }
     }
 
@@ -35,7 +50,8 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
         {
             Input = stream,
             OutputPath = mmhookPath,
-            ReadingMode = ReadingMode.Deferred
+            ReadingMode = ReadingMode.Deferred,
+            LogVerboseEnabled = false
         })
         {
             modder.Read();
@@ -71,6 +87,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
             {
                 Input = stream,
                 OutputPath = patchFile,
+                LogVerboseEnabled = false
             })
             {
                 modder.Read();
@@ -90,7 +107,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args)
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            logger.LogCritical("Patch failed, exception: {ex}", ex);
             if (System.Diagnostics.Debugger.IsAttached)
             {
                 Console.ReadKey();

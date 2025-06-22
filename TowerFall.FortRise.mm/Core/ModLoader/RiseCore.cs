@@ -15,6 +15,7 @@ using MonoMod.Utils;
 using MonoMod.RuntimeDetour;
 using TowerFall;
 using YYProject.XXHash;
+using Microsoft.Extensions.Logging;
 
 namespace FortRise;
 
@@ -41,7 +42,7 @@ public static partial class RiseCore
 
 
     internal static Mod FortRiseModule;
-    internal static ModuleManager ModuleManager = new();
+    internal static ModuleManager ModuleManager;
     internal static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
     internal static List<string> DetourLogs = new List<string>();
@@ -73,6 +74,16 @@ public static partial class RiseCore
     /// </summary>
     public static bool WillRestart { get; set; }
 
+    internal static ILogger logger;
+    private static ILoggerFactory loggerFactory;
+
+    internal static void LauncherPipe(ILogger logger, ILoggerFactory loggerFactory)
+    {
+        RiseCore.logger = logger;
+        RiseCore.loggerFactory = loggerFactory;
+        RiseCore.logger.LogInformation("Piped logger successfully!");
+    }
+
     internal static HashSet<string> ReadBlacklistedMods(string blackListPath)
     {
         try
@@ -93,6 +104,7 @@ public static partial class RiseCore
 
     internal static bool Start()
     {
+        ModuleManager = new ModuleManager(logger, loggerFactory);
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
         var modDirectory = Path.Combine(GameRootPath, "Mods");

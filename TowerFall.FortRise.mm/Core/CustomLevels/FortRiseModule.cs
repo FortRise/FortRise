@@ -1,5 +1,5 @@
-using System;
 using FortRise.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace FortRise;
 
@@ -8,7 +8,7 @@ public sealed class FortRiseModule : Mod
     public static FortRiseModule Instance;
     public static FortRiseModuleSaveData SaveData => Instance.GetSaveData<FortRiseModuleSaveData>();
 
-    public FortRiseModule(IModContent content, IModuleContext context) : base(content, context)
+    public FortRiseModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
 

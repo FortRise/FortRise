@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace FortRise;
 
@@ -14,6 +15,7 @@ public abstract class Mod
 
     public IModuleContext Context { get; internal set; }
     public IModContent ModContent { get; internal set; }
+    public ILogger Logger { get; internal set; }
 
     public Action<IModuleContext>? OnLoad { get; set; }
     public Action<IModuleContext>? OnUnload { get; set; }
@@ -23,10 +25,11 @@ public abstract class Mod
     private object? saveDataCache;
     private object? settingsCache;
 
-    public Mod(IModContent content, IModuleContext context)
+    public Mod(IModContent content, IModuleContext context, ILogger logger)
     {
         Context = context;
         ModContent = content;
+        Logger = logger;
         if (content != null!)
         {
             Meta = content.Metadata;
@@ -156,6 +159,7 @@ public interface IModuleContext
     public IModRegistry Registry { get; init; }
     public IModInterop Interop { get; init; }
     public IModEvents Events { get; init; }
+    public ILogger Logger { get; init; }
     public IHarmony Harmony { get; init; }
 }
 
@@ -164,13 +168,15 @@ internal sealed class ModuleContext : IModuleContext
     public IModRegistry Registry { get; init; }
     public IModInterop Interop { get; init; }
     public IModEvents Events { get; init; }
+    public ILogger Logger { get; init; }
     public IHarmony Harmony { get; init; }
 
-    public ModuleContext(IModRegistry registry, IModInterop interop, IModEvents events, IHarmony harmony)
+    public ModuleContext(IModRegistry registry, IModInterop interop, IModEvents events, ILogger logger, IHarmony harmony)
     {
         Registry = registry;
         Interop = interop;
         Events = events;
+        Logger = logger;
         Harmony = harmony;
     }
 }

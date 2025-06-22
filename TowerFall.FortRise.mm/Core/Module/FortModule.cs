@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using HarmonyLib;
+using Microsoft.Extensions.Logging;
 
 namespace FortRise;
 
@@ -41,7 +41,7 @@ public abstract partial class FortModule : Mod
     public virtual Type SaveDataType { get; }
     public ModuleSaveData InternalSaveData;
 
-    protected FortModule(IModContent content, IModuleContext context) : base(content, context)
+    protected FortModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         OnLoad += InternalLoad;
         OnInitialize += InternalInitialize;
@@ -49,7 +49,7 @@ public abstract partial class FortModule : Mod
         OnLoadContent += InternalLoadContent;
     }
 
-    protected FortModule() : this(null, null)
+    protected FortModule() : this(null, null, null)
     {
         OnLoad += InternalLoad;
         OnInitialize += InternalInitialize;
@@ -144,7 +144,7 @@ public abstract partial class FortModule : Mod
         }
         catch (Exception e)
         {
-            Logger.Error(e.ToString());
+            Logger.LogError("Error: {error}", e);
         }
     }
 

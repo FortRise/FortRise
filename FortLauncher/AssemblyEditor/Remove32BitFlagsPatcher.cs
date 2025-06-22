@@ -1,10 +1,11 @@
 using System;
 using System.IO;
+using Microsoft.Extensions.Logging;
 using Mono.Cecil;
 
 namespace FortLauncher;
 
-internal sealed class Remove32BitFlagsPatcher : Patcher
+internal sealed class Remove32BitFlagsPatcher(ILogger logger) : Patcher
 {
     public override PatcherScope Scope => PatcherScope.Assembly;
 
@@ -12,7 +13,7 @@ internal sealed class Remove32BitFlagsPatcher : Patcher
     {
         if (Environment.Is64BitProcess)
         {
-            Console.WriteLine($"[FortRise] Removing 32 bit flags from '{Path.GetFileName(module.Name)}'");
+            logger.LogInformation("Removing 32 bit flags from '{dll}'", Path.GetFileName(module.Name));
             // remove 32 bit flags from TowerFall
             module.Attributes &= ~(ModuleAttributes.Required32Bit | ModuleAttributes.Preferred32Bit);
         }

@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.5" PrivateAssets="All" ExcludeAssets="runtime"/>
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
-    <PackageReference Include="FortRise.Configuration" Version="1.4.0" />
+    <PackageReference Include="FortRise.Configuration" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>

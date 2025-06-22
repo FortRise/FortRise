@@ -1,6 +1,7 @@
 using System;
 using HarmonyLib;
 using ImGuiNET;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
@@ -14,7 +15,7 @@ internal sealed class ImGuiModule : Mod
     private bool mouseOpened;
     private ImGuiRenderer renderer = null!;
 
-    public ImGuiModule(IModContent content, IModuleContext context) : base(content, context)
+    public ImGuiModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
 

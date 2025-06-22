@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Extensions.Logging;
 using Monocle;
 using TowerFall;
 
@@ -8,7 +9,7 @@ namespace FortRise.Levels;
 
 internal static class VersusLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content)
+    internal static void Load(IModRegistry registry, IModContent content, ILogger logger)
     {
         if (!content.Root.TryGetRelativePath("Levels/Versus", out IResourceInfo versusLocation))
         {
@@ -53,7 +54,7 @@ internal static class VersusLoader
                     ParseTreasure(treasure.AsSpan().Trim(), out string resTreasure, out int chance, out int rate);
                     if (!Calc.TryStringToEnum<Pickups>(resTreasure, out var pickups))
                     {
-                        Logger.Error($"[ADVENTURE][VERSUS] The pickup name '{resTreasure}' cannot be found.");
+                        logger.LogError("The pickup name '{resTreasure}' cannot be found.", resTreasure);
                         continue;
                     }
                     treasures.Add(new Treasure()

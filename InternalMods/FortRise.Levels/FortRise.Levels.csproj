@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FortRise.Configuration" Version="1.4.0" />
+    <PackageReference Include="FortRise.Configuration" Version="1.5.0" />
   </ItemGroup>
 
 </Project>

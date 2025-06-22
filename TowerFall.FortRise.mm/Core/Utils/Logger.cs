@@ -3,11 +3,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Monocle;
 
 namespace FortRise;
 
-public static class Logger
+internal static class Logger
 {
     public enum LogLevel { Info, Warning, Error, Debug, Verbose, Assert}
     private static StringBuilder builder = new();
@@ -20,20 +21,30 @@ public static class Logger
         if (Verbosity < level)
             return;
 
-        var logName = level switch
-        {
-            LogLevel.Debug => "[DEBUG]",
-            LogLevel.Assert => "[ASSERT]",
-            LogLevel.Warning => "[WARNING]",
-            LogLevel.Error => "[ERROR]",
-            LogLevel.Verbose => "[VERBOSE]",
-            _ => "[INFO]"
-        };
-        var text = $"{logName} Ln: {lineNumber} {message}";
+        var text = message;
 
         builder.AppendLine(text);
 
-        WriteLine(text, level);
+        switch (level)
+        {
+            case LogLevel.Info:
+                RiseCore.logger.LogInformation(text);
+                break;
+            case LogLevel.Warning:
+                RiseCore.logger.LogWarning(text);
+                break;
+            case LogLevel.Assert:
+                RiseCore.logger.LogCritical(text);
+                break;
+            case LogLevel.Error:
+                RiseCore.logger.LogError(text);
+                break;
+            case LogLevel.Debug:
+            case LogLevel.Verbose:
+                RiseCore.logger.LogDebug(text);
+                break;
+        }
+
         try
         {
             Engine.Instance?.Commands?.Log(text);
@@ -47,20 +58,6 @@ public static class Logger
 
         if (level == LogLevel.Assert)
             Debugger.Break();
-    }
-
-    private static void WriteLine(string text, LogLevel level)
-    {
-        var colors = level switch
-        {
-            LogLevel.Debug => $"\u001b[37m",
-            LogLevel.Assert => $"\u001b[91m",
-            LogLevel.Warning => $"\u001b[93m",
-            LogLevel.Error => $"\u001b[91m",
-            LogLevel.Verbose => $"\u001b[95m",
-            _ => "\u001b[96m"
-        };
-        Console.WriteLine($"\u001b[37m({DateTime.Now.ToString("HH:mm:ss")}) {colors}{text}\u001b[0m");
     }
 
     public static void Log(

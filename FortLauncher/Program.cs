@@ -4,23 +4,136 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 using FortRise;
-using Mono.Cecil;
 using YYProject.XXHash;
 using SDL3;
 using FortLauncher.IO;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace FortLauncher;
 
-internal class Program 
+internal class ConsoleLoggerProvider : ILoggerProvider
+{
+    private TextWriter writer;
+    private LogLevel logLevel;
+    public ConsoleLoggerProvider(LogLevel logLevel, TextWriter writer)
+    {
+        this.logLevel = logLevel;
+        this.writer = writer;
+    }
+
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new Logger(this, logLevel, writer, categoryName);
+    }
+
+    public void Dispose()
+    {
+        writer.Flush();
+        writer.Dispose();
+    }
+
+    private class Logger : ILogger
+    {
+        private ConsoleLoggerProvider provider;
+        private LogLevel logLevel;
+        private TextWriter writer;
+        private string categoryName;
+
+        public Logger(ConsoleLoggerProvider provider, LogLevel logLevel, TextWriter writer, string categoryName)
+        {
+            this.provider = provider;
+            this.logLevel = logLevel;
+            this.writer = writer;
+            this.categoryName = categoryName;
+        }
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return this.logLevel >= logLevel;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            lock (provider)
+            {
+                if (!IsEnabled(logLevel))
+                {
+                    return;
+                }
+
+                var oldBGColor = Console.BackgroundColor;
+                var oldFGColor = Console.ForegroundColor;
+
+                var (name, color) = GetLog(logLevel);
+
+                try
+                {
+                    Console.BackgroundColor = color.BG;
+                    Console.ForegroundColor = color.FG;
+
+                    writer.Write('[');
+                    writer.Write(name);
+
+                    writer.Write(']');
+
+                    writer.Write($"[{categoryName}]");
+                    writer.Write($" {formatter(state, exception)}");
+                    writer.WriteLine();
+                }
+                finally
+                {
+                    Console.BackgroundColor = oldBGColor;
+                    Console.ForegroundColor = oldFGColor;
+                }
+            }
+        }
+
+        private static (string name, ConsoleColoring color) GetLog(LogLevel level)
+        {
+            return level switch
+            {
+                LogLevel.Critical => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.Red)),
+                LogLevel.Trace => ("Trace", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkBlue)),
+                LogLevel.Debug => ("Debug", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.White)),
+                LogLevel.Information => ("Info", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Blue)),
+                LogLevel.Warning => ("Warn", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Yellow)),
+                LogLevel.Error => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkRed)),
+                _ => throw new ArgumentOutOfRangeException(nameof(level))
+            };
+        }
+
+        private struct ConsoleColoring(ConsoleColor bg, ConsoleColor fg)
+        {
+            public ConsoleColor BG = bg;
+            public ConsoleColor FG = fg;
+        }
+    }
+}
+
+internal class Program
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
     private static readonly SemanticVersion Version = new SemanticVersion("5.0.0");
 
     public static int Main(string[] args)
     {
+        // create logging instance
+        var conOut = Console.Out;
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.SetMinimumLevel(LogLevel.Debug);
+
+            builder.AddProvider(new ConsoleLoggerProvider(LogLevel.Information, conOut));
+        });
+
+        var logger = loggerFactory.CreateLogger("FortRise");
+
         Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "1");
-        Console.WriteLine($"[FortRise] Version: {Version}");
+        logger.LogInformation("Version: {Version}", Version);
 
         bool canOverride = File.Exists("launch_override.json");
 
@@ -31,7 +144,7 @@ internal class Program
         {
             exePath = LocateExecutable(baseDirectory);
         }
-        else 
+        else
         {
             string jsonOverride = File.ReadAllText("launch_override.json");
             launchOverride = JsonSerializer.Deserialize(jsonOverride, LaunchOverrideContext.Default.LaunchOverride);
@@ -39,7 +152,7 @@ internal class Program
             {
                 exePath = LocateExecutable(baseDirectory);
             }
-            else 
+            else
             {
                 exePath = launchOverride.GamePath;
             }
@@ -50,19 +163,19 @@ internal class Program
         {
             exePath = null;
             SDL.SDL_Init(SDL.SDL_InitFlags.SDL_INIT_VIDEO);
-            unsafe 
+            unsafe
             {
                 using RawString yes = "yes";
                 using RawString no = "no";
 
                 Span<SDL.SDL_MessageBoxButtonData> buttons = [
-                    new SDL.SDL_MessageBoxButtonData() 
+                    new SDL.SDL_MessageBoxButtonData()
                     {
                         flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
                         buttonID = 0,
                         text = yes
                     },
-                    new SDL.SDL_MessageBoxButtonData() 
+                    new SDL.SDL_MessageBoxButtonData()
                     {
                         flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
                         buttonID = 1,
@@ -83,11 +196,11 @@ internal class Program
                 {
                     data.numbuttons = 2;
                     data.buttons = ptr;
-                    if (SDL.SDL_ShowMessageBox(ref data, out int id)) 
+                    if (SDL.SDL_ShowMessageBox(ref data, out int id))
                     {
                         if (id == 0)
                         {
-                            FileDialog.OpenFile(null, new Property() 
+                            FileDialog.OpenFile(null, new Property()
                             {
                                 Title = "Select a TowerFall executable",
                                 Filter = new DialogFilter("TowerFall executable", "exe")
@@ -109,7 +222,7 @@ internal class Program
             {
                 exePath = path;
             }
-            else 
+            else
             {
                 SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
             }
@@ -127,19 +240,19 @@ internal class Program
             File.WriteAllText("launch_override.json", json);
         }
 
-        Console.WriteLine($"[FortRise] Game Path: {exePath}");
+        logger.LogInformation("Game Path: {exePath}", exePath);
 
         if (CheckLegacyFortRiseInstalled(exePath))
         {
             SDL.SDL_ShowSimpleMessageBox(
-                SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", 
+                SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error",
                 "TowerFall is still patched with legacy FortRise version, unpatch it first.",
                 IntPtr.Zero
             );
             return -1;
         }
 
-        return Launch(args, baseDirectory, exePath);
+        return Launch(args, baseDirectory, exePath, logger, loggerFactory);
     }
 
     private static bool CheckLegacyFortRiseInstalled(string exePath)
@@ -148,13 +261,13 @@ internal class Program
         return File.Exists(txt);
     }
 
-    private static int Launch(string[] args, string baseDirectory, string exePath)
+    private static int Launch(string[] args, string baseDirectory, string exePath, ILogger logger, ILoggerFactory factory)
     {
         string patchFile = Path.GetFullPath("TowerFall.Patch.dll");
         string mmFile = Path.GetFullPath("TowerFall.FortRise.mm.dll");
-		string steamworksPath = Path.Combine(Path.GetDirectoryName(exePath)!, "Steamworks.NET.dll");
+        string steamworksPath = Path.Combine(Path.GetDirectoryName(exePath)!, "Steamworks.NET.dll");
 
-		bool isSteam = File.Exists(steamworksPath);
+        bool isSteam = File.Exists(steamworksPath);
 
         bool shouldSkip = false;
         string? mmSumStr = null;
@@ -171,7 +284,7 @@ internal class Program
                 if (mmSum.SequenceEqual(sumSum))
                 {
                     shouldSkip = true;
-                    Console.WriteLine("[FortRise] Checksum matched, skipping patch.");
+                    logger.LogInformation("Checksum matched, skipping patch.");
                 }
             }
 
@@ -191,31 +304,31 @@ internal class Program
         argList.Add("--version");
         argList.Add(Version.ToString());
 
-        FortRiseHandler handler = new FortRiseHandler(baseDirectory, argList);
+        FortRiseHandler handler = new FortRiseHandler(baseDirectory, argList, logger, factory);
 
         if (!shouldSkip)
         {
-			if (isSteam)
-			{
+            if (isSteam)
+            {
                 using var steamAssemblyEditor = new AssemblyEditor(steamworksPath);
-                steamAssemblyEditor.Add(new Remove32BitFlagsPatcher());
+                steamAssemblyEditor.Add(new Remove32BitFlagsPatcher(logger));
                 using var steamworksStream = steamAssemblyEditor.Write();
-				File.WriteAllBytes(Path.Combine(baseDirectory, "Steamworks.NET.dll"), steamworksStream.ToArray());
-			}
+                File.WriteAllBytes(Path.Combine(baseDirectory, "Steamworks.NET.dll"), steamworksStream.ToArray());
+            }
 
             using var towerFallAssemblyEditor = new AssemblyEditor(exePath);
-            towerFallAssemblyEditor.Add(new Remove32BitFlagsPatcher());
+            towerFallAssemblyEditor.Add(new Remove32BitFlagsPatcher(logger));
             using MemoryStream tfStream = towerFallAssemblyEditor.Write();
 
-			if (!handler.TryPatch(tfStream, patchFile))
-			{
-				return -1;
-			}
+            if (!handler.TryPatch(tfStream, patchFile))
+            {
+                return -1;
+            }
 
-			using (FileStream fs = File.OpenRead(patchFile))
-			{
-				handler.GenerateHooks(fs, patchFile);
-			}
+            using (FileStream fs = File.OpenRead(patchFile))
+            {
+                handler.GenerateHooks(fs, patchFile);
+            }
         }
 
         if (!shouldSkip && !string.IsNullOrEmpty(mmSumStr))

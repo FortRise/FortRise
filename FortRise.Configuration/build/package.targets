@@ -79,6 +79,10 @@
       <HintPath>$(TowerFallDirPath)$(MonoModUtilsPath)</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>$(ModLoaderPath)\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
 	</ItemGroup>
 
 	<Target Name="ModDeployAndZip" AfterTargets="Build">

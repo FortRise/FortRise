@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace FortRise.Levels;
 
@@ -7,7 +8,7 @@ internal sealed class LevelsModule : Mod
     public static LevelsModule Instance = null!;
 
 
-    public LevelsModule(IModContent content, IModuleContext context) : base(content, context)
+    public LevelsModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
         context.Events.OnModLoadingFinished += OnModLoadingFinished;
@@ -34,10 +35,10 @@ internal sealed class LevelsModule : Mod
             ArcherLoader.Load(registry, dependent.Content);
             TilesetLoader.Load(registry, dependent.Content);
             ThemeLoader.Load(registry, dependent.Content);
-            VersusLoader.Load(registry, dependent.Content);
+            VersusLoader.Load(registry, dependent.Content, Logger);
             QuestLoader.Load(registry, dependent.Content);
             DarkWorldLoader.Load(registry, dependent.Content);
-            TrialsLoader.Load(registry, dependent.Content);
+            TrialsLoader.Load(registry, dependent.Content, Logger);
         }
     }
 }

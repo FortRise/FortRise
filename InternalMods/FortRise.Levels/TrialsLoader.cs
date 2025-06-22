@@ -1,5 +1,6 @@
 using System.IO;
 using System.Xml;
+using Microsoft.Extensions.Logging;
 using Monocle;
 using TowerFall;
 
@@ -7,7 +8,7 @@ namespace FortRise.Levels;
 
 internal static class TrialsLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content)
+    internal static void Load(IModRegistry registry, IModContent content, ILogger logger)
     {
         if (!content.Root.TryGetRelativePath("Levels/Trials", out IResourceInfo trialLocation))
         {
@@ -45,7 +46,7 @@ internal static class TrialsLoader
             {
                 if (i == 3)
                 {
-                    Logger.Warning($"[{content.Metadata.Name}] The trials are only limited to 3 tiers only.");
+                    logger.LogWarning("The trials are only limited to 3 tiers only.");
                     break;
                 }
                 var tier = new TrialsTier()
@@ -66,7 +67,7 @@ internal static class TrialsLoader
 
             if (i != 3)
             {
-                Logger.Error($"[{content.Metadata.Name}] Not enough Trial levels are able to load this tower. Must have exactly 3 levels.");
+                logger.LogError("Not enough Trial levels are able to load this tower. Must have exactly 3 levels.");
                 return;
             }
 
