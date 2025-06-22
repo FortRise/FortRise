@@ -122,12 +122,26 @@ internal static class ArcherLoader
         if (element.HasChild("Hair"))
         {
             var hairElm = element["Hair"]!;
+            Vector2 offset = new Vector2(0, 0);
+            if (hairElm.HasChild("Offset"))
+            {
+                offset.X = hairElm["Offset"].AttrInt("x");
+                offset.Y = hairElm["Offset"].AttrInt("y");
+            }
+
+            Vector2 duckingOffset = new Vector2(0, 0);
+            if (hairElm.HasChild("DuckingOffset"))
+            {
+                offset.X = hairElm["DuckingOffset"].AttrInt("x");
+                offset.Y = hairElm["DuckingOffset"].AttrInt("y");
+            }
+
             hairInfo = new HairInfo()
             {
-                Offset = new Vector2(hairElm.AttrInt("x", (int)original.Hair.Value.DuckingOffset.X), hairElm.AttrInt("y", (int)original.Hair.Value.DuckingOffset.Y)),
-                DuckingOffset = new Vector2(hairElm.AttrInt("x", (int)original.Hair.Value.DuckingOffset.X), hairElm.AttrInt("y", (int)original.Hair.Value.DuckingOffset.Y)),
-                Color = hairElm.ChildHexColor("Color", original.Hair.Value.Color),
-                OutlineColor = hairElm.ChildHexColor("OutlineColor", original.Hair.Value.OutlineColor),
+                Offset = offset,
+                DuckingOffset = duckingOffset,
+                Color = hairElm.ChildHexColor("Color", Color.White),
+                OutlineColor = hairElm.ChildHexColor("OutlineColor", Color.Black),
             };
         }
         else
@@ -293,12 +307,33 @@ internal static class ArcherLoader
             spriteInfo = original.Sprites;
         }
 
+        string victoryMusic;
+
+        if (element.HasChild("VictoryMusic"))
+        {
+            var entry = registry.Musics.GetMusic(element.ChildText("VictoryMusic"));
+            // another step if the user takes the whole path instead
+            if (entry is null)
+            {
+                entry = registry.Musics.RegisterMusic(
+                    element.ChildText("VictoryMusic"),
+                    content.Root.GetRelativePath(element.ChildText("VictoryMusic")));
+            }
+
+            victoryMusic = entry.Name;
+        }
+        else
+        {
+            victoryMusic = original.VictoryMusic!;
+        }
+
         return new()
         {
             TopName = name0,
             BottomName = name1,
             ColorA = colorA,
             ColorB = colorB,
+            VictoryMusic = victoryMusic,
             LightbarColor = lightBarColor,
             Aimer = aimer,
             CorpseSprite = (ICorpseSpriteContainerEntry)corpse!,
@@ -338,10 +373,24 @@ internal static class ArcherLoader
         if (element.HasChild("Hair"))
         {
             var hairElm = element["Hair"]!;
+            Vector2 offset = new Vector2(0, 0);
+            if (hairElm.HasChild("Offset"))
+            {
+                offset.X = hairElm["Offset"].AttrInt("x");
+                offset.Y = hairElm["Offset"].AttrInt("y");
+            }
+
+            Vector2 duckingOffset = new Vector2(0, 0);
+            if (hairElm.HasChild("DuckingOffset"))
+            {
+                offset.X = hairElm["DuckingOffset"].AttrInt("x");
+                offset.Y = hairElm["DuckingOffset"].AttrInt("y");
+            }
+
             hairInfo = new HairInfo()
             {
-                Offset = new Vector2(hairElm.AttrInt("x", 0), hairElm.AttrInt("y", 0)),
-                DuckingOffset = new Vector2(hairElm.AttrInt("x", 0), hairElm.AttrInt("y", 0)),
+                Offset = offset,
+                DuckingOffset = duckingOffset,
                 Color = hairElm.ChildHexColor("Color", Color.White),
                 OutlineColor = hairElm.ChildHexColor("OutlineColor", Color.Black),
             };
@@ -440,6 +489,23 @@ internal static class ArcherLoader
         var headBackText = sprites.ChildText("HeadBack", "");
         var headBack = string.IsNullOrEmpty(headBackText) ? null : registry.Sprites.GetSpriteEntry<string>(headBackText);
 
+        string victoryMusic = "Team";
+
+        if (element.HasChild("VictoryMusic"))
+        {
+            var entry = registry.Musics.GetMusic(element.ChildText("VictoryMusic"));
+            // another step if the user takes the whole path instead
+            if (entry is null)
+            {
+                entry = registry.Musics.RegisterMusic(
+                    element.ChildText("VictoryMusic"),
+                    content.Root.GetRelativePath(element.ChildText("VictoryMusic")));
+            }
+
+            victoryMusic = entry.Name;
+        }
+
+
         return new()
         {
             TopName = name0,
@@ -453,6 +519,7 @@ internal static class ArcherLoader
             Gender = gender,
             Hair = hairInfo,
             SFX = sfxID,
+            VictoryMusic = victoryMusic,
             Statue = new()
             {
                 Image = statueImage,

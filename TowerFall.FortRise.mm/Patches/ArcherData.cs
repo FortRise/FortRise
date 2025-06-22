@@ -1,5 +1,6 @@
 using System.Xml;
 using FortRise;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -34,10 +35,22 @@ public class patch_ArcherData : ArcherData
     {
     }
 
-    public patch_ArcherData() : base(null) {}
+    public patch_ArcherData() : base(null) { }
 
     public Option<HairInfo> ExtraHairData;
 
     [MonoModConstructor]
-    public void ctor() {}
+    public void ctor() { }
+
+    [MonoModReplace]
+    public void PlayVictoryMusic()
+    {
+        if (patch_Audio.TrackMap.TryGetValue(VictoryMusic, out var info))
+        {
+            patch_Music.PlayImmediate(info);
+            return;
+        }
+
+        patch_Music.PlayImmediate("Victory" + VictoryMusic);
+    }
 }

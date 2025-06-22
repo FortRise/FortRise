@@ -25,9 +25,12 @@ internal sealed class LevelsModule : Mod
                 continue;
             }
 
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content);
-            SpriteDataLoader.LoadMenuSpriteData(registry, dependent.Content);
-            SpriteDataLoader.LoadCorpseSpriteData(registry, dependent.Content);
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Main);
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Menu);
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.BG);
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Boss);
+            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Corpse);
+            MusicLoader.Load(registry, dependent.Content);
             ArcherLoader.Load(registry, dependent.Content);
             TilesetLoader.Load(registry, dependent.Content);
             ThemeLoader.Load(registry, dependent.Content);

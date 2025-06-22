@@ -50,17 +50,30 @@ public static class patch_Audio
         AudioSystems[associatedExtension] = system;
     }
 
-    public static IMusicSystem GetMusicSystemFromExtension(string musicPath) 
+    public static IMusicSystem GetMusicSystemFromExtension(string trackInfoID) 
     {
-        var ext = Path.GetExtension(musicPath);
-        if (string.IsNullOrEmpty(ext))
-            return AudioSystems[".vanilla"];
-        if (AudioSystems.TryGetValue(ext, out var audio)) 
+        if (TryGetTrackMap(trackInfoID, out TrackInfo info))
         {
-            return audio;
+            return GetMusicSystemFromExtension(info.Resource);
         }
-        Logger.Warning($"There is no associated extension with this music path: '{musicPath}'. Can't find the AudioSystem.");
-        return null;
+
+        return AudioSystems[".vanilla"];
+    }
+
+    public static IMusicSystem GetMusicSystemFromExtension(IResourceInfo info) 
+    {
+        if (info.ResourceType == typeof(RiseCore.ResourceTypeOggFile))
+        {
+            return AudioSystems[".ogg"];
+        }
+
+        if (info.ResourceType == typeof(RiseCore.ResourceTypeWavFile))
+        {
+            return AudioSystems[".wav"];
+        }
+
+        Logger.Warning($"There is no associated extension with this music path: '{info.Path}'. Can't find the AudioSystem.");
+        return AudioSystems[".vanilla"];
     }
 
     public static void StopMusic(AudioStopOptions options) 

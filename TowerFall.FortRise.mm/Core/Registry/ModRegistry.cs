@@ -6,6 +6,7 @@ internal class ModRegistry : IModRegistry
     public ModSubtextures Subtextures { get; }
     public ModSprites Sprites { get; }
     public ModSFXs SFXs { get; }
+    public ModMusics Musics { get; }
     public ModCharacterSounds CharacterSounds { get; }
     public ModArchers Archers { get; }
     public ModArrows Arrows { get; }   
@@ -34,6 +35,7 @@ internal class ModRegistry : IModRegistry
         Subtextures = new ModSubtextures(metadata, manager);
         Sprites = new ModSprites(metadata, manager);
         SFXs = new ModSFXs(metadata, manager);
+        Musics = new ModMusics(metadata, manager);
         CharacterSounds = new ModCharacterSounds(metadata, manager);
         Archers = new ModArchers(metadata, manager);
         Arrows = new ModArrows(metadata, manager);

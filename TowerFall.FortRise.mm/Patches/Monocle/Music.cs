@@ -79,7 +79,7 @@ public static class patch_Music
         if (audioEngine == null)
             return;
 
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource.RootPath);
+        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource);
         if (audioSystem != null) 
         {
             patch_Audio.PlayMusic(audioSystem, info);
@@ -121,7 +121,7 @@ public static class patch_Music
         if (audioEngine == null)
             return;
 
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource.RootPath);
+        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource);
         if (audioSystem != null) 
         {
             patch_Audio.PlayMusic(audioSystem, info);
