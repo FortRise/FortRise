@@ -67,7 +67,11 @@ public class UIModOptions : CustomMenuState
         }
 
 
-        // main.CurrentModule.CreateSettings(textContainer);
+        var settings = main.CurrentModule.GetSettings();
+        if (settings is not null)
+        {
+            settings.Create(new SettingsCreate(textContainer));
+        }
         main.Add(textContainer);
 
         main.ToStartSelected = textContainer;

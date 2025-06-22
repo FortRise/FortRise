@@ -1,11 +1,9 @@
 using System;
-using System.Reflection;
 using HarmonyLib;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
-using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 
 namespace FortRise.ImGuiLib;

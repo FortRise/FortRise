@@ -3,6 +3,10 @@ namespace FortRise.ImGuiLib;
 
 internal sealed class ImGuiSettings : ModuleSettings
 {
-    [SettingsName("Debug Window Enabled")]
     public bool IsEnabled;
+
+    public override void Create(ISettingsCreate settings)
+    {
+        settings.CreateOnOff("Debug Window Enabled", IsEnabled, (x) => IsEnabled = x);
+    }
 }

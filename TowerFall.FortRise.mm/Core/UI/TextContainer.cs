@@ -380,11 +380,13 @@ public class TextContainer : MenuItem
     {
         public int Min;
         public int Max;
-        public Number(string text, int start, int min = 0, int max = 10) : base(text)
+        public int Step;
+        public Number(string text, int start, int min = 0, int max = 10, int step = 1) : base(text)
         {
             Value = start;
             Min = min;
             Max = max;
+            Step = step;
         }
 
         public override bool CanLeft => Value > Min;
@@ -393,14 +395,14 @@ public class TextContainer : MenuItem
 
         public override void OptionLeft()
         {
-            Value--;
+            Value -= Math.Max(Min, Value - Step);
             OnValueChanged?.Invoke(Value);
             Sounds.ui_move1.Play();
         }
 
         public override void OptionRight()
         {
-            Value++;
+            Value += Math.Min(Min, Value + Step);
             OnValueChanged?.Invoke(Value);
             Sounds.ui_move1.Play();
         }

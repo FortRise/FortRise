@@ -6,43 +6,111 @@ using System.Text.Json;
 
 namespace FortRise;
 
+public interface ISettingsCreate
+{
+    TextContainer Container { get; init; }
+
+    void CreateOnOff(string name, bool initialValue, Action<bool> onPressed);
+    void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect);
+    void CreateButton(string name, Action onPressed);
+    void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
+    void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
+}
+
+internal sealed class SettingsCreate : ISettingsCreate
+{
+    public TextContainer Container { get; init; }
+
+    public SettingsCreate(TextContainer container)
+    {
+        Container = container;
+    }
+
+    public void CreateButton(string name, Action onPressed)
+    {
+        string fullName = name.ToUpperInvariant();
+        var numberButton = new TextContainer.ButtonText(fullName);
+        numberButton.OnConfirm = onPressed;
+
+        Container.Add(numberButton);
+    }
+
+    public void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None)
+    {
+        string fullName = name.ToUpperInvariant();
+        var numberButton = new TextContainer.InputText(fullName, initialValue, inputBehavior);
+        numberButton.OnInputEntered = onInput;
+
+        Container.Add(numberButton);
+    }
+
+    public void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1)
+    {
+        string fullName = name.ToUpperInvariant();
+        var numberButton = new TextContainer.Number(fullName, initialValue, min, max, step);
+        numberButton.Change(onChanged);
+
+        Container.Add(numberButton);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed)
+    {
+        string fullName = name.ToUpperInvariant();
+        var numberButton = new TextContainer.Toggleable(fullName, initialValue);
+        numberButton.Change(onPressed);
+
+        Container.Add(numberButton);
+    }
+
+    public void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect)
+    {
+        string fullName = name.ToUpperInvariant();
+        var selectionOption = new TextContainer.SelectionOption(
+            fullName, selections, Array.IndexOf(selections, initialValue));
+        selectionOption.Change(onSelect);
+        Container.Add(selectionOption);
+    }
+}
+
 /// <summary>
 /// A FortRise module settings API that automatically built a settings option for your module. 
 /// </summary>
-public abstract class ModuleSettings 
+public abstract class ModuleSettings
 {
+    public abstract void Create(ISettingsCreate settings);
+
     /// <summary>
     /// Saves your settings path. This handles automatically by the mod loader.
     /// </summary>
     /// <param name="path">A path to save</param>
-    public void Save(string path) 
+    public void Save(string path)
     {
-        if (!Directory.Exists(path))    
+        if (!Directory.Exists(path))
             Directory.CreateDirectory(Path.GetDirectoryName(path));
         var json = new Dictionary<string, object>();
-        foreach (var field in this.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance)) 
+        foreach (var field in this.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
         {
             if (field.FieldType == typeof(Action))
                 continue;
             var key = field.Name;
             var value = field.GetValue(this);
-            if (field.FieldType == typeof(bool)) 
+            if (field.FieldType == typeof(bool))
             {
                 json[key] = (bool)value;
             }
-            else if (field.FieldType == typeof(int)) 
+            else if (field.FieldType == typeof(int))
             {
                 json[key] = (int)value;
             }
-            else if (field.FieldType == typeof(float)) 
+            else if (field.FieldType == typeof(float))
             {
                 json[key] = (float)value;
             }
-            else if (field.FieldType == typeof(string)) 
+            else if (field.FieldType == typeof(string))
             {
                 json[key] = (string)value;
             }
-            else 
+            else
             {
                 Logger.Error("[Settings] Type unsupported: " + field.FieldType);
             }
@@ -55,31 +123,31 @@ public abstract class ModuleSettings
     /// Loads settings from a given path. This handles automatically by the mod loader.
     /// </summary>
     /// <param name="path">A path to load</param>
-    public void Load(string path) 
+    public void Load(string path)
     {
         if (!File.Exists(path))
             return;
         var thisType = this.GetType();
         var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
-        foreach (var val in json) 
+        foreach (var val in json)
         {
             var field = thisType.GetField(val.Key, BindingFlags.Public | BindingFlags.Instance);
             if (field == null)
                 continue;
 
-            if (field.FieldType == typeof(bool)) 
+            if (field.FieldType == typeof(bool))
             {
                 field.SetValue(this, json[val.Key].GetBoolean());
             }
-            else if (field.FieldType == typeof(int)) 
+            else if (field.FieldType == typeof(int))
             {
                 field.SetValue(this, json[val.Key].GetInt32());
             }
-            else if (field.FieldType == typeof(float)) 
+            else if (field.FieldType == typeof(float))
             {
                 field.SetValue(this, json[val.Key].GetSingle());
             }
-            else if (field.FieldType == typeof(string)) 
+            else if (field.FieldType == typeof(string))
             {
                 field.SetValue(this, json[val.Key].GetString());
             }

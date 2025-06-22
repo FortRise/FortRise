@@ -86,6 +86,21 @@ public abstract class Mod
         return (T?)settingsCache;
     }
 
+    internal ModuleSettings? GetSettings()
+    {
+        if (settingsCache != null)
+        {
+            return (ModuleSettings)settingsCache;
+        }
+        var modSettings = CreateSettings();
+        if (modSettings is null)
+        {
+            return null;
+        }
+        LoadSettings(modSettings.GetType());
+        return (ModuleSettings)settingsCache!;
+    }
+
     internal void LoadSaveData(Type saveDataType)
     {
         var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, $"{Meta.Name}.saveData.json");
