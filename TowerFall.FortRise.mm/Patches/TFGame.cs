@@ -167,7 +167,6 @@ namespace TowerFall
             }
 
             Exit:
-            Logger.WriteToFile("fortRiseLog.txt");
             Environment.Exit(0);
         }
 

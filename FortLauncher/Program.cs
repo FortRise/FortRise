@@ -12,108 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FortLauncher;
 
-internal class ConsoleLoggerProvider : ILoggerProvider
-{
-    private TextWriter writer;
-    private LogLevel logLevel;
-    public ConsoleLoggerProvider(LogLevel logLevel, TextWriter writer)
-    {
-        this.logLevel = logLevel;
-        this.writer = writer;
-    }
-
-    public ILogger CreateLogger(string categoryName)
-    {
-        return new Logger(this, logLevel, writer, categoryName);
-    }
-
-    public void Dispose()
-    {
-        writer.Flush();
-        writer.Dispose();
-    }
-
-    private class Logger : ILogger
-    {
-        private ConsoleLoggerProvider provider;
-        private LogLevel logLevel;
-        private TextWriter writer;
-        private string categoryName;
-
-        public Logger(ConsoleLoggerProvider provider, LogLevel logLevel, TextWriter writer, string categoryName)
-        {
-            this.provider = provider;
-            this.logLevel = logLevel;
-            this.writer = writer;
-            this.categoryName = categoryName;
-        }
-
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return this.logLevel >= logLevel;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            lock (provider)
-            {
-                if (!IsEnabled(logLevel))
-                {
-                    return;
-                }
-
-                var oldBGColor = Console.BackgroundColor;
-                var oldFGColor = Console.ForegroundColor;
-
-                var (name, color) = GetLog(logLevel);
-
-                try
-                {
-                    Console.BackgroundColor = color.BG;
-                    Console.ForegroundColor = color.FG;
-
-                    writer.Write('[');
-                    writer.Write(name);
-
-                    writer.Write(']');
-
-                    writer.Write($"[{categoryName}]");
-                    writer.Write($" {formatter(state, exception)}");
-                    writer.WriteLine();
-                }
-                finally
-                {
-                    Console.BackgroundColor = oldBGColor;
-                    Console.ForegroundColor = oldFGColor;
-                }
-            }
-        }
-
-        private static (string name, ConsoleColoring color) GetLog(LogLevel level)
-        {
-            return level switch
-            {
-                LogLevel.Critical => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.Red)),
-                LogLevel.Trace => ("Trace", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkBlue)),
-                LogLevel.Debug => ("Debug", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.White)),
-                LogLevel.Information => ("Info", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Blue)),
-                LogLevel.Warning => ("Warn", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Yellow)),
-                LogLevel.Error => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkRed)),
-                _ => throw new ArgumentOutOfRangeException(nameof(level))
-            };
-        }
-
-        private struct ConsoleColoring(ConsoleColor bg, ConsoleColor fg)
-        {
-            public ConsoleColor BG = bg;
-            public ConsoleColor FG = fg;
-        }
-    }
-}
-
 internal class Program
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
@@ -121,6 +19,8 @@ internal class Program
 
     public static int Main(string[] args)
     {
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
         // create logging instance
         var conOut = Console.Out;
         var loggerFactory = LoggerFactory.Create(builder =>
@@ -128,6 +28,7 @@ internal class Program
             builder.SetMinimumLevel(LogLevel.Debug);
 
             builder.AddProvider(new ConsoleLoggerProvider(LogLevel.Information, conOut));
+            builder.AddProvider(new FileLoggerProvider(Path.Combine(baseDirectory, "Logs"), LogLevel.Debug));
         });
 
         var logger = loggerFactory.CreateLogger("FortRise");
@@ -137,7 +38,6 @@ internal class Program
 
         bool canOverride = File.Exists("launch_override.json");
 
-        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         string? exePath;
         LaunchOverride launchOverride = default;
         if (!canOverride)

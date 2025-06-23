@@ -31,15 +31,13 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
             if (riseCore != null)
             {
                 riseCore.Invoke(null, [logger, factory]);
+                logger.LogInformation("Running the game!");
+                asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+                return;
             }
+        }
 
-            logger.LogInformation("Running the game!");
-            asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
-        }
-        else
-        {
-            logger.LogCritical("Cannot find the main entrypoint of the game.");
-        }
+        logger.LogCritical("Failed to run the game.");
     }
 
     public void GenerateHooks(Stream stream, string patchFile)

@@ -1,17 +1,13 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
-using Monocle;
 
 namespace FortRise;
 
 internal static class Logger
 {
     public enum LogLevel { Info, Warning, Error, Debug, Verbose, Assert}
-    private static StringBuilder builder = new();
 
     public static LogLevel Verbosity = LogLevel.Info;
 
@@ -22,8 +18,6 @@ internal static class Logger
             return;
 
         var text = message;
-
-        builder.AppendLine(text);
 
         switch (level)
         {
@@ -44,20 +38,6 @@ internal static class Logger
                 RiseCore.logger.LogDebug(text);
                 break;
         }
-
-        try
-        {
-            Engine.Instance?.Commands?.Log(text);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-        }
-        catch (ArgumentException)
-        {
-        }
-
-        if (level == LogLevel.Assert)
-            Debugger.Break();
     }
 
     public static void Log(
@@ -200,19 +180,4 @@ internal static class Logger
             process.Start();
     }
 #endif
-
-    public static void WriteToFile(string path)
-    {
-        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
-        WriteToFile(fs);
-    }
-
-    public static void WriteToFile(Stream stream)
-    {
-        var texts = builder.ToString();
-        if (string.IsNullOrEmpty(texts))
-            return;
-        using var textWriter = new StreamWriter(stream);
-        textWriter.WriteLine(texts);
-    }
 }
