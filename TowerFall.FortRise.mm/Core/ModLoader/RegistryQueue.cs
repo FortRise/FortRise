@@ -13,7 +13,7 @@ internal class RegistryQueue<T> : RegistryQueue
 where T : class
 {
     private List<T> queues = new List<T>();
-    private ModuleManager.LoadState loadState;
+    private LoadState loadState;
     private Action<T> invoker;
 
     public RegistryQueue(ModuleManager manager, Action<T> invoker)
@@ -29,11 +29,12 @@ where T : class
             invoker(queue);
         }
         queues.Clear();
+        loadState = LoadState.Ready;
     }
 
     internal void AddOrInvoke(T entry)
     {
-        if (loadState == ModuleManager.LoadState.Ready)
+        if (loadState == LoadState.Ready)
         {
             invoker(entry);
             return;

@@ -13,6 +13,7 @@ public class patch_SaveData : SaveData
         foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             module.SaveSaveData();
+            module.SaveSettings();
         }
         return orig_Save();
     }
@@ -26,11 +27,16 @@ public class patch_SaveData : SaveData
         foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             var saveData = module.CreateSaveData();
-            if (saveData == null)
+            if (saveData != null)
             {
-                continue;
+                module.LoadSaveData(saveData.GetType());
             }
-            module.LoadSaveData(saveData.GetType());
+
+            var settings = module.CreateSettings();
+            if (settings != null)
+            {
+                module.LoadSettings(settings.GetType());
+            }
         }
         return error;
     }

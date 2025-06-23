@@ -107,19 +107,22 @@ public abstract partial class FortModule : Mod
 
     internal void InternalLoad(IModuleContext context)
     {
-        Context.Events.OnModLoadingFinished += OnAfterLoad;
+        Context.Events.OnModLoadStateFinished += OnAfterLoad;
         LoadSettings();
         Load();
     }
 
-    public void OnAfterLoad(object sender, EventArgs e)
+    public void OnAfterLoad(object sender, LoadState e)
     {
-        AfterLoad();
+        if (e == LoadState.Load)
+        {
+            AfterLoad();
+        }
     }
 
     internal void InternalUnload(IModuleContext context)
     {
-        Context.Events.OnModLoadingFinished -= OnAfterLoad;
+        Context.Events.OnModLoadStateFinished -= OnAfterLoad;
         Content?.Unload(DisposeTextureAfterUnload);
         Unload();
     }
@@ -196,19 +199,14 @@ public abstract partial class FortModule : Mod
     {
         InternalSettings = (ModuleSettings)SettingsType?.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>());
 
-        if (InternalSettings == null)
-            return;
-
-        var path = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
-        InternalSettings.Load(path);
+        base.LoadSettings(SettingsType);
     }
 
     public void SaveSettings()
     {
         if (InternalSettings == null)
             return;
-        var path = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
-        InternalSettings.Save(path);
+        base.SaveSettings();
     }
 
     public virtual void CreateModSettings(TextContainer textContainer) {}

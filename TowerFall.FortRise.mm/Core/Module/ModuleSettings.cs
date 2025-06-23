@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
 
 namespace FortRise;
 
@@ -78,81 +74,6 @@ internal sealed class SettingsCreate : ISettingsCreate
 public abstract class ModuleSettings
 {
     public abstract void Create(ISettingsCreate settings);
-
-    /// <summary>
-    /// Saves your settings path. This handles automatically by the mod loader.
-    /// </summary>
-    /// <param name="path">A path to save</param>
-    public void Save(string path)
-    {
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-        var json = new Dictionary<string, object>();
-        foreach (var field in this.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
-        {
-            if (field.FieldType == typeof(Action))
-                continue;
-            var key = field.Name;
-            var value = field.GetValue(this);
-            if (field.FieldType == typeof(bool))
-            {
-                json[key] = (bool)value;
-            }
-            else if (field.FieldType == typeof(int))
-            {
-                json[key] = (int)value;
-            }
-            else if (field.FieldType == typeof(float))
-            {
-                json[key] = (float)value;
-            }
-            else if (field.FieldType == typeof(string))
-            {
-                json[key] = (string)value;
-            }
-            else
-            {
-                Logger.Error("[Settings] Type unsupported: " + field.FieldType);
-            }
-        }
-        var jsonText = JsonSerializer.Serialize(json);
-        File.WriteAllText(path, jsonText);
-    }
-
-    /// <summary>
-    /// Loads settings from a given path. This handles automatically by the mod loader.
-    /// </summary>
-    /// <param name="path">A path to load</param>
-    public void Load(string path)
-    {
-        if (!File.Exists(path))
-            return;
-        var thisType = this.GetType();
-        var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
-        foreach (var val in json)
-        {
-            var field = thisType.GetField(val.Key, BindingFlags.Public | BindingFlags.Instance);
-            if (field == null)
-                continue;
-
-            if (field.FieldType == typeof(bool))
-            {
-                field.SetValue(this, json[val.Key].GetBoolean());
-            }
-            else if (field.FieldType == typeof(int))
-            {
-                field.SetValue(this, json[val.Key].GetInt32());
-            }
-            else if (field.FieldType == typeof(float))
-            {
-                field.SetValue(this, json[val.Key].GetSingle());
-            }
-            else if (field.FieldType == typeof(string))
-            {
-                field.SetValue(this, json[val.Key].GetString());
-            }
-        }
-    }
 }
 
 /// <summary>

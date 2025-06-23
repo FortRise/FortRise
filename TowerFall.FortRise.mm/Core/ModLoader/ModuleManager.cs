@@ -22,8 +22,6 @@ internal class ModDelayed(int requiredCount, ModuleMetadata metadata)
 
 internal class ModuleManager 
 {
-    public enum LoadState { Load, Initialiazing, Ready }
-
     public LoadState State { get; set; }
     /// <summary>
     /// Contains a read-only access to all of the Modules.
@@ -44,7 +42,7 @@ internal class ModuleManager
     internal Dictionary<string, IModResource> NameToMod = new Dictionary<string, IModResource>();
 
 
-    private Queue<RegistryQueue> registryBatch = new Queue<RegistryQueue>();
+    private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
     private Dictionary<string, IModRegistry> registries = new Dictionary<string, IModRegistry>();
     private IProxyManager<string> proxyManager;
 
@@ -53,9 +51,11 @@ internal class ModuleManager
     internal HashSet<string> CantLoad = new();
     private ILogger logger;
     private ILoggerFactory loggerFactory;
+    private ModFlags flags;
     
     internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
+        flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
         this.logger = logger;
         this.loggerFactory = factory;
 
@@ -407,7 +407,8 @@ internal class ModuleManager
         return new ModuleContext(
             AddOrGetRegistry(metadata),
             new ModInterop(this, metadata, proxyManager),
-            new ModEvents(EventsManager),
+            new ModEvents(metadata, EventsManager),
+            flags,
             logger,
             new LimitedHarmony(new Harmony(metadata.Name))
         );
@@ -415,40 +416,21 @@ internal class ModuleManager
 
     internal void Initialize()
     {
-        var resLoaderHooks = new List<IResourceLoader>();
-        State = LoadState.Initialiazing;
+        State = LoadState.Initialize;
 
-        while (true)
+        foreach (var batch in registryBatch)
         {
-            if (registryBatch.TryDequeue(out var res))
-            {
-                res.Invoke();
-                continue;
-            }
-            break;
+            batch.Invoke();
         }
 
         foreach (var fortModule in InternalFortModules)
         {
             fortModule.OnInitialize?.Invoke(fortModule.Context);
-            if (fortModule is IResourceLoader loader)
-            {
-                resLoaderHooks.Add(loader);
-            }
-            EventsManager.OnModInitializeInvoke(fortModule.Meta);
+            EventsManager.OnModInitialize.Raise(fortModule, fortModule.Meta);
             RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
-        // run hooks
 
-        foreach (var loader in resLoaderHooks)
-        {
-            foreach (var mod in InternalMods)
-            {
-                loader.LoadResource(mod);
-            }
-        }
-
-        EventsManager.OnModInitializingFinishedInvoke();
+        EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Initialize);
     }
 
     internal Mod CreateFortRiseModule()
@@ -555,7 +537,7 @@ internal class ModuleManager
     where T : class
     {
         var registryQueue = new RegistryQueue<T>(this, invoker);
-        registryBatch.Enqueue(registryQueue);
+        registryBatch.Insert(0, registryQueue);
         return registryQueue;
     }
 }

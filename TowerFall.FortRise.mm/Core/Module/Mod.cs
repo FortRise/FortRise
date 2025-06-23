@@ -48,7 +48,27 @@ public abstract class Mod
 
     internal void SaveSaveData()
     {
+        if (saveDataCache == null)
+        {
+            return;
+        }
 
+        try 
+        {
+            var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, $"{Meta.Name}.saveData.json");
+            string path = Path.GetDirectoryName(savePath)!;
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            var json = JsonSerializer.Serialize((ModuleSaveData)saveDataCache, saveDataCache.GetType());
+            File.WriteAllText(savePath, json);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Error: {error}", e);
+        }
     }
 
     internal void SaveSettings()
@@ -58,8 +78,15 @@ public abstract class Mod
             return;
         }
 
-        var path = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
-        ((ModuleSettings)settingsCache).Save(path);
+        var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
+        string path = Path.GetDirectoryName(savePath)!;
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        var json = JsonSerializer.Serialize((ModuleSettings)settingsCache, settingsCache.GetType());
+        File.WriteAllText(savePath, json);
     }
 
     internal void VerifySaveData()
@@ -138,97 +165,21 @@ public abstract class Mod
         }
 
         ModuleSettings? settings = (ModuleSettings?)settingsType.GetConstructor([])?.Invoke([]);
-        settings?.Load(settingsPath);
-
         settingsCache = settings;
     }
 }
 
-public interface IModContent
+public interface IModFlags
 {
-    public ModuleMetadata Metadata { get; init; }
-    /// <summary>
-    /// The "Content" folder from a mod resource.
-    /// </summary>
-    public IResourceInfo Root { get; }
+    bool IsWindows { get; init; }
+    bool IsSteam { get; init; }
 }
 
-
-public interface IModuleContext
+internal sealed class ModFlags(
+    bool isWindows,
+    bool isSteam
+) : IModFlags
 {
-    public IModRegistry Registry { get; init; }
-    public IModInterop Interop { get; init; }
-    public IModEvents Events { get; init; }
-    public ILogger Logger { get; init; }
-    public IHarmony Harmony { get; init; }
-}
-
-internal sealed class ModuleContext : IModuleContext
-{
-    public IModRegistry Registry { get; init; }
-    public IModInterop Interop { get; init; }
-    public IModEvents Events { get; init; }
-    public ILogger Logger { get; init; }
-    public IHarmony Harmony { get; init; }
-
-    public ModuleContext(IModRegistry registry, IModInterop interop, IModEvents events, ILogger logger, IHarmony harmony)
-    {
-        Registry = registry;
-        Interop = interop;
-        Events = events;
-        Logger = logger;
-        Harmony = harmony;
-    }
-}
-
-internal class ModContent : IModContent
-{
-    public ModuleMetadata Metadata { get; init; }
-    public IResourceInfo Root
-    {
-        get
-        {
-            return RiseCore.ResourceTree.Get($"mod:{Metadata.Name}/Content");
-        }
-    }
-
-
-    public ModContent(ModuleMetadata metadata)
-    {
-        Metadata = metadata;
-    }
-}
-
-public enum ModEventsType
-{
-    Initialize,
-    VerifyData
-}
-
-public interface IModEvents
-{
-    public event EventHandler<ModuleMetadata>? OnModInitialize;
-    public event EventHandler? OnModLoadingFinished;
-    public event EventHandler? OnModInitializingFinished;
-}
-
-internal class ModEvents(ModEventsManager manager) : IModEvents
-{
-    public event EventHandler<ModuleMetadata>? OnModInitialize
-    {
-        add => manager.OnModInitialize += value;
-        remove => manager.OnModInitialize -= value;
-    }
-
-    public event EventHandler? OnModLoadingFinished
-    {
-        add => manager.OnModLoadingFinished += value;
-        remove => manager.OnModLoadingFinished -= value;
-    }
-
-    public event EventHandler? OnModInitializingFinished
-    {
-        add => manager.OnModInitializingFinished += value;
-        remove => manager.OnModInitializingFinished -= value;
-    }
+    public bool IsWindows { get; init; } = isWindows;
+    public bool IsSteam { get; init; } = isSteam;
 }

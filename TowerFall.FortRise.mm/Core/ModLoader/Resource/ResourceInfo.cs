@@ -121,7 +121,6 @@ public abstract class ResourceInfo : IResourceInfo
                     ResourceType = typeof(RiseCore.ResourceTypeAtlas);
                 }
             }
-
         }
         else if (path.EndsWith(".dll"))
         {
@@ -134,38 +133,6 @@ public abstract class ResourceInfo : IResourceInfo
         else if (path.StartsWith("Content/Atlas/SpriteData") && filename.EndsWith(".xml"))
         {
             ResourceType = typeof(RiseCore.ResourceTypeSpriteData);
-        }
-        else if (path.StartsWith("Content/Levels/DarkWorld"))
-        {
-            if (RiseCore.ResourceTree.IsExist(this, path + "/tower.xml"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeDarkWorldTowerFolder);
-            }
-            else AssignLevelFile();
-        }
-        else if (path.StartsWith("Content/Levels/Versus"))
-        {
-            if (RiseCore.ResourceTree.IsExist(this, path + "/tower.xml"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeVersusTowerFolder);
-            }
-            else AssignLevelFile();
-        }
-        else if (path.StartsWith("Content/Levels/Quest"))
-        {
-            if (RiseCore.ResourceTree.IsExist(this, path + "/tower.xml"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeQuestTowerFolder);
-            }
-            else AssignLevelFile();
-        }
-        else if (path.StartsWith("Content/Levels/Trials"))
-        {
-            if (RiseCore.ResourceTree.IsExist(this, path + "/tower.xml"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeTrialsTowerFolder);
-            }
-            else AssignLevelFile();
         }
         else if (path.StartsWith("Content/Music"))
         {
@@ -219,6 +186,14 @@ public abstract class ResourceInfo : IResourceInfo
                 ResourceType = typeof(RiseCore.ResourceTypeFile);
             }
         }
+        else if (path.EndsWith(".json"))
+        {
+            ResourceType = typeof(RiseCore.ResourceTypeJson);
+        }
+        else if (path.EndsWith(".oel"))
+        {
+            ResourceType = typeof(RiseCore.ResourceTypeOel);
+        }
         else if (path.EndsWith(".xml"))
         {
             ResourceType = typeof(RiseCore.ResourceTypeXml);
@@ -236,18 +211,5 @@ public abstract class ResourceInfo : IResourceInfo
             ResourceType = typeof(RiseCore.ResourceTypeFile);
         }
         RiseCore.Events.Invoke_OnResourceAssignType(path, filename, ref ResourceType);
-
-        void AssignLevelFile()
-        {
-            if (path.EndsWith(".json"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeJson);
-            }
-
-            else if (path.EndsWith(".oel"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeOel);
-            }
-        }
     }
 }

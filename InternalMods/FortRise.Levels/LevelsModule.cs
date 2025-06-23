@@ -11,11 +11,16 @@ internal sealed class LevelsModule : Mod
     public LevelsModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
-        context.Events.OnModLoadingFinished += OnModLoadingFinished;
+        context.Events.OnModLoadStateFinished += OnMoadLoadStateFinished;
     }
 
-    private void OnModLoadingFinished(object? sender, EventArgs e)
+    private void OnMoadLoadStateFinished(object? sender, LoadState e)
     {
+        if (e != LoadState.Load)
+        {
+            return;
+        }
+
         var dependents = Context.Interop.GetModDependents();
         for (int i = 0; i < dependents.Count; i++)
         {

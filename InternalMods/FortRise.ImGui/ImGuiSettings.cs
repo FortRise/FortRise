@@ -3,7 +3,7 @@ namespace FortRise.ImGuiLib;
 
 internal sealed class ImGuiSettings : ModuleSettings
 {
-    public bool IsEnabled;
+    public bool IsEnabled { get; set; }
 
     public override void Create(ISettingsCreate settings)
     {

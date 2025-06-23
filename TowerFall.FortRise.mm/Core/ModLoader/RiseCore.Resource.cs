@@ -21,10 +21,6 @@ public partial class RiseCore
     public sealed class ResourceTypeXml {}
     public sealed class ResourceTypeJson {}
     public sealed class ResourceTypeOel {}
-    public sealed class ResourceTypeQuestTowerFolder {}
-    public sealed class ResourceTypeDarkWorldTowerFolder {}
-    public sealed class ResourceTypeVersusTowerFolder {}
-    public sealed class ResourceTypeTrialsTowerFolder {}
     public sealed class ResourceTypeAtlas {}
     public sealed class ResourceTypeAtlasPng {}
     public sealed class ResourceTypeMenuAtlasPng {}

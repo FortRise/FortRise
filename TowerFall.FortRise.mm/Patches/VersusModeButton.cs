@@ -83,14 +83,10 @@ public class patch_VersusModeButton : VersusModeButton
         }
     }
 
-    [MonoModIgnore]
-    private extern void UpdateSides();
-    
-
-    [Prefix(nameof(UpdateSides))]
-    private void UpdateSides_Prefix()
+    [MonoModReplace]
+    private void UpdateSides()
     {
-        DrawRight = (currentIndex < GameModeRegistry.VersusGameModes.Count + 3 - 1);
+        DrawRight = currentIndex < GameModeRegistry.VersusGameModes.Count + 3 - 1;
         DrawLeft = currentIndex != 0;
     }
 
@@ -108,14 +104,11 @@ public class patch_VersusModeButton : VersusModeButton
         case Modes.Warlord:
             return "WARLORD";
         default:
-            if (patch_MainMenu.VersusMatchSettings.IsCustom)
+            if (GameModeRegistry.ModesToVersusGameMode.TryGetValue(mode, out var gamemode))
             {
-                var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
-                if (entry != null)
-                {
-                    return entry.Name.ToUpperInvariant();
-                }
+                return gamemode.VersusGameMode.Name.ToUpperInvariant();
             }
+
             throw new Exception("Cannot get name for mode! This should only be used for Versus modes");
         }
     }
@@ -134,13 +127,9 @@ public class patch_VersusModeButton : VersusModeButton
         case Modes.Warlord:
             return TFGame.MenuAtlas["gameModes/warlord"];
         default:
-            if (patch_MainMenu.VersusMatchSettings.IsCustom)
+            if (GameModeRegistry.ModesToVersusGameMode.TryGetValue(mode, out var gamemode))
             {
-                var entry = patch_MainMenu.VersusMatchSettings.CustomVersusGameMode;
-                if (entry != null)
-                {
-                    return entry.Icon.Subtexture;
-                }
+                return gamemode.VersusGameMode.Icon.Subtexture;
             }
             throw new Exception("Cannot get icon for mode! This should only be used for Versus modes");
         }

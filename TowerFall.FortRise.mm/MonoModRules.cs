@@ -81,6 +81,7 @@ internal static partial class MonoModRules
 {
     private static bool IsTowerFall;
     private static bool IsWindows;
+    private static bool IsSteam;
     private static Version Version;
     private static bool IsMod;
     private static bool IsFNA = true;
@@ -114,7 +115,10 @@ internal static partial class MonoModRules
             foreach (var name in MonoModRule.Modder.Module.AssemblyReferences)
             {
                 if (name.Name.Contains("Steamworks"))
+                {
                     hasSteamworks = true;
+                    IsSteam = true;
+                }
             }
             if (hasSteamworks)
             {
@@ -312,13 +316,21 @@ internal static partial class MonoModRules
     public static void PatchFlags(ILContext ctx, CustomAttribute attrib)
     {
         var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
+        var IsSteam = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsSteam").SetMethod;
         var cursor = new ILCursor(ctx);
 
         if (MonoModRules.IsWindows)
             cursor.Emit(OpCodes.Ldc_I4_1);
         else
             cursor.Emit(OpCodes.Ldc_I4_0);
+
         cursor.Emit(OpCodes.Call, IsWindows);
+
+        if (MonoModRules.IsSteam)
+            cursor.Emit(OpCodes.Ldc_I4_1);
+        else
+            cursor.Emit(OpCodes.Ldc_I4_0);
+        cursor.Emit(OpCodes.Call, IsSteam);
     }
 
     public static void PatchDarkWorldLevelSelectOverlayCtor(ILContext ctx, CustomAttribute attrib)

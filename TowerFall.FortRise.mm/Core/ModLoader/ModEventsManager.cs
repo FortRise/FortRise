@@ -1,27 +1,17 @@
-using System;
+using TowerFall;
 
 namespace FortRise;
 #nullable enable
 internal sealed class ModEventsManager
 {
-    public event EventHandler<ModuleMetadata>? OnModInitialize;
-    public event EventHandler? OnModLoadingFinished;
-    public event EventHandler? OnModInitializingFinished;
+    public SafeModEventHandler<ModuleMetadata> OnModInitialize;
+    public SafeModEventHandler<LoadState> OnModLoadStateFinished;
+    public SafeModEventHandler<RoundLogic> OnLevelLoaded;
 
-    public ModEventsManager() { }
-
-    internal void OnModInitializeInvoke(ModuleMetadata moduleMetadata)
+    public ModEventsManager()
     {
-        OnModInitialize?.Invoke(null, moduleMetadata);
-    }
-
-    internal void OnModLoadingFinishedInvoke()
-    {
-        OnModLoadingFinished?.Invoke(null, null!);
-    }
-
-    internal void OnModInitializingFinishedInvoke()
-    {
-        OnModInitializingFinished?.Invoke(null, null!);
+        OnModInitialize = new();
+        OnModLoadStateFinished = new();
+        OnLevelLoaded = new();
     }
 }

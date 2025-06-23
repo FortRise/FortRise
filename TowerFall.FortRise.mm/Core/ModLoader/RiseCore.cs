@@ -56,15 +56,19 @@ public static partial class RiseCore
     /// <summary>
     /// Checks if the OS that is currently running is Windows.
     /// </summary>
-    /// <value>true if the OS is running on Windows, otherwise false.</value>
+    /// <value>true if the OS is running on Windows.</value>
     public static bool IsWindows { get; internal set; }
+    /// <summary>
+    /// Checks if the game is launched from Steam.
+    /// </summary>
+    /// <value>true if the game is launched from Steam.</value>
+    public static bool IsSteam { get; internal set; }
 
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
     public static bool NoErrorScene { get; private set; }
     public static bool NoRichPresence { get; private set; }
     public static bool DumpResources { get; private set; }
-    public static bool DisableFortMods { get; private set; }
     internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
@@ -259,7 +263,7 @@ public static partial class RiseCore
         // load the internals first
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
-        ModuleManager.EventsManager.OnModLoadingFinishedInvoke();
+        ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
         if (!NoRichPresence)
         {
             DiscordComponent.Create();
@@ -347,9 +351,6 @@ public static partial class RiseCore
                 cursor++;
                 arg = compiledArgs[cursor];
                 Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", arg);
-                break;
-            case "--disable-fort-mods":
-                DisableFortMods = true;
                 break;
             case "--level-quick-start":
                 cursor++;
