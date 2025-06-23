@@ -5,7 +5,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModArrows 
+public interface IModArrows
+{
+    IArrowEntry? GetArrow(string id);
+    IArrowEntry RegisterArrows(string id, in ArrowConfiguration configuration);
+}
+
+internal sealed class ModArrows : IModArrows
 {
     private readonly Dictionary<string, IArrowEntry> entries = new Dictionary<string, IArrowEntry>();
     private readonly RegistryQueue<IArrowEntry> registryQueue;
@@ -27,7 +33,7 @@ public class ModArrows
         return arrow;
     }
 
-    public IArrowEntry? GetArrow(string id) 
+    public IArrowEntry? GetArrow(string id)
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();

@@ -5,7 +5,12 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModCharacterSounds
+public interface IModCharacterSounds
+{
+    ICharacterSoundEntry RegisterCharacterSounds(string id, CharacterSoundConfiguration configuration);
+}
+
+internal sealed class ModCharacterSounds : IModCharacterSounds
 {
     private readonly ModuleMetadata metadata;
     private readonly Dictionary<string, ICharacterSoundEntry> characterSoundEntries = new Dictionary<string, ICharacterSoundEntry>();

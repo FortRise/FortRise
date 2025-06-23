@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 namespace FortRise;
 
-public class ModTowerHooks
+public interface IModTowerHooks
+{
+    ITowerHookEntry RegisterTowerHook(string id, ITowerHook hook);
+}
+
+internal sealed class ModTowerHooks : IModTowerHooks
 {
     private readonly Dictionary<string, ITowerHookEntry> entries = new Dictionary<string, ITowerHookEntry>();
     private readonly RegistryQueue<ITowerHookEntry> registryQueue;
@@ -17,7 +22,7 @@ public class ModTowerHooks
 
     public ITowerHookEntry RegisterTowerHook(string id, ITowerHook hook)
     {
-        string name = $"{metadata.Name}/{id}";       
+        string name = $"{metadata.Name}/{id}";
         ITowerHookEntry entry = new TowerHookEntry(name, hook);
         entries.Add(name, entry);
         registryQueue.AddOrInvoke(entry);

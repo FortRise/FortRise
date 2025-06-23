@@ -7,20 +7,35 @@ namespace FortRise;
 
 public static class HelperExtensions 
 {
-    public static Rectangle Overlap(this Rectangle rect, in Rectangle other) 
+    public static string ColorToRGBHex(this Color color)
+    {
+        return $"{ToHexString(color.R)}{ToHexString(color.G)}{ToHexString(color.B)}";
+    }
+
+    public static string ColorToRGBAHex(this Color color)
+    {
+        return $"{ToHexString(color.R)}{ToHexString(color.G)}{ToHexString(color.B)}{ToHexString(color.A)}";
+    }
+
+    public static string ToHexString(float f)
+    {
+        return ((byte)(f * 255)).ToString("X2");
+    }
+    
+    public static Rectangle Overlap(this Rectangle rect, in Rectangle other)
     {
         bool overlapX = rect.Right > other.Left && rect.Left < other.Right;
         bool overlapY = rect.Bottom > other.Top && rect.Top < other.Bottom;
 
         Rectangle result = new Rectangle();
 
-        if (overlapX) 
+        if (overlapX)
         {
             result.X = Math.Max(rect.Left, other.Left);
             result.Width = Math.Min(rect.Right, other.Right) - result.X;
         }
 
-        if (overlapY) 
+        if (overlapY)
         {
             result.Y = Math.Max(rect.Top, other.Top);
             result.Height = Math.Min(rect.Bottom, other.Bottom) - result.Y;

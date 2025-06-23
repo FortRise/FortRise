@@ -6,7 +6,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModThemes
+public interface IModThemes
+{
+    IThemeEntry RegisterTheme(string id, ThemeConfiguration configuration);
+    IThemeEntry? GetTheme(string id);
+}
+
+internal sealed class ModThemes : IModThemes
 {
     private readonly Dictionary<string, IThemeEntry> entries = new Dictionary<string, IThemeEntry>();
     private readonly RegistryQueue<IThemeEntry> registryQueue;

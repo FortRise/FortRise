@@ -1,12 +1,30 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
 
-public class ModTowers
+public interface IModTowers
+{
+    IVersusTowerEntry RegisterVersusTower(string id, in VersusTowerConfiguration configuration);
+
+    IVersusTowerEntry RegisterVersusTower(string id, string levelSet, in VersusTowerConfiguration configuration);
+
+    IQuestTowerEntry RegisterQuestTower(string id, in QuestTowerConfiguration configuration);
+
+    IQuestTowerEntry RegisterQuestTower(string id, string levelSet, in QuestTowerConfiguration configuration);
+
+    IDarkWorldTowerEntry RegisterDarkWorldTower(string id, in DarkWorldTowerConfiguration configuration);
+
+    IDarkWorldTowerEntry RegisterDarkWorldTower(string id, string levelSet, in DarkWorldTowerConfiguration configuration);
+
+    ITrialsTowerEntry RegisterTrialTower(string id, in TrialsTowerConfiguration configuration);
+
+    ITrialsTowerEntry RegisterTrialTower(string id, string levelSet, in TrialsTowerConfiguration configuration);
+}
+
+internal sealed class ModTowers : IModTowers
 {
     private readonly ModuleMetadata metadata;
     private readonly Dictionary<string, IVersusTowerEntry> versusTowerEntries = new Dictionary<string, IVersusTowerEntry>();

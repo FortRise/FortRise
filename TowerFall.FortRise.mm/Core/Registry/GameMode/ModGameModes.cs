@@ -4,7 +4,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModGameModes
+public interface IModGameModes
+{
+    IVersusGameModeEntry? GetVersusGameMode(string name);
+    IVersusGameModeEntry RegisterVersusGameMode(IVersusGameMode gameMode);
+}
+
+internal sealed class ModGameModes : IModGameModes
 {
     private readonly Dictionary<string, IVersusGameModeEntry> entries = new Dictionary<string, IVersusGameModeEntry>();
     private readonly RegistryQueue<IVersusGameModeEntry> registryQueue;

@@ -7,54 +7,22 @@ using TowerFall;
 
 namespace FortRise;
 
-
-public readonly struct SpriteConfiguration<T>
+public interface IModSprites
 {
-    public required ISubtextureEntry Texture { get; init; }
-    public required int FrameWidth { get; init; }
-    public required int FrameHeight { get; init; }
-    public int OriginX { get; init; }
-    public int OriginY { get; init; }
-    public int X { get; init; }
-    public int Y { get; init; }
-    public Dictionary<string, object>? AdditionalData { get; init; }
-    public required Animation<T>[] Animations { get; init; }
+    ISpriteContainerEntry RegisterSprite<T>(string id, SpriteConfiguration<T> configuration);
+    IMenuSpriteContainerEntry RegisterMenuSprite<T>(string id, SpriteConfiguration<T> configuration);
+    IBGSpriteContainerEntry RegisterBGSprite<T>(string id, SpriteConfiguration<T> configuration);
+    ICorpseSpriteContainerEntry RegisterCorpseSprite<T>(string id, SpriteConfiguration<T> configuration);
+    IBossSpriteContainerEntry RegisterBossSprite<T>(string id, SpriteConfiguration<T> configuration);
 
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public int[]? HeadYOrigins { get; init; }
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public ISubtextureEntry? RedTexture { get; init; }
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public ISubtextureEntry? BlueTexture { get; init; }
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public ISubtextureEntry? RedTeam { get; init; }
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public ISubtextureEntry? BlueTeam { get; init; }
-    /// <summary>
-    /// Field only for archers
-    /// </summary>
-    public ISubtextureEntry? Flash { get; init; }
+    ISpriteContainerEntry? GetSpriteEntry<T>(string id);
+    IMenuSpriteContainerEntry? GetMenuSpriteEntry<T>(string id);
+    ICorpseSpriteContainerEntry? GetCorpseSpriteEntry<T>(string id);
+    IBGSpriteContainerEntry? GetBGSpriteEntry<T>(string id);
+    IBossSpriteContainerEntry? GetBossSpriteEntry<T>(string id);
 }
 
-public readonly struct Animation<T>
-{
-    public required T ID { get; init; }
-    public required int[] Frames { get; init; }
-    public float Delay { get; init; }
-    public bool Loop { get; init; }
-}
-
-public class ModSprites
+internal sealed class ModSprites : IModSprites
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IBaseSpriteContainerEntry> spriteQueue;

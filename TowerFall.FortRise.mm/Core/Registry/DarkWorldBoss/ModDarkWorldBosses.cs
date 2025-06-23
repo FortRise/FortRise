@@ -6,7 +6,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModDarkWorldBosses
+public interface IModDarkWorldBosses
+{
+    IDarkWorldBossEntry? GetDarkWorldBoss(string id);
+    IDarkWorldBossEntry RegisterDarkWorldBoss(string id, in DarkWorldBossConfiguration configuration);
+}
+
+internal class ModDarkWorldBosses : IModDarkWorldBosses
 {
     private readonly Dictionary<string, IDarkWorldBossEntry> entries = new Dictionary<string, IDarkWorldBossEntry>();
     private readonly RegistryQueue<IDarkWorldBossEntry> registryQueue;
@@ -28,7 +34,7 @@ public class ModDarkWorldBosses
         return enemy;
     }
 
-    public IDarkWorldBossEntry? GetDarkWorldBoss(string id) 
+    public IDarkWorldBossEntry? GetDarkWorldBoss(string id)
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
@@ -53,7 +59,7 @@ public class ModDarkWorldBosses
             goto Loaded;
         }
 
-        Loaded:
+    Loaded:
         DarkWorldBossRegistry.DarkWorldBosses[bossName] = entry.BossID;
         DarkWorldBossRegistry.DarkWorldBossLoader[entry.BossID] = loader;
     }

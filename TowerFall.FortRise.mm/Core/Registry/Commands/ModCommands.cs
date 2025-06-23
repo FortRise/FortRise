@@ -4,7 +4,12 @@ using Monocle;
 
 namespace FortRise;
 
-public class ModCommands
+public interface IModCommands
+{
+    ICommandEntry RegisterCommands(string id, CommandConfiguration configuration);
+}
+
+internal sealed class ModCommands : IModCommands
 {
     private readonly Dictionary<string, ICommandEntry> entries = new Dictionary<string, ICommandEntry>();
     private readonly RegistryQueue<ICommandEntry> registryQueue;

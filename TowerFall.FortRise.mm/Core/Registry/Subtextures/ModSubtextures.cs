@@ -2,86 +2,50 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using TowerFall;
 
 namespace FortRise;
 
-
-/// <summary>
-/// A container for the Subtexture.
-/// </summary>
-public interface ISubtextureEntry
+public interface IModSubtextures
 {
     /// <summary>
-    /// A subtexture identity for Atlas.
+    /// Load a texture from a mod resource file.
     /// </summary>
-    public string ID { get; init; }
+    /// <param name="file">A file to be loaded</param>
+    /// <param name="atlasDestination">Where to put this Subtexture to a vanilla Atlas</param>
+    /// <returns>A <see cref="FortRise.ISubtextureEntry"/> containing the actual Subtexture</returns>
+    ISubtextureEntry RegisterTexture(IResourceInfo file, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas);
+
     /// <summary>
-    /// A direct resource path to the texture.
+    /// Load a texture from a callback.
     /// </summary>
-    public IResourceInfo? Path { get; init; }
+    /// <param name="callback">A callback that returns a subtexture</param>
+    /// <param name="atlasDestination">Where to put this Subtexture to a vanilla Atlas</param>
+    /// <returns>A <see cref="FortRise.ISubtextureEntry"/> containing the actual Subtexture</returns>
+    ISubtextureEntry RegisterTexture(Func<Subtexture> callback, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas);
+
     /// <summary>
-    /// An actual subtexture to be used.
+    /// Load a texture from a mod resource file.
     /// </summary>
-    public Subtexture? Subtexture { get; }
+    /// <param name="id">A subtexture identity for Atlas</param>
+    /// <param name="file">A file to be loaded</param>
+    /// <param name="atlasDestination">Where to put this Subtexture to a vanilla Atlas</param>
+    /// <returns>A <see cref="FortRise.ISubtextureEntry"/> containing the actual Subtexture</returns>
+    ISubtextureEntry RegisterTexture(string id, IResourceInfo file, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas);
+
+
     /// <summary>
-    /// The destination to put this subtexture on.
+    /// Load a texture from a callback.
     /// </summary>
-    public SubtextureAtlasDestination AtlasDestination { get; }
+    /// <param name="id">A subtexture identity for Atlas</param>
+    /// <param name="callback">A callback that returns a subtexture</param>
+    /// <param name="atlasDestination">Where to put this Subtexture to a vanilla Atlas</param>
+    /// <returns>A <see cref="FortRise.ISubtextureEntry"/> containing the actual Subtexture</returns>
+    ISubtextureEntry RegisterTexture(string id, Func<Subtexture> callback, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas);
 }
 
-public enum SubtextureAtlasDestination
-{
-    Atlas,
-    BGAtlas,
-    MenuAtlas,
-    BossAtlas
-}
-
-internal class SubtextureEntry : ISubtextureEntry
-{
-    public string ID { get; init; }
-    public IResourceInfo? Path { get; init; }
-    public Func<Subtexture>? Callback { get; set; }
-    public Subtexture? Subtexture => GetActualSubtexture();
-    public SubtextureAtlasDestination AtlasDestination { get; init; }
-
-    private Subtexture? cache;
-
-    public SubtextureEntry(string id, IResourceInfo path, SubtextureAtlasDestination destination)
-    {
-        ID = id;
-        Path = path;
-        AtlasDestination = destination;
-    }
-
-    public SubtextureEntry(string id, Func<Subtexture> callback, SubtextureAtlasDestination destination)
-    {
-        ID = id;
-        Callback = callback;
-        AtlasDestination = destination;
-    }
-
-    private Subtexture? GetActualSubtexture()
-    {
-        if (cache != null)
-        {
-            return cache;
-        }
-        if (Path != null)
-        {
-            using var stream = Path.Stream;
-            var tex2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, stream);
-            return cache = new Subtexture(new Monocle.Texture(tex2D));
-        }
-
-        return cache = Callback?.Invoke();
-    }
-}
-
-public class ModSubtextures
+internal sealed class ModSubtextures : IModSubtextures
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<ISubtextureEntry> subtexturesQueue;

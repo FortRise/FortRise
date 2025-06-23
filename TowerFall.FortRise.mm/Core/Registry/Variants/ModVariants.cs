@@ -3,12 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
 
-public class ModVariants
+public interface IModVariants
+{
+    IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration);
+    IVariantPresetEntry RegisterPreset(string id, in PresetConfiguration configuration);
+    IVariantEntry? GetVariant(string id);
+}
+
+internal sealed class ModVariants : IModVariants
 {
     private readonly Dictionary<string, IVariantEntry> variantEntries = new Dictionary<string, IVariantEntry>();
     private readonly RegistryQueue<IVariantEntry> variantRegistryQueue;
@@ -24,7 +30,7 @@ public class ModVariants
         variantRegistryQueue = manager.CreateQueue<IVariantEntry>(InvokeVariant);
     }
 
-    public IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration) 
+    public IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration)
     {
         var name = $"{metadata.Name}/{id}";
 
@@ -89,44 +95,44 @@ public class ModVariants
         {
             switch (attrib)
             {
-            case Exclusions exc:
-                exclusions = exc.ItemExclusions;
-                break;
-            case Description desc:
-                description = desc.Text;
-                break;
-            case Header head:
-                header =  head.Title;
-                break;
-            case CanRandom:
-                flags |= CustomVariantFlags.CanRandom;
-                break;
-            case TournamentRule1v1:
-                flags |= CustomVariantFlags.TournamentRule1v1;
-                break;
-            case TournamentRule2v2:
-                flags |= CustomVariantFlags.TournamentRule2v2;
-                break;
-            case Unlisted:
-                flags |= CustomVariantFlags.Unlisted;
-                break;
-            case DarkWorldDLC:
-                flags |= CustomVariantFlags.DarkWorldDLC;
-                break;
-            case CoOp coOp:
-                if (coOp.Value == -1)
-                {
-                    flags |= CustomVariantFlags.CoopCurses;
-                }
-                else 
-                {
-                    flags |= CustomVariantFlags.CoopBlessing;
-                }
-                break;
+                case Exclusions exc:
+                    exclusions = exc.ItemExclusions;
+                    break;
+                case Description desc:
+                    description = desc.Text;
+                    break;
+                case Header head:
+                    header = head.Title;
+                    break;
+                case CanRandom:
+                    flags |= CustomVariantFlags.CanRandom;
+                    break;
+                case TournamentRule1v1:
+                    flags |= CustomVariantFlags.TournamentRule1v1;
+                    break;
+                case TournamentRule2v2:
+                    flags |= CustomVariantFlags.TournamentRule2v2;
+                    break;
+                case Unlisted:
+                    flags |= CustomVariantFlags.Unlisted;
+                    break;
+                case DarkWorldDLC:
+                    flags |= CustomVariantFlags.DarkWorldDLC;
+                    break;
+                case CoOp coOp:
+                    if (coOp.Value == -1)
+                    {
+                        flags |= CustomVariantFlags.CoopCurses;
+                    }
+                    else
+                    {
+                        flags |= CustomVariantFlags.CoopBlessing;
+                    }
+                    break;
             }
         }
 
-        var variantConfiguration = new VariantConfiguration() 
+        var variantConfiguration = new VariantConfiguration()
         {
             Title = variantTitle,
             Icon = new SubtextureEntry(null!, () => MatchVariants.GetVariantIconFromName(info.Name), SubtextureAtlasDestination.MenuAtlas),

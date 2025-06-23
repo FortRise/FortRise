@@ -5,7 +5,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModPickups
+public interface IModPickups
+{
+    IPickupEntry RegisterPickups(string id, in PickupConfiguration configuration);
+    IPickupEntry? GetPickup(string id);
+}
+
+internal sealed class ModPickups : IModPickups
 {
     private readonly Dictionary<string, IPickupEntry> entries = new Dictionary<string, IPickupEntry>();
     private readonly RegistryQueue<IPickupEntry> registryQueue;
@@ -19,14 +25,14 @@ public class ModPickups
 
     public IPickupEntry RegisterPickups(string id, in PickupConfiguration configuration)
     {
-        string name = $"{metadata.Name}/{id}";       
+        string name = $"{metadata.Name}/{id}";
         IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), configuration);
         entries.Add(name, pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
     }
 
-    public IPickupEntry? GetPickup(string id) 
+    public IPickupEntry? GetPickup(string id)
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();

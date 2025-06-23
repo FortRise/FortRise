@@ -1,8 +1,15 @@
+#nullable enable
 using System.Collections.Generic;
 
 namespace FortRise;
-#nullable enable
-public class ModBackdrops 
+
+public interface IModBackdrops
+{
+    IBackdropEntry? GetBackdrop(string id);
+    IBackdropEntry RegisterBackdrop(string id, in BackdropConfiguration configuration);
+}
+
+internal sealed class ModBackdrops : IModBackdrops
 {
     private readonly Dictionary<string, IBackdropEntry> entries = new Dictionary<string, IBackdropEntry>();
     private readonly RegistryQueue<IBackdropEntry> registryQueue;

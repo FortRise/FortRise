@@ -4,7 +4,16 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModSFXs
+public interface IModSFXs
+{
+    ISFXEntry RegisterSFX(string id, IResourceInfo sfxPath, bool obeysMasterPitch = true);
+    ISFXInstancedEntry RegisterSFXInstanced(string id, IResourceInfo sfxPath, int instances = 2, bool obeysMasterPitch = true);
+    ISFXLoopedEntry RegisterSFXLooped(string id, IResourceInfo path, bool obeysMasterPitch = true);
+    ISFXVariedEntry RegisterSFXVaried(string id, IResourceInfo[] sfxVariations, bool obeysMasterPitch = true);
+    ISFXVariedEntry RegisterSFXVaried(string id, IResourceInfo[] sfxVariations, int count, bool obeysMasterPitch = true);
+}
+
+internal sealed class ModSFXs : IModSFXs
 {
     private readonly ModuleMetadata metadata;
     private readonly Dictionary<string, IBaseSFXEntry> sfxEntries = new Dictionary<string, IBaseSFXEntry>();

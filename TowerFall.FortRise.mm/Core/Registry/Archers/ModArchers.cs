@@ -5,7 +5,13 @@ using TowerFall;
 
 namespace FortRise;
 
-public class ModArchers
+public interface IModArchers
+{
+    IArcherEntry RegisterArcher(string id, ArcherConfiguration configuration);
+    IArcherEntry? GetArcher(string id);
+}
+
+internal sealed class ModArchers : IModArchers
 {
     private readonly ModuleMetadata metadata;
     private readonly Dictionary<string, IArcherEntry> archerEntries = new Dictionary<string, IArcherEntry>();

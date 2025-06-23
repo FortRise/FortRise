@@ -1,9 +1,17 @@
+#nullable enable
 using System.Collections.Generic;
 using TowerFall;
 
 namespace FortRise;
-#nullable enable
-public class ModMenuStates
+
+public interface IModMenuStates
+{
+    IMenuStateEntry RegisterMenuState(string id, in MenuStateConfiguration configuration);
+    IMenuStateEntry? GetMenuState(string id);
+}
+
+
+internal sealed class ModMenuStates : IModMenuStates
 {
     private readonly Dictionary<string, IMenuStateEntry> entries = new Dictionary<string, IMenuStateEntry>();
     private readonly RegistryQueue<IMenuStateEntry> registryQueue;

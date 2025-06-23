@@ -5,7 +5,13 @@ using Monocle;
 
 namespace FortRise;
 
-public class ModMusics
+public interface IModMusics
+{
+    IMusicEntry? GetMusic(string id);
+    IMusicEntry RegisterMusic(string id, IResourceInfo filePath);
+}
+
+internal sealed class ModMusics : IModMusics
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IMusicEntry> queue;

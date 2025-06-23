@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 namespace FortRise;
 
-public class ModQuestEvents
+public interface IModQuestEvents
+{
+    IQuestEventEntry RegisterTowerHook(string id, in QuestEventConfiguration configuration);
+}
+
+internal sealed class ModQuestEvents : IModQuestEvents
 {
     private readonly Dictionary<string, IQuestEventEntry> entries = new Dictionary<string, IQuestEventEntry>();
     private readonly RegistryQueue<IQuestEventEntry> registryQueue;
@@ -17,7 +22,7 @@ public class ModQuestEvents
 
     public IQuestEventEntry RegisterTowerHook(string id, in QuestEventConfiguration configuration)
     {
-        string name = $"{metadata.Name}/{id}";       
+        string name = $"{metadata.Name}/{id}";
         IQuestEventEntry entry = new QuestEventEntry(name, configuration);
         entries.Add(name, entry);
         registryQueue.AddOrInvoke(entry);

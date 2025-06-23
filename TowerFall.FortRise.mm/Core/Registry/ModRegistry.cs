@@ -3,31 +3,32 @@ namespace FortRise;
 
 internal class ModRegistry : IModRegistry
 {
-    public ModSubtextures Subtextures { get; }
-    public ModSprites Sprites { get; }
-    public ModSFXs SFXs { get; }
-    public ModMusics Musics { get; }
-    public ModCharacterSounds CharacterSounds { get; }
-    public ModArchers Archers { get; }
-    public ModArrows Arrows { get; }   
-    public ModPickups Pickups { get; }   
-    public ModVariants Variants { get; }
-    public ModCommands Commands { get; }
-    public ModEnemies Enemies { get; }
-    public ModGameModes GameModes { get; }
-    public ModBackdrops Backdrops { get; }
-    public ModMenuStates MenuStates { get; }
-    public ModDarkWorldBosses DarkWorldBosses { get; }
+    public IModSubtextures Subtextures { get; }
+    public IModSprites Sprites { get; }
+    public IModSFXs SFXs { get; }
+    public IModMusics Musics { get; }
+    public IModCharacterSounds CharacterSounds { get; }
+    public IModArchers Archers { get; }
+    public IModArrows Arrows { get; }   
+    public IModPickups Pickups { get; }   
+    public IModVariants Variants { get; }
+    public IModCommands Commands { get; }
+    public IModEnemies Enemies { get; }
+    public IModGameModes GameModes { get; }
+    public IModBackdrops Backdrops { get; }
+    public IModBackgrounds Backgrounds { get; }
+    public IModMenuStates MenuStates { get; }
+    public IModDarkWorldBosses DarkWorldBosses { get; }
     // Pre-loaded Content
-    public ModTilesets Tilesets { get; }
-    public ModThemes Themes { get; }
+    public IModTilesets Tilesets { get; }
+    public IModThemes Themes { get; }
 
     // Loaded Content
-    public ModTowers Towers { get; }
+    public IModTowers Towers { get; }
 
     // Post-loaded Content
-    public ModTowerHooks TowerHooks { get; }
-    public ModQuestEvents QuestEvents { get; }
+    public IModTowerHooks TowerHooks { get; }
+    public IModQuestEvents QuestEvents { get; }
 
 
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
@@ -45,6 +46,7 @@ internal class ModRegistry : IModRegistry
         Enemies = new ModEnemies(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
         Backdrops = new ModBackdrops(metadata, manager);
+        Backgrounds = new ModBackgrounds(metadata, manager);
         MenuStates = new ModMenuStates(metadata, manager);
 
         DarkWorldBosses = new ModDarkWorldBosses(metadata, manager);

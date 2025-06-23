@@ -1,12 +1,17 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
 
-public class ModTilesets
+public interface IModTilesets
+{
+    ITilesetEntry RegisterTileset(string id, TilesetConfiguration configuration);
+    ITilesetEntry? GetTileset(string id);
+}
+
+internal sealed class ModTilesets : IModTilesets
 {
     private readonly Dictionary<string, ITilesetEntry> entries = new Dictionary<string, ITilesetEntry>();
     private readonly RegistryQueue<ITilesetEntry> registryQueue;
@@ -32,7 +37,7 @@ public class ModTilesets
     {
         ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
         var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out ITilesetEntry ? value);
+        alternate.TryGetValue(name, out ITilesetEntry? value);
         return value;
     }
 

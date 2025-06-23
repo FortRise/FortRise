@@ -3,25 +3,25 @@ namespace FortRise;
 
 public interface IModRegistry
 {
-    ModSubtextures Subtextures { get; }
-    ModSprites Sprites { get; }
-    ModSFXs SFXs { get; }
-    ModMusics Musics { get; }
-    ModCharacterSounds CharacterSounds { get; }
-    ModArchers Archers { get; }
-    ModArrows Arrows { get; }   
-    ModPickups Pickups { get; }
-    ModVariants Variants { get; }
-    ModCommands Commands { get; }
-    ModEnemies Enemies { get; }
-    ModGameModes GameModes { get; }
-    ModBackdrops Backdrops { get; }
-    ModMenuStates MenuStates { get; }
-    ModDarkWorldBosses DarkWorldBosses { get; }
+    IModSubtextures Subtextures { get; }
+    IModSprites Sprites { get; }
+    IModSFXs SFXs { get; }
+    IModMusics Musics { get; }
+    IModCharacterSounds CharacterSounds { get; }
+    IModArchers Archers { get; }
+    IModArrows Arrows { get; }   
+    IModPickups Pickups { get; }
+    IModVariants Variants { get; }
+    IModCommands Commands { get; }
+    IModEnemies Enemies { get; }
+    IModGameModes GameModes { get; }
+    IModBackdrops Backdrops { get; }
+    IModMenuStates MenuStates { get; }
+    IModDarkWorldBosses DarkWorldBosses { get; }
 
-    ModTilesets Tilesets { get; }
-    ModTowers Towers { get; }
-    ModTowerHooks TowerHooks { get; }
-    ModQuestEvents QuestEvents { get; }
-    ModThemes Themes { get; }
+    IModTilesets Tilesets { get; }
+    IModTowers Towers { get; }
+    IModTowerHooks TowerHooks { get; }
+    IModQuestEvents QuestEvents { get; }
+    IModThemes Themes { get; }
 }
