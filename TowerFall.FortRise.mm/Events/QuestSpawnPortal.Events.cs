@@ -75,10 +75,10 @@ public static partial class RiseCore
                     Logger.Error($"[Skeleton Arrow] Arrow Name: '{arrowName}' not found!");
                 }
                 
-                if (name.Contains("Bomb"))
-                    return ArrowTypes.Bomb;
                 if (name.Contains("SuperBomb"))
                     return ArrowTypes.SuperBomb;
+                if (name.Contains("Bomb"))
+                    return ArrowTypes.Bomb;
                 if (name.Contains("Bramble"))
                     return ArrowTypes.Bramble;
                 if (name.Contains("Drill"))
