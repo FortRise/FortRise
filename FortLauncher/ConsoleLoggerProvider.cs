@@ -88,12 +88,12 @@ internal sealed class ConsoleLoggerProvider : ILoggerProvider
         {
             return level switch
             {
-                LogLevel.Critical => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.Red)),
+                LogLevel.Critical => ("Critical", new ConsoleColoring(ConsoleColor.DarkRed, ConsoleColor.White)),
                 LogLevel.Trace => ("Trace", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkBlue)),
                 LogLevel.Debug => ("Debug", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.White)),
                 LogLevel.Information => ("Info", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Blue)),
                 LogLevel.Warning => ("Warn", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Yellow)),
-                LogLevel.Error => ("Critical", new ConsoleColoring(ConsoleColor.White, ConsoleColor.DarkRed)),
+                LogLevel.Error => ("Error", new ConsoleColoring(ConsoleColor.Black, ConsoleColor.Red)),
                 _ => throw new ArgumentOutOfRangeException(nameof(level))
             };
         }
