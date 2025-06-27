@@ -455,10 +455,11 @@ public class FortContent : IModContent
     }
 
     public T LoadShader<T>(string path, string passName, out int id)
-    where T : ShaderResource, new()
+    where T : EffectResource, new()
     {
         path = path.Replace('\\', '/');
-        return ShaderManager.AddShader<T>(Root.GetRelativePath(path), passName, out id);
+        id = 0;
+        return null;
     }
 
     public TrackInfo LoadMusic(string path)

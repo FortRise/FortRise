@@ -4,15 +4,16 @@ using Monocle;
 
 namespace FortRise;
 
-public class ShaderResource 
+public class EffectResource 
 {
     public Effect Shader => shader;
+    public string PassName => passName;
     private Effect shader;
     private EffectPass effectPass;
 
     private string passName;
 
-    internal ShaderResource() 
+    internal EffectResource() 
     {
 
     }
@@ -43,7 +44,7 @@ public class ShaderResource
     }
 }
 
-public class MiscShaderResource : ShaderResource
+public class MiscEffectResource : EffectResource
 {
     public Vector4 uColor = Vector4.One;
     public Texture2D uTexture0;
@@ -90,7 +91,7 @@ public class MiscShaderResource : ShaderResource
     /// </summary>
     /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
     /// <returns>This instance</returns>
-    public MiscShaderResource UseTexture0(Texture2D texture) 
+    public MiscEffectResource UseTexture0(Texture2D texture) 
     {
         uTexture0 = texture;
         return this;
@@ -102,7 +103,7 @@ public class MiscShaderResource : ShaderResource
     /// </summary>
     /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
     /// <returns>This instance</returns>
-    public MiscShaderResource UseTexture1(Texture2D texture) 
+    public MiscEffectResource UseTexture1(Texture2D texture) 
     {
         uTexture1 = texture;
         return this;
@@ -113,7 +114,7 @@ public class MiscShaderResource : ShaderResource
     /// </summary>
     /// <param name="texture">A <see cref="Microsoft.Xna.Framework.Graphics.Texture2D"/> to use</param>
     /// <returns>This instance</returns>
-    public MiscShaderResource UseTexture2(Texture2D texture) 
+    public MiscEffectResource UseTexture2(Texture2D texture) 
     {
         uTexture2 = texture;
         return this;

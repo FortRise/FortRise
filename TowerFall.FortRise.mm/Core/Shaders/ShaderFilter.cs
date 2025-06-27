@@ -3,7 +3,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public abstract class ShaderFilter 
+public abstract class SceneFilter 
 {
     public RenderTarget2D ForegroundRenderTarget;
     public Level Level;

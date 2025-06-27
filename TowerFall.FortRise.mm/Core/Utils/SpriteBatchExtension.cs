@@ -10,7 +10,7 @@ public static class SpriteBatchExtension
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
     }
 
-    public static void BeginShaderRegion(this SpriteBatch spriteBatch, ShaderResource shader) 
+    public static void BeginShaderRegion(this SpriteBatch spriteBatch, EffectResource shader) 
     {
         spriteBatch.End();
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, shader.Shader);

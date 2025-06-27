@@ -21,7 +21,7 @@ namespace TowerFall
         private Layer gameLayer;
         private RenderTarget2D foregroundRenderTarget;
         private FileSystemWatcher levelWatcher;
-        private List<ShaderFilter> ActiveShaders;
+        private List<SceneFilter> ActiveShaders;
 
         private bool reload;
         public XmlElement XML
@@ -308,10 +308,10 @@ namespace TowerFall
         [MonoModIgnore]
         public extern void HandlePausing();
 
-        public void Activate(ShaderFilter filter) 
+        public void Activate(SceneFilter filter) 
         {
             ActiveShaders.Add(filter);
-            filter.InternalActivated(new ShaderFilter.LevelRenderData { 
+            filter.InternalActivated(new SceneFilter.LevelRenderData { 
                 ForegroundRenderTarget = foregroundRenderTarget,
                 BGTiles = BGTiles,
                 SolidTiles = Tiles,
@@ -319,7 +319,7 @@ namespace TowerFall
             });
         }
 
-        public void Deactivate(ShaderFilter filter) 
+        public void Deactivate(SceneFilter filter) 
         {
             ActiveShaders.Remove(filter);
             filter.Deactivated();

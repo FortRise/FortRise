@@ -12,7 +12,7 @@ public interface IModRegistry
     IModArrows Arrows { get; }   
     IModPickups Pickups { get; }
     IModVariants Variants { get; }
-    IModCommands Commands { get; }
+    IModEffects Effects { get; }
     IModEnemies Enemies { get; }
     IModGameModes GameModes { get; }
     IModBackdrops Backdrops { get; }
@@ -24,4 +24,5 @@ public interface IModRegistry
     IModTowerHooks TowerHooks { get; }
     IModQuestEvents QuestEvents { get; }
     IModThemes Themes { get; }
+    IModCommands Commands { get; }
 }

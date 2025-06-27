@@ -12,7 +12,7 @@ internal class ModRegistry : IModRegistry
     public IModArrows Arrows { get; }   
     public IModPickups Pickups { get; }   
     public IModVariants Variants { get; }
-    public IModCommands Commands { get; }
+    public IModEffects Effects { get; }
     public IModEnemies Enemies { get; }
     public IModGameModes GameModes { get; }
     public IModBackdrops Backdrops { get; }
@@ -29,6 +29,7 @@ internal class ModRegistry : IModRegistry
     // Post-loaded Content
     public IModTowerHooks TowerHooks { get; }
     public IModQuestEvents QuestEvents { get; }
+    public IModCommands Commands { get; }
 
 
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
@@ -42,7 +43,7 @@ internal class ModRegistry : IModRegistry
         Arrows = new ModArrows(metadata, manager);
         Pickups = new ModPickups(metadata, manager);
         Variants = new ModVariants(metadata, manager);
-        Commands = new ModCommands(metadata, manager);
+        Effects = new ModEffects(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
         Backdrops = new ModBackdrops(metadata, manager);
@@ -57,5 +58,6 @@ internal class ModRegistry : IModRegistry
 
         TowerHooks = new ModTowerHooks(metadata, manager);
         QuestEvents = new ModQuestEvents(metadata, manager);
+        Commands = new ModCommands(metadata, manager);
     }
 }
