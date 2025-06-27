@@ -6,31 +6,29 @@ namespace FortRise;
 public interface IModTowerHooks
 {
     ITowerHookEntry RegisterTowerHook(string id, ITowerHook hook);
+    ITowerHookEntry? GetTowerHook(string id);
 }
 
 internal sealed class ModTowerHooks : IModTowerHooks
 {
-    private readonly Dictionary<string, ITowerHookEntry> entries = new Dictionary<string, ITowerHookEntry>();
-    private readonly RegistryQueue<ITowerHookEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
-    internal ModTowerHooks(ModuleMetadata metadata, ModuleManager manager)
+    internal ModTowerHooks(ModuleMetadata metadata)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<ITowerHookEntry>(Invoke);
     }
 
     public ITowerHookEntry RegisterTowerHook(string id, ITowerHook hook)
     {
         string name = $"{metadata.Name}/{id}";
         ITowerHookEntry entry = new TowerHookEntry(name, hook);
-        entries.Add(name, entry);
-        registryQueue.AddOrInvoke(entry);
+        TowerPatchRegistry.Hooks.Add(entry.Name, entry);
         return entry;
     }
 
-    internal void Invoke(ITowerHookEntry entry)
+    public ITowerHookEntry? GetTowerHook(string id)
     {
-        TowerPatchRegistry.Register(entry.Name, entry.Hook);
+        TowerPatchRegistry.Hooks.TryGetValue(id, out ITowerHookEntry? entry);
+        return entry;
     }
 }

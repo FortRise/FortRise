@@ -10,7 +10,7 @@ internal static class ThemeLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Atlas/GameData/themeData.xml", out IResourceInfo theme))
+        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/themeData.xml", out IResourceInfo theme))
         {
             return;
         }

@@ -13,6 +13,7 @@ public class FolderModResource : ModResource
 
     public override void Lookup(string prefix)
     {
+        var rootFolder = new FileResourceInfo(this, "", FolderDirectory + '/');
         var files = Directory.GetFiles(FolderDirectory);
         Array.Sort(files);
         for (int i = 0; i < files.Length; i++)
@@ -22,6 +23,7 @@ public class FolderModResource : ModResource
             var simplifiedPath = filePath.Replace(FolderDirectory + '/', "");
             var fileResource = new FileResourceInfo(this, simplifiedPath, filePath);
             Add(simplifiedPath, fileResource);
+            rootFolder.Childrens.Add(fileResource);
         }
         var folders = Directory.GetDirectories(FolderDirectory);
         Array.Sort(folders);
@@ -33,7 +35,10 @@ public class FolderModResource : ModResource
             var newFolderResource = new FileResourceInfo(this, simpliPath, fixedFolder);
             Lookup(prefix, folder, FolderDirectory, newFolderResource);
             Add(simpliPath, newFolderResource);
+            rootFolder.Childrens.Add(newFolderResource);
         }
+
+        Add("", rootFolder);
     }
 
     public void Lookup(string prefix, string path, string modDirectory, FileResourceInfo folderResource)

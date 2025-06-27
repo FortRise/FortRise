@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -17,6 +18,10 @@ public class ZipResourceInfo : ResourceInfo
     {
         get 
         {
+            if (Entry is null)
+            {
+                throw new InvalidOperationException($"Mod root directory is not streamable. '{RootPath}'");
+            }
             ZipModResource modSource = (ZipModResource)Source;
             var entry = modSource.Zip.GetEntry(Path);
             if (entry == null) 

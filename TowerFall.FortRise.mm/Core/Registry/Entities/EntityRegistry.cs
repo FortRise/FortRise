@@ -13,12 +13,22 @@ namespace FortRise;
 /// </summary>
 public static class EntityRegistry 
 {
+    private static Dictionary<string, IEnemyEntry> enemyEntries = [];
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
 
-    public static void AddEnemy<T>(this FortModule module, params string[] names) 
+    public static void AddEnemy(IEnemyEntry enemyEntry)
     {
-        AddEnemy(module, typeof(T), names);
+        enemyEntries[enemyEntry.Name] = enemyEntry;
     }
+
+
+#nullable enable
+    public static IEnemyEntry? GetEnemy(string id)
+    {
+        enemyEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
 
     public static void AddEnemy(this FortModule module, Type type, params string[] names) 
     {

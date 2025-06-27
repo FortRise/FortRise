@@ -10,7 +10,7 @@ internal static class TrialsLoader
 {
     internal static void Load(IModRegistry registry, IModContent content, ILogger logger)
     {
-        if (!content.Root.TryGetRelativePath("Levels/Trials", out IResourceInfo trialLocation))
+        if (!content.Root.TryGetRelativePath("Content/Levels/Trials", out IResourceInfo trialLocation))
         {
             return;
         }

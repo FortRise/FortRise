@@ -6,7 +6,7 @@ internal static class MusicLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Music", out IResourceInfo musicRes))
+        if (!content.Root.TryGetRelativePath("Content/Music", out IResourceInfo musicRes))
         {
             return;
         }

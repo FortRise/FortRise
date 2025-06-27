@@ -10,15 +10,13 @@ internal static class DarkWorldLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Levels/DarkWorld", out IResourceInfo darkWorldLocation))
+        if (!content.Root.TryGetRelativePath("Content/Levels/DarkWorld", out IResourceInfo darkWorldLocation))
         {
             return;
         }
 
         foreach (var map in darkWorldLocation.Childrens)
         {
-            var path = map.FullPath.Substring(4).Replace("Content/Levels/DarkWorld/", string.Empty);
-
             var levels = new List<IResourceInfo>();
             IResourceInfo? xmlResource = null;
             foreach (var child in map.Childrens)

@@ -22,21 +22,19 @@ public interface IModTowers
     ITrialsTowerEntry RegisterTrialTower(string id, in TrialsTowerConfiguration configuration);
 
     ITrialsTowerEntry RegisterTrialTower(string id, string levelSet, in TrialsTowerConfiguration configuration);
+
+    IVersusTowerEntry? GetVersusTower(string id);
+    IQuestTowerEntry? GetQuestTower(string id);
+    IDarkWorldTowerEntry? GetDarkWorldTower(string id);
+    ITrialsTowerEntry? GetTrialTower(string id);
 }
 
 internal sealed class ModTowers : IModTowers
 {
     private readonly ModuleMetadata metadata;
-    private readonly Dictionary<string, IVersusTowerEntry> versusTowerEntries = new Dictionary<string, IVersusTowerEntry>();
     private readonly RegistryQueue<IVersusTowerEntry> versusTowerQueue;
-
-    private readonly Dictionary<string, IQuestTowerEntry> questTowerEntries = new Dictionary<string, IQuestTowerEntry>();
     private readonly RegistryQueue<IQuestTowerEntry> questTowerQueue;
-
-    private readonly Dictionary<string, IDarkWorldTowerEntry> darkWorldTowerEntries = new Dictionary<string, IDarkWorldTowerEntry>();
     private readonly RegistryQueue<IDarkWorldTowerEntry> darkWorldTowerQueue;
-
-    private readonly Dictionary<string, ITrialsTowerEntry> trialTowerEntries = new Dictionary<string, ITrialsTowerEntry>();
     private readonly RegistryQueue<ITrialsTowerEntry> trialTowerQueue;
 
     internal ModTowers(ModuleMetadata metadata, ModuleManager manager)
@@ -58,8 +56,8 @@ internal sealed class ModTowers : IModTowers
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
         IVersusTowerEntry entry = new VersusTowerEntry(name, set, configuration);
-        versusTowerEntries.Add(name, entry);
         versusTowerQueue.AddOrInvoke(entry);
+        TowerRegistry.VersusTowers.Add(name, entry);
         return entry;
     }
 
@@ -73,8 +71,8 @@ internal sealed class ModTowers : IModTowers
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
         IQuestTowerEntry entry = new QuestTowerEntry(name, set, configuration);
-        questTowerEntries.Add(name, entry);
         questTowerQueue.AddOrInvoke(entry);
+        TowerRegistry.QuestTowers.Add(name, entry);
         return entry;
     }
 
@@ -88,8 +86,8 @@ internal sealed class ModTowers : IModTowers
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
         IDarkWorldTowerEntry entry = new DarkWorldTowerEntry(name, set, configuration);
-        darkWorldTowerEntries.Add(name, entry);
         darkWorldTowerQueue.AddOrInvoke(entry);
+        TowerRegistry.DarkWorldTowers.Add(name, entry);
         return entry;
     }
 
@@ -103,8 +101,8 @@ internal sealed class ModTowers : IModTowers
         string name = $"{metadata.Name}/{id}";
         string set = $"{metadata.Name}/{levelSet}";
         ITrialsTowerEntry entry = new TrialsTowerEntry(name, set, configuration);
-        trialTowerEntries.Add(name, entry);
         trialTowerQueue.AddOrInvoke(entry);
+        TowerRegistry.TrialTowers.Add(name, entry);
         return entry;
     }
 
@@ -325,5 +323,29 @@ internal sealed class ModTowers : IModTowers
             tier2,
             tier3
         ]);
+    }
+
+    public IVersusTowerEntry? GetVersusTower(string id)
+    {
+        TowerRegistry.VersusTowers.TryGetValue(id, out IVersusTowerEntry? entry);
+        return entry;
+    }
+
+    public IQuestTowerEntry? GetQuestTower(string id)
+    {
+        TowerRegistry.QuestTowers.TryGetValue(id, out IQuestTowerEntry? entry);
+        return entry;
+    }
+
+    public IDarkWorldTowerEntry? GetDarkWorldTower(string id)
+    {
+        TowerRegistry.DarkWorldTowers.TryGetValue(id, out IDarkWorldTowerEntry? entry);
+        return entry;
+    }
+
+    public ITrialsTowerEntry? GetTrialTower(string id)
+    {
+        TowerRegistry.TrialTowers.TryGetValue(id, out ITrialsTowerEntry? entry);
+        return entry;
     }
 }

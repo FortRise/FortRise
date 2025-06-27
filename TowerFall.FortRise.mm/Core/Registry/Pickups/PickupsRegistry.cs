@@ -9,10 +9,24 @@ namespace FortRise;
 
 public static class PickupsRegistry 
 {
+    private static Dictionary<string, IPickupEntry> pickupEntries = [];
     public static Dictionary<Pickups, PickupData> PickupDatas = new Dictionary<Pickups, PickupData>();
     public static Dictionary<string, Pickups> StringToTypes = new();
     public static Dictionary<Type, Pickups> Types = new();
     public static List<Pickups> ArrowPickups = new List<Pickups>();
+
+    public static void AddPickup(IPickupEntry entry)
+    {
+        pickupEntries[entry.Name] = entry;
+    }
+
+#nullable enable
+    public static IPickupEntry? GetPickup(string id)
+    {
+        pickupEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
 
     public static string TypesToString(Pickups pickups)
     {

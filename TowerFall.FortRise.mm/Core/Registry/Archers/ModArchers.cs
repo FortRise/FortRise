@@ -14,7 +14,6 @@ public interface IModArchers
 internal sealed class ModArchers : IModArchers
 {
     private readonly ModuleMetadata metadata;
-    private readonly Dictionary<string, IArcherEntry> archerEntries = new Dictionary<string, IArcherEntry>();
     private readonly RegistryQueue<IArcherEntry> archerQueue;
 
     internal ModArchers(ModuleMetadata metadata, ModuleManager manager)
@@ -51,17 +50,14 @@ internal sealed class ModArchers : IModArchers
             archerEntryType = ArcherEntryType.Normal;
         }
         IArcherEntry entry = new ArcherEntry(name, configuration, idObtained, archerEntryType);
-        archerEntries.Add(name, entry);
+        ArcherRegistry.AddArcher(entry);
         archerQueue.AddOrInvoke(entry);
         return entry;
     }
 
     public IArcherEntry? GetArcher(string id)
     {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = archerEntries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IArcherEntry? value);
-        return value;
+        return ArcherRegistry.GetEntry(id);
     }
 
     private void Invoke(IArcherEntry entry)

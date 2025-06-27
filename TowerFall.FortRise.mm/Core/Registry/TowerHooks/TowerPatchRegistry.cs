@@ -20,7 +20,7 @@ public interface ITowerHook
 
 public static class TowerPatchRegistry 
 {
-    public static Dictionary<string, ITowerHook> Hooks = new Dictionary<string, ITowerHook>();
+    public static Dictionary<string, ITowerHookEntry> Hooks = new Dictionary<string, ITowerHookEntry>();
     private static VersusTowerPatchContext versusCtx = new();
     // private static DarkWorldTowerPatchContext dwCtx = new();
 
@@ -28,13 +28,8 @@ public static class TowerPatchRegistry
     {
         foreach (var hook in Hooks)
         {
-            Versus(hook.Value);
+            Versus(hook.Value.Hook);
         }
-    }
-
-    public static void Register(string id, ITowerHook towerPatch)
-    {
-        Hooks[id] = towerPatch;
     }
 
     private static void Versus(ITowerHook patcher) 

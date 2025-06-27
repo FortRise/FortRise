@@ -5,6 +5,12 @@ namespace FortRise;
 
 public static class TowerRegistry 
 {
+    public static Dictionary<string, IDarkWorldTowerEntry> DarkWorldTowers = [];
+    public static Dictionary<string, IQuestTowerEntry> QuestTowers = [];
+    public static Dictionary<string, ITrialsTowerEntry> TrialTowers = [];
+    public static Dictionary<string, IVersusTowerEntry> VersusTowers = [];
+
+
     public static Dictionary<string, List<DarkWorldTowerData>> DarkWorldTowerSets = new();
     public static List<string> DarkWorldLevelSets = new();
 

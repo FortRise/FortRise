@@ -7,6 +7,7 @@ namespace FortRise;
 
 public static class CustomMenuStateRegistry 
 {
+    private static Dictionary<string, IMenuStateEntry> menuStateEntries = [];
     public static Dictionary<string, MainMenu.MenuState> StringToMenuStates = new Dictionary<string, MainMenu.MenuState>();
     public static Dictionary<Type, MainMenu.MenuState> TypeToMenuStates = new Dictionary<Type, MainMenu.MenuState>();
     public static Dictionary<MainMenu.MenuState, CustomMenuStateLoader> MenuLoaders = new Dictionary<MainMenu.MenuState, CustomMenuStateLoader>();
@@ -19,6 +20,19 @@ public static class CustomMenuStateRegistry
         Register("FortRise/UIModToggler", EnumPool.Obtain<MainMenu.MenuState>(), new MenuStateConfiguration() { MenuStateType = typeof(UIModToggler)});
     }
 
+    public static void AddMenuState(IMenuStateEntry entry)
+    {
+        menuStateEntries[entry.Name] = entry;
+    }
+
+#nullable enable
+    public static IMenuStateEntry? GetMenuState(string id)
+    {
+        menuStateEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
+
 
     public static void Register(string id, MainMenu.MenuState state, MenuStateConfiguration configuration)
     {
@@ -26,9 +40,9 @@ public static class CustomMenuStateRegistry
         ConstructorInfo ctor = type.GetConstructor([typeof(MainMenu)]);
         CustomMenuStateLoader loader = null;
 
-        if (ctor != null) 
+        if (ctor != null)
         {
-            loader = (menu) => 
+            loader = (menu) =>
             {
                 var custom = (CustomMenuState)ctor.Invoke([menu]);
                 return custom;

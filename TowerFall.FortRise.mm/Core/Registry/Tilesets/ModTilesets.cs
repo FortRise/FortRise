@@ -13,7 +13,6 @@ public interface IModTilesets
 
 internal sealed class ModTilesets : IModTilesets
 {
-    private readonly Dictionary<string, ITilesetEntry> entries = new Dictionary<string, ITilesetEntry>();
     private readonly RegistryQueue<ITilesetEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -28,18 +27,13 @@ internal sealed class ModTilesets : IModTilesets
         string name = $"{metadata.Name}/{id}";
 
         ITilesetEntry tileset = new TilesetEntry(name, configuration);
-        entries.Add(name, tileset);
         registryQueue.AddOrInvoke(tileset);
+        TilesetsRegistry.AddTileset(tileset);
         return tileset;
     }
 
-    public ITilesetEntry? GetTileset(string id)
-    {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out ITilesetEntry? value);
-        return value;
-    }
+    public ITilesetEntry? GetTileset(string id) => TilesetsRegistry.GetTileset(id);
+    
 
     private void Invoke(ITilesetEntry entry)
     {

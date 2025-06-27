@@ -43,6 +43,8 @@ public interface IModSubtextures
     /// <param name="atlasDestination">Where to put this Subtexture to a vanilla Atlas</param>
     /// <returns>A <see cref="FortRise.ISubtextureEntry"/> containing the actual Subtexture</returns>
     ISubtextureEntry RegisterTexture(string id, Func<Subtexture> callback, SubtextureAtlasDestination atlasDestination = SubtextureAtlasDestination.Atlas);
+
+    ISubtextureEntry? GetTexture(string id, SubtextureAtlasDestination atlasDestination);
 }
 
 internal sealed class ModSubtextures : IModSubtextures
@@ -108,6 +110,7 @@ internal sealed class ModSubtextures : IModSubtextures
             }
         }
         var entry = new SubtextureEntry(name, file, atlasDestination);
+        SubtextureRegistry.AddSubtexture(entry, atlasDestination);
         subtexturesQueue.AddOrInvoke(entry);
         return subtexture = entry;
     }
@@ -129,6 +132,7 @@ internal sealed class ModSubtextures : IModSubtextures
         }
 
         var entry = new SubtextureEntry(name, callback, atlasDestination);
+        SubtextureRegistry.AddSubtexture(entry, atlasDestination);
         subtexturesQueue.AddOrInvoke(entry);
         return subtexture = entry;
     }
@@ -150,5 +154,10 @@ internal sealed class ModSubtextures : IModSubtextures
                 TFGame.BossAtlas.SubTextures[entry.ID] = entry.Subtexture;
                 break;
         }
+    }
+
+    public ISubtextureEntry? GetTexture(string id, SubtextureAtlasDestination atlasDestination)
+    {
+        return SubtextureRegistry.GetSubtexture(id, atlasDestination);
     }
 }

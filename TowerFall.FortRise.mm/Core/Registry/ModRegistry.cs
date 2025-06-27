@@ -42,7 +42,7 @@ internal class ModRegistry : IModRegistry
         Archers = new ModArchers(metadata, manager);
         Arrows = new ModArrows(metadata, manager);
         Pickups = new ModPickups(metadata, manager);
-        Variants = new ModVariants(metadata, manager);
+        Variants = new ModVariants(metadata);
         Effects = new ModEffects(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
@@ -56,7 +56,7 @@ internal class ModRegistry : IModRegistry
         Themes = new ModThemes(metadata, manager);
         Towers = new ModTowers(metadata, manager);
 
-        TowerHooks = new ModTowerHooks(metadata, manager);
+        TowerHooks = new ModTowerHooks(metadata);
         QuestEvents = new ModQuestEvents(metadata, manager);
         Commands = new ModCommands(metadata, manager);
     }

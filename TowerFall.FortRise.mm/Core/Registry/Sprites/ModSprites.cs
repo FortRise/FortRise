@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Xml;
 using Monocle;
 using TowerFall;
@@ -26,7 +25,6 @@ internal sealed class ModSprites : IModSprites
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IBaseSpriteContainerEntry> spriteQueue;
-    private readonly Dictionary<string, IBaseSpriteContainerEntry> spriteEntries = new();
 
     internal ModSprites(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -39,7 +37,7 @@ internal sealed class ModSprites : IModSprites
         var name = $"{metadata.Name}/{id}";
         ISpriteEntry entry = new SpriteEntry<T>(name, configuration);
         var actualEntry = new SpriteContainerEntry(entry, ContainerSpriteType.Main);
-        spriteEntries.Add(name, actualEntry);
+        SpriteRegistry.AddSprite(actualEntry);
         spriteQueue.AddOrInvoke(actualEntry);
         return actualEntry;
     }
@@ -49,7 +47,7 @@ internal sealed class ModSprites : IModSprites
         var name = $"{metadata.Name}/{id}";
         ISpriteEntry entry = new SpriteEntry<T>(name, configuration);
         var actualEntry = new SpriteContainerEntry(entry, ContainerSpriteType.Menu);
-        spriteEntries.Add(name, actualEntry);
+        SpriteRegistry.AddSprite(actualEntry);
         spriteQueue.AddOrInvoke(actualEntry);
         return actualEntry;
     }
@@ -59,7 +57,7 @@ internal sealed class ModSprites : IModSprites
         var name = $"{metadata.Name}/{id}";
         ISpriteEntry entry = new SpriteEntry<T>(name, configuration);
         var actualEntry = new SpriteContainerEntry(entry, ContainerSpriteType.BG);
-        spriteEntries.Add(name, actualEntry);
+        SpriteRegistry.AddSprite(actualEntry);
         spriteQueue.AddOrInvoke(actualEntry);
         return actualEntry;
     }
@@ -69,7 +67,7 @@ internal sealed class ModSprites : IModSprites
         var name = $"{metadata.Name}/{id}";
         ISpriteEntry entry = new SpriteEntry<T>(name, configuration);
         var actualEntry = new SpriteContainerEntry(entry, ContainerSpriteType.Corpse);
-        spriteEntries.Add(name, actualEntry);
+        SpriteRegistry.AddSprite(actualEntry);
         spriteQueue.AddOrInvoke(actualEntry);
         return actualEntry;
     }
@@ -79,99 +77,34 @@ internal sealed class ModSprites : IModSprites
         var name = $"{metadata.Name}/{id}";
         ISpriteEntry entry = new SpriteEntry<T>(name, configuration);
         var actualEntry = new SpriteContainerEntry(entry, ContainerSpriteType.Boss);
-        spriteEntries.Add(name, actualEntry);
+        SpriteRegistry.AddSprite(actualEntry);
         spriteQueue.AddOrInvoke(actualEntry);
         return actualEntry;
     }
 
     public ISpriteContainerEntry? GetSpriteEntry<T>(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        if (spriteEntries.TryGetValue(name, out IBaseSpriteContainerEntry? value))
-        {
-            return (ISpriteContainerEntry?)value;
-        }
-
-        return (ISpriteContainerEntry?)CreateVanillaEntry<T>(name, ContainerSpriteType.Main);
+        return SpriteRegistry.GetSpriteEntry<T>(id);
     }
 
     public IMenuSpriteContainerEntry? GetMenuSpriteEntry<T>(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        if (spriteEntries.TryGetValue(name, out IBaseSpriteContainerEntry? value))
-        {
-            return (IMenuSpriteContainerEntry?)value;
-        }
-
-        return (IMenuSpriteContainerEntry?)CreateVanillaEntry<T>(name, ContainerSpriteType.Menu);
+        return SpriteRegistry.GetMenuSpriteEntry<T>(id);
     }
 
     public ICorpseSpriteContainerEntry? GetCorpseSpriteEntry<T>(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        if (spriteEntries.TryGetValue(name, out IBaseSpriteContainerEntry? value))
-        {
-            return (ICorpseSpriteContainerEntry?)value;
-        }
-
-        return (ICorpseSpriteContainerEntry?)CreateVanillaEntry<T>(name, ContainerSpriteType.Corpse);
+        return SpriteRegistry.GetCorpseSpriteEntry<T>(id);
     }
 
     public IBGSpriteContainerEntry? GetBGSpriteEntry<T>(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        if (spriteEntries.TryGetValue(name, out IBaseSpriteContainerEntry? value))
-        {
-            return (IBGSpriteContainerEntry?)value;
-        }
-
-        return (IBGSpriteContainerEntry?)CreateVanillaEntry<T>(name, ContainerSpriteType.BG);
+        return SpriteRegistry.GetBGSpriteEntry<T>(id);
     }
 
     public IBossSpriteContainerEntry? GetBossSpriteEntry<T>(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        if (spriteEntries.TryGetValue(name, out IBaseSpriteContainerEntry? value))
-        {
-            return (IBossSpriteContainerEntry?)value;
-        }
-
-        return (IBossSpriteContainerEntry?)CreateVanillaEntry<T>(name, ContainerSpriteType.Boss);
-    }
-
-
-    private static Dictionary<string, IBaseSpriteContainerEntry> vanillaCaches = new Dictionary<string, IBaseSpriteContainerEntry>();
-    private static IBaseSpriteContainerEntry CreateVanillaEntry<T>(string id, ContainerSpriteType spriteType)
-    {
-        ref var vanilla = ref CollectionsMarshal.GetValueRefOrAddDefault(vanillaCaches, id, out bool exists);
-        if (exists)
-        {
-            return vanilla!;
-        }
-
-        IBaseSpriteContainerEntry entry;
-
-        switch (spriteType)
-        {
-            case ContainerSpriteType.Boss:
-                entry = new SpriteContainerEntry(new SpriteEntry<T>(id, () => TFGame.BossSpriteData.GetXML(id)), spriteType);
-                break;
-            case ContainerSpriteType.BG:
-                entry = new SpriteContainerEntry(new SpriteEntry<T>(id, () => TFGame.BGSpriteData.GetXML(id)), spriteType);
-                break;
-            case ContainerSpriteType.Menu:
-                entry = new SpriteContainerEntry(new SpriteEntry<T>(id, () => TFGame.MenuSpriteData.GetXML(id)), spriteType);
-                break;
-            case ContainerSpriteType.Corpse:
-                entry = new SpriteContainerEntry(new SpriteEntry<T>(id, () => TFGame.CorpseSpriteData.GetXML(id)), spriteType);
-                break;
-            default:
-                entry = new SpriteContainerEntry(new SpriteEntry<T>(id, () => TFGame.SpriteData.GetXML(id)), spriteType);
-                break;
-        }
-
-        vanillaCaches[id] = entry;
-        return entry;
+        return SpriteRegistry.GetBossSpriteEntry<T>(id);
     }
 
     private void Invoke(IBaseSpriteContainerEntry entry)

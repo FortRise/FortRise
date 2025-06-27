@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace FortRise;
 
-public static class PresetRegistry 
+internal static class PresetRegistry 
 {
     public static List<IVariantPresetEntry> Presets = new List<IVariantPresetEntry>();
 

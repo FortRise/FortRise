@@ -8,7 +8,7 @@ internal static class TilesetLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Atlas/GameData/tilesetData.xml", out IResourceInfo theme))
+        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/tilesetData.xml", out IResourceInfo theme))
         {
             return;
         }

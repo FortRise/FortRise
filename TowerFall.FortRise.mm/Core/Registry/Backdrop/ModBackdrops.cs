@@ -11,7 +11,6 @@ public interface IModBackdrops
 
 internal sealed class ModBackdrops : IModBackdrops
 {
-    private readonly Dictionary<string, IBackdropEntry> entries = new Dictionary<string, IBackdropEntry>();
     private readonly RegistryQueue<IBackdropEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -25,16 +24,14 @@ internal sealed class ModBackdrops : IModBackdrops
     {
         string name = $"{metadata.Name}/{id}";
         IBackdropEntry backdrop = new BackdropEntry(name, configuration);
-        entries.Add(name, backdrop);
+        BackdropRegistry.AddBackdrop(backdrop);
         registryQueue.AddOrInvoke(backdrop);
         return backdrop;
     }
 
     public IBackdropEntry? GetBackdrop(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        entries.TryGetValue(name, out IBackdropEntry? backdrop);
-        return backdrop;
+        return BackdropRegistry.GetBackdrop(id);
     }
 
     internal void Invoke(IBackdropEntry entry)

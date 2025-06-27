@@ -18,6 +18,21 @@ public static class QuestEventRegistry
 {
     private static Dictionary<string, Event> events = new Dictionary<string, Event>();
 
+    private static Dictionary<string, IQuestEventEntry> eventEntries = [];
+
+    public static void AddQuestEvent(IQuestEventEntry entry)
+    {
+        eventEntries[entry.Name] = entry;
+    }
+
+#nullable enable
+    public static IQuestEventEntry? GetQuestEvent(string id)
+    {
+        eventEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
+
     /// <summary>
     /// A read-only events map.
     /// </summary>

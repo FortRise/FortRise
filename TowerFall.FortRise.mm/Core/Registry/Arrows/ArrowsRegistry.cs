@@ -9,13 +9,27 @@ namespace FortRise;
 
 public static class ArrowsRegistry
 {
+    private static Dictionary<string, IArrowEntry> arrowEntries = [];
     public static Dictionary<ArrowTypes, ArrowData> ArrowDatas = new Dictionary<ArrowTypes, ArrowData>();
     public static Dictionary<Type, ArrowTypes> Types = new();
     public static Dictionary<string, ArrowTypes> StringToTypes = new();
     public static HashSet<ArrowTypes> LowPriorityTypes = new();
 
+    public static void AddArrow(IArrowEntry entry)
+    {
+        arrowEntries[entry.Name] = entry;
+    }
 
-    public static void Register<T>(FortModule module) 
+#nullable enable
+    public static IArrowEntry? GetArrow(string id)
+    {
+        arrowEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
+
+
+    public static void Register<T>(FortModule module)
     {
         Register(typeof(T), module);
     }

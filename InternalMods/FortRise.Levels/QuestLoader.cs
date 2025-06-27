@@ -7,7 +7,7 @@ internal static class QuestLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Levels/Quest", out IResourceInfo questLocation))
+        if (!content.Root.TryGetRelativePath("Content/Levels/Quest", out IResourceInfo questLocation))
         {
             return;
         }

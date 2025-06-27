@@ -12,7 +12,7 @@ internal static class ArcherLoader
 {
     internal static void Load(IModRegistry registry, IModContent content)
     {
-        if (!content.Root.TryGetRelativePath("Atlas/GameData/archerData.xml", out IResourceInfo archerRes))
+        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/archerData.xml", out IResourceInfo archerRes))
         {
             return;
         }

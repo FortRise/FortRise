@@ -53,11 +53,23 @@ public static class GameModeRegistry
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
+    public static void AddVersusGamemode(IVersusGameModeEntry gameMode)
+    {
+        RegistryVersusGameModes[gameMode.Name] = gameMode;
+    }
+
+#nullable enable
+    public static IVersusGameModeEntry? GetVersusGameMode(string id)
+    {
+        RegistryVersusGameModes.TryGetValue(id, out var entry);
+        return entry;
+    }
+#nullable disable
+
     public static void Register(IVersusGameModeEntry gameMode)
     {
         Modes mode = gameMode.Modes;
         VersusGameModes.Add(gameMode);
-        RegistryVersusGameModes.Add(gameMode.Name, gameMode);
         ModesToVersusGameMode.Add(mode, gameMode);
         NameToModes.Add(gameMode.Name, mode);
     }

@@ -11,7 +11,7 @@ internal static class VersusLoader
 {
     internal static void Load(IModRegistry registry, IModContent content, ILogger logger)
     {
-        if (!content.Root.TryGetRelativePath("Levels/Versus", out IResourceInfo versusLocation))
+        if (!content.Root.TryGetRelativePath("Content/Levels/Versus", out IResourceInfo versusLocation))
         {
             return;
         }

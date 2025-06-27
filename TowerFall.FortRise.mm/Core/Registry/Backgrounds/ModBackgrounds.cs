@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Generic;
 using TowerFall;
 
 namespace FortRise;
@@ -12,7 +11,6 @@ public interface IModBackgrounds
 
 internal sealed class ModBackgrounds : IModBackgrounds
 {
-    private readonly Dictionary<string, IBackgroundEntry> entries = new Dictionary<string, IBackgroundEntry>();
     private readonly RegistryQueue<IBackgroundEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -26,16 +24,14 @@ internal sealed class ModBackgrounds : IModBackgrounds
     {
         string name = $"{metadata.Name}/{id}";
         IBackgroundEntry background = new BackgroundEntry(name, configuration);
-        entries.Add(name, background);
+        BackgroundRegistry.AddBackground(background);
         registryQueue.AddOrInvoke(background);
         return background;
     }
 
     public IBackgroundEntry? GetBackground(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        entries.TryGetValue(name, out IBackgroundEntry? background);
-        return background;
+        return BackgroundRegistry.GetBackground(id);
     }
 
     internal void Invoke(IBackgroundEntry entry)

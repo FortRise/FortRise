@@ -8,12 +8,12 @@ namespace FortRise;
 public interface IModCharacterSounds
 {
     ICharacterSoundEntry RegisterCharacterSounds(string id, CharacterSoundConfiguration configuration);
+    ICharacterSoundEntry? GetCharacterSound(string id);
 }
 
 internal sealed class ModCharacterSounds : IModCharacterSounds
 {
     private readonly ModuleMetadata metadata;
-    private readonly Dictionary<string, ICharacterSoundEntry> characterSoundEntries = new Dictionary<string, ICharacterSoundEntry>();
     private readonly RegistryQueue<ICharacterSoundEntry> characterSoundQueue;
 
     internal ModCharacterSounds(ModuleMetadata metadata, ModuleManager manager)
@@ -26,9 +26,14 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
     {
         string name = $"{metadata.Name}/{id}";
         ICharacterSoundEntry sfxEntry = new CharacterSoundEntry(name, IDPool.Obtain("characterSounds"), configuration);
-        characterSoundEntries.Add(name, sfxEntry);
+        CharacterSoundsRegistry.AddCharacterSound(sfxEntry);
         characterSoundQueue.AddOrInvoke(sfxEntry);
         return sfxEntry;
+    }
+
+    public ICharacterSoundEntry? GetCharacterSound(string id)
+    {
+        return CharacterSoundsRegistry.GetCharacterSound(id);
     }
 
     private void Invoke(ICharacterSoundEntry entry)
@@ -63,5 +68,17 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
 
 internal static class CharacterSoundsRegistry
 {
+    public static Dictionary<string, ICharacterSoundEntry> characterSounds = [];
     public static List<CharacterSounds> ModdedSounds = new List<CharacterSounds>();
+
+    public static void AddCharacterSound(ICharacterSoundEntry characterSound)
+    {
+        characterSounds[characterSound.Name] = characterSound;
+    }
+
+    public static ICharacterSoundEntry? GetCharacterSound(string id)
+    {
+        characterSounds.TryGetValue(id, out var entry);
+        return entry;
+    }
 }

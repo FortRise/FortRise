@@ -14,7 +14,6 @@ public interface IModDarkWorldBosses
 
 internal class ModDarkWorldBosses : IModDarkWorldBosses
 {
-    private readonly Dictionary<string, IDarkWorldBossEntry> entries = new Dictionary<string, IDarkWorldBossEntry>();
     private readonly RegistryQueue<IDarkWorldBossEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -28,18 +27,15 @@ internal class ModDarkWorldBosses : IModDarkWorldBosses
     {
         string name = $"{metadata.Name}/{id}";
 
-        IDarkWorldBossEntry enemy = new DarkWorldBossEntry(name, IDPool.Obtain("boss"), configuration);
-        entries.Add(name, enemy);
-        registryQueue.AddOrInvoke(enemy);
-        return enemy;
+        IDarkWorldBossEntry boss = new DarkWorldBossEntry(name, IDPool.Obtain("boss"), configuration);
+        DarkWorldBossRegistry.AddDarkWorldBoss(boss);
+        registryQueue.AddOrInvoke(boss);
+        return boss;
     }
 
     public IDarkWorldBossEntry? GetDarkWorldBoss(string id)
     {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IDarkWorldBossEntry? value);
-        return value;
+        return DarkWorldBossRegistry.GetDarkWorldBoss(id);
     }
 
     internal void Invoke(IDarkWorldBossEntry entry)

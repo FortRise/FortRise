@@ -1,6 +1,4 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
 using Monocle;
 
 namespace FortRise;
@@ -15,7 +13,6 @@ internal sealed class ModMusics : IModMusics
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IMusicEntry> queue;
-    private readonly Dictionary<string, IMusicEntry> entries = new();
 
     internal ModMusics(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -27,17 +24,14 @@ internal sealed class ModMusics : IModMusics
     {
         string name = $"{metadata.Name}/{id}";
         IMusicEntry entry = new MusicEntry(name, filePath);
-        entries.Add(name, entry);
+        MusicRegistry.AddMusic(entry);
         queue.AddOrInvoke(entry);
         return entry;
     }
 
     public IMusicEntry? GetMusic(string id)
     {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IMusicEntry? value);
-        return value;
+        return MusicRegistry.GetMusic(id);
     }
 
     private void Invoke(IMusicEntry entry)

@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Generic;
 using TowerFall;
 
 namespace FortRise;
@@ -12,7 +11,6 @@ public interface IModGameModes
 
 internal sealed class ModGameModes : IModGameModes
 {
-    private readonly Dictionary<string, IVersusGameModeEntry> entries = new Dictionary<string, IVersusGameModeEntry>();
     private readonly RegistryQueue<IVersusGameModeEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -26,16 +24,14 @@ internal sealed class ModGameModes : IModGameModes
     {
         string id = $"{metadata.Name}/{gameMode.Name}";
         VersusGameModeEntry entry;
-        entries.Add(id, entry = new VersusGameModeEntry(id, EnumPool.Obtain<Modes>(), gameMode));
+        GameModeRegistry.AddVersusGamemode(entry = new VersusGameModeEntry(id, EnumPool.Obtain<Modes>(), gameMode));
         registryQueue.AddOrInvoke(entry);
         return entry;
     }
 
-    public IVersusGameModeEntry? GetVersusGameMode(string name)
+    public IVersusGameModeEntry? GetVersusGameMode(string id)
     {
-        string id = $"{metadata.Name}/{name}";
-        entries.TryGetValue(id, out IVersusGameModeEntry? gameMode);
-        return gameMode;
+        return GameModeRegistry.GetVersusGameMode(id);
     }
 
     internal void Invoke(IVersusGameModeEntry entry)

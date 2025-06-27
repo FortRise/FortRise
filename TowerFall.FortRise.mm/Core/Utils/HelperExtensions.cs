@@ -45,14 +45,14 @@ public static class HelperExtensions
     }
 
     public static string ToHexadecimalString(this byte[] data)
-        => BitConverter.ToString(data).Replace("-", string.Empty);
+        => Convert.ToHexString(data);
     
     public static bool IsEntryDirectory(this ZipArchiveEntry entry) 
     {
         // I'm not sure if this is the best way to do this
         // - Teuria
         int len = entry.FullName.Length;
-        return len > 0 && (entry.FullName.EndsWith("\\") || entry.FullName.EndsWith("/"));
+        return len > 0 && (entry.FullName.EndsWith('\\') || entry.FullName.EndsWith('/'));
     }
 
     public static bool IsEntryFile(this ZipArchiveEntry entry) 

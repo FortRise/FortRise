@@ -11,18 +11,23 @@ namespace FortRise;
 public interface IModEffects
 {
     IEffectEntry RegisterEffect(string id, EffectConfiguration configuration);
+    IEffectEntry? GetEffect(string id);
 }
 
 internal sealed class ModEffects : IModEffects
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IEffectEntry> queue;
-    private readonly Dictionary<string, IEffectEntry> entries = new();
 
     internal ModEffects(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
         queue = manager.CreateQueue<IEffectEntry>(Invoke);
+    }
+
+    public IEffectEntry? GetEffect(string id)
+    {
+        return EffectManager.GetEffect(id);
     }
 
     public IEffectEntry RegisterEffect(string id, EffectConfiguration configuration)
@@ -31,7 +36,7 @@ internal sealed class ModEffects : IModEffects
 
         var entry = new EffectEntry(name, configuration);
         queue.AddOrInvoke(entry);
-        entries.Add(name, entry);
+        EffectManager.AddEffect(entry);
         return entry;
     }
 

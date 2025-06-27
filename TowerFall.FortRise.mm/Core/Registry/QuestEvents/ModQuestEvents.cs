@@ -5,12 +5,13 @@ namespace FortRise;
 
 public interface IModQuestEvents
 {
-    IQuestEventEntry RegisterTowerHook(string id, in QuestEventConfiguration configuration);
+    IQuestEventEntry RegisterQuestEvent(string id, in QuestEventConfiguration configuration);
+
+    IQuestEventEntry? GetQuestEvent(string id);
 }
 
 internal sealed class ModQuestEvents : IModQuestEvents
 {
-    private readonly Dictionary<string, IQuestEventEntry> entries = new Dictionary<string, IQuestEventEntry>();
     private readonly RegistryQueue<IQuestEventEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -20,13 +21,18 @@ internal sealed class ModQuestEvents : IModQuestEvents
         registryQueue = manager.CreateQueue<IQuestEventEntry>(Invoke);
     }
 
-    public IQuestEventEntry RegisterTowerHook(string id, in QuestEventConfiguration configuration)
+    public IQuestEventEntry RegisterQuestEvent(string id, in QuestEventConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
         IQuestEventEntry entry = new QuestEventEntry(name, configuration);
-        entries.Add(name, entry);
+        QuestEventRegistry.AddQuestEvent(entry);
         registryQueue.AddOrInvoke(entry);
         return entry;
+    }
+
+    public IQuestEventEntry? GetQuestEvent(string id)
+    {
+        return QuestEventRegistry.GetQuestEvent(id);
     }
 
     internal void Invoke(IQuestEventEntry entry)

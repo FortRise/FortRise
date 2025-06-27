@@ -13,7 +13,6 @@ public interface IModPickups
 
 internal sealed class ModPickups : IModPickups
 {
-    private readonly Dictionary<string, IPickupEntry> entries = new Dictionary<string, IPickupEntry>();
     private readonly RegistryQueue<IPickupEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -27,17 +26,14 @@ internal sealed class ModPickups : IModPickups
     {
         string name = $"{metadata.Name}/{id}";
         IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), configuration);
-        entries.Add(name, pickup);
+        PickupsRegistry.AddPickup(pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
     }
 
     public IPickupEntry? GetPickup(string id)
     {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IPickupEntry? value);
-        return value;
+        return PickupsRegistry.GetPickup(id);
     }
 
     internal void Invoke(IPickupEntry entry)

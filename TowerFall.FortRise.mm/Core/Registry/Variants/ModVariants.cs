@@ -12,22 +12,20 @@ public interface IModVariants
     IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration);
     IVariantPresetEntry RegisterPreset(string id, in PresetConfiguration configuration);
     IVariantEntry? GetVariant(string id);
+    IReadOnlyDictionary<string, IVariantEntry> GetAllVariants();
+    IReadOnlyList<IVariantPresetEntry> GetAllVariantPresets();
 }
 
 internal sealed class ModVariants : IModVariants
 {
     private readonly Dictionary<string, IVariantEntry> variantEntries = new Dictionary<string, IVariantEntry>();
-    private readonly RegistryQueue<IVariantEntry> variantRegistryQueue;
     private readonly Dictionary<string, IVariantPresetEntry> presetEntries = new Dictionary<string, IVariantPresetEntry>();
-    private readonly RegistryQueue<IVariantPresetEntry> presetRegistryQueue;
     private readonly ModuleMetadata metadata;
     private static Dictionary<string, IVariantEntry> vanillaCache = new();
 
-    internal ModVariants(ModuleMetadata metadata, ModuleManager manager)
+    internal ModVariants(ModuleMetadata metadata)
     {
         this.metadata = metadata;
-        presetRegistryQueue = manager.CreateQueue<IVariantPresetEntry>(InvokePreset);
-        variantRegistryQueue = manager.CreateQueue<IVariantEntry>(InvokeVariant);
     }
 
     public IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration)
@@ -43,7 +41,7 @@ internal sealed class ModVariants : IModVariants
 
         IVariantEntry variant = new VariantEntry(name, configuration with { Header = header });
         variantEntries.Add(name, variant);
-        variantRegistryQueue.AddOrInvoke(variant);
+        VariantRegistry.Register(variant);
         return variant;
     }
 
@@ -53,7 +51,7 @@ internal sealed class ModVariants : IModVariants
 
         IVariantPresetEntry preset = new VariantPresetEntry(name, configuration);
         presetEntries.Add(name, preset);
-        presetRegistryQueue.AddOrInvoke(preset);
+        PresetRegistry.Register(preset);
         return preset;
     }
 
@@ -160,13 +158,6 @@ internal sealed class ModVariants : IModVariants
         return text.ToUpperInvariant();
     }
 
-    internal void InvokeVariant(IVariantEntry variant)
-    {
-        VariantRegistry.Register(variant);
-    }
-
-    internal void InvokePreset(IVariantPresetEntry preset)
-    {
-        PresetRegistry.Register(preset);
-    }
+    public IReadOnlyDictionary<string, IVariantEntry> GetAllVariants() => VariantRegistry.Variants;
+    public IReadOnlyList<IVariantPresetEntry> GetAllVariantPresets() => PresetRegistry.Presets;
 }

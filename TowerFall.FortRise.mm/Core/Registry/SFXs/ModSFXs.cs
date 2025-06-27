@@ -11,6 +11,11 @@ public interface IModSFXs
     ISFXLoopedEntry RegisterSFXLooped(string id, IResourceInfo path, bool obeysMasterPitch = true);
     ISFXVariedEntry RegisterSFXVaried(string id, IResourceInfo[] sfxVariations, bool obeysMasterPitch = true);
     ISFXVariedEntry RegisterSFXVaried(string id, IResourceInfo[] sfxVariations, int count, bool obeysMasterPitch = true);
+
+    ISFXEntry? GetSFX(string id);
+    ISFXInstancedEntry? GetSFXInstanced(string id);
+    ISFXLoopedEntry? GetSFXLooped(string id);
+    ISFXVariedEntry? GetSFXVaried(string id);
 }
 
 internal sealed class ModSFXs : IModSFXs
@@ -64,6 +69,26 @@ internal sealed class ModSFXs : IModSFXs
         sfxEntries.Add(name, sfxVariedEntry);
         sfxQueue.AddOrInvoke(sfxVariedEntry);
         return sfxVariedEntry;
+    }
+
+    public ISFXEntry? GetSFX(string id)
+    {
+        return SFXRegistry.GetSFX<ISFXEntry>(id);
+    }
+
+    public ISFXInstancedEntry? GetSFXInstanced(string id)
+    {
+        return SFXRegistry.GetSFX<ISFXInstancedEntry>(id);
+    }
+
+    public ISFXLoopedEntry? GetSFXLooped(string id)
+    {
+        return SFXRegistry.GetSFX<ISFXLoopedEntry>(id);
+    }
+
+    public ISFXVariedEntry? GetSFXVaried(string id)
+    {
+        return SFXRegistry.GetSFX<ISFXVariedEntry>(id);
     }
 
     private void Invoke(IBaseSFXEntry entry)

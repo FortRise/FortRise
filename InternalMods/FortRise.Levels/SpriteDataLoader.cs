@@ -17,7 +17,7 @@ internal static class SpriteDataLoader
             ContainerSpriteType.Corpse => "corpseSpriteData",
             _ => "spriteData"
         };
-        if (!content.Root.TryGetRelativePath($"Atlas/SpriteData/{file}.xml", out IResourceInfo spriteDataRes))
+        if (!content.Root.TryGetRelativePath($"Content/Atlas/SpriteData/{file}.xml", out IResourceInfo spriteDataRes))
         {
             return;
         }

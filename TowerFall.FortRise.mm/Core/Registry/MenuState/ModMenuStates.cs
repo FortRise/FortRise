@@ -13,7 +13,6 @@ public interface IModMenuStates
 
 internal sealed class ModMenuStates : IModMenuStates
 {
-    private readonly Dictionary<string, IMenuStateEntry> entries = new Dictionary<string, IMenuStateEntry>();
     private readonly RegistryQueue<IMenuStateEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -27,16 +26,14 @@ internal sealed class ModMenuStates : IModMenuStates
     {
         string name = $"{metadata.Name}/{id}";
         IMenuStateEntry menuState = new MenuStateEntry(name, configuration, EnumPool.Obtain<MainMenu.MenuState>());
-        entries.Add(name, menuState);
+        CustomMenuStateRegistry.AddMenuState(menuState);
         registryQueue.AddOrInvoke(menuState);
         return menuState;
     }
 
     public IMenuStateEntry? GetMenuState(string id)
     {
-        string name = $"{metadata.Name}/{id}";
-        entries.TryGetValue(name, out IMenuStateEntry? menuState);
-        return menuState;
+        return CustomMenuStateRegistry.GetMenuState(id);
     }
 
     internal void Invoke(IMenuStateEntry entry)

@@ -12,7 +12,6 @@ public interface IModEnemies
 
 internal sealed class ModEnemies : IModEnemies
 {
-    private readonly Dictionary<string, IEnemyEntry> entries = new Dictionary<string, IEnemyEntry>();
     private readonly RegistryQueue<IEnemyEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -27,17 +26,14 @@ internal sealed class ModEnemies : IModEnemies
         string name = $"{metadata.Name}/{id}";
 
         IEnemyEntry enemy = new EnemyEntry(name, configuration);
-        entries.Add(name, enemy);
+        EntityRegistry.AddEnemy(enemy);
         registryQueue.AddOrInvoke(enemy);
         return enemy;
     }
 
     public IEnemyEntry? GetEnemy(string id)
     {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IEnemyEntry? value);
-        return value;
+        return EntityRegistry.GetEnemy(id);
     }
 
     internal void Invoke(IEnemyEntry entry)

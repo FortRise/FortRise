@@ -14,7 +14,6 @@ public interface IModThemes
 
 internal sealed class ModThemes : IModThemes
 {
-    private readonly Dictionary<string, IThemeEntry> entries = new Dictionary<string, IThemeEntry>();
     private readonly RegistryQueue<IThemeEntry> registryQueue;
     private readonly ModuleMetadata metadata;
 
@@ -29,18 +28,13 @@ internal sealed class ModThemes : IModThemes
         string name = $"{metadata.Name}/{id}";
 
         IThemeEntry theme = new ThemeEntry(name, configuration);
-        entries.Add(name, theme);
         registryQueue.AddOrInvoke(theme);
+        TowerThemeRegistry.AddTheme(theme);
         return theme;
     }
 
-    public IThemeEntry? GetTheme(string id)
-    {
-        ReadOnlySpan<char> name = $"{metadata.Name}/{id}";
-        var alternate = entries.GetAlternateLookup<ReadOnlySpan<char>>();
-        alternate.TryGetValue(name, out IThemeEntry? value);
-        return value;
-    }
+    public IThemeEntry? GetTheme(string id) => TowerThemeRegistry.GetTheme(id);
+    
 
     private void Invoke(IThemeEntry entry)
     {
