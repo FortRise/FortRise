@@ -7,7 +7,7 @@ using HarmonyLib;
 
 namespace FortRise.Transpiler;
 
-internal sealed class ILTranspilerCursor
+public sealed class ILTranspilerCursor
 {
     private readonly List<CodeInstruction> instructions;
     private readonly List<CodeInstruction> resultingInstruction;

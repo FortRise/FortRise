@@ -9,7 +9,7 @@ using MonoMod.Utils;
 
 namespace FortRise.Transpiler;
 
-internal static class ILMatch
+public static class ILMatch
 {
     public static InstructionMatcher Match(OpCode opcode) =>
         new InstructionMatcher((instr) => instr.opcode == opcode);
@@ -63,6 +63,22 @@ internal static class ILMatch
                                 )
                             );
                 }
+            }
+        );
+
+    public static InstructionMatcher LdcR4(float num) =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                return instr.opcode == OpCodes.Ldc_R4 && (float)instr.operand == num;
+            }
+        );
+
+    public static InstructionMatcher LdcR8(double num) =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                return instr.opcode == OpCodes.Ldc_R8 && (double)instr.operand == num;
             }
         );
 
@@ -192,6 +208,44 @@ internal static class ILMatch
         );
     }
 
+    public static InstructionMatcher Stsfld(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+                instr.opcode == OpCodes.Stsfld && (instr.operand as FieldInfo)?.Name == fieldName
+        );
+
+    public static InstructionMatcher Stsfld<T>() =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Stsfld) && operand.FieldType.Name == typeName;
+            }
+        );
+
+    public static InstructionMatcher Stsfld<T>(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Stsfld)
+                    && operand.FieldType.Name == typeName
+                    && operand.Name == fieldName;
+            }
+        );
+
     public static InstructionMatcher Stfld(string fieldName) =>
         new InstructionMatcher(
             (instr) =>
@@ -240,6 +294,44 @@ internal static class ILMatch
     //     operand = null;
     //     return false;
     // }
+
+    public static InstructionMatcher Ldsfld(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+                (instr.opcode == OpCodes.Ldsfld) && (instr.operand as FieldInfo)?.Name == fieldName
+        );
+
+    public static InstructionMatcher Ldsfld<T>() =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Ldsfld) && operand.FieldType.Name == typeName;
+            }
+        );
+
+    public static InstructionMatcher Ldsfld<T>(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Ldsfld)
+                    && operand.Name == fieldName
+                    && operand.FieldType.Name == typeName;
+            }
+        );
 
     public static InstructionMatcher Ldfld(string fieldName) =>
         new InstructionMatcher(
@@ -378,5 +470,40 @@ internal static class ILMatch
     public static InstructionMatcher Newobj(ConstructorInfo info) =>
         new InstructionMatcher(
             (instr) => instr.opcode == OpCodes.Newobj && (instr.operand as ConstructorInfo) == info
+        );
+
+     public static InstructionMatcher Cgt() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Cgt 
+        );
+
+     public static InstructionMatcher CgtUn() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Cgt_Un
+        );
+
+     public static InstructionMatcher Ceq() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Ceq
+        );
+
+     public static InstructionMatcher Clt() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Clt
+        );
+
+     public static InstructionMatcher CltUn() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Clt_Un
+        );
+
+     public static InstructionMatcher Pop() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Pop
+        );
+
+     public static InstructionMatcher Nop() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Nop
         );
 }

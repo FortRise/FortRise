@@ -3,7 +3,7 @@ using System;
 
 namespace FortRise.Transpiler;
 
-internal readonly struct ILEncompasser(ILTranspilerCursor cursor)
+public readonly struct ILEncompasser(ILTranspilerCursor cursor)
 {
     private readonly ILTranspilerCursor Cursor = cursor;
 
