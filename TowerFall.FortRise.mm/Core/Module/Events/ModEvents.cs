@@ -12,6 +12,12 @@ internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IM
         remove => manager.OnModInitialize.Remove(metadata, value);
     }
 
+    public event EventHandler<BeforeModInstantiationEventArgs> OnBeforeModInstantiation
+    {
+        add => manager.OnBeforeModInstantiation.Add(metadata, value);
+        remove => manager.OnBeforeModInstantiation.Remove(metadata, value);
+    }
+
     public event EventHandler<LoadState> OnModLoadStateFinished
     {
         add => manager.OnModLoadStateFinished.Add(metadata, value);

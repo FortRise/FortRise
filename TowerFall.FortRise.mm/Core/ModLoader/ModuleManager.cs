@@ -377,13 +377,16 @@ internal class ModuleManager
                 fortMod.Context = GetModuleContext(metadata, logger);
                 fortMod.ModContent = content;
                 fortMod.Logger = logger;
+                EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, fortMod.Context));
                 fortMod.Content = new FortContent(GetMod(metadata.Name), metadata);
                 mod = fortMod;
             }
             else if (t.BaseType == typeof(Mod))
             {
                 var logger = loggerFactory.CreateLogger(metadata.Name);
-                mod = Activator.CreateInstance(t, [content, GetModuleContext(metadata, logger), logger]) as Mod;
+                var context = GetModuleContext(metadata, logger);
+                EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
+                mod = Activator.CreateInstance(t, [content, context, logger]) as Mod;
             }
             else
             {
@@ -402,7 +405,7 @@ internal class ModuleManager
         }
     }
 
-    private IModuleContext GetModuleContext(ModuleMetadata metadata, ILogger logger)
+    private ModuleContext GetModuleContext(ModuleMetadata metadata, ILogger logger)
     {
         return new ModuleContext(
             AddOrGetRegistry(metadata),
@@ -537,7 +540,7 @@ internal class ModuleManager
     where T : class
     {
         var registryQueue = new RegistryQueue<T>(this, invoker);
-        registryBatch.Insert(0, registryQueue);
+        registryBatch.Add(registryQueue);
         return registryQueue;
     }
 }
