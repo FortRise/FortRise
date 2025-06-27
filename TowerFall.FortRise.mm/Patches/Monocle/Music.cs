@@ -12,19 +12,13 @@ public static class patch_Music
     internal static AudioEngine audioEngine;
     private static AudioCategory audioCategory;
     private static string currentSong;
-    private static string currentCustomSong;
     private static float masterVolume;
+    private static bool fromCue;
 
     public static AudioCategory AudioCategory 
     {
         get => audioCategory;
         set => audioCategory = value;
-    }
-
-    public static string CurrentCustomSong 
-    {
-        get => currentCustomSong;
-        set => currentCustomSong = value;
     }
 
     public static string CurrentSong 
@@ -59,40 +53,29 @@ public static class patch_Music
     public static void Play(string filepath) 
     {
         if (currentSong == filepath)
+        {
             return;
-
-        Stop();
+        }
 
         if (audioEngine == null)
+        {
+            Stop();
             return;
+        }
 
         PlayInternal(filepath);
     }
 
-    public static void Play(TrackInfo info) 
-    {
-        if (currentSong == info.Resource.RootPath)
-            return;
-        
-        Stop();
-
-        if (audioEngine == null)
-            return;
-
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource);
-        if (audioSystem != null) 
-        {
-            patch_Audio.PlayMusic(audioSystem, info);
-        }
-        currentSong = info.Resource.RootPath;
-    }
-
     private static void PlayInternal(string filepath) 
     {
-        Stop();
+        if (!fromCue)
+        {
+            Stop();
+        }
         var audioSystem = patch_Audio.GetMusicSystemFromExtension(filepath);
         if (audioSystem != null) 
         {
+            fromCue = audioSystem.GetType() == typeof(VanillaMusicSystem);
             patch_Audio.PlayMusic(audioSystem, filepath);
         }
         currentSong = filepath;
@@ -108,25 +91,6 @@ public static class patch_Music
         patch_Audio.StopMusic(AudioStopOptions.Immediate);
         
         PlayInternal(filepath);
-    }
-
-    public static void PlayImmediate(TrackInfo info) 
-    {
-        if (currentSong == info.Resource.RootPath)
-            return;
-        
-        audioCategory.Stop(AudioStopOptions.Immediate);
-        patch_Audio.StopMusic(AudioStopOptions.Immediate);
-
-        if (audioEngine == null)
-            return;
-
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(info.Resource);
-        if (audioSystem != null) 
-        {
-            patch_Audio.PlayMusic(audioSystem, info);
-        }
-        currentSong = info.Resource.RootPath;
     }
 
     [MonoModReplace]

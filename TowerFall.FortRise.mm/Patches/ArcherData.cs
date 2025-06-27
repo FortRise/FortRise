@@ -47,7 +47,7 @@ public class patch_ArcherData : ArcherData
     {
         if (patch_Audio.TrackMap.TryGetValue(VictoryMusic, out var info))
         {
-            patch_Music.PlayImmediate(info);
+            patch_Music.PlayImmediate(info.Name);
             return;
         }
 
