@@ -142,6 +142,13 @@ public class patch_MatchVariants : MatchVariants
         return InternalCustomVariants[name];
     }
 
+#nullable enable
+    public bool TryGetCustomVariant(string name, out Variant? variant)
+    {
+        return InternalCustomVariants.TryGetValue(name, out variant);
+    }
+#nullable disable
+
     public extern ArrowTypes orig_GetStartArrowType(int playerIndex, ArrowTypes randomType);
 
     public ArrowTypes GetStartArrowType(int playerIndex, ArrowTypes randomType)

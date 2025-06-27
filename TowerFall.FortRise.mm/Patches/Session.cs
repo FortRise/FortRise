@@ -40,7 +40,11 @@ namespace TowerFall
             patch_MatchVariants matchVariant = (level.Session.MatchSettings.Variants as patch_MatchVariants);
             foreach (var variant in levelData.Variants)
             {
-                var v = matchVariant.GetCustomVariant(variant);
+                if (!matchVariant.TryGetCustomVariant(variant, out var v))
+                {
+                    Logger.Error($"Variant Name: '{variant}' cannot be found on the registry.");
+                    continue;
+                }
                 if (v.CoOpValue != 0)
                 {
                     if (v.Value)
