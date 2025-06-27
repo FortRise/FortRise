@@ -16,6 +16,8 @@ namespace TowerFall
     public class patch_MapScene : MapScene
     {
         private static int lastRandomVersusTower;
+        private static string lastWorkshopVersusTowerTitle;
+        private static string lastWorkshopVersusTowerAuthor;
         private TrialsLevelSelectOverlay trialsOverlay;
         private DarkWorldLevelSelectOverlay darkWorldOverlay;
         private QuestLevelSelectOverlay questOverlay;
@@ -30,9 +32,9 @@ namespace TowerFall
 
         [MonoModConstructor]
         [MonoModReplace]
-        public static void cctor() {}
+        public static void cctor() { }
 
-        internal static void FixedStatic() 
+        internal static void FixedStatic()
         {
             lastRandomVersusTower = -1;
             MapScene.NoRandomStates = new bool[GameData.VersusTowers.Count];
@@ -40,7 +42,7 @@ namespace TowerFall
 
         [MonoModIgnore]
         [MonoModLinkTo("Monocle.Scene", "Begin")]
-        public void base_Begin() {}
+        public void base_Begin() { }
 
         public override void Begin()
         {
@@ -71,7 +73,7 @@ namespace TowerFall
                 default:
                     throw new Exception("Mode not recognized!");
             }
-            
+
             foreach (MapButton mapButton in this.Buttons)
             {
                 base.Add<MapButton>(mapButton);
@@ -130,7 +132,7 @@ namespace TowerFall
                 default:
                     throw new Exception("Mode not recognized!");
             }
-            
+
             if (buttonSelected.Data == null)
             {
                 Renderer.OnStartSelection("");
@@ -168,7 +170,7 @@ namespace TowerFall
         }
 
         [MonoModReplace]
-        private void StartSession() 
+        private void StartSession()
         {
             var session = new Session(MainMenu.CurrentMatchSettings);
             session.SetLevelSet(LevelSet);
@@ -177,16 +179,16 @@ namespace TowerFall
 
         [MonoModReplace]
         [MonoModPatch("DarkWorldIntroSequence")] // This is a hack to fix System.TypeLoadException on MacOS and Linux
-        private IEnumerator DarkWorldIntroSequence_Patch() 
+        private IEnumerator DarkWorldIntroSequence_Patch()
         {
-            for (int i = 0; i < Buttons.Count; i += 1) 
+            for (int i = 0; i < Buttons.Count; i += 1)
             {
                 if (Buttons[i] is not DarkWorldMapButton || !this.IsOfficialLevelSet())
                 {
-                   continue;
+                    continue;
                 }
 
-                if (SaveData.Instance.DarkWorld.ShouldRevealTower(Buttons[i].Data.ID.X)) 
+                if (SaveData.Instance.DarkWorld.ShouldRevealTower(Buttons[i].Data.ID.X))
                 {
                     Music.Stop();
                     yield return Buttons[i].UnlockSequence(false);
@@ -202,7 +204,7 @@ namespace TowerFall
             {
                 if (Buttons[i] is not QuestMapButton || !this.IsOfficialLevelSet())
                 {
-                   continue;
+                    continue;
                 }
 
                 if (SaveData.Instance.Quest.ShouldRevealTower(this.Buttons[i].Data.ID.X))
@@ -217,7 +219,7 @@ namespace TowerFall
         [MonoModIgnore]
         private extern IEnumerator IntroSequence();
 
-        internal void ChangeLevelSet() 
+        internal void ChangeLevelSet()
         {
             WorkshopLevels = true;
             TweenOutAllButtonsAndRemove();
@@ -292,13 +294,14 @@ namespace TowerFall
             if (this.IsOfficialLevelSet())
             {
                 Buttons.Add(new GoToWorkshopMapButton());
-                Buttons.Add(new VersusRandomSelect());
                 towers = GameData.VersusTowers;
             }
             else
             {
                 towers = TowerRegistry.VersusTowerSets[this.GetLevelSet()];
             }
+
+            Buttons.Add(new VersusRandomSelect());
 
             for (int i = 0; i < towers.Count; i++)
             {
@@ -406,7 +409,7 @@ namespace TowerFall
                     }
                 }
             }
-            
+
             for (int k = 0; k < towers.GetLength(0); k++)
             {
                 if (!this.IsOfficialLevelSet() || SaveData.Instance.Unlocks.GetTowerUnlocked(k))
@@ -457,7 +460,7 @@ namespace TowerFall
 
         [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
         [MonoModIgnore]
-        public void base_Update() 
+        public void base_Update()
         {
             base.Update();
         }
@@ -467,7 +470,7 @@ namespace TowerFall
 
         public override void Update()
         {
-            if (MapPaused) 
+            if (MapPaused)
             {
                 base_Update();
                 return;
@@ -475,33 +478,33 @@ namespace TowerFall
             orig_Update();
         }
 
-        public void TweenOutAllButtonsAndRemove() 
+        public void TweenOutAllButtonsAndRemove()
         {
-            foreach (var mapButton in Buttons) 
+            foreach (var mapButton in Buttons)
             {
                 (mapButton as patch_MapButton).TweenOutAndRemoved();
             }
         }
 
-        public void TweenOutAllButtonsAndRemoveExcept(MapButton button) 
+        public void TweenOutAllButtonsAndRemoveExcept(MapButton button)
         {
-            foreach (var mapButton in Buttons) 
+            foreach (var mapButton in Buttons)
             {
                 if (button == mapButton)
-                    continue;    
+                    continue;
                 (mapButton as patch_MapButton).TweenOutAndRemoved();
             }
         }
 
-        public static Vector2 FixedClampCamera(Vector2 position, patch_MapScene map) 
+        public static Vector2 FixedClampCamera(Vector2 position, patch_MapScene map)
         {
-			return new Vector2(
-                MathHelper.Clamp(position.X, 160f, map.Renderer.GetInstanceWidth() - 160), 
+            return new Vector2(
+                MathHelper.Clamp(position.X, 160f, map.Renderer.GetInstanceWidth() - 160),
                 MathHelper.Clamp(position.Y, 120f, map.Renderer.GetInstanceHeight() - 120));
         }
 
         [MonoModReplace]
-        public void ScrollToPosition(Vector2 position) 
+        public void ScrollToPosition(Vector2 position)
         {
             Vector2 start = Camera.Position;
             cameraTween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeOut, 30, true);
@@ -509,6 +512,39 @@ namespace TowerFall
             {
                 Camera.Position = Vector2.Lerp(start, FixedClampCamera(position, this), t.Eased);
             };
+        }
+
+        public MapButton GetRandomWorkshopTower()
+        {
+            var list = new List<MapButton>(Buttons);
+            list.RemoveAll(b => b is not CustomMapButton);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Locked)
+                {
+                    list.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if (list.Count > 1 && !string.IsNullOrEmpty(lastWorkshopVersusTowerTitle))
+            {
+                foreach (MapButton mapButton in list)
+                {
+                    if (mapButton.Data.Title == lastWorkshopVersusTowerTitle && 
+                        mapButton.Data.Author == lastWorkshopVersusTowerAuthor)
+                    {
+                        list.Remove(mapButton);
+                        break;
+                    }
+                }
+            }
+
+            list.Shuffle(new Random());
+            lastWorkshopVersusTowerTitle = list[0].Data.Title;
+            lastWorkshopVersusTowerAuthor = list[0].Data.Author;
+            return list[0];
         }
     }
 
