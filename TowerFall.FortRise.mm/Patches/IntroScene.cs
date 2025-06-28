@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using FortRise;
 using Mono.Cecil;
 using Monocle;
 using MonoMod;
@@ -13,8 +14,11 @@ namespace TowerFall
         [MonoModReplace]
         private Subtexture GetLetterSub(int letterIndex) 
         {
-            if (patch_TFGame.FortRiseMenuAtlas.Contains("mmg/" + letterIndex))
+            if (!FortRiseModule.Settings.OldIntroLogo && patch_TFGame.FortRiseMenuAtlas.Contains("mmg/" + letterIndex))
+            {
                 return patch_TFGame.FortRiseMenuAtlas["mmg/" + letterIndex];
+            }
+
             return TFGame.MenuAtlas["mmg/" + letterIndex];
         }
 

@@ -7,6 +7,7 @@ public sealed class FortRiseModule : Mod
 {
     public static FortRiseModule Instance;
     public static FortRiseModuleSaveData SaveData => Instance.GetSaveData<FortRiseModuleSaveData>();
+    internal static FortRiseModuleSettings Settings => Instance.GetSettings<FortRiseModuleSettings>();
 
     public FortRiseModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
@@ -41,5 +42,10 @@ public sealed class FortRiseModule : Mod
     public override ModuleSaveData CreateSaveData()
     {
         return new FortRiseModuleSaveData();
+    }
+
+    public override ModuleSettings CreateSettings()
+    {
+        return new FortRiseModuleSettings();
     }
 }
