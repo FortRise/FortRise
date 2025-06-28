@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using Monocle;
 
-namespace FortRise.Levels;
+namespace FortRise.Content;
 
 internal static class SpriteDataLoader
 {

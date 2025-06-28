@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PublishDir>..\..\$(ArtifactDirectory)\Internals</PublishDir>
+    <PublishDir>..\..\$(ArtifactDirectory)\Internals\FortRise.Content</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>

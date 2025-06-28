@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
-namespace FortRise.Levels;
+namespace FortRise.Content;
 
 internal static class ThemeLoader
 {

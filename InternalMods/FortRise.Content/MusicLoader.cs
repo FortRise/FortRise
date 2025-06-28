@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace FortRise.Levels;
+namespace FortRise.Content;
 
 internal static class MusicLoader
 {

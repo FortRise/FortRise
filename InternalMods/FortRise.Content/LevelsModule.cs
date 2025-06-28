@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace FortRise.Levels;
+namespace FortRise.Content;
 
 internal sealed class LevelsModule : Mod
 {

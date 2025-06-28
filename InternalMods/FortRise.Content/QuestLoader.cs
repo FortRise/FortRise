@@ -1,7 +1,7 @@
 using System.IO;
 using Monocle;
 
-namespace FortRise.Levels;
+namespace FortRise.Content;
 
 internal static class QuestLoader
 {
