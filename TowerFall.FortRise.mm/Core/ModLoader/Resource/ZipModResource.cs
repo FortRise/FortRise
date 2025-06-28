@@ -65,7 +65,7 @@ public class ZipModResource : ModResource
             var span = fileName.AsSpan();
             int slashesCount = 0;
 
-            for (int i = 0; i < span.Length || slashesCount != 2; i++)
+            for (int i = 0; i < span.Length && slashesCount != 1; i++)
             {
                 if (span[i] == '/')
                 {
@@ -73,7 +73,7 @@ public class ZipModResource : ModResource
                 }
             }
 
-            if (slashesCount != 2)
+            if (slashesCount != 1)
             {
                 rootFolder.Childrens.Add(zipResource);
             }
