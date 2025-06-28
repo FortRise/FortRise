@@ -1,6 +1,4 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
 
 namespace FortRise;
 
@@ -38,6 +36,6 @@ internal sealed class ModEnemies : IModEnemies
 
     internal void Invoke(IEnemyEntry entry)
     {
-        EntityRegistry.AddEnemy(entry.Name, entry.Configuration);
+        EntityRegistry.AddEnemy(entry.ID, entry.Configuration);
     }
 }

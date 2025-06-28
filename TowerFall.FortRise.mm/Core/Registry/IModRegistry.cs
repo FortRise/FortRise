@@ -14,6 +14,7 @@ public interface IModRegistry
     IModVariants Variants { get; }
     IModEffects Effects { get; }
     IModEnemies Enemies { get; }
+    IModLevelEntities LevelEntities { get; }
     IModGameModes GameModes { get; }
     IModBackdrops Backdrops { get; }
     IModMenuStates MenuStates { get; }

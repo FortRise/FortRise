@@ -38,7 +38,7 @@ public static partial class RiseCore
     public static string GameRootPath { get; internal set; }
     internal static Dictionary<string, EnemyLoader> EnemyLoader => EntityRegistry.EnemyLoader;
     internal static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
-    internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
+    internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader => EntityRegistry.LevelEntityLoader;
 
 
     internal static Mod FortRiseModule;
@@ -143,7 +143,7 @@ public static partial class RiseCore
                         File.Delete(oldMod);
                     }
                 }
-                else 
+                else
                 {
                     if (Directory.Exists(oldMod))
                     {
@@ -227,7 +227,8 @@ public static partial class RiseCore
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 
-        DetourManager.DetourApplied += info => {
+        DetourManager.DetourApplied += info =>
+        {
             if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
             {
                 return;
@@ -237,13 +238,14 @@ public static partial class RiseCore
             {
                 DetourLogs.Add($"new Detour by {owner.GetName().Name}: {info.Method.Method.GetID()}");
             }
-            else 
+            else
             {
                 DetourLogs.Add($"new On.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
             }
         };
 
-        DetourManager.ILHookApplied += info => {
+        DetourManager.ILHookApplied += info =>
+        {
             if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
             {
                 return;
@@ -253,7 +255,7 @@ public static partial class RiseCore
             {
                 DetourLogs.Add($"new ILHook by {owner.GetName().Name}: {info.Method.Method.GetID()}");
             }
-            else 
+            else
             {
                 DetourLogs.Add($"new IL.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
             }
@@ -314,105 +316,106 @@ public static partial class RiseCore
             var arg = compiledArgs[cursor];
             switch (arg)
             {
-            case "--verbose":
-                Logger.Verbosity = Logger.LogLevel.Assert;
-                break;
-            case "--no-rich-presence":
-                NoRichPresence = true;
-                break;
-            case "--no-auto-pause":
-                NoAutoPause = true;
-                break;
-            case "--dump-resources":
-                DumpResources = true;
-                break;
-            case "--use-scancodes":
-                Environment.SetEnvironmentVariable("FNA_KEYBOARD_USE_SCANCODES", "1");
-                break;
-            case "--no-quit":
-                MainMenu.NoQuit = true;
-                break;
-            case "--no-gamepads":
-                MainMenu.NoGamepads = true;
-                break;
-            case "--no-gamepadsupdates":
-                MainMenu.NoGamepadUpdates = true;
-                break;
-            case "--nointro":
-                NoIntro = true;
-                break;
-            case "--no-error-scene":
-                NoErrorScene = true;
-                break;
-            case "--loadlog":
-                TFGame.StartLoadLog();
-                break;
-            case "--graphics":
-                cursor++;
-                arg = compiledArgs[cursor];
-                Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", arg);
-                break;
-            case "--level-quick-start":
-                cursor++;
-                arg = compiledArgs[cursor];
-                try
-                {
-                    var argSpan = arg.AsSpan();
-                    var slashSplit = argSpan.SplitLines('/');
-                    byte phase = 0;
-
-                    int num = 0;
-                    string towerSet = null;
-                    string levelID = null;
-                    foreach (var (slashSet, _) in slashSplit)
+                case "--verbose":
+                    Logger.Verbosity = Logger.LogLevel.Assert;
+                    break;
+                case "--no-rich-presence":
+                    NoRichPresence = true;
+                    break;
+                case "--no-auto-pause":
+                    NoAutoPause = true;
+                    break;
+                case "--dump-resources":
+                    DumpResources = true;
+                    break;
+                case "--use-scancodes":
+                    Environment.SetEnvironmentVariable("FNA_KEYBOARD_USE_SCANCODES", "1");
+                    break;
+                case "--no-quit":
+                    MainMenu.NoQuit = true;
+                    break;
+                case "--no-gamepads":
+                    MainMenu.NoGamepads = true;
+                    break;
+                case "--no-gamepadsupdates":
+                    MainMenu.NoGamepadUpdates = true;
+                    break;
+                case "--nointro":
+                    NoIntro = true;
+                    break;
+                case "--no-error-scene":
+                    NoErrorScene = true;
+                    break;
+                case "--loadlog":
+                    TFGame.StartLoadLog();
+                    break;
+                case "--graphics":
+                    cursor++;
+                    arg = compiledArgs[cursor];
+                    Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", arg);
+                    break;
+                case "--level-quick-start":
+                    cursor++;
+                    arg = compiledArgs[cursor];
+                    try
                     {
-                        switch (phase)
+                        var argSpan = arg.AsSpan();
+                        var slashSplit = argSpan.SplitLines('/');
+                        byte phase = 0;
+
+                        int num = 0;
+                        string towerSet = null;
+                        string levelID = null;
+                        foreach (var (slashSet, _) in slashSplit)
                         {
-                        case 0:
-                            towerSet = slashSet.ToString();
-                            break;
-                        case 1:
-                            levelID = slashSet.ToString();
-                            break;
-                        case 2:
-                            var span = slashSet.SplitLines('.');
-                            foreach (var (s, x) in span)
+                            switch (phase)
                             {
-                                if (s[0] == '0')
-                                {
-                                    num = int.Parse(s[1].ToString());
+                                case 0:
+                                    towerSet = slashSet.ToString();
                                     break;
-                                }
-                                num = int.Parse(s.ToString());
-                                break;
+                                case 1:
+                                    levelID = slashSet.ToString();
+                                    break;
+                                case 2:
+                                    var span = slashSet.SplitLines('.');
+                                    foreach (var (s, x) in span)
+                                    {
+                                        if (s[0] == '0')
+                                        {
+                                            num = int.Parse(s[1].ToString());
+                                            break;
+                                        }
+                                        num = int.Parse(s.ToString());
+                                        break;
+                                    }
+                                    break;
                             }
-                            break;
+
+                            phase++;
+                        }
+                        if (towerSet == null)
+                        {
+                            Logger.Error("[Quick Start] Couldn't quick start as TowerSet is missing");
+                            continue;
+                        }
+                        if (levelID == null)
+                        {
+                            Logger.Error("[Quick Start] Couldn't quick start as LevelID is missing");
+                            continue;
                         }
 
-                        phase++;
+                        RiseCore.Events.OnPostInitialize += () =>
+                        {
+                            TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
+                        };
                     }
-                    if (towerSet == null)
+                    catch (Exception ex)
                     {
-                        Logger.Error("[Quick Start] Couldn't quick start as TowerSet is missing");
-                        continue;
-                    }
-                    if (levelID == null)
-                    {
-                        Logger.Error("[Quick Start] Couldn't quick start as LevelID is missing");
-                        continue;
+                        Logger.Error("[Quick Start] Couldn't quick start as the passed arguments is invalid");
+                        Logger.Error(ex);
                     }
 
-                    RiseCore.Events.OnPostInitialize += () => {
-                        TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
-                    };
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error("[Quick Start] Couldn't quick start as the passed arguments is invalid");
-                    Logger.Error(ex);
-                }
-
-                break;
+                    break;
             }
             cursor++;
         }
@@ -466,7 +469,7 @@ public static partial class RiseCore
 
     // Generated at patch-time
     [PatchFlags]
-    internal static void Flags() {}
+    internal static void Flags() { }
 
 
     internal static byte[] GetChecksum(string path)
@@ -507,7 +510,7 @@ public static partial class RiseCore
 
     internal static void Initialize()
     {
-        ModuleManager.Initialize();    
+        ModuleManager.Initialize();
     }
 
     internal static void ModuleEnd()
@@ -545,148 +548,151 @@ public static partial class RiseCore
 
         try
         {
-        foreach (var type in module.GetType().Assembly.GetTypes())
-        {
-            if (type is null)
-                continue;
+            foreach (var type in module.GetType().Assembly.GetTypes())
+            {
+                if (type is null)
+                    continue;
 
-            GameModeRegistry.Register(type, module);
-            foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>())
-            {
-                if (attrib is null)
-                    continue;
-                EntityRegistry.AddEnemy(module, type, attrib.Names);
-            }
-            foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>())
-            {
-                if (clea is null)
-                    continue;
-                foreach (var name in clea.Names)
+                GameModeRegistry.Register(type, module);
+                foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>())
                 {
-                    string id;
-                    string methodName = string.Empty;
-                    string[] split = name.Split('=');
-                    if (split.Length == 1)
-                    {
-                        id = split[0];
-                    }
-                    else if (split.Length == 2)
-                    {
-                        id = split[0];
-                        methodName = split[1];
-                    }
-                    else
-                    {
-                        Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
+                    if (attrib is null)
                         continue;
-                    }
-                    id = id.Trim();
-                    methodName = methodName?.Trim();
-
-                    ConstructorInfo ctor;
-                    MethodInfo info;
-                    LevelEntityLoader loader = null;
-                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
+                    EntityRegistry.AddEnemy(module, type, attrib.Names);
+                }
+                foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>())
+                {
+                    if (clea is null)
+                        continue;
+                    foreach (var name in clea.Names)
                     {
-                        loader = (xml, _, _) => {
-                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                        string id;
+                        string methodName = string.Empty;
+                        string[] split = name.Split('=');
+                        if (split.Length == 1)
+                        {
+                            id = split[0];
+                        }
+                        else if (split.Length == 2)
+                        {
+                            id = split[0];
+                            methodName = split[1];
+                        }
+                        else
+                        {
+                            Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
+                            continue;
+                        }
+                        id = id.Trim();
+                        methodName = methodName?.Trim();
+
+                        ConstructorInfo ctor;
+                        MethodInfo info;
+                        LevelEntityLoader loader = null;
+                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement) });
+                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
+                        {
+                            loader = (xml, _, _) =>
+                            {
+                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
                                xml
                             });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
 
-                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
-                    {
-                        loader = (xml, pos, _) => {
-                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2) });
+                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
+                        {
+                            loader = (xml, pos, _) =>
+                            {
+                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
                                 xml, pos
                             });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
 
-                    info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                    if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
-                    {
-                        loader = (xml, pos, nodes) => {
-                            var invoked = (LevelEntity)info.Invoke(null, new object[] {
+                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
+                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
+                        {
+                            loader = (xml, pos, nodes) =>
+                            {
+                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
                                 xml, pos, nodes
                             });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
 
-                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
-                    if (ctor != null)
-                    {
-                        loader = (x, _, _) =>
+                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
+                        if (ctor != null)
                         {
-                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
-                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
-                    if (ctor != null)
-                    {
-                        loader = (x, pos, _) =>
+                            loader = (x, _, _) =>
+                            {
+                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
+                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
+                        if (ctor != null)
                         {
-                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos});
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
-                    ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                    if (ctor != null)
-                    {
-                        loader = (x, pos, nodes) =>
+                            loader = (x, pos, _) =>
+                            {
+                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos });
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
+                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
+                        if (ctor != null)
                         {
-                            var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos, nodes });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
+                            loader = (x, pos, nodes) =>
+                            {
+                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos, nodes });
+                                return invoked;
+                            };
+                            goto Loaded;
+                        }
                     Loaded:
-                    LevelEntityLoader[name] = loader;
+                        LevelEntityLoader[name] = loader;
+                    }
                 }
-            }
 
-            FortRise.ArrowsRegistry.Register(type, module);
-            // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
-            laziedRegisters.Add(() => FortRise.PickupsRegistry.Register(type, module));
-            foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
-            {
-                if (dwBoss is null)
-                    continue;
-                var bossName = dwBoss.BossName;
-
-                ConstructorInfo ctor;
-                DarkWorldBossLoader loader = null;
-                ctor = type.GetConstructor(new Type[] { typeof(int) });
-                if (ctor != null)
+                FortRise.ArrowsRegistry.Register(type, module);
+                // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
+                laziedRegisters.Add(() => FortRise.PickupsRegistry.Register(type, module));
+                foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
                 {
-                    loader = diff =>
-                    {
-                        var invoked = (DarkWorldBoss)ctor.Invoke(new object[] { diff });
-                        return invoked;
-                    };
-                    goto Loaded;
-                }
-                Loaded:
-                DarkWorldBossLoader[bossName] = loader;
-            }
-        }
+                    if (dwBoss is null)
+                        continue;
+                    var bossName = dwBoss.BossName;
 
-        foreach (var lazy in laziedRegisters)
-        {
-            lazy();
-        }
+                    ConstructorInfo ctor;
+                    DarkWorldBossLoader loader = null;
+                    ctor = type.GetConstructor(new Type[] { typeof(int) });
+                    if (ctor != null)
+                    {
+                        loader = diff =>
+                        {
+                            var invoked = (DarkWorldBoss)ctor.Invoke(new object[] { diff });
+                            return invoked;
+                        };
+                        goto Loaded;
+                    }
+                Loaded:
+                    DarkWorldBossLoader[bossName] = loader;
+                }
+            }
+
+            foreach (var lazy in laziedRegisters)
+            {
+                lazy();
+            }
         }
         catch (Exception e)
         {
@@ -744,7 +750,7 @@ public static partial class RiseCore
 
             Assembly assembly = declaringType.Assembly;
 
-            if (assembly == null || 
+            if (assembly == null ||
                 assembly == Assembly.GetExecutingAssembly() ||
                 assembly == typeof(Hook).Assembly)
             {

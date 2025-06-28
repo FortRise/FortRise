@@ -14,6 +14,7 @@ internal class ModRegistry : IModRegistry
     public IModVariants Variants { get; }
     public IModEffects Effects { get; }
     public IModEnemies Enemies { get; }
+    public IModLevelEntities LevelEntities { get; }
     public IModGameModes GameModes { get; }
     public IModBackdrops Backdrops { get; }
     public IModBackgrounds Backgrounds { get; }
@@ -45,6 +46,7 @@ internal class ModRegistry : IModRegistry
         Variants = new ModVariants(metadata);
         Effects = new ModEffects(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
+        LevelEntities = new ModLevelEntities(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
         Backdrops = new ModBackdrops(metadata, manager);
         Backgrounds = new ModBackgrounds(metadata, manager);

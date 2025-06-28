@@ -14,11 +14,18 @@ namespace FortRise;
 public static class EntityRegistry 
 {
     private static Dictionary<string, IEnemyEntry> enemyEntries = [];
+    private static Dictionary<string, ILevelEntityEntry> entityEntries = [];
     public static Dictionary<string, EnemyLoader> EnemyLoader = new();
+    public static Dictionary<string, LevelEntityLoader> LevelEntityLoader = new();
 
     public static void AddEnemy(IEnemyEntry enemyEntry)
     {
-        enemyEntries[enemyEntry.Name] = enemyEntry;
+        enemyEntries[enemyEntry.ID] = enemyEntry;
+    }
+
+    public static void AddLevelEntity(ILevelEntityEntry entityEntry)
+    {
+        entityEntries[entityEntry.ID] = entityEntry;
     }
 
 
@@ -26,6 +33,12 @@ public static class EntityRegistry
     public static IEnemyEntry? GetEnemy(string id)
     {
         enemyEntries.TryGetValue(id, out var entry);
+        return entry;
+    }
+
+    public static ILevelEntityEntry? GetLevelEntity(string id)
+    {
+        entityEntries.TryGetValue(id, out var entry);
         return entry;
     }
 #nullable disable
@@ -123,6 +136,11 @@ public static class EntityRegistry
 
     public static void AddEnemy(string id, EnemyConfiguration configuration)
     {
-        RiseCore.EnemyLoader[id] = configuration.Loader;
+        EnemyLoader[id] = configuration.Loader;
+    }
+
+    public static void AddLevelEntity(string id, LevelEntityConfiguration configuration)
+    {
+        LevelEntityLoader[id] = configuration.Loader;
     }
 }

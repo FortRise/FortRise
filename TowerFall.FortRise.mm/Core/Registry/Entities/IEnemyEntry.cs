@@ -3,6 +3,6 @@ namespace FortRise;
 
 public interface IEnemyEntry
 {
-    public string Name { get; init; }
+    public string ID { get; init; }
     public EnemyConfiguration Configuration { get; init; }
 }
