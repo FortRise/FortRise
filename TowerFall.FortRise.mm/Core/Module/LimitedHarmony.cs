@@ -22,6 +22,11 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
         Harmony.PatchAll(assembly);
     }
 
+    public void ReversePatch(MethodBase original, HarmonyMethod standin, MethodInfo transpiler)
+    {
+        Harmony.ReversePatch(original, standin, transpiler, null);
+    }
+
     public void Unpatch(MethodBase original, MethodInfo patch)
     {
         Harmony.Unpatch(original, patch);
