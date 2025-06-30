@@ -79,10 +79,6 @@ public partial class RiseCore
         {
             if (!TryGetValue(path, out var res))
             {
-                foreach (var key in TreeMap.Keys)
-                {
-                    Logger.Log($"{key} == {path} = {key == path}");
-                }
                 throw new Exception($"Resource path: '{Modize(path)}' not found or does not exists.");
             }
             return res;

@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;

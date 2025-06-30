@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;
 
@@ -25,7 +26,7 @@ public interface IResourceInfo
 
     internal void AssignType();
     IResourceInfo GetRelativePath(string path);
-    bool TryGetRelativePath(string path, out IResourceInfo resource);
+    bool TryGetRelativePath(string path, [NotNullWhen(true)] out IResourceInfo resource);
 
     bool ExistsRelativePath(string path);
 }
