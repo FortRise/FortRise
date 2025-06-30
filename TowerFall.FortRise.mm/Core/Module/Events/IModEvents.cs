@@ -6,7 +6,8 @@ namespace FortRise;
 
 public interface IModEvents
 {
-    public event EventHandler<ModuleMetadata> OnModInitialize;
-    public event EventHandler<LoadState> OnModLoadStateFinished;
-    public event EventHandler<RoundLogic> OnLevelLoaded;
+    event EventHandler<ModuleMetadata> OnModInitialize;
+    event EventHandler<BeforeModInstantiationEventArgs> OnBeforeModInstantiation;
+    event EventHandler<LoadState> OnModLoadStateFinished;
+    event EventHandler<RoundLogic> OnLevelLoaded;
 }

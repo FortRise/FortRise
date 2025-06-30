@@ -24,14 +24,6 @@ public static class patch_Sounds
         Sounds.Characters = characters;
     }
 
-    public static void AddSFX(FortContent content, ReadOnlySpan<char> id, SFX sfx)
-    {
-        ReadOnlySpan<char> name = content.ResourceSystem.Metadata.Name;
-
-        var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
-        lookup[$"{name}/{id}"] = sfx;
-    }
-
     public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx) 
     {
         ReadOnlySpan<char> name = metadata.Name;
@@ -83,11 +75,6 @@ public static class patch_Sounds
             return;
         }
         Logger.Error($"SFX '{sfxName}' cannot be stopped as it cannot be found.");
-    }
-
-    public static void AddSFX(FortContent content, string id, SFX sfx) 
-    {
-        AddSFX(content, id.AsSpan(), sfx);
     }
 
     public static void Play(string sfxName, float panX = 160f, float volume = 1f) 

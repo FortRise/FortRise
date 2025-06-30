@@ -295,6 +295,15 @@ internal class ModuleManager
         {
             LoadAssembly(metadata, content, asm);
         }
+        else
+        {
+            // for content mods that does not have C# Mod class
+            var logger = loggerFactory.CreateLogger(metadata.Name);
+            var context = GetModuleContext(metadata, logger);
+            EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
+
+            logger.LogInformation("{modName} {modVersion} has been loaded.", metadata.Name, metadata.Version);
+        }
 
         InternalMods.Add(modResource);
         InternalModuleMetadatas.Add(metadata);
@@ -370,18 +379,7 @@ internal class ModuleManager
         foreach (var t in asm.GetTypes())
         {
             Mod mod;
-            if (t.BaseType == typeof(FortModule))
-            {
-                var fortMod = Activator.CreateInstance(t) as FortModule;
-                var logger = loggerFactory.CreateLogger(metadata.Name);
-                fortMod.Context = GetModuleContext(metadata, logger);
-                fortMod.ModContent = content;
-                fortMod.Logger = logger;
-                EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, fortMod.Context));
-                fortMod.Content = new FortContent(GetMod(metadata.Name), metadata);
-                mod = fortMod;
-            }
-            else if (t.BaseType == typeof(Mod))
+            if (t.BaseType == typeof(Mod))
             {
                 var logger = loggerFactory.CreateLogger(metadata.Name);
                 var context = GetModuleContext(metadata, logger);
@@ -483,6 +481,24 @@ internal class ModuleManager
         }
 
         return tags;
+    }
+
+    internal static bool IsModDepends(ModuleMetadata mod, ModuleMetadata targetMod)
+    {
+        if (mod.Dependencies is null)
+        {
+            return false;
+        }
+
+        foreach (var dependent in mod.Dependencies)
+        {
+            if (dependent.Name == targetMod.Name)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     internal IReadOnlyList<IModResource> GetModDependents(string modName)

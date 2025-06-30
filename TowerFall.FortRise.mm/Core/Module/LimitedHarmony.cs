@@ -9,7 +9,7 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
     private Harmony Harmony { get; init; } = harmony;
     public void Patch(MethodBase original, HarmonyMethod? prefix = null, HarmonyMethod? postfix = null, HarmonyMethod? finalizer = null, HarmonyMethod? transpiler = null)
     {
-        Harmony.Patch(original, prefix, postfix, transpiler, finalizer, null);
+        Harmony.Patch(original, prefix, postfix, transpiler, finalizer);
     }
 
     public void PatchAll()
@@ -24,7 +24,7 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
 
     public void ReversePatch(MethodBase original, HarmonyMethod standin, MethodInfo transpiler)
     {
-        Harmony.ReversePatch(original, standin, transpiler, null);
+        Harmony.ReversePatch(original, standin, transpiler);
     }
 
     public void Unpatch(MethodBase original, MethodInfo patch)

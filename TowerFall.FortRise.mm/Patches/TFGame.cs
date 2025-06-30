@@ -287,7 +287,6 @@ namespace TowerFall
             {
                 panel.Update();
             }
-            RiseCore.ResourceReloader.Update();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -312,15 +311,7 @@ namespace TowerFall
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
 
-                    foreach (var mods in RiseCore.ModuleManager.InternalMods) 
-                    {
-                        if (mods is FortModule fortModule)
-                        {
-                            fortModule.Content.LoadResources();
-                        }
-                    }
                     RiseCore.ResourceTree.AfterModdedLoadContent();
-                    FortRise.RiseCore.RegisterMods();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
@@ -525,11 +516,6 @@ namespace TowerFall
                 yield return 0;
             }
             XNAFileDialog.GraphicsDevice = Engine.Instance.GraphicsDevice;
-            // can be remove
-            foreach (var gameMode in GameModeRegistry.LegacyGameModes) 
-            {
-                gameMode.InitializeSoundsInternal();
-            }
 
             FortRise.RiseCore.Events.Invoke_OnPostInitialize();
             Loader.Message = "";

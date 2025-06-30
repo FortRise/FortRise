@@ -45,35 +45,3 @@ public class patch_SFXLooped : patch_SFX
         }
     }
 }
-
-public static class SFXLoopedExt 
-{
-    public static patch_SFXLooped CreateSFXLooped(this FortContent content, string filename, bool obeysMasterPitch = true, ContentAccess contentAccess = ContentAccess.Root) 
-    {
-        if (Path.GetExtension(filename) == string.Empty)
-            filename += ".wav";
-        switch (contentAccess) 
-        {
-        case ContentAccess.Content: 
-            filename = Calc.LOADPATH + filename;
-            break;
-        case ContentAccess.ModContent:
-            {
-                if (content == null) 
-                {
-                    Logger.Error("[Atlas] You cannot use SFXLoopedExt.CreateSFXLooped while FortContent is null");
-                    return null;
-                }
-                using var stream = content.Root.GetRelativePath(filename).Stream;
-                return CreateSFXLooped(content, stream, obeysMasterPitch);
-            }
-        }
-        using var fileStream = new FileStream(filename, FileMode.Open);
-        return CreateSFXLooped(content, fileStream, obeysMasterPitch);
-    }
-
-    public static patch_SFXLooped CreateSFXLooped(this FortContent content, Stream stream, bool obeysMasterPitch = true) 
-    {
-        return new patch_SFXLooped(stream, obeysMasterPitch);
-    }
-}

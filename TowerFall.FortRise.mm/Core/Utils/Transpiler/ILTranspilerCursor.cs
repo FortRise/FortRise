@@ -262,13 +262,28 @@ public sealed class ILTranspilerCursor
 
     public ILTranspilerCursor LogInstructions()
     {
-        var stringBuilder = new StringBuilder();
+        using var stringBuilder = new ValueStringBuilder();
 
         for (int i = 0; i < instructions.Count; i++)
         {
             var instr = instructions[i];
             stringBuilder.Append(i + "\t");
             stringBuilder.AppendLine(instr.ToString());
+        }
+
+        Console.WriteLine(stringBuilder.ToString());
+        return this;
+    }
+
+    public ILTranspilerCursor LogInstructions(IEnumerable<CodeInstruction> instructions)
+    {
+        using var stringBuilder = new ValueStringBuilder();
+        int i = 0;
+        foreach (var instr in instructions)
+        {
+            stringBuilder.Append(i + "\t");
+            stringBuilder.AppendLine(instr.ToString());
+            i += 1;
         }
 
         Console.WriteLine(stringBuilder.ToString());

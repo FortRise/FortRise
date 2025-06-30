@@ -28,6 +28,7 @@ internal class ModInterop : IModInterop
     public IReadOnlyList<IModResource> GetModsByTag(string tag) => manager.GetModsByTag(tag);
     public IModResource? GetMod(string tag) => manager.GetMod(tag);
     public IReadOnlyList<IModResource> GetModDependents() => manager.GetModDependents(metadata.Name);
+    public bool IsModDepends(ModuleMetadata metadata) => ModuleManager.IsModDepends(this.metadata, metadata);
     
     public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
     public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);

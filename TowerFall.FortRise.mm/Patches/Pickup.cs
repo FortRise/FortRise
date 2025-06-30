@@ -50,12 +50,15 @@ public class patch_Pickup : Pickup
         {
             return new GemPickup(position, target);
         }
-        if (!PickupsRegistry.PickupDatas.TryGetValue(type, out var data)) 
+
+        var data = PickupsRegistry.GetPickup(type);
+        if (data == null)
         {
             Logger.Error("Pickup type cannot be found!");
             Sounds.ui_levelLock.Play(160f);
-            return new GemPickup(position, target);
+            return new ShieldPickup(position, target);
         }
-        return data.PickupLoader(position, target, playerIndex);
+
+        return PickupsRegistry.CreatePickup(data.Pickups, position, target);
     }
 }

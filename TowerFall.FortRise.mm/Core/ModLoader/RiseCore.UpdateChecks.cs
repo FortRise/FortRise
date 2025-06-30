@@ -27,11 +27,6 @@ public partial class RiseCore
         }
 
 
-        public static bool IsUpdateAvailable(FortModule module)
-        {
-            return IsUpdateAvailable(module.Meta);
-        }
-
         public static bool IsUpdateAvailable(ModuleMetadata metadata)
         {
             return HasUpdates.Contains(metadata);

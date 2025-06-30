@@ -122,9 +122,9 @@ public static partial class RiseCore
                 }
                 if (!vanilla) 
                 {
-                    foreach (var customArrow in ArrowsRegistry.ArrowDatas.Values) 
+                    foreach (var customArrow in ArrowsRegistry.GetArrowEntries().Values)
                     {
-                        list.Add(customArrow.Types);
+                        list.Add(customArrow.ArrowTypes);
                     }
                 }
 

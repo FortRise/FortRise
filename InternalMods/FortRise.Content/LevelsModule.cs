@@ -11,7 +11,36 @@ internal sealed class LevelsModule : Mod
     public LevelsModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
-        context.Events.OnModLoadStateFinished += OnMoadLoadStateFinished;
+        context.Events.OnBeforeModInstantiation += OnBeforeModInstantiation;
+    }
+
+    private void OnBeforeModInstantiation(object? sender, BeforeModInstantiationEventArgs e)
+    {
+        if (!e.Context.Interop.IsModDepends(ModContent.Metadata))
+        {
+            return;
+        }
+
+        var content = e.ModContent;
+        var registry = e.Context.Registry;
+        if (registry is null)
+        {
+            return;
+        }
+
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Main);
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Menu);
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.BG);
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Boss);
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Corpse);
+        MusicLoader.Load(registry, content);
+        ArcherLoader.Load(registry, content);
+        TilesetLoader.Load(registry, content);
+        ThemeLoader.Load(registry, content);
+        VersusLoader.Load(registry, content, Logger);
+        QuestLoader.Load(registry, content);
+        DarkWorldLoader.Load(registry, content);
+        TrialsLoader.Load(registry, content, Logger);
     }
 
     private void OnMoadLoadStateFinished(object? sender, LoadState e)
@@ -24,26 +53,7 @@ internal sealed class LevelsModule : Mod
         var dependents = Context.Interop.GetModDependents();
         for (int i = 0; i < dependents.Count; i++)
         {
-            var dependent = dependents[i];
-            var registry = Context.Interop.GetModRegistry(dependent.Metadata);
-            if (registry is null)
-            {
-                continue;
-            }
 
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Main);
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Menu);
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.BG);
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Boss);
-            SpriteDataLoader.LoadSpriteData(registry, dependent.Content, ContainerSpriteType.Corpse);
-            MusicLoader.Load(registry, dependent.Content);
-            ArcherLoader.Load(registry, dependent.Content);
-            TilesetLoader.Load(registry, dependent.Content);
-            ThemeLoader.Load(registry, dependent.Content);
-            VersusLoader.Load(registry, dependent.Content, Logger);
-            QuestLoader.Load(registry, dependent.Content);
-            DarkWorldLoader.Load(registry, dependent.Content);
-            TrialsLoader.Load(registry, dependent.Content, Logger);
         }
     }
 }

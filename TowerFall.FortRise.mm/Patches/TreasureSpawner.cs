@@ -37,12 +37,13 @@ public class patch_TreasureSpawner : TreasureSpawner
 
     private void ResizeIfNeeded(ref int[] mask, ref float[] chances)
     {
-        if (PickupsRegistry.PickupDatas.Count == 0)
+        var count = PickupsRegistry.GetAllPickups().Count;
+        if (count == 0)
         {
             return; // No need
         }
 
-        int treasureCount = 21 + PickupsRegistry.PickupDatas.Count;
+        int treasureCount = 21 + count;
 
         if (mask.Length != treasureCount)
         {
@@ -123,8 +124,9 @@ public class patch_TreasureSpawner : TreasureSpawner
     internal static void ExtendTreasures() 
     {
         const int GemPickupID = 20;
+        var allPickups = PickupsRegistry.GetAllPickups();
 
-        var treasureCount = 21 + PickupsRegistry.PickupDatas.Count;
+        var treasureCount = 21 + allPickups.Count;
         // We don't need to resize, if left unchanged
         if (treasureCount == 21)
             return;
@@ -136,10 +138,10 @@ public class patch_TreasureSpawner : TreasureSpawner
         FullTreasureMask[GemPickupID] = 0;
 
         // Put every customs pickups including the arrows to be in the treasure pools
-        foreach (var pickup in PickupsRegistry.PickupDatas.Values) 
+        foreach (var pickup in allPickups.Values) 
         {
-            var id = pickup.ID;
-            var chance = pickup.Chance;
+            var id = pickup.Pickups;
+            var chance = pickup.Configuration.Chance;
             DefaultTreasureChances[(int)id] = chance;
             FullTreasureMask[(int)id] = 1;
         }
@@ -151,17 +153,17 @@ public class patch_TreasureSpawner : TreasureSpawner
     {
         var arrow = orig_GetRandomArrowType(includeDefaultArrows);
         var list = new List<ArrowTypes> { arrow };
-        foreach (var arrowPickup in PickupsRegistry.PickupDatas.Values)
+        foreach (var arrowPickup in PickupsRegistry.GetAllPickups().Values)
         {
-            if (arrowPickup.ArrowType == null)
+            if (!arrowPickup.Configuration.ArrowType.TryGetValue(out var type))
             {
                 continue;
             }
-            if (Exclusions.Contains(arrowPickup.ID))
+            if (Exclusions.Contains(arrowPickup.Pickups))
             {
                 continue;
             }
-            var type = ArrowsRegistry.Types[arrowPickup.ArrowType];
+
             list.Add(type);
         }
         
@@ -173,12 +175,19 @@ public class patch_TreasureSpawner : TreasureSpawner
     public List<Pickups> GetArrowShufflePickups() 
     {
         var list = orig_GetArrowShufflePickups();
-        foreach (var customArrow in PickupsRegistry.ArrowPickups)
+        foreach (var customArrow in PickupsRegistry.GetAllPickups().Values)
         {
-            if (Exclusions.Contains(customArrow))
+            if (!customArrow.Configuration.ArrowType.HasValue)
+            {
                 continue;
+            }
+
+            if (Exclusions.Contains(customArrow.Pickups))
+            {
+                continue;
+            }
             
-            list.Add(customArrow);
+            list.Add(customArrow.Pickups);
         }
         list.Shuffle();
         return list;

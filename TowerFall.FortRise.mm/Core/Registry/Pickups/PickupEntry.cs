@@ -16,9 +16,4 @@ internal class PickupEntry : IPickupEntry
         Configuration = configuration;
         Pickups = pickups;
     }
-
-    public Pickups ToPickupType()
-    {
-        return ModRegisters.PickupType(Name);
-    }
 }

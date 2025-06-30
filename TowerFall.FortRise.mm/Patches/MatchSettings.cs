@@ -123,20 +123,4 @@ public class patch_MatchSettings : MatchSettings
 
     [MonoModIgnore]
     private extern void orig_CleanSettingsVersus();
-
-    [Obsolete("Use 'CustomVersusModeName' instead")]
-    public string CurrentModeName;
-    [Obsolete("Use 'CustomVersusGameMode' instead")]
-    public FortRise.CustomGameMode CurrentCustomGameMode 
-    {
-        get 
-        {
-            if (GameModeRegistry.TryGetGameMode(CurrentModeName, out var mode)) 
-            {
-                return mode as CustomGameMode;
-            }
-            return null;
-        }
-    } 
-    
 }

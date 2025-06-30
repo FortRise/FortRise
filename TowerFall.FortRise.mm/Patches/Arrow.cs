@@ -81,14 +81,15 @@ public abstract class patch_Arrow : Actor
 
     internal static void ExtendArrows() 
     {
-        var arrowIDCount = ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count;
-        ARROW_TYPES += ArrowsRegistry.ArrowDatas.Count;
+        var arrowEntries = ArrowsRegistry.GetArrowEntries();
+        var arrowIDCount = ARROW_TYPES + arrowEntries.Count;
+        ARROW_TYPES += arrowEntries.Count;
         Array.Resize(ref Names, arrowIDCount);
         Array.Resize(ref Colors, arrowIDCount);
         Array.Resize(ref ColorsB, arrowIDCount);
-        foreach (var arrowObject in ArrowsRegistry.ArrowDatas.Values) 
+        foreach (var arrowObject in arrowEntries.Values) 
         {
-            var arrow = arrowObject.Types;
+            var arrow = arrowObject.ArrowTypes;
             Colors[(int)arrow] = Color.White;
         }
     }
@@ -101,7 +102,7 @@ public abstract class patch_Arrow : Actor
     [MonoModReplace]
     public static void Initialize() 
     {
-        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count];
+        cached = new Stack<patch_Arrow>[Arrow.ARROW_TYPES + ArrowsRegistry.GetArrowEntries().Count];
         for (int i = 0; i < cached.Length; i++)
         {
             cached[i] = new Stack<patch_Arrow>();
@@ -142,7 +143,7 @@ public abstract class patch_Arrow : Actor
 
     private static patch_Arrow CreateCustomArrow(ArrowTypes type) 
     {
-        var arrow = ArrowsRegistry.ArrowDatas[type].ArrowLoader();
+        var arrow = ArrowsRegistry.CreateArrow(type);
         if (arrow == null) 
         {
             Logger.Error($"Some Arrow type ID: {type} can't be found. Falling back to default arrow");

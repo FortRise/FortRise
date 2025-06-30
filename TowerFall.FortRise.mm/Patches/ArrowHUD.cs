@@ -14,11 +14,11 @@ public class patch_ArrowHUD : ArrowHUD
     public void ctor() 
     {
         orig_ctor();
-        Array.Resize(ref images, Arrow.ARROW_TYPES + ArrowsRegistry.ArrowDatas.Count);
-        foreach (var arrowObj in ArrowsRegistry.ArrowDatas.Values) 
+        Array.Resize(ref images, Arrow.ARROW_TYPES + ArrowsRegistry.GetArrowEntries().Count);
+        foreach (var arrowObj in ArrowsRegistry.GetArrowEntries().Values) 
         {
-            var arrow = arrowObj.Types;
-            var value = arrowObj.Hud;
+            var arrow = arrowObj.ArrowTypes;
+            var value = arrowObj.Configuration.HUD.Subtexture;
             images[(int)arrow] = value ?? TFGame.Atlas["player/arrowHUD/arrow"];
         }
     }

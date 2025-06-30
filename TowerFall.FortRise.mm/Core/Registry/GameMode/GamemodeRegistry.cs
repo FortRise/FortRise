@@ -14,43 +14,9 @@ public static class GameModeRegistry
     public static Dictionary<Modes, IVersusGameModeEntry> ModesToVersusGameMode = new();
     public static Dictionary<string, Modes> NameToModes = new();
 
-    [Obsolete]
-    public static bool TryGetGameMode(string name, out IVersusGameModeEntry mode) 
-    {
-        if (GameModesMap.TryGetValue(name, out var type)) 
-        {
-            if (GameModeTypes.TryGetValue(type, out var idx)) 
-            {
-                mode = VersusGameModes[idx];
-                return true;
-            }
-        }
-        mode = null;
-        return false;
-    }
-
     public static Modes GetGameModeModes(string name) 
     {
         return NameToModes[name];
-    }
-
-    public static void Register<T>(FortModule module) 
-    {
-        Register(typeof(T), module);
-    }
-
-    public static void Register(Type type, FortModule module) 
-    {
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (type.IsSubclassOf(typeof(CustomGameMode)) && type.IsPublic) 
-        {
-            var instance = Activator.CreateInstance(type) as CustomGameMode;
-            instance.Initialize();
-            instance.coinSprite = instance.CoinSprite();
-            Register(new VersusGameModeEntry("legacy/" + instance.Name, EnumPool.Obtain<Modes>(), instance));
-            LegacyGameModes.Add(instance);
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public static void AddVersusGamemode(IVersusGameModeEntry gameMode)
@@ -73,9 +39,4 @@ public static class GameModeRegistry
         ModesToVersusGameMode.Add(mode, gameMode);
         NameToModes.Add(gameMode.Name, mode);
     }
-
-
-#pragma warning disable CS0618 // Type or member is obsolete
-    public static List<CustomGameMode> LegacyGameModes = new();
-#pragma warning restore CS0618 // Type or member is obsolete
 }

@@ -191,23 +191,6 @@ public static class AtlasExt
         return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);       
     }
 
-    public static patch_Atlas CreateAtlas(FortContent content, string xmlPath, string imagePath, ContentAccess access = ContentAccess.Root)
-    {
-        if (access == ContentAccess.Content) 
-        {
-            xmlPath = Calc.LOADPATH + xmlPath;
-            imagePath =  Calc.LOADPATH + imagePath;
-        }
-        else if (content != null) 
-        {
-            xmlPath = Path.Combine(content.Root.Root, xmlPath);
-            imagePath = Path.Combine(content.Root.Root, imagePath);
-        }
-        using var rootXmlStream = ModIO.OpenRead(xmlPath);
-        using var rootImageStream = ModIO.OpenRead(imagePath);
-        return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
-    }
-
     public static patch_Atlas CreateAtlas(Stream xmlStream, Stream imageStream)
     {
         patch_Atlas atlas = AtlasReader.Read(xmlStream, ".xml");

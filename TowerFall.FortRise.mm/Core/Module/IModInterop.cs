@@ -15,6 +15,7 @@ public interface IModInterop
     IReadOnlyList<IModResource> GetModsByTag(string tag);
     IModRegistry? GetModRegistry(string modName);
     IModRegistry? GetModRegistry(ModuleMetadata metadata);
+    bool IsModDepends(ModuleMetadata metadata);
 
     T? GetApi<T>(string name, Option<SemanticVersion> minimumVersion = default) where T : class;
 

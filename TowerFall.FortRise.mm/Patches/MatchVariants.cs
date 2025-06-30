@@ -17,7 +17,6 @@ public class patch_MatchVariants : MatchVariants
     private List<Variant> canRandoms;
     [MonoModIgnore]
     public static int Count { get; private set; }
-    internal VariantManager manager;
 
     public void orig_ctor(bool noPerPlayer = false) { }
 
@@ -30,40 +29,11 @@ public class patch_MatchVariants : MatchVariants
         orig_ctor(noPerPlayer);
         StoreVanillaVariantsAsCustom();
 
-        manager = new VariantManager(this);
-        foreach (var mod in RiseCore.ModuleManager.InternalFortModules)
-        {
-            manager.SetContext(mod.Meta);
-            if (mod is FortModule module)
-            {
-                module.OnVariantsRegister(manager, noPerPlayer);
-            }
-        }
-
 
         int oldLength = Variants.Length;
-        Array.Resize(ref Variants, manager.TotalCustomVariantsAdded + Variants.Length);
-        int count = 0;
-        foreach (var key in manager.ToAdd.Keys)
-        {
-            var list = manager.ToAdd[key];
-            for (int i = oldLength; i < oldLength + list.Count; i++)
-            {
-                Variants[i] = list[count];
-                count++;
-            }
-            oldLength += count;
-            count = 0;
-        }
-
-        foreach (var random in manager.CanRandoms)
-            canRandoms.Add(random);
-        manager.Dispose();
-
-        oldLength = Variants.Length;
         Array.Resize(ref Variants, oldLength + VariantRegistry.Variants.Count);
 
-        count = oldLength;
+        int count = oldLength;
         foreach (var (name, value) in VariantRegistry.Variants)
         {
             var configuration = value.Configuration;

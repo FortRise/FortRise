@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -10,14 +12,13 @@ namespace FortRise;
 public static class PickupsRegistry 
 {
     private static Dictionary<string, IPickupEntry> pickupEntries = [];
-    public static Dictionary<Pickups, PickupData> PickupDatas = new Dictionary<Pickups, PickupData>();
+    private static Dictionary<Pickups, IPickupEntry> typeToEntries = [];
     public static Dictionary<string, Pickups> StringToTypes = new();
-    public static Dictionary<Type, Pickups> Types = new();
-    public static List<Pickups> ArrowPickups = new List<Pickups>();
 
     public static void AddPickup(IPickupEntry entry)
     {
         pickupEntries[entry.Name] = entry;
+        typeToEntries[entry.Pickups] = entry;
     }
 
 #nullable enable
@@ -25,6 +26,84 @@ public static class PickupsRegistry
     {
         pickupEntries.TryGetValue(id, out var entry);
         return entry;
+    }
+
+    public static IPickupEntry? GetPickup(Pickups pickupType)
+    {
+        typeToEntries.TryGetValue(pickupType, out var entry);
+        return entry;
+    }
+
+    public static IReadOnlyDictionary<string, IPickupEntry> GetAllPickups()
+    {
+        return pickupEntries;
+    }
+
+    private static Dictionary<Type, ConstructorInfo> constructors = new Dictionary<Type, ConstructorInfo>();
+
+    internal static patch_Pickup? CreatePickup(Pickups pickup, Vector2 pos, Vector2 targetPos)
+    {
+        var entry = GetPickup(pickup);
+
+        if (entry is null)
+        {
+            RiseCore.logger.LogError("This type does not exists or it is only for vanilla.");
+            return null;
+        }
+
+        patch_Pickup actualPickup;
+
+        if (entry.Configuration.ArrowType.TryGetValue(out var type))
+        {
+            ref var arrowCtor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType, out var exists);
+
+            if (!exists)
+            {
+                arrowCtor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(ArrowTypes)]);
+            }
+
+            if (arrowCtor is null)
+            {
+                RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
+                return null;
+            }
+
+            var arrowType = (patch_ArrowTypePickup)arrowCtor.Invoke([pos, targetPos, type]);
+
+            arrowType.Name = entry.Configuration.Name;
+
+            if (entry.Configuration.Color.TryGetValue(out var colA))
+            {
+                arrowType.Color = colA;
+            }
+
+            if (entry.Configuration.ColorB.TryGetValue(out var colB))
+            {
+                arrowType.ColorB = colB;
+            }
+
+            actualPickup = (patch_Pickup)(object)arrowType;
+        }
+        else
+        {
+            ref var ctor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType, out var didExistsAgain);
+
+            if (!didExistsAgain)
+            {
+                ctor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2)]);
+            }
+
+            if (ctor is null)
+            {
+                RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
+                return null;
+            }
+
+            actualPickup = (patch_Pickup)ctor.Invoke([pos, targetPos]);
+        }
+
+
+        return actualPickup;
     }
 #nullable disable
 
@@ -34,123 +113,21 @@ public static class PickupsRegistry
         {
             return pickups.ToString();
         }
+        var pickup = GetPickup(pickups);
 
-        if (PickupDatas.TryGetValue(pickups, out var data))
+        if (pickup is not null)
         {
-            return data.Name;
+            return pickup.Name;
         }
 
         Logger.Error("[PickupRegistry] Unknown Pickups type passed");
         return null;
     }
 
-
-    public static void Register<T>(FortModule module) 
-    {
-        Register(typeof(T), module);
-    }
-
-    public static void Register(Type type, FortModule module) 
-    {
-        foreach (var pickup in type.GetCustomAttributes<CustomPickupAttribute>()) 
-        {
-            if (pickup is null)
-                continue;
-
-            string id = $"{module.Meta.Name}/{pickup.Name}";
-            Register(id, EnumPool.Obtain<Pickups>(), new PickupConfiguration() 
-            {
-                Name = pickup.Name,
-                Chance = pickup.Chance,
-                PickupType = type
-            });
-        }
-
-        foreach (var pickup in type.GetCustomAttributes<CustomArrowPickupAttribute>()) 
-        {
-            if (pickup is null)
-                continue;
-
-            string id = $"{module.Meta.Name}/{pickup.Name}";
-            Register(id, EnumPool.Obtain<Pickups>(), new PickupConfiguration() 
-            {
-                Name = pickup.Name,
-                Chance = pickup.Chance,
-                PickupType = type,
-                ArrowType = pickup.ArrowType,
-            });
-        }
-    }
-
     public static void Register(string name, Pickups pickups, in PickupConfiguration configuration)
     {
-        PickupLoader loader = null;
-
-        if (configuration.ArrowType != null)
-        {
-            ConstructorInfo arrowCtor = configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(ArrowTypes)]);
-
-            if (arrowCtor != null)
-            {
-                Type arrowType = configuration.ArrowType;
-                string n = configuration.Name;
-                Option<Color> colA = configuration.Color;
-                Option<Color> colB = configuration.ColorB;
-                loader = (pos, targetPos, idx) => 
-                {
-                    var pickup = (patch_ArrowTypePickup)arrowCtor.Invoke([pos, targetPos, ArrowsRegistry.Types[arrowType]]);
-                    if (string.IsNullOrEmpty(pickup.Name))
-                    {
-                        pickup.Name = n;
-                    }
-                    if (colA.TryGetValue(out Color col))
-                    {
-                        pickup.Color = col;
-                    }
-
-                    if (colB.TryGetValue(out Color cb))
-                    {
-                        pickup.ColorB = cb;
-                    }
-                    return pickup;
-                };
-            }
-        }
-        else
-        {
-            ConstructorInfo ctor = configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2)]);
-            if (ctor != null)
-            {
-                loader = (pos, targetPos, idx) => 
-                {
-                    var custom = (Pickup)ctor.Invoke([pos, targetPos]);
-                    if (custom is CustomOrbPickup customOrb) 
-                    {
-                        var info = customOrb.CreateInfo();
-                        customOrb.Sprite = info.Sprite;
-                        customOrb.LightColor = info.Color.Invert();
-                        customOrb.Collider = info.Hitbox;
-                        customOrb.Border.Color = info.Color;
-                        customOrb.Sprite.Play(0);
-                        customOrb.Add(customOrb.Sprite);
-                    }
-
-                    return custom;
-                };
-            }
-        }
-
         var stride = pickups;
-        var pickupObject = new PickupData() 
-        {
-            Name = name,
-            ID = stride,
-            Chance = configuration.Chance,
-            ArrowType = configuration.ArrowType,
-            PickupLoader = loader
-        };
+
         StringToTypes[name] = stride;
-        PickupDatas[stride] = pickupObject;
-        Types.Add(configuration.PickupType, stride);
     }
 }

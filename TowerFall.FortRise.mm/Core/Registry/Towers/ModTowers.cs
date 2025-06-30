@@ -153,8 +153,10 @@ internal sealed class ModTowers : IModTowers
             levelData.ArrowShuffle = entry.Configuration.ArrowShuffle;
             levelData.SpecialArrowRate = entry.Configuration.SpecialArrowRate;
 
-            levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length + PickupsRegistry.PickupDatas.Count];
-            var treasureChances = new float[TreasureSpawner.DefaultTreasureChances.Length + PickupsRegistry.PickupDatas.Count];
+            var count = PickupsRegistry.GetAllPickups().Count;
+
+            levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length + PickupsRegistry.GetAllPickups().Count];
+            var treasureChances = new float[TreasureSpawner.DefaultTreasureChances.Length + PickupsRegistry.GetAllPickups().Count];
             levelData.SetTreasureChances(treasureChances);
 
             for (int i = 0; i < entry.Configuration.Treasure.Length; i++)
@@ -242,9 +244,22 @@ internal sealed class ModTowers : IModTowers
                 {
                     foreach (var treasure in level.Treasures)
                     {
+                        var minPlayer = 1;
+                        var maxPlayer = 4;
+
+                        if (treasure.MinPlayer.TryGetValue(out var min))
+                        {
+                            minPlayer = min;
+                        }
+
+                        if (treasure.MaxPlayer.TryGetValue(out var max))
+                        {
+                            maxPlayer = max;
+                        }
+
                         for (int i = 0; i < 4; i++)
                         {
-                            if (i >= treasure.MinPlayer - 1 && i <= treasure.MaxPlayer - 1)
+                            if (i >= minPlayer - 1 && i <= maxPlayer - 1)
                             {
                                 pickupList[i].Add(treasure.Pickups);
                             }
@@ -252,7 +267,7 @@ internal sealed class ModTowers : IModTowers
                     }
                 }
 
-                var levelMode = patch_DarkWorldTowerData.LevelData.BossModes.Normal;
+                var levelMode = DarkWorldTowerData.LevelData.BossModes.Normal;
                 if (level.BossID.TryGetValue(out int val))
                 {
                     levelMode = DarkWorldTowerData.LevelData.BossModes.Boss;

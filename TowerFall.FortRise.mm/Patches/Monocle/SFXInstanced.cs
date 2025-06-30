@@ -49,35 +49,3 @@ public class patch_SFXInstanced : patch_SFX
         }
     }
 }
-
-public static class SFXInstancedExt 
-{
-    public static patch_SFXInstanced CreateSFXInstanced(this FortContent content, string filename, int instances = 2, bool obeysMasterPitch = true, ContentAccess contentAccess = ContentAccess.Root) 
-    {
-        if (Path.GetExtension(filename) == string.Empty)
-            filename += ".wav";
-        switch (contentAccess) 
-        {
-        case ContentAccess.Content: 
-            filename = Calc.LOADPATH + filename;
-            break;
-        case ContentAccess.ModContent:
-            {
-                if (content == null) 
-                {
-                    Logger.Error("[Atlas] You cannot use SFXInstancedExt.CreateSFXInstanced while FortContent is null");
-                    return null;
-                }
-                using var stream = content.Root.GetRelativePath(filename).Stream;
-                return CreateSFXInstanced(content, stream, instances, obeysMasterPitch);
-            }
-        }
-        using var fileStream = new FileStream(filename, FileMode.Open);
-        return CreateSFXInstanced(content, fileStream, instances, obeysMasterPitch);
-    }
-
-    public static patch_SFXInstanced CreateSFXInstanced(this FortContent content, Stream stream, int instances = 2, bool obeysMasterPitch = true) 
-    {
-        return new patch_SFXInstanced(stream, instances, obeysMasterPitch);
-    }
-}

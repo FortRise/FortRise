@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Microsoft.Xna.Framework;
+using TowerFall;
 
 namespace FortRise;
 
@@ -10,6 +11,6 @@ public readonly struct PickupConfiguration
     public required Type PickupType { get; init; }
     public Option<Color> Color { get; init; }
     public Option<Color> ColorB { get; init; }
-    public Type? ArrowType { get; init; }
+    public Option<ArrowTypes> ArrowType { get; init; }
     public float Chance { get; init; }
 }

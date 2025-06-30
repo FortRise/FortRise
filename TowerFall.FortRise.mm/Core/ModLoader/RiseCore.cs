@@ -423,23 +423,6 @@ public static partial class RiseCore
         ApplicationArgs = compiledArgs.ToArray();
     }
 
-    /// <summary>
-    /// Ask the mod loader to restart the game. If it isn't possible to restart, the call will be ignored.
-    /// </summary>
-    public static void AskForRestart(FortModule module)
-    {
-        string name = module.Meta.Name;
-        if (CantRestart)
-        {
-            Logger.Warning($"[RESTART] {name} asked for restart. But it was rejected as the game is not ready yet.");
-            return;
-        }
-
-        Logger.Info($"[RESTART] {name} asked for restart. Restarting the game...");
-        WillRestart = true;
-        Engine.Instance.Exit();
-    }
-
     internal static void InternalRestart()
     {
         WillRestart = true;
@@ -521,190 +504,14 @@ public static partial class RiseCore
         }
     }
 
-    internal static void RegisterMods()
-    {
-        foreach (var mod in ModuleManager.InternalFortModules)
-        {
-            TowerFall.Loader.Message = ("Registering " + mod.Meta.Name + " Features").ToUpperInvariant();
-            // mod.Register();
-        }
-    }
-
     internal static void WriteBlacklist(List<string> ctx, string path)
     {
         var json = JsonSerializer.Serialize(ctx);
         File.WriteAllText(path, json);
     }
 
-    internal static void Register(this FortModule module)
+    internal static void Unregister()
     {
-        if (module is NoModule)
-            return;
-
-        module.LoadContent();
-
-        module.Enabled = true;
-        List<Action> laziedRegisters = new List<Action>();
-
-        try
-        {
-            foreach (var type in module.GetType().Assembly.GetTypes())
-            {
-                if (type is null)
-                    continue;
-
-                GameModeRegistry.Register(type, module);
-                foreach (CustomEnemyAttribute attrib in type.GetCustomAttributes<CustomEnemyAttribute>())
-                {
-                    if (attrib is null)
-                        continue;
-                    EntityRegistry.AddEnemy(module, type, attrib.Names);
-                }
-                foreach (var clea in type.GetCustomAttributes<CustomLevelEntityAttribute>())
-                {
-                    if (clea is null)
-                        continue;
-                    foreach (var name in clea.Names)
-                    {
-                        string id;
-                        string methodName = string.Empty;
-                        string[] split = name.Split('=');
-                        if (split.Length == 1)
-                        {
-                            id = split[0];
-                        }
-                        else if (split.Length == 2)
-                        {
-                            id = split[0];
-                            methodName = split[1];
-                        }
-                        else
-                        {
-                            Logger.Error($"[Loader] [{module.Meta.Name}] Invalid syntax of custom entity ID: {name}, {type.FullName}");
-                            continue;
-                        }
-                        id = id.Trim();
-                        methodName = methodName?.Trim();
-
-                        ConstructorInfo ctor;
-                        MethodInfo info;
-                        LevelEntityLoader loader = null;
-                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement) });
-                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
-                        {
-                            loader = (xml, _, _) =>
-                            {
-                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
-                               xml
-                            });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-
-                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2) });
-                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
-                        {
-                            loader = (xml, pos, _) =>
-                            {
-                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
-                                xml, pos
-                            });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-
-                        info = type.GetMethod(methodName, new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                        if (info != null && info.IsStatic && info.ReturnType.IsCompatible(typeof(LevelEntity)))
-                        {
-                            loader = (xml, pos, nodes) =>
-                            {
-                                var invoked = (LevelEntity)info.Invoke(null, new object[] {
-                                xml, pos, nodes
-                            });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-
-                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement) });
-                        if (ctor != null)
-                        {
-                            loader = (x, _, _) =>
-                            {
-                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2) });
-                        if (ctor != null)
-                        {
-                            loader = (x, pos, _) =>
-                            {
-                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-                        ctor = type.GetConstructor(new Type[] { typeof(XmlElement), typeof(Vector2), typeof(Vector2[]) });
-                        if (ctor != null)
-                        {
-                            loader = (x, pos, nodes) =>
-                            {
-                                var invoked = (LevelEntity)ctor.Invoke(new object[] { x, pos, nodes });
-                                return invoked;
-                            };
-                            goto Loaded;
-                        }
-                    Loaded:
-                        LevelEntityLoader[name] = loader;
-                    }
-                }
-
-                FortRise.ArrowsRegistry.Register(type, module);
-                // laziedRegisters exists for PickupRegistry since it sometimes depends on Arrows
-                laziedRegisters.Add(() => FortRise.PickupsRegistry.Register(type, module));
-                foreach (var dwBoss in type.GetCustomAttributes<CustomDarkWorldBossAttribute>())
-                {
-                    if (dwBoss is null)
-                        continue;
-                    var bossName = dwBoss.BossName;
-
-                    ConstructorInfo ctor;
-                    DarkWorldBossLoader loader = null;
-                    ctor = type.GetConstructor(new Type[] { typeof(int) });
-                    if (ctor != null)
-                    {
-                        loader = diff =>
-                        {
-                            var invoked = (DarkWorldBoss)ctor.Invoke(new object[] { diff });
-                            return invoked;
-                        };
-                        goto Loaded;
-                    }
-                Loaded:
-                    DarkWorldBossLoader[bossName] = loader;
-                }
-            }
-
-            foreach (var lazy in laziedRegisters)
-            {
-                lazy();
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e.ToString());
-        }
-
-        module.AfterLoad();
-    }
-
-    internal static void Unregister(this FortModule module)
-    {
-        // module.InternalUnload();
     }
 
     internal static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
@@ -766,23 +573,5 @@ public static partial class RiseCore
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Checks if a <see cref="FortRise.FortModule"/> exists or been loaded. This checks for a Fort name, not a metadata name.
-    /// </summary>
-    /// <param name="modName">A Fort name, not a metadata name</param>
-    /// <returns>true if found, else false</returns>
-    [Obsolete("FortModule could use the 'Interop' instead")]
-    public static bool IsModExists(string modName)
-    {
-        foreach (var module in ModuleManager.InternalFortModules)
-        {
-            if (module.Meta.Name == modName)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }

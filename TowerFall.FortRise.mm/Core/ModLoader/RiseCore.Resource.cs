@@ -256,17 +256,4 @@ public partial class RiseCore
             }
         }
     }
-
-    public static class ResourceReloader 
-    {
-        public static Queue<FortContent> ContentRequestedReload = new Queue<FortContent>();
-
-        public static void Update() 
-        {
-            if (ContentRequestedReload.Count == 0) { return; }
-
-            var content = ContentRequestedReload.Dequeue();
-            content?.Reload();
-        }
-    }
 }

@@ -88,36 +88,3 @@ public class patch_SFX : SFX
         }
     }
 }
-
-
-public static class SFXExt 
-{
-    public static SFX CreateSFX(this FortContent content, string filename, bool obeysMasterPitch = true, ContentAccess contentAccess = ContentAccess.Root) 
-    {
-        if (Path.GetExtension(filename) == string.Empty)
-            filename += ".wav";
-        switch (contentAccess) 
-        {
-        case ContentAccess.Content: 
-            filename = Calc.LOADPATH + filename;
-            break;
-        case ContentAccess.ModContent:
-            {
-                if (content == null) 
-                {
-                    Logger.Error("[Atlas] You cannot use SFXExt.CreateSFX while FortContent is null");
-                    return null;
-                }
-                using var stream = content.Root.GetRelativePath(filename).Stream;
-                return CreateSFX(content, stream, obeysMasterPitch);
-            }
-        }
-        using var fileStream = new FileStream(filename, FileMode.Open);
-        return CreateSFX(content, fileStream, obeysMasterPitch);
-    }
-
-    public static SFX CreateSFX(this FortContent content, Stream stream, bool obeysMasterPitch = true) 
-    {
-        return new patch_SFX(stream, obeysMasterPitch);
-    }
-}
