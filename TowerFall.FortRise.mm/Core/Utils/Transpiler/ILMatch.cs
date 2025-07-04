@@ -208,6 +208,11 @@ public static class ILMatch
         );
     }
 
+    public static InstructionMatcher Ldnull()
+    {
+        return new InstructionMatcher((instr) => instr.opcode == OpCodes.Ldnull);
+    }
+
     public static InstructionMatcher Stsfld(string fieldName) =>
         new InstructionMatcher(
             (instr) =>
@@ -371,6 +376,55 @@ public static class ILMatch
             }
         );
 
+    public static InstructionMatcher Ldflda(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+                (instr.opcode == OpCodes.Ldflda) && (instr.operand as FieldInfo)?.Name == fieldName
+        );
+
+    public static InstructionMatcher Ldflda<T>() =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Ldflda) && operand.FieldType.Name == typeName;
+            }
+        );
+
+    public static InstructionMatcher Ldflda<T>(string fieldName) =>
+        new InstructionMatcher(
+            (instr) =>
+            {
+                string typeName = typeof(T).Name;
+                var operand = instr.operand as FieldInfo;
+                if (operand is null)
+                {
+                    return false;
+                }
+
+                return (instr.opcode == OpCodes.Ldflda)
+                    && operand.Name == fieldName
+                    && operand.FieldType.Name == typeName;
+            }
+        );
+
+    public static InstructionMatcher Ldstr() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Ldstr 
+        );
+    
+    public static InstructionMatcher Ldstr(string text) =>
+        new InstructionMatcher(
+            (instr) =>
+                instr.opcode == OpCodes.Ldstr && instr.operand.ToString() == text
+        );
+
     public static InstructionMatcher Call(string methodName) =>
         new InstructionMatcher(
             (instr) =>
@@ -453,6 +507,25 @@ public static class ILMatch
             (instr) => instr.opcode == OpCodes.Isinst && (instr.operand as Type) == typeof(T)
         );
 
+    public static InstructionMatcher Initobj(string objName) =>
+        new InstructionMatcher(
+            (instr) =>
+                instr.opcode == OpCodes.Initobj
+                && (instr.operand as Type)?.Name == objName
+        );
+
+    public static InstructionMatcher Initobj<T>() =>
+        new InstructionMatcher(
+            (instr) =>
+                instr.opcode == OpCodes.Initobj
+                && (instr.operand as Type) == typeof(T)
+        );
+
+    public static InstructionMatcher Initobj(Type type) =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Initobj && (instr.operand as Type) == type
+        );
+
     public static InstructionMatcher Newobj(string objName) =>
         new InstructionMatcher(
             (instr) =>
@@ -470,6 +543,16 @@ public static class ILMatch
     public static InstructionMatcher Newobj(ConstructorInfo info) =>
         new InstructionMatcher(
             (instr) => instr.opcode == OpCodes.Newobj && (instr.operand as ConstructorInfo) == info
+        );
+
+     public static InstructionMatcher Brtrue() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Brtrue
+        );
+
+     public static InstructionMatcher Brtrue_S() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Brtrue_S
         );
 
      public static InstructionMatcher Cgt() =>
