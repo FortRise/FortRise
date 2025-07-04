@@ -338,8 +338,6 @@ namespace TowerFall
                     patch_Arrow.ExtendArrows();
                     patch_TreasureSpawner.ExtendTreasures();
 
-                    TowerPatchRegistry.Initialize();
-
                     Loader.Message = "INITIALIZING DEFAULT SESSION";
                     TFGame.WriteLineToLoadLog("Initialize Default Sessions...");
                     MainMenu.VersusMatchSettings = MatchSettings.GetDefaultVersus();

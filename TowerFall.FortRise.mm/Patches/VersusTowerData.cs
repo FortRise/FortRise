@@ -1,4 +1,3 @@
-using FortRise;
 using MonoMod;
 
 namespace TowerFall;
@@ -9,26 +8,10 @@ public class patch_VersusTowerData : VersusTowerData
     [MonoModLinkTo("TowerFall.LevelData", "Author")]
     public string Author;
     public float[] TreasureChances;
-    public bool NoPatching;
-    internal VersusTowerPatchContext InternalPatch;
-
-    public int[] ModTreasureMask() 
-    {
-        if (!NoPatching && InternalPatch != null) 
-        {
-            return InternalPatch.ReceivePatch(this.GetLevelID());
-        }
-        return TreasureMask;
-    }
 }
 
 public static class VersusTowerDataExt 
 {
-    public static void ApplyPatch(this VersusTowerData data, VersusTowerPatchContext ctx) 
-    {
-        ((patch_VersusTowerData)data).InternalPatch = ctx;
-    }
-
     public static float[] GetTreasureChances(this VersusTowerData data) 
     {
         var cast = ((patch_VersusTowerData)data);

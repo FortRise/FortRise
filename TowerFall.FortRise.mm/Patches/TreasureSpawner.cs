@@ -31,8 +31,7 @@ public class patch_TreasureSpawner : TreasureSpawner
     [MonoModReplace]
     public void ctor(Session session, patch_VersusTowerData versusTowerData) 
     {
-        var mask = versusTowerData.ModTreasureMask();
-        thisctor(session, mask, versusTowerData.SpecialArrowRate, versusTowerData.ArrowShuffle);
+        thisctor(session, versusTowerData.TreasureMask, versusTowerData.SpecialArrowRate, versusTowerData.ArrowShuffle);
     }
 
     private void ResizeIfNeeded(ref int[] mask, ref float[] chances)
@@ -60,7 +59,7 @@ public class patch_TreasureSpawner : TreasureSpawner
     [MonoModReplace]
     public void ctor(Session session, int[] mask, float arrowChance, bool arrowShuffle) 
     {
-        var levelSystem = (session.MatchSettings.LevelSystem as VersusLevelSystem);
+        var levelSystem = session.MatchSettings.LevelSystem as VersusLevelSystem;
         float[] newTreasureChances;
         if (levelSystem != null)
         {
@@ -72,7 +71,7 @@ public class patch_TreasureSpawner : TreasureSpawner
         }
 
         ResizeIfNeeded(ref mask, ref newTreasureChances);
-        
+
         Session = session;
         Random = new Random();
         Exclusions = Session.MatchSettings.Variants.GetItemExclusions(Session.MatchSettings.LevelSystem.CustomTower);
@@ -82,43 +81,76 @@ public class patch_TreasureSpawner : TreasureSpawner
             {
                 if (TreasureSpawner.DarkWorldTreasures[i])
                 {
-                    this.Exclusions.Add((Pickups)i);
+                    Exclusions.Add((Pickups)i);
                 }
             }
         }
         if (Session.MatchSettings.Variants.IgnoreTowerItemSet)
         {
-            TreasureRates = (float[])TreasureSpawner.DefaultTreasureChances.Clone();
+            TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
+            var clonedMask = new int[mask.Length];
+            Array.Fill(clonedMask, 1);
+            var patchContext = new VersusTowerTreasurePatchContext(clonedMask);
+            
+            foreach (var tower in TowerPatchRegistry.Hooks.Values)
+            {
+                if (tower.Hook.AffectedByIgnoreTowerItemSetVariant)
+                {
+                    continue;
+                }
+
+                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.GetLevelID()))
+                {
+                    tower.Hook.VersusTowerTreasurePatch(patchContext);
+                }
+            }
+
+            for (int j = 0; j < TreasureRates.Length; j++)
+            {
+                TreasureRates[j] = clonedMask[j] * newTreasureChances[j];
+            }
         }
         else
         {
             TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
+            var patchContext = new VersusTowerTreasurePatchContext(mask);
+
+            foreach (var tower in TowerPatchRegistry.Hooks.Values)
+            {
+                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.GetLevelID()))
+                {
+                    tower.Hook.VersusTowerTreasurePatch(patchContext);
+                }
+            }
+
             for (int j = 0; j < TreasureRates.Length; j++)
             {
-                TreasureRates[j] = (float)mask[j] * newTreasureChances[j];
+                TreasureRates[j] = mask[j] * newTreasureChances[j];
             }
         }
-        if (arrowShuffle || this.Session.MatchSettings.Variants.ArrowShuffle)
+
+        if (arrowShuffle || Session.MatchSettings.Variants.ArrowShuffle)
         {
             for (int k = 1; k <= 9; k++)
             {
                 TreasureRates[k] = 0f;
             }
-            foreach (Pickups pickups in this.GetArrowShufflePickups())
+            foreach (Pickups pickups in GetArrowShufflePickups())
             {
                 TreasureRates[(int)pickups] = newTreasureChances[(int)pickups];
             }
         }
-        foreach (Pickups pickup in this.Exclusions)
+
+        foreach (Pickups pickup in Exclusions)
         {
             TreasureRates[(int)pickup] = 0f;
         }
         float arrowRates = arrowChance;
-        if (this.Session.MatchSettings.Variants.IgnoreTowerItemSet)
+        if (Session.MatchSettings.Variants.IgnoreTowerItemSet)
         {
             arrowRates = 0.6f;
         }
-        TreasureSpawner.AdjustTreasureRatesForSpecialArrows(this.TreasureRates, arrowRates);
+        AdjustTreasureRatesForSpecialArrows(TreasureRates, arrowRates);
     }
 
     internal static void ExtendTreasures() 
