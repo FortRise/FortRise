@@ -1,6 +1,4 @@
-using System.Reflection;
 using Monocle;
-using FortRise;
 using System.IO;
 using System;
 
@@ -28,10 +26,6 @@ public static partial class patch_TFCommands
             }
 
             level.Session.TreasureSpawner.LogSpawnRates();
-        });
-        commands.RegisterCommand("detours", args => 
-        {
-            RiseCore.LogDetours(Logger.LogLevel.Info);
         });
         commands.RegisterCommand("hitbox", args => 
         {

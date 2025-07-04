@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using SDL3;
+[assembly: InternalsVisibleTo("FortRise.Content")]
+[assembly: InternalsVisibleTo("FortRise.ImGui")]
 
 namespace TowerFall
 {
@@ -54,8 +57,6 @@ namespace TowerFall
         {
             panel = new ErrorPanel();
             orig_ctor(noIntro || RiseCore.NoIntro);
-
-            FortRise.RiseCore.ModuleStart();
         }
 
         [MonoModReplace]

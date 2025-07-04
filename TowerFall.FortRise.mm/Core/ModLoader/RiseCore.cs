@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Xml;
 using System.Diagnostics;
@@ -11,8 +10,6 @@ using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
-using MonoMod.Utils;
-using MonoMod.RuntimeDetour;
 using TowerFall;
 using YYProject.XXHash;
 using Microsoft.Extensions.Logging;
@@ -44,8 +41,6 @@ public static partial class RiseCore
     internal static Mod FortRiseModule;
     internal static ModuleManager ModuleManager;
     internal static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
-
-    internal static List<string> DetourLogs = new List<string>();
 
     /// <summary>
     /// A current version of FortRise.
@@ -181,6 +176,8 @@ public static partial class RiseCore
 
             SetEnvZip(file);
         }
+
+        ModuleStart();
         static void SetEnvDir(string dir)
         {
             var metaPath = Path.Combine(dir, "env.json");
@@ -227,49 +224,15 @@ public static partial class RiseCore
         QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 
-        DetourManager.DetourApplied += info =>
-        {
-            if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
-            {
-                return;
-            }
-
-            if (!isMMHOOK)
-            {
-                DetourLogs.Add($"new Detour by {owner.GetName().Name}: {info.Method.Method.GetID()}");
-            }
-            else
-            {
-                DetourLogs.Add($"new On.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
-            }
-        };
-
-        DetourManager.ILHookApplied += info =>
-        {
-            if (GetHookOwner(out bool isMMHOOK) is not Assembly owner)
-            {
-                return;
-            }
-
-            if (!isMMHOOK)
-            {
-                DetourLogs.Add($"new ILHook by {owner.GetName().Name}: {info.Method.Method.GetID()}");
-            }
-            else
-            {
-                DetourLogs.Add($"new IL.+= by {owner.GetName().Name}: {info.Method.Method.GetID()}");
-            }
-        };
-
         AtlasReader.Initialize();
         // load the internals first
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
-        if (!NoRichPresence)
-        {
-            DiscordComponent.Create();
-        }
+        // if (!NoRichPresence)
+        // {
+        //     DiscordComponent.Create();
+        // }
     }
 
     internal static void ParseArgs(string[] args)
@@ -512,66 +475,5 @@ public static partial class RiseCore
 
     internal static void Unregister()
     {
-    }
-
-    internal static void LogDetours(Logger.LogLevel level = Logger.LogLevel.Debug)
-    {
-        List<string> detours = DetourLogs;
-        if (detours.Count == 0)
-            return;
-
-        DetourLogs = new List<string>();
-
-        foreach (string line in detours)
-        {
-            Logger.Log(line, level);
-        }
-    }
-
-    internal static Assembly GetHookOwner(out bool isMMHOOK, StackTrace trace = null)
-    {
-        isMMHOOK = false;
-
-        if (trace == null)
-        {
-            trace = new StackTrace();
-        }
-
-        int frameCount = trace.FrameCount;
-        for (int i = 0; i < frameCount; i++)
-        {
-            StackFrame frame = trace.GetFrame(i);
-            MethodBase caller = frame.GetMethod();
-
-            if (caller == null)
-            {
-                continue;
-            }
-
-            var declaringType = caller.DeclaringType;
-
-            if (declaringType == null)
-            {
-                continue;
-            }
-
-            Assembly assembly = declaringType.Assembly;
-
-            if (assembly == null ||
-                assembly == Assembly.GetExecutingAssembly() ||
-                assembly == typeof(Hook).Assembly)
-            {
-                continue;
-            }
-
-            if (assembly.GetName().Name.StartsWith("MMHOOK_"))
-            {
-                isMMHOOK = true;
-                continue;
-            }
-            return assembly;
-        }
-
-        return null;
     }
 }
