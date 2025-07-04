@@ -70,7 +70,7 @@ public static class ModIO
 
     public static XmlDocument LoadXml(IResourceInfo resource)
     {
-        var text = ModIO.OpenRead(resource);
+        using var text = OpenRead(resource);
         return patch_Calc.LoadXML(text);
     }
 
@@ -80,7 +80,9 @@ public static class ModIO
         {
             return ModIO.LoadXml(resource);
         }
-        return Calc.LoadXML(path);
+
+        using var text = OpenRead(path);
+        return patch_Calc.LoadXML(text);
     }
 
     public static string[] GetFiles(string path)

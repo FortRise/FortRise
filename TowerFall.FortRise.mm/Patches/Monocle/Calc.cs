@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Monocle;
 
-public static class patch_Calc 
+public static class patch_Calc
 {
     public static string LOADPATH;
     public static string DW_LOADPATH;
@@ -15,7 +15,7 @@ public static class patch_Calc
     [PatchSDL2ToSDL3]
     [MonoModIgnore]
     private static extern string GetDWLoadPath();
-    public static XmlDocument LoadXML(Stream stream) 
+    public static XmlDocument LoadXML(Stream stream)
     {
         using var textReader = new StreamReader(stream);
         var xmlDocument = new XmlDocument();
@@ -24,14 +24,14 @@ public static class patch_Calc
     }
 
     [MonoModReplace]
-    public static T StringToEnum<T>(string str) where T : struct, Enum 
+    public static T StringToEnum<T>(string str) where T : struct, Enum
     {
-        if (Enum.IsDefined(typeof(T), str)) 
+        if (Enum.IsDefined(typeof(T), str))
         {
             return (T)Enum.Parse(typeof(T), str);
         }
         // Try to get the pickup value
-        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup) 
+        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup)
         {
             return custmPickup;
         }
@@ -39,15 +39,15 @@ public static class patch_Calc
         return default;
     }
 
-    public static bool TryStringToEnum<T>(string str, out T result) where T : struct 
+    public static bool TryStringToEnum<T>(string str, out T result) where T : struct
     {
-        if (Enum.IsDefined(typeof(T), str)) 
+        if (Enum.IsDefined(typeof(T), str))
         {
             result = (T)Enum.Parse(typeof(T), str);
             return true;
         }
         // Try to get the pickup value
-        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup) 
+        else if (PickupsRegistry.StringToTypes.TryGetValue(str, out var s) && s is T custmPickup)
         {
             result = custmPickup;
             return true;
@@ -57,7 +57,7 @@ public static class patch_Calc
     }
 
     [MonoModReplace]
-    public static Delegate GetMethod<T>(object obj, string method) where T : class 
+    public static Delegate GetMethod<T>(object obj, string method) where T : class
     {
         if (obj.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null)
         {
@@ -79,9 +79,9 @@ public static class patch_Calc
             return Array.Empty<T>();
         var array = new T[childs.Length];
         int i = 0;
-        foreach (var child in childs) 
+        foreach (var child in childs)
         {
-            if (System.Enum.TryParse<T>(child, out T result)) 
+            if (System.Enum.TryParse<T>(child, out T result))
             {
                 array[i] = result;
             }
@@ -90,16 +90,16 @@ public static class patch_Calc
         return array;
     }
 
-    public static string[] ChildStringArray(this XmlElement xml, string childName) 
+    public static string[] ChildStringArray(this XmlElement xml, string childName)
     {
         if (!xml.HasChild(childName))
             return null;
         var childs = xml[childName].InnerText.Split(',');
         if (childs == null)
             return Array.Empty<string>();
-        
+
         var array = new string[childs.Length];
-        for (int i = 0; i < childs.Length; i++) 
+        for (int i = 0; i < childs.Length; i++)
         {
             array[i] = childs[i];
         }
@@ -107,7 +107,7 @@ public static class patch_Calc
     }
 
     [MonoModReplace]
-    public static void Log(params object[] obj) 
+    public static void Log(params object[] obj)
     {
         foreach (object obj2 in obj)
         {
@@ -118,5 +118,11 @@ public static class patch_Calc
     public static float Clamp(float value, float min, float max)
     {
         return Math.Min(Math.Max(value, min), max);
+    }
+
+    [MonoModReplace]
+    public static XmlDocument LoadXML(string filename)
+    {
+        return ModIO.LoadXml(filename);
     }
 }
