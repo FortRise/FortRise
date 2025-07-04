@@ -1,4 +1,5 @@
 using ImGuiNET;
+using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
@@ -22,16 +23,21 @@ internal sealed class SceneInfoTab : IFortRiseImGuiAPI.ITabItem
             var levelSystem = level.Session.MatchSettings.LevelSystem;
             string levelID = levelSystem switch
             {
-            DarkWorldLevelSystem dwSystem => dwSystem.DarkWorldTowerData.GetLevelID(),
-            TrialsLevelSystem lSystem => lSystem.TrialsLevelData.GetLevelID(),
-            QuestLevelSystem qSystem => qSystem.QuestTowerData.GetLevelID(),
-            VersusLevelSystem vSystem => vSystem.VersusTowerData.GetLevelID(),
-            _ => "Unidentified level system"
+                DarkWorldLevelSystem dwSystem => dwSystem.DarkWorldTowerData.GetLevelID(),
+                TrialsLevelSystem lSystem => lSystem.TrialsLevelData.GetLevelID(),
+                QuestLevelSystem qSystem => qSystem.QuestTowerData.GetLevelID(),
+                VersusLevelSystem vSystem => vSystem.VersusTowerData.GetLevelID(),
+                _ => "Unidentified level system"
             };
 
             ImGui.Text("Level ID: " + levelID);
             ImGui.Text("Level Set: " + level.Session.GetLevelSet());
             ImGui.Text("Tags: " + string.Join(',', level.SceneTags));
         }
+
+        var numerics = new System.Numerics.Vector2(Engine.Instance.Screen.OffsetAdd.X, Engine.Instance.Screen.OffsetAdd.Y);
+
+        ImGui.InputFloat2("OffsetAdd: ", ref numerics);
+        Engine.Instance.Screen.OffsetAdd = new Vector2(numerics.X, numerics.Y);
     }
 }

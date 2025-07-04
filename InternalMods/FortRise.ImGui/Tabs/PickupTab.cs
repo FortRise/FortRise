@@ -36,7 +36,7 @@ internal sealed class PickupTab : IFortRiseImGuiAPI.ITabItem
     {
         if (!dirty)
         {
-            int len = 21 + PickupsRegistry.PickupDatas.Count;
+            int len = 21 + PickupsRegistry.GetAllPickups().Count;
             pickupCache = new string[len];
 
             for (int i = 0; i < len; i++)
@@ -74,7 +74,7 @@ internal sealed class PickupTab : IFortRiseImGuiAPI.ITabItem
             Pickups.ChaosOrb => "ChaosOrb",
             Pickups.Bomb => "Bomb",
             Pickups.Gem => "Gem",
-            _ => PickupsRegistry.PickupDatas[type].Name
+            _ => PickupsRegistry.GetPickup(type)!.Name
         };
     }
 }

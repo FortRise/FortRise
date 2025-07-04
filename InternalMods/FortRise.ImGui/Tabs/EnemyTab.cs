@@ -185,7 +185,7 @@ internal sealed class EnemyTab : IFortRiseImGuiAPI.ITabItem
     {
         if (!arrowDirty)
         {
-            int len = 11 + ArrowsRegistry.ArrowDatas.Count;
+            int len = 11 + ArrowsRegistry.StringToTypes.Count;
             arrowsCache = new ArrowDB[len];
 
             for (int i = 0; i < len; i++)
@@ -215,7 +215,7 @@ internal sealed class EnemyTab : IFortRiseImGuiAPI.ITabItem
             ArrowTypes.Prism => nameof(ArrowTypes.Prism),
             ArrowTypes.Toy => nameof(ArrowTypes.Toy),
             ArrowTypes.Trigger => nameof(ArrowTypes.Trigger),
-            _ => ArrowsRegistry.ArrowDatas[type].Name,
+            _ => ArrowsRegistry.GetArrow(type)!.Name,
         };
     }
 }
