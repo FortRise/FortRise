@@ -545,6 +545,36 @@ public static class ILMatch
             (instr) => instr.opcode == OpCodes.Newobj && (instr.operand as ConstructorInfo) == info
         );
 
+     public static InstructionMatcher Throw() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Throw
+        );
+
+     public static InstructionMatcher Break() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Break
+        );
+
+     public static InstructionMatcher Br() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Br
+        );
+
+     public static InstructionMatcher Br_S() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Br_S
+        );
+
+     public static InstructionMatcher Brfalse() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Brfalse
+        );
+
+     public static InstructionMatcher Brfalse_S() =>
+        new InstructionMatcher(
+            (instr) => instr.opcode == OpCodes.Brfalse_S
+        );
+
      public static InstructionMatcher Brtrue() =>
         new InstructionMatcher(
             (instr) => instr.opcode == OpCodes.Brtrue
