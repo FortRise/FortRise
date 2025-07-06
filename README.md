@@ -1,16 +1,21 @@
 # FortRise - TowerFall Mod Loader
-It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson). It's using [MonoMod](https://github.com/MonoMod/MonoMod) an open-source C# modding utility.
+It's a mod loader for [TowerFall Dark World](http://www.towerfall-game.com/) (created by Maddy Thorson). 
+
 
 FortRise is a main successor to [Bartizan](https://github.com/Kha/Bartizan) a modding framework exists for modding TowerFall.
-FortRise did more than just a modding framework, it is a mod loader and an API utility developed with a help of TowerFall community.
+FortRise did more than just a modding framework, it is a mod loader and an API utility developed with a help of TowerFall community and uses of
+[MonoMod](https://github.com/MonoMod/MonoMod) patcher.
 
-The main purposes with FortRise:
+The main purposes of FortRise:
 1. Mods are loaded inside of a single folder named `Mods`, it can be either a folder or a zip file as long as `meta.json` is present on its root.
 2. It does not write anything into the base TowerFall directory, it should only write into its own folder as it should.
 3. Contains most of a the features of TowerFall that you can load directly with a mod such as Levels, Archers, Arrows, etc.. This makes it easy to add new features to the game. 
 4. It has its own filesystem API for mods to interact with their own files. Mods should not write or read anything outside of its context, but this cannot be enforced directly.
 5. File logging across all mods and game logs to help figure out any specific issues to the mods installed.
 6. All mods have a separate save file to save its data instead of using the original saves.
+7. Stable and powerful patching utility with [Harmony](https://harmony.pardeike.net/).
+> While FortRise tried to not touch the main game files, it still does modify your save file. Currently, no mods are touching the vanilla save
+> file yet.
 
 
 ## Installation
