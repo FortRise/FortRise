@@ -17,35 +17,30 @@ public static class patch_GameData
         // Assign its LevelID
         foreach (var questTowers in GameData.QuestLevels) 
         {
-            var name = questTowers.Theme.Name;
-            var correctName = StringUtils.ToTitleCase(name);
-            questTowers.SetLevelID(correctName);
+            var name = (questTowers.Theme as patch_TowerTheme).ID;
+            questTowers.SetLevelID(name);
+            questTowers.SetLevelSet("TowerFall");
         }
 
         foreach (var versusTowers in GameData.VersusTowers) 
         {
-            var name = versusTowers.Theme.Name;
-            var correctName = StringUtils.ToTitleCase(name);
-            versusTowers.SetLevelID(correctName);
+            var name = (versusTowers.Theme as patch_TowerTheme).ID;
+            versusTowers.SetLevelID(name);
+            versusTowers.SetLevelSet("TowerFall");
         }
 
         foreach (var darkWorldTowers in GameData.DarkWorldTowers) 
         {
-            var name = darkWorldTowers.Theme.Name;
-            var correctName = StringUtils.ToTitleCase(name);
-            darkWorldTowers.SetLevelID(correctName);
+            var name = (darkWorldTowers.Theme as patch_TowerTheme).ID;
+            darkWorldTowers.SetLevelID(name);
+            darkWorldTowers.SetLevelSet("TowerFall");
         }
 
         foreach (var trialTowers in GameData.TrialsLevels) 
         {
-            var name = trialTowers.Theme.Name;
-            var id = trialTowers.ID.Y switch {
-                0 => "I",
-                1 => "II",
-                _ => "III"
-            };
-            var correctName = StringUtils.ToTitleCase(name) + " " + id;
-            trialTowers.SetLevelID(correctName);
+            var name = (trialTowers.Theme as patch_TowerTheme).ID;
+            trialTowers.SetLevelID(name + trialTowers.ID.Y);
+            trialTowers.SetLevelSet("TowerFall");
         }
 
         patch_MapScene.FixedStatic();

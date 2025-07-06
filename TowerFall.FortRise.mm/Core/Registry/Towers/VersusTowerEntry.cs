@@ -1,4 +1,6 @@
 #nullable enable
+using TowerFall;
+
 namespace FortRise;
 
 internal sealed class VersusTowerEntry : IVersusTowerEntry
@@ -7,10 +9,17 @@ internal sealed class VersusTowerEntry : IVersusTowerEntry
     public string ID { get; init; }
     public string LevelSet { get; init; }
 
+    public VersusTowerData? VersusTowerData => GetTowerData();
+
     public VersusTowerEntry(string id, string levelSet, VersusTowerConfiguration configuration)
     {
         ID = id;
         LevelSet = levelSet;
         Configuration = configuration;
+    }
+
+    private VersusTowerData GetTowerData()
+    {
+        return TowerRegistry.VersusGet(LevelSet, ID);
     }
 }

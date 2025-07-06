@@ -11,23 +11,9 @@ public class patch_LevelData : LevelData
     internal string InternalLevelSet;
     public string LevelSet 
     {
-        get 
+        get
         {
-            if (string.IsNullOrEmpty(InternalLevelSet))
-                return "TowerFall";
-            ReadOnlySpan<char> setSpan = LevelID.AsSpan();
-            if (setSpan[0] == 'm' && setSpan[1] == 'o' && setSpan[2] == 'd' && setSpan[3] == ':') 
-            {
-                setSpan = setSpan.Slice(0, 4);
-            }
-            int indexOfSlash = setSpan.IndexOf('/');
-            
-            if (indexOfSlash == -1)
-                return InternalLevelSet = "UNCATEGORIZED";
-            
-            var levelSet = setSpan.Slice(0, indexOfSlash);
-            
-            return InternalLevelSet = levelSet.ToString();
+            return InternalLevelSet;
         }
     }
 

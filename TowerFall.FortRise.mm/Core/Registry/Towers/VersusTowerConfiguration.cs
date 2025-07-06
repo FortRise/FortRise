@@ -8,5 +8,6 @@ public readonly struct VersusTowerConfiguration
     public Treasure[]? Treasure { get; init; }
     public string? Author { get; init; }
     public bool ArrowShuffle { get; init; }
+    public bool Procedural { get; init; }
     public float SpecialArrowRate { get; init; }
 }

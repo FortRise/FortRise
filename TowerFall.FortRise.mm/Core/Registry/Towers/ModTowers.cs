@@ -113,6 +113,7 @@ internal sealed class ModTowers : IModTowers
         levelData.SetLevelSet(entry.LevelSet);
         levelData.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
         levelData.Levels = new();
+        levelData.Procedural = entry.Configuration.Procedural;
 
         foreach (var level in entry.Configuration.Levels)
         {
@@ -140,7 +141,7 @@ internal sealed class ModTowers : IModTowers
             {
                 Path = level.RootPath,
                 PlayerSpawns = playerSpawnCount,
-                TeamSpawns = teamSpawnsCount
+                TeamSpawns = teamSpawnsCount,
             };
 
             levelData.Levels.Add(versusLevel);
@@ -155,16 +156,16 @@ internal sealed class ModTowers : IModTowers
 
             var count = PickupsRegistry.GetAllPickups().Count;
 
-            levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length + PickupsRegistry.GetAllPickups().Count];
-            var treasureChances = new float[TreasureSpawner.DefaultTreasureChances.Length + PickupsRegistry.GetAllPickups().Count];
-            levelData.SetTreasureChances(treasureChances);
+            levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length + count];
+            float[] treasureChances = (float[])TreasureSpawner.DefaultTreasureChances.Clone();
+            Array.Resize(ref treasureChances, TreasureSpawner.DefaultTreasureChances.Length + count);
 
-            for (int i = 0; i < entry.Configuration.Treasure.Length; i++)
+            for (int i = 0; i < entry.Configuration.Treasure.Length; i += 1)
             {
                 var treasure = entry.Configuration.Treasure[i];
                 if (!treasure.Rates.TryGetValue(out int rate))
                 {
-                    levelData.TreasureMask[(int)treasure.Pickup]++;
+                    levelData.TreasureMask[(int)treasure.Pickup] += 1;
                 }
                 else
                 {
@@ -173,9 +174,11 @@ internal sealed class ModTowers : IModTowers
 
                 if (treasure.Chance.TryGetValue(out float chance))
                 {
-                    levelData.GetTreasureChances()[(int)treasure.Pickup] = chance;
+                    treasureChances[(int)treasure.Pickup] = chance;
                 }
             }
+
+            levelData.SetTreasureChances(treasureChances);
         }
         else
         {

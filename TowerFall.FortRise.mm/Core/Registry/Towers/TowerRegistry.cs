@@ -259,14 +259,14 @@ public static class TowerRegistry
         TrialsTowerSets[levelSet] = list; 
     }
 
-    public static TrialsLevelData[] TrialsGet(string levelSet, int x, string levelID) 
+    public static TrialsLevelData TrialsGet(string levelSet, int x, string levelID) 
     {
         var versusLevel = TrialsTowerSets[levelSet];
         foreach (var level in versusLevel) 
         {
             if (level[x].GetLevelID() == levelID) 
             {
-                return level;
+                return level[x];
             }
         }
         return null;
