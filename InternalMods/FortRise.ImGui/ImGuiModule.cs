@@ -34,7 +34,7 @@ internal sealed class ImGuiModule : Mod
             prefix: new HarmonyMethod(Commands_Render_Prefix)
         );
 
-        TabItemManager.Instance.Register(new SceneInfoTab());
+        TabItemManager.Instance.Register(new DebugTab());
         TabItemManager.Instance.Register(new ArrowTab());
         TabItemManager.Instance.Register(new PickupTab());
         TabItemManager.Instance.Register(new EnemyTab());
