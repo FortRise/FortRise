@@ -5,12 +5,15 @@ using TowerFall;
 
 namespace FortRise.ImGuiLib;
 
-internal sealed class SceneInfoTab : IFortRiseImGuiAPI.ITabItem
+internal sealed class DebugTab : IFortRiseImGuiAPI.ITabItem
 {
-    public string Title => "Scene Info";
+    public string Title => "Debug";
 
     public void Render(IFortRiseImGuiAPI.IRenderer renderer)
     {
+        ImGui.SeparatorText("Entities");
+        ImGui.Checkbox("Show Hitbox", ref Level.DebugMode);
+        ImGui.SeparatorText("Scene");
         var scene = Engine.Instance.Scene;
         if (scene is null)
         {
