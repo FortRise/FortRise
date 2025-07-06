@@ -1,8 +1,7 @@
 using System.Xml;
-using Monocle;
 using MonoMod;
 
-namespace TowerFall;
+namespace Monocle;
 
 public class patch_AutotileData : AutotileData
 {
