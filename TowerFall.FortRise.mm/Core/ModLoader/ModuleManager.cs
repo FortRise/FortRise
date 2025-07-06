@@ -6,7 +6,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using HarmonyLib;
 using Microsoft.Extensions.Logging;
 using Nanoray.Pintail;
@@ -20,7 +22,7 @@ internal class ModDelayed(int requiredCount, ModuleMetadata metadata)
     public ModuleMetadata Metadata = metadata;
 }
 
-internal class ModuleManager 
+internal class ModuleManager
 {
     public LoadState State { get; set; }
     /// <summary>
@@ -52,7 +54,7 @@ internal class ModuleManager
     private ILogger logger;
     private ILoggerFactory loggerFactory;
     private ModFlags flags;
-    
+
     internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
         flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
@@ -315,7 +317,7 @@ internal class ModuleManager
                 InternalTags.Add(tag);
             }
         }
-        
+
 
         return new Unit();
     }
@@ -330,11 +332,11 @@ internal class ModuleManager
             {
                 successfulLoad.Add(delayMod);
             }
-            
+
             delayMod.RequiredCount = requiredDependencies;
             delayedMods[i] = delayMod;
         }
-        
+
         bool loadedAnother = successfulLoad.Count != 0;
 
         foreach (var success in successfulLoad)
@@ -366,7 +368,7 @@ internal class ModuleManager
                 logger.LogError("Mod named '{modName}' has missing dependencies.", delayedMod.Metadata.Name);
                 ErrorPanel.StoreError($"'{delayedMod.Metadata.Name}' has missing dependencies.");
             }
-            else 
+            else
             {
                 // Hey, we can load this one, dependency is not required!
                 LoadModSkipDependecies(delayedMod.Metadata);
@@ -432,6 +434,8 @@ internal class ModuleManager
         }
 
         EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Initialize);
+
+        LogPatches();
     }
 
     internal Mod CreateFortRiseModule()
@@ -559,4 +563,115 @@ internal class ModuleManager
         registryBatch.Add(registryQueue);
         return registryQueue;
     }
+
+    private void LogPatches()
+    {
+        StringBuilder builder = new StringBuilder("\n");
+
+        var patchedMethods = Harmony.GetAllPatchedMethods();
+        foreach (var method in patchedMethods)
+        {
+            string methodFullName = $"{method.DeclaringType.FullName}/{method.Name}";
+            builder.AppendLine("\t" + methodFullName);
+            Dictionary<string, PatchInfo> infos = new Dictionary<string, PatchInfo>();
+            var patches = Harmony.GetPatchInfo(method);
+
+            foreach (var owner in patches.Owners)
+            {
+                if (owner is null)
+                {
+                    continue;
+                }
+                infos[owner] = new PatchInfo();
+            }
+
+            foreach (var prefix in patches.Prefixes)
+            {
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                if (Unsafe.IsNullRef(ref patchInfo))
+                {
+                    continue;
+                }
+
+                patchInfo.prefix = prefix.PatchMethod.ReturnType != typeof(bool);
+                patchInfo.skippingPrefix = prefix.PatchMethod.ReturnType == typeof(bool);
+            }
+
+            foreach (var prefix in patches.Postfixes)
+            {
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                if (Unsafe.IsNullRef(ref patchInfo))
+                {
+                    continue;
+                }
+
+                patchInfo.postfix = true;
+            }
+
+            foreach (var prefix in patches.Transpilers)
+            {
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                if (Unsafe.IsNullRef(ref patchInfo))
+                {
+                    continue;
+                }
+
+                patchInfo.transpiler = true;
+            }
+
+            foreach (var prefix in patches.Finalizers)
+            {
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                if (Unsafe.IsNullRef(ref patchInfo))
+                {
+                    continue;
+                }
+
+                patchInfo.transpiler = true;
+            }
+
+            foreach (var info in infos)
+            {
+                var patchInfo = info.Value;
+                List<string> opts = new List<string>(5);
+                if (patchInfo.prefix)
+                {
+                    opts.Add("prefix");
+                }
+
+                if (patchInfo.postfix)
+                {
+                    opts.Add("postfix");
+                }
+
+                if (patchInfo.transpiler)
+                {
+                    opts.Add("transpiler");
+                }
+
+                if (patchInfo.finalizer)
+                {
+                    opts.Add("finalizer");
+                }
+
+                if (patchInfo.skippingPrefix)
+                {
+                    opts.Add("skippingPrefix");
+                }
+                
+                builder.AppendLine($"\t\t {info.Key} [{string.Join(',', opts)}]");
+            }
+        }
+
+
+        logger.LogDebug("Patches from Harmony: {patches}", builder.ToString());
+    }
+
+    private record struct PatchInfo(
+        bool prefix,
+        bool postfix,
+        bool transpiler,
+        bool finalizer,
+        bool skippingPrefix = false
+    );
 }
