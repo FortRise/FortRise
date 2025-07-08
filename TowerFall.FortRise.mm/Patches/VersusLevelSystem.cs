@@ -38,36 +38,44 @@ public class patch_VersusLevelSystem : VersusLevelSystem
 
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)
     {
-        try 
+        // if (VersusTowerData.GetLevelSet() != "TowerFall") 
+        // {
+        //     if (levels.Count == 0)
+        //     {
+        //         GenLevels(matchSettings);
+        //     }
+        //     lastLevel = this.levels[0];
+        //     levels.RemoveAt(0);
+        //     randomSeed = 0;
+        //     foreach (char c in lastLevel)
+        //     {
+        //         randomSeed += c;
+        //     }
+        //     if (RiseCore.ResourceTree.TreeMap.TryGetValue(lastLevel, out var res)) 
+        //     {
+        //         using var lastLevelStream = res.Stream;
+        //         return patch_Calc.LoadXML(lastLevelStream)["level"];
+        //     }
+        //     Logger.Error($"[VERSUSLEVELSYSTEM][{lastLevel}] Path not found!");
+        // }
+
+        if (levels.Count == 0)
         {
-            if (VersusTowerData.GetLevelSet() != "TowerFall") 
-            {
-                if (levels.Count == 0)
-                {
-                    GenLevels(matchSettings);
-                }
-                lastLevel = this.levels[0];
-                levels.RemoveAt(0);
-                randomSeed = 0;
-                foreach (char c in lastLevel)
-                {
-                    randomSeed += c;
-                }
-                if (RiseCore.ResourceTree.TreeMap.TryGetValue(lastLevel, out var res)) 
-                {
-                    using var lastLevelStream = res.Stream;
-                    return patch_Calc.LoadXML(lastLevelStream)["level"];
-                }
-                Logger.Error($"[VERSUSLEVELSYSTEM][{lastLevel}] Path not found!");
-            }
-            return orig_GetNextRoundLevel(matchSettings, roundIndex, out randomSeed);
+            GenLevels(matchSettings);
         }
-        catch (Exception e)
+        lastLevel = levels[0];
+        levels.RemoveAt(0);
+        randomSeed = 0;
+        string text = lastLevel;
+
+        for (int i = 0; i < text.Length; i++)
         {
-            ErrorHelper.StoreException("Missing Level", e);
-            randomSeed = 0;
-            return null;
+            char c = text[i];
+            randomSeed += c;
         }
+
+        XmlDocument xmlDocument = Calc.LoadXML(lastLevel);
+        return xmlDocument["level"];
     }
 
     [MonoModReplace]

@@ -57,7 +57,7 @@ internal sealed class ModArchers : IModArchers
 
     public IArcherEntry? GetArcher(string id)
     {
-        return ArcherRegistry.GetEntry(id);
+        return ArcherRegistry.GetArcherEntry(id);
     }
 
     private void Invoke(IArcherEntry entry)

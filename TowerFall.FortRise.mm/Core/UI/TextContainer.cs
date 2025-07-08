@@ -127,7 +127,7 @@ public class TextContainer : MenuItem
         CurrentPositionY = Position.Y;
         Current.Selected = true;
         Current.SelectedWiggler.Start();
-
+        Current.OnSelected();
     }
 
     public override void Update()
@@ -283,6 +283,7 @@ public class TextContainer : MenuItem
         public virtual void LeftPressed() {}
         public virtual void RightPressed() {}
         public virtual void ConfirmPressed() {}
+        public virtual void OnSelected() {}
     }
 
     public abstract class Option<T> : Item 
