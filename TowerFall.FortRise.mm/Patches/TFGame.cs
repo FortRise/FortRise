@@ -68,7 +68,6 @@ namespace TowerFall
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
             var towerFallPath = Directory.GetCurrentDirectory();
-            bool vanillaLaunch = false;
             bool parseVersion = false;
             foreach (var arg in args) 
             {
@@ -82,35 +81,11 @@ namespace TowerFall
                     RiseCore.FortRiseVersion = version;
                     parseVersion = false;
                 }
-                if (arg == "--vanilla")
-                {
-                    vanillaLaunch = true;
-                    break;
-                }
 
                 if (arg == "--version")
                 {
                     parseVersion = true;
                 }
-            }
-
-            if (vanillaLaunch) 
-            {
-                ThreadStart start = () => {
-                    try 
-                    {
-                        AppDomain.CurrentDomain.ExecuteAssembly("fortOrig/TowerFall.exe");
-                    }
-                    catch (Exception e) 
-                    {
-                        Console.WriteLine(e.ToString());
-                        Console.WriteLine(e.StackTrace);
-                    }
-                };
-                Thread thread = new Thread(start);
-                thread.Start();
-                thread.Join();
-                goto Exit;
             }
             
             if (!FortRise.RiseCore.Start()) 
@@ -130,7 +105,9 @@ namespace TowerFall
             
             TFGame.WriteLineToLoadLog("Initializing Steam...");
             if (!TryInit())
-                goto Exit;
+            {
+                return;
+            }
 
             // execheap
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
@@ -166,9 +143,6 @@ namespace TowerFall
                 Logger.Error(e.ToString());
                 Logger.Error(e.StackTrace);
             }
-
-            Exit:
-            Environment.Exit(0);
         }
 
         [MonoModIfFlag("Steamworks")]

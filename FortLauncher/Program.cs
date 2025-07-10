@@ -142,7 +142,7 @@ internal class Program
 
         logger.LogInformation("Game Path: {exePath}", exePath);
 
-        if (CheckLegacyFortRiseInstalled(exePath))
+        if (CheckLegacyFortRiseInstalled(logger, exePath))
         {
             SDL.SDL_ShowSimpleMessageBox(
                 SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error",
@@ -152,13 +152,34 @@ internal class Program
             return -1;
         }
 
+        BackupSaveFile(logger, exePath);
+
         return Launch(args, baseDirectory, exePath, logger, loggerFactory);
     }
 
-    private static bool CheckLegacyFortRiseInstalled(string exePath)
+    private static bool CheckLegacyFortRiseInstalled(ILogger logger, string exePath)
     {
         var txt = Path.Combine(Path.GetDirectoryName(exePath)!, "PatchVersion.txt");
-        return File.Exists(txt);
+        bool exists = File.Exists(txt);
+
+        if (exists)
+        {
+            logger.LogError("Cannot install FortRise as target TowerFall directory is still patched with Legacy FortRise version.");
+        }
+
+        return exists;
+    }
+
+    private static void BackupSaveFile(ILogger logger, string exePath)
+    {
+        var tfDir = Path.GetDirectoryName(exePath)!;
+        var saveFile = Path.Combine(tfDir, "tf_saveData");
+
+        if (File.Exists(saveFile) && !File.Exists(saveFile + ".backup0"))
+        {
+            logger.LogInformation("Backing up vanilla game save file from {tfDir}.", tfDir);
+            File.Copy(saveFile, saveFile + ".backup0");
+        }
     }
 
     private static int Launch(string[] args, string baseDirectory, string exePath, ILogger logger, ILoggerFactory factory)
@@ -227,7 +248,7 @@ internal class Program
 
             using (FileStream fs = File.OpenRead(patchFile))
             {
-                handler.GenerateHooks(fs, patchFile);
+                FortRiseHandler.GenerateHooks(fs, patchFile);
             }
         }
 

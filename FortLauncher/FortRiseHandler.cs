@@ -14,9 +14,9 @@ namespace FortLauncher;
 public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logger, ILoggerFactory factory)
 {
     public string[] Args = args.ToArray();
-    private string cwd = fortriseCWD;
-    private ILogger logger = logger;
-    private ILoggerFactory factory = factory;
+    private readonly string cwd = fortriseCWD;
+    private readonly ILogger logger = logger;
+    private readonly ILoggerFactory factory = factory;
 
     public void Run(string exePath, string patchFile)
     {
@@ -32,7 +32,16 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
             {
                 riseCore.Invoke(null, [logger, factory]);
                 logger.LogInformation("Running the game!");
-                asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+                try
+                {
+                    asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+                }
+                catch (Exception e)
+                {
+                    logger.LogCritical("Unhandled exception occured: {e}", e);
+                }
+
+                logger.LogInformation("FortRise is closing...");
                 return;
             }
         }
@@ -40,7 +49,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
         logger.LogCritical("Failed to run the game.");
     }
 
-    public void GenerateHooks(Stream stream, string patchFile)
+    public static void GenerateHooks(Stream stream, string patchFile)
     {
         Environment.SetEnvironmentVariable("MONOMOD_HOOKGEN_PRIVATE", "1");
         string mmhookPath = Path.Combine(Path.GetDirectoryName(patchFile)!, "MMHOOK_TowerFall.dll");
