@@ -25,4 +25,9 @@ internal static class ArcherRegistry
         archerEntries.TryGetValue(id, out var entry);
         return entry;
     }
+
+    public static IReadOnlyDictionary<string, IArcherEntry> GetArcherEntries()
+    {
+        return archerEntries;
+    }
 }
