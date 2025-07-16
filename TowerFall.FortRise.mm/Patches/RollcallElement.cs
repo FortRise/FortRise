@@ -59,6 +59,8 @@ public class patch_RollcallElement : RollcallElement
             }
         }
 
+        archerType = TFGame.AltSelect[playerIndex];
+
         portrait = new ArcherPortrait(Vector2.Zero, TFGame.Characters[playerIndex], archerType, true);
         Add(portrait);
         portrait.Visible = !shouldLock;
@@ -68,7 +70,6 @@ public class patch_RollcallElement : RollcallElement
             TFGame.AltSelect[playerIndex] = ArcherData.ArcherTypes.Normal;
         }
 
-        archerType = TFGame.AltSelect[playerIndex];
 
         rightArrow = new Image(TFGame.MenuAtlas["portraits/arrow"])
         {
@@ -186,10 +187,10 @@ public class patch_RollcallElement : RollcallElement
         if (archer is null)
         {
             var data = ArcherData.Archers[charIndex];
-            return FortRiseModule.Settings.BlacklistedArcher.Contains(data.Name0 + data.Name1);
+            return FortRiseModule.Settings.BlacklistedArcher.Contains(new BlacklistArcher(data.Name0 + data.Name1, true));
         }
 
-        return FortRiseModule.Settings.BlacklistedArcher.Contains(archer.Name);
+        return FortRiseModule.Settings.BlacklistedArcher.Contains(new BlacklistArcher(archer.Name, false));
     }
 
 

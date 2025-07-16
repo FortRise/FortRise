@@ -6,10 +6,12 @@ using TowerFall;
 
 namespace FortRise;
 
+internal record struct BlacklistArcher(string ArcherID, bool IsVanilla);
+
 internal sealed class FortRiseModuleSettings : ModuleSettings
 {
     public bool OldIntroLogo { get; set; }
-    public List<string> BlacklistedArcher { get; set; } = new();
+    public List<BlacklistArcher> BlacklistedArcher { get; set; } = new();
 
     public override void Create(ISettingsCreate settings)
     {
@@ -41,6 +43,30 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
             }
 
             settings.Container.Add(new BlacklistArcherPortraitColumn([.. info], provider));
+        }
+    }
+
+    public override void OnVerify()
+    {
+        List<BlacklistArcher> toRemove = [];
+
+        for (int i = 0; i < BlacklistedArcher.Count; i++)
+        {
+            var blacklist = BlacklistedArcher[i];
+            if (blacklist.IsVanilla) // we don't need to verify if its vanilla
+            {
+                continue;
+            }
+
+            if (ArcherRegistry.GetArcherEntry(blacklist.ArcherID) is null)
+            {
+                toRemove.Add(blacklist);
+            }
+        }
+
+        foreach (var removal in toRemove)
+        {
+            BlacklistedArcher.Remove(removal);
         }
     }
 }
@@ -78,16 +104,16 @@ internal sealed class BlacklistArcherPortraitColumn : TextContainer.Item
         var entry = ArcherRegistry.GetArcherEntry(idx);
         if (entry is null)
         {
-            if (!FortRiseModule.Settings.BlacklistedArcher.Remove(archerData.Name0 + archerData.Name1))
+            if (!FortRiseModule.Settings.BlacklistedArcher.Remove(new BlacklistArcher(archerData.Name0 + archerData.Name1, true)))
             {
-                FortRiseModule.Settings.BlacklistedArcher.Add(archerData.Name0 + archerData.Name1);
+                FortRiseModule.Settings.BlacklistedArcher.Add(new BlacklistArcher(archerData.Name0 + archerData.Name1, true));
             }
             return;
         }
 
-        if (!FortRiseModule.Settings.BlacklistedArcher.Remove(entry.Name))
+        if (!FortRiseModule.Settings.BlacklistedArcher.Remove(new BlacklistArcher(entry.Name, false)))
         {
-            FortRiseModule.Settings.BlacklistedArcher.Add(entry.Name);
+            FortRiseModule.Settings.BlacklistedArcher.Add(new BlacklistArcher(entry.Name, false));
         }
     }
 
@@ -143,10 +169,10 @@ internal sealed class BlacklistArcherPortraitColumn : TextContainer.Item
         var entry = ArcherRegistry.GetArcherEntry(idx);
         if (entry is null)
         {
-            return FortRiseModule.Settings.BlacklistedArcher.Contains(archerData.Name0 + archerData.Name1);
+            return FortRiseModule.Settings.BlacklistedArcher.Contains(new BlacklistArcher(archerData.Name0 + archerData.Name1, true));
         }
 
-        return FortRiseModule.Settings.BlacklistedArcher.Contains(entry.Name);
+        return FortRiseModule.Settings.BlacklistedArcher.Contains(new BlacklistArcher(entry.Name, false));
     }
 }
 
