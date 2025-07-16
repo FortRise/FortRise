@@ -221,7 +221,6 @@ public static partial class RiseCore
 
         FortRiseModule = ModuleManager.CreateFortRiseModule();
 
-        QuestEventRegistry.LoadAllBuiltinEvents();
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 
         AtlasReader.Initialize();

@@ -1,5 +1,6 @@
 using FortRise.Entities;
 using Microsoft.Extensions.Logging;
+using TowerFall;
 
 namespace FortRise;
 
@@ -36,6 +37,24 @@ public sealed class FortRiseModule : Mod
         {
             Name = "Slime Shield",
             Loader = ShieldSlime.RedSlimeS
+        });
+
+        Context.Registry.QuestEvents.RegisterQuestEvent("MiasmaWall", new()
+        {
+            Appear = (level) => level.Add(new Miasma(Miasma.Modes.CataclysmBoss)),
+            Disappear = (level) => level.Layers[0].GetFirst<Miasma>()?.Dissipate()
+        });
+
+        Context.Registry.QuestEvents.RegisterQuestEvent("MiasmaWallMoving", new()
+        {
+            Appear = (level) => level.Add(new Miasma(Miasma.Modes.TheAmaranthBoss)),
+            Disappear = (level) => level.Layers[0].GetFirst<Miasma>()?.Dissipate()
+        });
+
+        Context.Registry.QuestEvents.RegisterQuestEvent("MiasmaBottom", new()
+        {
+            Appear = (level) => level.Add(new BottomMiasma(BottomMiasma.Modes.DreadwoodBoss)),
+            Disappear = (level) => level.Layers[0].GetFirst<BottomMiasma>()?.Dissipate()
         });
     }
 

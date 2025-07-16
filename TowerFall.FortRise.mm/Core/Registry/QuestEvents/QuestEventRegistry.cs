@@ -38,27 +38,6 @@ public static class QuestEventRegistry
     /// </summary>
     public static IReadOnlyDictionary<string, Event> Events => events;
 
-    internal static void LoadAllBuiltinEvents() 
-    {
-        Register("FortRise/MiasmaWall", 
-        (level) => level.Add(new Miasma(Miasma.Modes.CataclysmBoss)), 
-        (_) => Engine.Instance.Scene.Layers[0].GetFirst<Miasma>()?.Dissipate());
-
-        Register("FortRise/MiasmaWallMoving",
-        (level) => level.Add(new Miasma(Miasma.Modes.TheAmaranthBoss)),
-        (_) => Engine.Instance.Scene.Layers[0].GetFirst<Miasma>()?.Dissipate());
-
-        Register("FortRise/MiasmaBottom",
-        (level) => level.Add(new BottomMiasma(BottomMiasma.Modes.DreadwoodBoss)),
-        (_) => Engine.Instance.Scene.Layers[0].GetFirst<BottomMiasma>()?.Dissipate());
-    }
-
-    /// <summary>
-    /// Use this function inside of a <see cref="FortRise.FortModule.Initialize"/> to add a quest event to the registry.
-    /// </summary>
-    /// <param name="eventName">A name of the event</param>
-    /// <param name="appear">An appear callback used to make the event appear</param>
-    /// <param name="dieOut">A dieOut callback used to make the event disappear</param>
     public static void Register(string eventName, QuestEventAction appear, QuestEventAction dieOut)
     {
         events[eventName] = new Event(appear, dieOut);
