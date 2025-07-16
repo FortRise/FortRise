@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Logging;
 
 namespace FortRise.Content;
@@ -41,19 +40,5 @@ internal sealed class LevelsModule : Mod
         QuestLoader.Load(registry, content);
         DarkWorldLoader.Load(registry, content);
         TrialsLoader.Load(registry, content, Logger);
-    }
-
-    private void OnMoadLoadStateFinished(object? sender, LoadState e)
-    {
-        if (e != LoadState.Load)
-        {
-            return;
-        }
-
-        var dependents = Context.Interop.GetModDependents();
-        for (int i = 0; i < dependents.Count; i++)
-        {
-
-        }
     }
 }

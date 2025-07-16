@@ -10,6 +10,7 @@ namespace FortRise;
 
 public class UIModMenu : CustomMenuState
 {
+    private static int lastIndex = -1;
     private List<string> tagDisabled;
     public UIModMenu(MainMenu main) : base(main)
     {
@@ -44,6 +45,13 @@ public class UIModMenu : CustomMenuState
                 Sounds.ui_invalid.Play(160f, 1f);
                 return;
             }
+            if (fortModule.GetSettings() == null && !RiseCore.UpdateChecks.HasUpdates.Contains(fortModule.Meta))
+            {
+                Sounds.ui_invalid.Play(160f, 1f);
+                return;
+            }
+
+            lastIndex = container.ScrollYIndex;
 
             (Main as patch_MainMenu).CurrentModule = fortModule;
             Main.CanAct = true;
@@ -53,56 +61,16 @@ public class UIModMenu : CustomMenuState
         Refresh(container);
 
 
-        ButtonBox tags = new ButtonBox(new Rectangle(0, 0, 52, 240), "", new Vector2(-100, 0));
-        Main.Add(tags);
-
-        int y = 0;
-        var list = new List<ButtonBox>();
-        foreach (var tag in RiseCore.ModuleManager.GetAllTags())
-        {
-            ButtonBox tagButton = new ButtonBox(new Rectangle(2, y + 39, 46, 15), tag.ToUpperInvariant(), new Vector2(-100, y + 39));
-            tagButton.RightItem = container;
-            tagButton.OnConfirmed = () => 
-            {
-                if (!tagDisabled.Remove(tag))
-                {
-                    tagDisabled.Add(tag);
-                }
-                Refresh(container);
-            };
-            list.Add(tagButton);
-            y += 17;
-        }
-
-        if (list.Count > 0)
-        {
-            container.LeftItem = list[0];
-            toggleMods.LeftItem = list[0];
-            for (int i = 0; i < list.Count; i++)
-            {
-                var b = list[i];
-                if (i == 0)
-                {
-                    if (i != list.Count - 1)
-                    {
-                        b.DownItem = list[i + 1];
-                    }
-                }
-                else if (i == list.Count - 1)
-                {
-                    b.UpItem = list[i - 1];
-                }
-                else 
-                {
-                    b.UpItem = list[i - 1];
-                    b.DownItem = list[i + 1];
-                }
-            }
-            Main.Add(list);
-        }
-
         Main.Add(container);
-        (Main as patch_MainMenu).ToStartSelected = toggleMods;
+        if (lastIndex == -1)
+        {
+            (Main as patch_MainMenu).ToStartSelected = toggleMods;
+        }
+        else
+        {
+            (Main as patch_MainMenu).ToStartSelected = container;
+        }
+        container.ScrollYIndex = lastIndex;
 
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
@@ -122,34 +90,13 @@ public class UIModMenu : CustomMenuState
 
     private IReadOnlyList<ModuleMetadata> GetMods() 
     {
-        if (tagDisabled.Count > 0)
-        {
-            return [.. RiseCore.ModuleManager.InternalModuleMetadatas];
-        }
-
-        return [.. RiseCore.ModuleManager.InternalModuleMetadatas.Where(x => !HasDisabledTag(x.Tags))];
-    }
-
-    private bool HasDisabledTag(string[] tags)
-    {
-        if (tags == null)
-        {
-            return false;
-        }
-        for (int i = 0; i < tags.Length; i++)
-        {
-            if (tagDisabled.Contains(tags[i]))
-            {
-                return true;
-            }
-        }
-        return false;
+        return [.. RiseCore.ModuleManager.InternalModuleMetadatas];
     }
 
     private void Refresh(ModContainer container)
     {
         container.ClearAll();
-        foreach (var mod in GetMods()) 
+        foreach (var mod in GetMods())
         {
             string title = mod.DisplayName?.ToUpperInvariant();
             if (string.IsNullOrEmpty(title))
@@ -162,14 +109,23 @@ public class UIModMenu : CustomMenuState
             {
                 title += "<t=variants/newVariantsTagSmall>";
             }
-            container.AddMod(new () 
+            var fortModule = RiseCore.ModuleManager.InternalFortModules
+                .Where(x => x.Meta is not null)
+                .Where(x => x.Meta.ToString() == mod.ToString())
+                .FirstOrDefault();
+
+            container.AddMod(new()
             {
                 OutlineColor = ModContainer.DefaultOutlineColor,
                 Title = title,
+                HasSettings = fortModule?.GetSettings() != null,
+                HasUpdate = hasUpdate,
                 Version = mod.Version.ToString().ToUpperInvariant(),
                 Metadata = mod
             });
         }
+
+        container.Sort();
     }
 }
 
@@ -261,6 +217,8 @@ internal class ModContainer : MenuItem
         public ModuleMetadata Metadata;
         public string Title;
         public string Version;
+        public bool HasSettings;
+        public bool HasUpdate;
         public Color OutlineColor;
     }
     private int scrollYIndex = -1;
@@ -269,6 +227,26 @@ internal class ModContainer : MenuItem
     private Box currentSelected;
     private float tweenTo;
     private float tweenFrom;
+
+    public int ScrollYIndex
+    {
+        get => scrollYIndex;
+        set
+        {
+            scrollYIndex = value;
+            if (scrollYIndex == -1)
+            {
+                return;
+            }
+            scrollY = Math.Max(0, scrollYIndex - 5) * 21;
+            currentSelected = buttonBoxes[scrollYIndex];
+
+            if (currentSelected != null)
+            {
+                currentSelected.OutlineColor = SelectedOutlineColor;
+            }
+        }
+    }
 
     public Box CurrentSelected => currentSelected;
     public Action<ModuleMetadata> OnConfirmed;
@@ -283,6 +261,35 @@ internal class ModContainer : MenuItem
     public void AddMod(Box buttonBox) 
     {
         buttonBoxes.Add(buttonBox);
+    }
+
+    public void Sort()
+    {
+        buttonBoxes = [.. buttonBoxes.OrderBy(x => x.Title)];
+
+        buttonBoxes.Sort((x, y) =>
+        {
+            if (y.HasUpdate)
+            {
+                return 1;
+            }
+
+            if (y.HasSettings)
+            {
+                return 1;
+            }
+
+            if (x.HasUpdate)
+            {
+                return -1;
+            }
+            if (x.HasSettings)
+            {
+                return -1;
+            }
+            return 0;
+
+        });
     }
 
     public void ClearAll()

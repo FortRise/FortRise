@@ -1,9 +1,7 @@
-using System;
-using System.Collections;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
- 
+
 namespace FortRise;
  
 public class UILoader : Loader

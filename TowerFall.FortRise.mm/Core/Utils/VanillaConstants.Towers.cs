@@ -16,7 +16,7 @@ public static partial class VanillaConstants
         public const string Towerforge = "Towerforge";
         public const string Ascension = "Ascension";
         public const string GauntletA = "GauntletA";
-        public const string GauntletB = "GauntletB"; //that 'i' is intentional
+        public const string GauntletB = "GauntletB";
         public const string TheAmaranth = "TheAmaranth";
         public const string Dreadwood = "Dreadwood";
         public const string Darkfang = "Darkfang";
