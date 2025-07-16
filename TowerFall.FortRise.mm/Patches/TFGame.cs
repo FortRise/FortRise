@@ -488,20 +488,18 @@ namespace TowerFall
             {
                 yield return 0;
             }
-            XNAFileDialog.GraphicsDevice = Engine.Instance.GraphicsDevice;
+            XNAFileDialog.GraphicsDevice = Instance.GraphicsDevice;
 
-            FortRise.RiseCore.Events.Invoke_OnPostInitialize();
             Loader.Message = "";
             if (SaveData.NewDataCreated && MainMenu.LoadError == null)
             {
                 Saver saver = new Saver(true);
-                Engine.Instance.Scene.Add(saver);
+                Instance.Scene.Add(saver);
                 saver.CanHandleError = true;
                 while (!saver.Finished)
                 {
                     yield return 0;
                 }
-                saver = null;
             }
 
             if (ErrorPanel.Errors.Count > 0)
@@ -509,12 +507,13 @@ namespace TowerFall
                 ErrorPanel.Show = true;
             }
             MainMenu.PlayMenuMusic();
-            Engine.ConsoleEnabled = SaveData.Instance.Options.DevConsole;
+            ConsoleEnabled = SaveData.Instance.Options.DevConsole;
             if (SaveData.Instance.Unlocks.Ascension)
             {
-                (Engine.Instance.Scene as MainMenu).Background.AscensionTransition();
+                (Instance.Scene as MainMenu).Background.AscensionTransition();
             }
-            patch_TFGame.Loaded = true;
+            Loaded = true;
+            ModEventsManager.Instance.OnMenuLoaded.Raise(null, new(Instance.Scene as MainMenu, SaveData.NewDataCreated));
             yield break;
         }
 

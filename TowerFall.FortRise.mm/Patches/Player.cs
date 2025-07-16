@@ -20,7 +20,6 @@ namespace TowerFall
         [Postfix(nameof(Added))]
         private void Added_Postfix()
         {
-            RiseCore.Events.Player.Invoke_OnSpawn(this, PlayerIndex);
             if (!Hair)
             {
                 return;

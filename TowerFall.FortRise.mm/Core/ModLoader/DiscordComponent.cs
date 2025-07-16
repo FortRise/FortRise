@@ -35,7 +35,7 @@ public sealed class DiscordComponent : GameComponent
             Logger.Log("[DISCORD] " + mess);
         });
 
-        RiseCore.Events.OnLevelLoaded += OnLevelLoaded;
+        // RiseCore.Events.OnLevelLoaded += OnLevelLoaded;
         RiseCore.Events.OnMainBegin += OnMainBegin;
         RiseCore.Events.OnMapBegin += OnMapBegin;
         RiseCore.Events.OnQuestSpawnWave += OnQuestSpawnWave;
@@ -56,7 +56,7 @@ public sealed class DiscordComponent : GameComponent
 
         DiscordInstance?.Dispose();
 
-        RiseCore.Events.OnLevelLoaded -= OnLevelLoaded;
+        // RiseCore.Events.OnLevelLoaded -= OnLevelLoaded;
         RiseCore.Events.OnMainBegin -= OnMainBegin;
         RiseCore.Events.OnMapBegin -= OnMapBegin;
         RiseCore.Events.OnQuestSpawnWave -= OnQuestSpawnWave;

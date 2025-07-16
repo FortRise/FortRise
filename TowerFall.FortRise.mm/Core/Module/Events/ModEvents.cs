@@ -24,9 +24,21 @@ internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IM
         remove => manager.OnModLoadStateFinished.Remove(metadata, value);
     }
 
-    public event EventHandler<RoundLogic> OnLevelLoaded 
+    public event EventHandler<RoundLogic> OnLevelLoaded
     {
         add => manager.OnLevelLoaded.Add(metadata, value);
         remove => manager.OnLevelLoaded.Remove(metadata, value);
+    }
+
+    public event EventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated
+    {
+        add => manager.OnSlotVariantCreated.Add(metadata, value);
+        remove => manager.OnSlotVariantCreated.Remove(metadata, value);
+    }
+
+    public event EventHandler<MenuLoadedEventArgs> OnMenuLoaded
+    {
+        add => manager.OnMenuLoaded.Add(metadata, value);
+        remove => manager.OnMenuLoaded.Remove(metadata, value);
     }
 }

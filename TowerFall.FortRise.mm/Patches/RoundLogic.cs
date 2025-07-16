@@ -16,9 +16,9 @@ namespace TowerFall
 
         public extern static RoundLogic orig_GetRoundLogic(patch_Session session);
 
-        public static RoundLogic GetRoundLogic(patch_Session session) 
+        public static RoundLogic GetRoundLogic(patch_Session session)
         {
-            if (session.MatchSettings.IsCustom) 
+            if (session.MatchSettings.IsCustom)
             {
                 var gamemode = session.MatchSettings.CustomVersusGameMode;
                 if (gamemode != null)
@@ -29,31 +29,16 @@ namespace TowerFall
             return orig_GetRoundLogic(session);
         }
 
-        [MonoModIgnore]
-        [PatchRoundLogicOnLevelLoadFinish]
-        public extern override void OnLevelLoadFinish();
-    }
-}
-
-namespace MonoMod 
-{
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchRoundLogicOnLevelLoadFinish))]
-    public class PatchRoundLogicOnLevelLoadFinish: Attribute {}
-
-    internal static partial class MonoModRules 
-    {
-        public static void PatchRoundLogicOnLevelLoadFinish(ILContext ctx, CustomAttribute attrib) 
+        [MonoModReplace]
+        public new virtual void OnLevelLoadFinish()
         {
-            var OnLevelLoaded = ctx.Module.GetType("FortRise.RiseCore/Events").FindMethod("System.Void Invoke_OnLevelLoaded(TowerFall.RoundLogic)");
-            var cursor = new ILCursor(ctx);
-            ILLabel label = null;
+            if (!Session.MatchSettings.SoloMode)
+            {
+                SaveData.Instance.Stats.RoundsPlayed++;
+                SessionStats.RoundsPlayed++;
+            }
 
-            cursor.GotoNext(instr => instr.MatchBrtrue(out label));
-            cursor.GotoNext(MoveType.After, instr => instr.MatchStsfld("TowerFall.SessionStats", "RoundsPlayed"));
-
-            cursor.MarkLabel(label);
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Call, OnLevelLoaded);
+            ModEventsManager.Instance.OnLevelLoaded.Raise(this, this);
         }
     }
 }

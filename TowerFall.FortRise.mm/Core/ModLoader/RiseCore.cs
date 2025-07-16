@@ -97,7 +97,7 @@ public static partial class RiseCore
         }
         catch
         {
-            return new HashSet<string>(0);
+            return [];
         }
     }
 
@@ -366,10 +366,10 @@ public static partial class RiseCore
                             continue;
                         }
 
-                        RiseCore.Events.OnPostInitialize += () =>
-                        {
-                            TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
-                        };
+                        // RiseCore.Events.OnPostInitialize += () =>
+                        // {
+                        //     TowerRegistry.PlayDarkWorld(towerSet, towerSet + "/" + levelID, DarkWorldDifficulties.Legendary, num);
+                        // };
                     }
                     catch (Exception ex)
                     {

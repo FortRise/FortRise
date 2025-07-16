@@ -430,7 +430,6 @@ internal class ModuleManager
         {
             fortModule.OnInitialize?.Invoke(fortModule.Context);
             EventsManager.OnModInitialize.Raise(fortModule, fortModule.Meta);
-            RiseCore.Events.Invoke_OnModInitialized(fortModule);
         }
 
         EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Initialize);

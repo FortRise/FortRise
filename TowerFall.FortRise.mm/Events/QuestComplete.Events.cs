@@ -22,9 +22,7 @@ public static partial class RiseCore
                     stats.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
                 else
                     stats.BeatNormal();
-                // TowerRegistry.DarkWorldGet(levelSet, levelID).Stats.Complete(
-                //     difficulties, playerAmount, time,
-                //     continues, deaths, curses);
+
                 OnQuestComplete_Result?.Invoke(quest, playerAmount, time, noDeaths);
                 return;
             }
