@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
-using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -37,68 +36,10 @@ public class patch_LevelLoaderXML : LevelLoaderXML
         }
     }
 
-
-
-    private Coroutine loader;
-    private bool errorShown;
     private int randomSeed;
-
 
     public patch_LevelLoaderXML(Session session) : base(session)
     {
-    }
-
-    public extern void orig_ctor(Session session);
-
-    [MonoModConstructor]
-    public void ctor(Session session)
-    {
-        orig_ctor(session);
-        if (XML == null)
-        {
-            SetLayer(-1, new Layer());
-            loader = null;
-            Sounds.ui_click.Play(160f, 1f);
-            session.MatchSettings.LevelSystem.Dispose();
-        }
-    }
-
-    [MonoModLinkTo("Monocle.Scene", "System.Void Update()")]
-    [MonoModIgnore]
-    public void base_Update() { base.Update(); }
-
-    [MonoModLinkTo("Monocle.Scene", "System.Void Render()")]
-    [MonoModIgnore]
-    public void base_Render() { base.Render(); }
-
-
-    [MonoModReplace]
-    public override void Update()
-    {
-        if (loader == null && !errorShown)
-        {
-            errorShown = true;
-            this.ShowError("Missing Level");
-        }
-        if (errorShown)
-        {
-            MenuInput.Update();
-            base_Update();
-            return;
-        }
-        loader.Update();
-    }
-
-    public extern void orig_Render();
-
-    public override void Render()
-    {
-        if (errorShown)
-        {
-            base_Render();
-            return;
-        }
-        orig_Render();
     }
 
     [MonoModReplace]

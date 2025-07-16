@@ -45,40 +45,31 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
     [MonoModReplace]
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)
     {
-        try 
+        if (Procedural)
         {
-            if (Procedural) 
-            {
-                matchSettings.RandomLevelSeed = new Random().Next(1000000000);
-            }
-            int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
-            randomSeed = file;
-            var levelFile = DarkWorldTowerData.Levels[file];
+            matchSettings.RandomLevelSeed = new Random().Next(1000000000);
+        }
+        int file = DarkWorldTowerData[matchSettings.DarkWorldDifficulty][roundIndex + startLevel].File;
+        randomSeed = file;
+        var levelFile = DarkWorldTowerData.Levels[file];
 
-            // Load custom levels
-            if (DarkWorldTowerData.GetLevelSet() != "TowerFall")
-            {
-                using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
-                if (levelFile.EndsWith("json"))
-                {
-                    return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
-                }
-                else
-                {
-                    return patch_Calc.LoadXML(level)["level"];
-                }
-            }
-            
-            // Load vanilla levels 
-            using Stream stream = File.OpenRead(levelFile);
-            return patch_Calc.LoadXML(stream)["level"];
-        }
-        catch (Exception e)
+        // Load custom levels
+        if (DarkWorldTowerData.GetLevelSet() != "TowerFall")
         {
-            ErrorHelper.StoreException("Missing Level", e);
-            randomSeed = 0;
-            return null;
+            using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
+            if (levelFile.EndsWith("json"))
+            {
+                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
+            }
+            else
+            {
+                return patch_Calc.LoadXML(level)["level"];
+            }
         }
+
+        // Load vanilla levels 
+        using Stream stream = File.OpenRead(levelFile);
+        return patch_Calc.LoadXML(stream)["level"];
     }
 
 
