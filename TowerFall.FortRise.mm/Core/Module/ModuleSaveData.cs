@@ -8,5 +8,5 @@ public abstract class ModuleSaveData
     /// <summary>
     /// A function that called when SaveData is being verified.
     /// </summary>
-    public virtual void Verify() {}
+    public virtual void OnVerify() {}
 }

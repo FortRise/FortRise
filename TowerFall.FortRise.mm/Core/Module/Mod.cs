@@ -91,7 +91,12 @@ public abstract class Mod
 
     internal void VerifySaveData()
     {
-        ((ModuleSaveData?)saveDataCache)?.Verify();
+        ((ModuleSaveData?)saveDataCache)?.OnVerify();
+    }
+
+    internal void VerifySettings()
+    {
+        ((ModuleSettings?)settingsCache)?.OnVerify();
     }
 
     public T? GetSaveData<T>()

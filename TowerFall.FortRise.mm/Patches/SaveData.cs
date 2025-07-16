@@ -49,6 +49,7 @@ public class patch_SaveData : SaveData
         foreach (var module in RiseCore.ModuleManager.InternalFortModules) 
         {
             module.VerifySaveData();
+            module.VerifySettings();
         }
     }
 }

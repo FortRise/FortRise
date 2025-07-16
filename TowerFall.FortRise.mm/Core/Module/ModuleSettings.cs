@@ -74,6 +74,8 @@ internal sealed class SettingsCreate : ISettingsCreate
 public abstract class ModuleSettings
 {
     public abstract void Create(ISettingsCreate settings);
+
+    public virtual void OnVerify() {}
 }
 
 /// <summary>
