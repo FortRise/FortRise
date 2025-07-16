@@ -2,12 +2,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FortRise.Content;
 
-internal sealed class LevelsModule : Mod
+internal sealed class ContentModule : Mod
 {
-    public static LevelsModule Instance = null!;
+    public static ContentModule Instance = null!;
 
 
-    public LevelsModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
+    public ContentModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
         context.Events.OnBeforeModInstantiation += OnBeforeModInstantiation;
