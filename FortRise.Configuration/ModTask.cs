@@ -155,7 +155,7 @@ public sealed class ModTask : Task
             {
                 File.WriteAllText(to, meta);
             }
-            else 
+            else
             {
                 File.Copy(from.Absolute, to, true);
             }
@@ -166,37 +166,37 @@ public sealed class ModTask : Task
     {
         Directory.CreateDirectory(Path.GetDirectoryName(destination));
         using var zipStream = new FileStream(destination, FileMode.Create, FileAccess.Write);
-		using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
+        using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
 
 
-		foreach (var file in files)
-		{
-			var from = file;
-			var zipEntryName = file.Relative.Replace(Path.DirectorySeparatorChar, '/');
+        foreach (var file in files)
+        {
+            var from = file;
+            var zipEntryName = file.Relative.Replace(Path.DirectorySeparatorChar, '/');
 
             if (!TryMetadataRewrite(file, out string? meta))
             {
                 throw new Exception("Cannot proceed as 'meta.json' not found!");
             }
 
-			using var fileStreamInZip = archive.CreateEntry(zipEntryName).Open();
+            using var fileStreamInZip = archive.CreateEntry(zipEntryName).Open();
 
             if (meta != null)
             {
                 using var tw = new StreamWriter(fileStreamInZip);
                 tw.Write(meta);
             }
-            else 
+            else
             {
                 using var fs = File.OpenRead(file.Absolute);
                 fs.CopyTo(fileStreamInZip);
             }
-		}
+        }
     }
 
     private bool TryMetadataRewrite(ReadFile readFile, out string? metadataJson)
     {
-        JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions 
+        JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
         };
@@ -210,7 +210,7 @@ public sealed class ModTask : Task
 
 
         string json;
-        using (var fs = File.OpenText(readFile.Absolute)) 
+        using (var fs = File.OpenText(readFile.Absolute))
         {
             json = fs.ReadToEnd();
         }

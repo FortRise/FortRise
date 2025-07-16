@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.ImGui", "InternalM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.Content", "InternalMods\FortRise.Content\FortRise.Content.csproj", "{04352490-F201-4248-9994-65E2CDD1C4E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortRise.Generator", "FortRise.Generator\FortRise.Generator.csproj", "{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,18 @@ Global
 		{04352490-F201-4248-9994-65E2CDD1C4E7}.Release|x64.Build.0 = Release|Any CPU
 		{04352490-F201-4248-9994-65E2CDD1C4E7}.Release|x86.ActiveCfg = Release|Any CPU
 		{04352490-F201-4248-9994-65E2CDD1C4E7}.Release|x86.Build.0 = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|x64.Build.0 = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Debug|x86.Build.0 = Debug|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|x64.ActiveCfg = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|x64.Build.0 = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF5BDB30-EB56-4E6C-B95E-E37D7056CF96}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

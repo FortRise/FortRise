@@ -9,7 +9,7 @@
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>NU5128</NoWarn>
-    <Version>1.5.0</Version>
+    <Version>1.5.1</Version>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>FortRise.Configuration</PackageId>
@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" PrivateAssets="all" />
     <PackageReference Include="MAB.DotIgnore" Version="3.0.2" PrivateAssets="all"/>
+    <ProjectReference Include="../FortRise.Generator/FortRise.Generator.csproj" Private="False" ReferenceOutputAssembly="False"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,5 +40,6 @@
     <None Include="$(OutputPath)\System.IO.Pipelines.dll" PackagePath="build\" Pack="True" Visible="False" />
     <None Include="$(OutputPath)\System.Text.Encodings.Web.dll" PackagePath="build\" Pack="True" Visible="False" />
     <None Include="$(OutputPath)\System.Threading.Tasks.Extensions.dll" PackagePath="build\" Pack="True" Visible="False" />
+    <None Include="$(SolutionDir)\FortRise.Generator\bin\$(Configuration)\netstandard2.0\FortRise.Generator.dll" PackagePath="analyzers\dotnet\cs" Pack="True" Visible="False" />
   </ItemGroup>
 </Project>

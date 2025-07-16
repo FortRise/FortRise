@@ -6,13 +6,14 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);FortRise.GeneratedAccess</InterceptorsNamespaces>
     <ModName Condition="'$(ModName)' == ''">$(MSBuildProjectName)</ModName>
 		<ModVersion Condition="'$(ModVersion)' == ''">$(Version)</ModVersion>
     <ModZipPath Condition="'$(ModZipPath)' == ''">$(MSBuildProjectDirectory)\release\$(ModVersion)\$(ModName).zip</ModZipPath>
 		<ModEnablePublish Condition="'$(ModEnablePublish)' == ''">true</ModEnablePublish>
     <ModEnableZip Condition="'$(ModEnableZip)' == '' And '$(Configuration)' == 'Release'">true</ModEnableZip>
 		<ModEnableZip Condition="'$(ModEnableZip)' == ''">false</ModEnableZip>
+    <UseLegacyOnHooks>false</UseLegacyOnHooks>
   </PropertyGroup>
 
   <!-- Properties for knowing where th is the ModLoader -->
@@ -55,7 +56,7 @@
       <HintPath>$(TowerFallDirPath)$(TowerFallPath)</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MMHOOK_TowerFall">
+    <Reference Include="MMHOOK_TowerFall" Condition="'$(UseLegacyOnHooks)' == 'true'">
       <HintPath>$(TowerFallDirPath)$(HookPath)</HintPath>
       <Private>False</Private>
     </Reference>
@@ -65,14 +66,6 @@
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>$(TowerFallDirPath)$(MonoCecilPath)</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>$(TowerFallDirPath)$(MonoModRuntimeDetourPath)</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoMod.Patcher">
-      <HintPath>$(TowerFallDirPath)$(MonoModPatcherPath)</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
