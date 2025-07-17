@@ -55,7 +55,15 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
             {
                 startIndex = i + 2;
             }
-            var modButton = new BowButton(item);
+
+            string displaySet = item;
+            int last = item.LastIndexOf('/');
+            if (last != -1)
+            {
+                displaySet = item[(last + 1)..];
+            }
+
+            var modButton = new BowButton(displaySet);
             modButton.Pressed(() => {
                 ChangeLevelSet(item);
                 textContainer.RemoveSelf();
