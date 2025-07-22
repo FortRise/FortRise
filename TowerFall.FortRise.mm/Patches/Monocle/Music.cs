@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using FortRise;
 using Microsoft.Xna.Framework.Audio;
@@ -7,6 +8,9 @@ namespace Monocle;
 
 public static class patch_Music 
 {
+    public record struct Queue(string MusicPath, bool IsLooping);
+    
+    private static List<Queue> musicAwaiter;
     private static SoundBank soundBank;
     private static WaveBank waveBank;
     internal static AudioEngine audioEngine;
@@ -34,6 +38,7 @@ public static class patch_Music
     {
         try
         {
+            musicAwaiter = new();
             var dirPath = Path.GetFullPath(Directory.GetCurrentDirectory());
             audioEngine = new AudioEngine(Path.Combine(dirPath, "Content/Music/Win/TowerFallMusic.xgs"));
             soundBank = new SoundBank(audioEngine, Path.Combine(dirPath, "Content/Music/Win/MusicSoundBank.xsb"));
@@ -50,7 +55,13 @@ public static class patch_Music
     }
 
     [MonoModReplace]
-    public static void Play(string filepath) 
+    public static void Play(string filepath)
+    {
+        Play(filepath, true);
+    }
+
+    [MonoModReplace]
+    public static void Play(string filepath, bool looping) 
     {
         if (currentSong == filepath)
         {
@@ -63,10 +74,10 @@ public static class patch_Music
             return;
         }
 
-        PlayInternal(filepath);
+        PlayInternal(filepath, looping);
     }
 
-    private static void PlayInternal(string filepath) 
+    private static void PlayInternal(string filepath, bool looping) 
     {
         if (!fromCue)
         {
@@ -76,13 +87,19 @@ public static class patch_Music
         if (audioSystem != null) 
         {
             fromCue = audioSystem.GetType() == typeof(VanillaMusicSystem);
-            patch_Audio.PlayMusic(audioSystem, filepath);
+            patch_Audio.PlayMusic(audioSystem, filepath, looping);
         }
         currentSong = filepath;
     }
 
     [MonoModReplace]
-    public static void PlayImmediate(string filepath) 
+    public static void PlayImmediate(string filepath)
+    {
+        PlayImmediate(filepath, true);
+    }
+
+    [MonoModReplace]
+    public static void PlayImmediate(string filepath, bool looping) 
     {
         if (audioEngine == null || Music.CurrentSong == filepath) 
             return;
@@ -90,7 +107,7 @@ public static class patch_Music
         audioCategory.Stop(AudioStopOptions.Immediate);
         patch_Audio.StopMusic(AudioStopOptions.Immediate);
         
-        PlayInternal(filepath);
+        PlayInternal(filepath, looping);
     }
 
     [MonoModReplace]
@@ -100,7 +117,12 @@ public static class patch_Music
         currentSong = null;
     }
 
-    internal static AudioEngine InternalAccessAudioEngine() 
+    public static void PlayNext(string filepath, bool looping)
+    {
+        musicAwaiter.Add(new Queue(filepath, looping));
+    }
+
+    internal static AudioEngine InternalAccessAudioEngine()
     {
         return audioEngine;
     }
@@ -118,7 +140,42 @@ public static class patch_Music
     [MonoModReplace]
     internal static void Update()
     {
-        audioEngine?.Update();
+        if (audioEngine is null)
+        {
+            return;
+        }
+        audioEngine.Update();
+
+        if (musicAwaiter.Count == 0)
+        {
+            return;
+        }
+
+        if (currentSong == null)
+        {
+            return;
+        }
+
+        if (fromCue)
+        {
+            var cue = soundBank.GetCue(currentSong);
+            if (cue.IsStopped)
+            {
+                var newSong = musicAwaiter[0];
+                musicAwaiter.Remove(newSong);
+                PlayImmediate(newSong.MusicPath, newSong.IsLooping);
+            }
+
+            return;
+        }
+
+        var currentSystem = patch_Audio.GetMusicSystemFromExtension(currentSong);
+        if (currentSystem.IsStopped)
+        {
+            var newSong = musicAwaiter[0];
+            musicAwaiter.Remove(newSong);
+            PlayImmediate(newSong.MusicPath, newSong.IsLooping);
+        }
     }
 }
 

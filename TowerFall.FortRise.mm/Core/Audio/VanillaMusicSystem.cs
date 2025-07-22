@@ -1,4 +1,3 @@
-using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using Monocle;
 
@@ -6,31 +5,42 @@ namespace FortRise;
 
 public class VanillaMusicSystem : IMusicSystem
 {
+    public bool IsStopped
+    {
+        get
+        {
+            if (current is null)
+            {
+                return true;
+            }
+            return soundBank.GetCue(current).IsStopped;
+        }
+    }
+
     private SoundBank soundBank;
     private AudioCategory audioCategory;
-    public VanillaMusicSystem() 
+    private string current;
+    
+    public VanillaMusicSystem()
     {
         soundBank = MusicExt.GetSoundBank();
         audioCategory = MusicExt.GetAudioCategory();
     }
-
-    public void Add(string name, Stream stream) {}
 
     public void Pause()
     {
         audioCategory.Pause();
     }
 
-    public void Play(string name)
+    public void Play(string name, bool looping) // looping depends on FACT itself
     {
         if (MusicExt.GetAudioEngine() == null)
+        {
             return;
-        soundBank.PlayCue(name);
-    }
+        }
 
-    public void Play(TrackInfo trackInfo)
-    {
-        Logger.Log("[FACT Music System] Playing a trackInfo type music is not supported!");
+        soundBank.PlayCue(name);
+        current = name;
     }
 
     public void Resume()

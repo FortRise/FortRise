@@ -14,7 +14,20 @@ public abstract class AudioTrack : IDisposable
         set => soundEffect.IsLooped = value;
     }
 
-    public void Play() 
+    public bool IsStopped
+    {
+        get
+        {
+            if (soundEffect is null)
+            {
+                return true;
+            }
+
+            return soundEffect.State == SoundState.Stopped;
+        }
+    }
+
+    public void Play()
     {
         soundEffect.Volume = Music.MasterVolume;
         soundEffect.Play();

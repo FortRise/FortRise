@@ -29,15 +29,9 @@ public static class patch_Audio
         return false;
     }
 
-    public static void PlayMusic(IMusicSystem system, string name) 
+    public static void PlayMusic(IMusicSystem system, string name, bool looping) 
     {
-        system.Play(name);
-        currentSystem = system;
-    }
-
-    public static void PlayMusic(IMusicSystem system, TrackInfo info) 
-    {
-        system.Play(info);
+        system.Play(name, looping);
         currentSystem = system;
     }
 

@@ -4,8 +4,9 @@ namespace FortRise;
 
 public interface IMusicSystem 
 {
-    void Play(string name);
-    void Play(TrackInfo trackInfo);
+    public bool IsStopped { get; }
+
+    void Play(string name, bool looping);
     void Resume();
     void Pause();
     void Stop(AudioStopOptions options);

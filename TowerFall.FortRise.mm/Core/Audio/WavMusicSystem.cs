@@ -7,31 +7,36 @@ public class WavMusicSystem : IMusicSystem
 {
     private AudioTrack current;
 
+    public bool IsStopped
+    {
+        get
+        {
+            if (current is not null)
+            {
+                return current.IsStopped;
+            }
+
+            return true;
+        }
+    }
 
     public void Pause()
     {
         current?.Play();
     }
 
-    public void Play(string name)
+    public void Play(string name, bool looping)
     {
         Stop(AudioStopOptions.Immediate);
 
         if (patch_Audio.TryGetTrackMap(name, out var info)) 
         {
             current = info.Create();
-            current.Looping = true;
+            current.Looping = looping;
             current.Play();
             return;
         }
         Logger.Error($"[WAV Music System] No audio file named '{name}' exists on the Music Folder");
-    }
-
-    public void Play(TrackInfo trackInfo)
-    {
-        current = trackInfo.Create();
-        current.Looping = true;
-        current.Play();
     }
 
     public void Resume()
