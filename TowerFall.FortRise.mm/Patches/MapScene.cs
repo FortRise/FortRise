@@ -286,7 +286,7 @@ namespace TowerFall.Patching
         }
 
         [MonoModReplace]
-        private void InitVersusButtons()
+        public void InitVersusButtons()
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.Versus));
 
@@ -331,7 +331,7 @@ namespace TowerFall.Patching
             }
         }
 
-        private void InitDarkWorldButtons()
+        public void InitDarkWorldButtons()
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.DarkWorld));
 
@@ -354,7 +354,7 @@ namespace TowerFall.Patching
                     Buttons.Add(new DarkWorldMapButton(tower));
                     continue;
                 }
-                var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
+                var customTower = TowerRegistry.DarkWorldTowers[tower.GetLevelID()];
                 var hidden = customTower.Configuration.IsHidden;
                 if (hidden is null || !hidden.Invoke(customTower))
                 {
@@ -363,17 +363,9 @@ namespace TowerFall.Patching
             }
 
             LinkButtonsList();
-            if (HasBegun)
-            {
-                InitButtons(this.Buttons[2]);
-                foreach (MapButton mapButton in this.Buttons)
-                {
-                    Add<MapButton>(mapButton);
-                }
-            }
         }
 
-        private void InitQuestButtons()
+        public void InitQuestButtons()
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.Quest));
 
@@ -407,7 +399,7 @@ namespace TowerFall.Patching
             LinkButtonsList();
         }
 
-        private void InitTrialsButtons()
+        public void InitTrialsButtons()
         {
             var list = new List<MapButton[]>();
             var adv = new CustomLevelCategoryButton(MainMenu.RollcallModes.Trials);

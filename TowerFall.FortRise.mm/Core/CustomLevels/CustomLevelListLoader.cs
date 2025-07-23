@@ -1,15 +1,12 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
-using TowerFall.Patching;
 
 namespace FortRise;
 
 public sealed class CustomLevelListLoader : Entity 
 {
     private TowerFall.Patching.MapScene map;
-    private List<MapButton> buttons;
     private float spin;
     private Tween spinTween;
     private float tweenStart;
@@ -24,13 +21,7 @@ public sealed class CustomLevelListLoader : Entity
         this.map = map;
         Depth = -100000;
         Visible = false;
-        buttons = new List<MapButton>();
 
-        if (map.Mode != MainMenu.RollcallModes.Trials)
-        {
-            buttons.Add(new CustomLevelCategoryButton(map.Mode));
-        }
-        
         spinTween = Tween.Create(Tween.TweenMode.Persist, Ease.BackOut, 18, false);
         spinTween.OnUpdate = t => spin = MathHelper.Lerp(tweenStart, tweenEnd, t.Eased);
         Add(spinTween);
@@ -41,123 +32,21 @@ public sealed class CustomLevelListLoader : Entity
         var end = new Vector2(25f, 215f);
         introTween = Tween.Create(Tween.TweenMode.Persist, Ease.CubeOut, 4, true);
 
-        var lockedLevels = new List<MapButton>();
-        switch (map.Mode) 
+        switch (map.Mode)
         {
-        case MainMenu.RollcallModes.DarkWorld: 
-        {
-            var set = map.GetLevelSet() ?? TowerRegistry.DarkWorldLevelSets[0];
-            var currentLevel = TowerRegistry.DarkWorldTowerSets[set];
-            map.SetLevelSet(set);
-            for (int j = 0; j < currentLevel.Count; j++)
-            {
-                var mapButton = new TowerFall.DarkWorldMapButton(currentLevel[j]);
-                if (mapButton.Locked)
-                {
-                    lockedLevels.Add(mapButton);
-                    continue;
-                }    
-                buttons.Add(mapButton);
-            }
-        }
-            break;
-        case MainMenu.RollcallModes.Quest: 
-        {
-            var set = map.GetLevelSet() ?? TowerRegistry.QuestLevelSets[0];
-            var currentLevel = TowerRegistry.QuestTowerSets[set];
-            map.SetLevelSet(set);
-            for (int j = 0; j < currentLevel.Count; j++)
-            {
-                var mapButton = new QuestMapButton(currentLevel[j]);
-                if (mapButton.Locked)
-                {
-                    lockedLevels.Add(mapButton);
-                    continue;
-                }    
-                buttons.Add(mapButton);
-            }
-        }
-            break;
-        case MainMenu.RollcallModes.Versus:
-        {
-            var set = map.GetLevelSet() ?? TowerRegistry.VersusLevelSets[0];
-            var currentLevel = TowerRegistry.VersusTowerSets[set];
-            map.SetLevelSet(set);
-            for (int j = 0; j < currentLevel.Count; j++)
-            {
-                var mapButton = new TowerFall.VersusMapButton(currentLevel[j]);
-                if (mapButton.Locked)
-                {
-                    lockedLevels.Add(mapButton);
-                    continue;
-                }    
-                buttons.Add(mapButton);
-            }
-        }
-            break;
-        case MainMenu.RollcallModes.Trials:
-        {
-            var set = map.GetLevelSet() ?? TowerRegistry.TrialsLevelSet[0];
-            var currentLevels = TowerRegistry.TrialsTowerSets[set];
-            var list = new List<MapButton[]>();        
-            var adv = new CustomLevelCategoryButton(map.Mode);
-            buttons.Add(adv);
-            list.Add(new MapButton[] { adv, adv, adv });
-            if (currentLevels.Count == 0)
+            case MainMenu.RollcallModes.DarkWorld:
+                map.InitDarkWorldButtons();
                 break;
-
-            // Y
-            for (int i = 0; i < currentLevels.Count; i++) 
-            {
-                var array = new MapButton[currentLevels[0].Length];
-                for (int j = 0; j < array.Length; j++) 
-                {
-                    buttons.Add(array[j] = new TowerFall.Patching.TrialsMapButton(currentLevels[i][j]));
-                }
-                for (int k = 0; k < array.Length; k++) 
-                {
-                    if (k > 0) 
-                    {
-                        array[k].UpButton = array[k - 1];
-                    }
-                    if (k < array.Length - 1) 
-                    {
-                        array[k].DownButton = array[k + 1];
-                    }
-                }
-                list.Add(array);
-            }
-
-            // X
-            for (int i = 0; i < list.Count; i++) 
-            {
-                if (i > 0) 
-                {
-                    for (int j = 0; j < list[i].Length; j++) 
-                    {
-                        list[i][j].LeftButton = list[i - 1][j];
-                    }
-                }
-                if (i < list.Count - 1) 
-                {
-                    for (int j = 0; j < list[i].Length; j++) 
-                    {
-                        list[i][j].RightButton = list[i + 1][j];
-                    }
-                }
-                for (int j = 0; j < list[i].Length; j++) 
-                {
-                    list[i][j].MapXIndex = i;
-                }
-            }
-        }
-            break;
-        }
-
-        foreach (MapButton lockedLevel in lockedLevels) 
-        {
-            buttons.Add(lockedLevel);
-        }
+            case MainMenu.RollcallModes.Quest:
+                map.InitQuestButtons();
+                break;
+            case MainMenu.RollcallModes.Versus:
+                map.InitVersusButtons();
+                break;
+            case MainMenu.RollcallModes.Trials:
+                map.InitTrialsButtons();
+                break;
+        } 
     }
 
     public override void Update()
@@ -167,13 +56,13 @@ public sealed class CustomLevelListLoader : Entity
         {
             return;
         }
-        
+
+        var buttons = map.Buttons;
         finished = true;
         if (buttons.Count > 0)
         {
             foreach (var button in buttons)
             {
-                map.Buttons.Add(button);
                 map.Add(button);
             }
             if (startingID >= map.Buttons.Count) 
