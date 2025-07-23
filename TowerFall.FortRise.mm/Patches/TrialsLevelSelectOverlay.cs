@@ -2,6 +2,7 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
+using TowerFall.Patching;
 
 namespace TowerFall;
 

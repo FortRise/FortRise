@@ -20,7 +20,7 @@ public class WorkshopRandomSelect : MapButton
     {
         Music.Stop();
 
-        MapButton randomVersusTower = (Map as patch_MapScene).GetRandomWorkshopTower();
+        MapButton randomVersusTower = (Map as TowerFall.Patching.MapScene).GetRandomWorkshopTower();
 
         MainMenu.VersusMatchSettings.LevelSystem = randomVersusTower.Data.GetLevelSystem();
         MainMenu.VersusMatchSettings.RandomVersusTower = true;

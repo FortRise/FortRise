@@ -11,9 +11,10 @@ using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
 
-namespace TowerFall 
+namespace TowerFall.Patching 
 {
-    public class patch_MapScene : MapScene
+    [MonoModPatch("TowerFall.MapScene")]
+    public class MapScene : TowerFall.MapScene
     {
         private static int lastRandomVersusTower;
         private static string lastWorkshopVersusTowerTitle;
@@ -26,7 +27,7 @@ namespace TowerFall
         public string LevelSet;
         public patch_MapRenderer Renderer;
 
-        public patch_MapScene(MainMenu.RollcallModes mode) : base(mode)
+        public MapScene(MainMenu.RollcallModes mode) : base(mode)
         {
         }
 
@@ -144,7 +145,7 @@ namespace TowerFall
             InitButtons(buttonSelected);
             CanAct = false;
             Add<CoroutineEntity>(new CoroutineEntity(this.IntroSequence()));
-            Camera.Position = patch_MapScene.FixedClampCamera(this.Selection.MapPosition, this);
+            Camera.Position = MapScene.FixedClampCamera(this.Selection.MapPosition, this);
             Cursor = new MapCursor(this.Selection);
             Add<MapCursor>(this.Cursor);
 
@@ -306,7 +307,14 @@ namespace TowerFall
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (!tower.IsOfficialLevelSet() || SaveData.Instance.Unlocks.GetTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetTowerUnlocked(i))
+                {
+                    Buttons.Add(new VersusMapButton(tower));
+                    continue;
+                }
+                var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
+                var hidden = customTower.Configuration.IsHidden;
+                if (hidden is null || !hidden.Invoke(customTower))
                 {
                     Buttons.Add(new VersusMapButton(tower));
                 }
@@ -341,9 +349,16 @@ namespace TowerFall
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (!tower.IsOfficialLevelSet() || SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
                 {
-                    this.Buttons.Add(new DarkWorldMapButton(tower));
+                    Buttons.Add(new DarkWorldMapButton(tower));
+                    continue;
+                }
+                var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
+                var hidden = customTower.Configuration.IsHidden;
+                if (hidden is null || !hidden.Invoke(customTower))
+                {
+                    Buttons.Add(new DarkWorldMapButton(tower));
                 }
             }
 
@@ -376,7 +391,15 @@ namespace TowerFall
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (!tower.IsOfficialLevelSet() || SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                {
+                    Buttons.Add(new QuestMapButton(tower));
+                    continue;
+                }
+
+                var customTower = TowerRegistry.QuestTowers[tower.GetLevelID()];
+                var hidden = customTower.Configuration.IsHidden;
+                if (hidden is null || !hidden.Invoke(customTower))
                 {
                     Buttons.Add(new QuestMapButton(tower));
                 }
@@ -389,7 +412,7 @@ namespace TowerFall
             var list = new List<MapButton[]>();
             var adv = new CustomLevelCategoryButton(MainMenu.RollcallModes.Trials);
             Buttons.Add(adv);
-            list.Add(new MapButton[] { adv, adv, adv });
+            list.Add([adv, adv, adv]);
 
             TrialsLevelData[,] towers;
 
@@ -412,7 +435,19 @@ namespace TowerFall
 
             for (int k = 0; k < towers.GetLength(0); k++)
             {
-                if (!this.IsOfficialLevelSet() || SaveData.Instance.Unlocks.GetTowerUnlocked(k))
+                bool show = false;
+                if (this.IsOfficialLevelSet())
+                {
+                    show = SaveData.Instance.Unlocks.GetTowerUnlocked(k);
+                }
+                else
+                {
+                    var customTower = TowerRegistry.TrialTowers[towers[k, 0].GetLevelID()];
+                    var hidden = customTower.Configuration.IsHidden;
+                    show = hidden is null || !hidden.Invoke(customTower);
+                }
+
+                if (show)
                 {
                     MapButton[] array = new MapButton[towers.GetLength(1)];
                     for (int l = 0; l < array.Length; l++)
@@ -496,7 +531,7 @@ namespace TowerFall
             }
         }
 
-        public static Vector2 FixedClampCamera(Vector2 position, patch_MapScene map)
+        public static Vector2 FixedClampCamera(Vector2 position, MapScene map)
         {
             return new Vector2(
                 MathHelper.Clamp(position.X, 160f, map.Renderer.GetInstanceWidth() - 160),
@@ -550,19 +585,19 @@ namespace TowerFall
 
     public static class MapSceneExt 
     {
-        public static void SetLevelSet(this MapScene mapScene, string levelSet) 
+        public static void SetLevelSet(this TowerFall.MapScene mapScene, string levelSet) 
         {
-            ((patch_MapScene)mapScene).LevelSet = levelSet;
+            ((TowerFall.Patching.MapScene)mapScene).LevelSet = levelSet;
         }
 
-        public static string GetLevelSet(this MapScene mapScene) 
+        public static string GetLevelSet(this TowerFall.MapScene mapScene) 
         {
-            return ((patch_MapScene)mapScene).LevelSet ?? "TowerFall";
+            return ((TowerFall.Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
         }
 
-        public static bool IsOfficialLevelSet(this MapScene mapScene) 
+        public static bool IsOfficialLevelSet(this TowerFall.MapScene mapScene) 
         {
-            return ((patch_MapScene)mapScene).GetLevelSet() == "TowerFall";
+            return ((TowerFall.Patching.MapScene)mapScene).GetLevelSet() == "TowerFall";
         }
     }
 }

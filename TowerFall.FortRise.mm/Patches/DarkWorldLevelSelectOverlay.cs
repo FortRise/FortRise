@@ -1,5 +1,6 @@
 using FortRise;
 using MonoMod;
+using TowerFall.Patching;
 
 namespace TowerFall;
 

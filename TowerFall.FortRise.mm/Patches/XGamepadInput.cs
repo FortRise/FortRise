@@ -8,9 +8,10 @@ using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod;
 
-namespace TowerFall;
+namespace TowerFall.Patching;
 
-public class patch_XGamepadInput : XGamepadInput
+[MonoModPatch("TowerFall.XGamepadInput")]
+public class XGamepadInput : TowerFall.XGamepadInput
 {
     private Subtexture icon;
     private Subtexture iconMove;
@@ -30,7 +31,7 @@ public class patch_XGamepadInput : XGamepadInput
     private string name;
     private static Dictionary<string, XmlElement> ButtonIconMap;
     private static Dictionary<string, XmlElement> ControllerInfoMap;
-    public patch_XGamepadInput(int xGamepadID) : base(xGamepadID)
+    public XGamepadInput(int xGamepadID) : base(xGamepadID)
     {
     }
 

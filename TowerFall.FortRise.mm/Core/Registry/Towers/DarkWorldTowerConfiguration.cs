@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using TowerFall;
 
@@ -19,4 +20,7 @@ public readonly struct DarkWorldTowerConfiguration()
 
     public int StartingLives { get; init; } = -1;
     public int[] MaxContinues { get; init; } = [-1, -1, -1];
+
+    public Func<IDarkWorldTowerEntry, bool>? ShowLocked { get; init; }
+    public Func<IDarkWorldTowerEntry, bool>? IsHidden { get; init; }
 }

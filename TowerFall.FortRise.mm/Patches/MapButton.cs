@@ -3,18 +3,19 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
+using TowerFall.Patching;
 
 namespace TowerFall;
 
 public class patch_MapButton : MapButton
 {
     [MonoModIgnore]
-    public patch_MapScene Map { get; set; } 
+    public TowerFall.Patching.MapScene Map { get; set; } 
     public string Author { [MonoModIgnore] get; [MonoModIgnore] [MonoModPublic] set; }
     public float TweenAt { get; private set; }
 
 
-    public string Title { [MonoModIgnore] get => null; [MonoModIgnore] [MonoModPublic] set => value = null; }
+    public string Title { [MonoModIgnore] get => null; [MonoModIgnore][MonoModPublic] set => value = null; }
     
 
 
@@ -249,7 +250,7 @@ public class patch_MapButton : MapButton
     public static List<Image> InitTrialsGraphics(Point levelID)
     {
         // We don't have access to the MapScene from MapButton yet.
-        var scene = Engine.Instance.Scene as MapScene;
+        var scene = Engine.Instance.Scene as TowerFall.MapScene;
         if (scene == null)
         {
             return [];

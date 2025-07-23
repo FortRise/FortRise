@@ -1,4 +1,6 @@
 #nullable enable
+using System;
+
 namespace FortRise;
 
 public readonly struct VersusTowerConfiguration
@@ -10,4 +12,6 @@ public readonly struct VersusTowerConfiguration
     public bool ArrowShuffle { get; init; }
     public bool Procedural { get; init; }
     public float SpecialArrowRate { get; init; }
+    public Func<IVersusTowerEntry, bool>? ShowLocked { get; init; }
+    public Func<IVersusTowerEntry, bool>? IsHidden { get; init; }
 }

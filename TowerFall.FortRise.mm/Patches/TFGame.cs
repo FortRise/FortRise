@@ -290,7 +290,7 @@ namespace TowerFall
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");
-                    patch_XGamepadInput.Init();
+                    TowerFall.Patching.XGamepadInput.Init();
                     PlayerInput.AssignInputs();
                     for (int i = 0; i < 4; i++)
                     {

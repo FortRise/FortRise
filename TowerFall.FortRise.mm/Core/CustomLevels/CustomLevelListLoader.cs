@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
+using TowerFall.Patching;
 
 namespace FortRise;
 
 public sealed class CustomLevelListLoader : Entity 
 {
-    private patch_MapScene map;
+    private TowerFall.Patching.MapScene map;
     private List<MapButton> buttons;
     private float spin;
     private Tween spinTween;
@@ -17,7 +18,7 @@ public sealed class CustomLevelListLoader : Entity
     private Tween introTween;
     private int startingID;
 
-    public CustomLevelListLoader(patch_MapScene map, int id) : base(0) 
+    public CustomLevelListLoader(TowerFall.Patching.MapScene map, int id) : base(0) 
     {
         startingID = id;
         this.map = map;
@@ -50,7 +51,7 @@ public sealed class CustomLevelListLoader : Entity
             map.SetLevelSet(set);
             for (int j = 0; j < currentLevel.Count; j++)
             {
-                var mapButton = new DarkWorldMapButton(currentLevel[j]);
+                var mapButton = new TowerFall.DarkWorldMapButton(currentLevel[j]);
                 if (mapButton.Locked)
                 {
                     lockedLevels.Add(mapButton);
@@ -84,7 +85,7 @@ public sealed class CustomLevelListLoader : Entity
             map.SetLevelSet(set);
             for (int j = 0; j < currentLevel.Count; j++)
             {
-                var mapButton = new VersusMapButton(currentLevel[j]);
+                var mapButton = new TowerFall.VersusMapButton(currentLevel[j]);
                 if (mapButton.Locked)
                 {
                     lockedLevels.Add(mapButton);
@@ -111,7 +112,7 @@ public sealed class CustomLevelListLoader : Entity
                 var array = new MapButton[currentLevels[0].Length];
                 for (int j = 0; j < array.Length; j++) 
                 {
-                    buttons.Add(array[j] = new TrialsMapButton(currentLevels[i][j]));
+                    buttons.Add(array[j] = new TowerFall.Patching.TrialsMapButton(currentLevels[i][j]));
                 }
                 for (int k = 0; k < array.Length; k++) 
                 {

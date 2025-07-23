@@ -4,7 +4,9 @@ namespace TowerFall;
 
 public class patch_TowerMapData : TowerMapData
 {
-    public LevelData levelData;
+    public LevelData LevelData => levelData;
+
+    private LevelData levelData;
 
     public patch_TowerMapData(LevelData data) : base(data)
     {

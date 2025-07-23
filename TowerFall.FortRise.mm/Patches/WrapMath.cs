@@ -1,9 +1,11 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
+using MonoMod;
 
-namespace TowerFall;
+namespace TowerFall.Patching;
 
-public static class patch_WrapMath
+[MonoModPatch("TowerFall.WrapMath")]
+public static class WrapMath
 {
     // I don't want this specific method to get inlined
     [MethodImpl(MethodImplOptions.NoInlining)]

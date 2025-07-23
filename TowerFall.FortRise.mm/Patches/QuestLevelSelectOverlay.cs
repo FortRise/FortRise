@@ -5,6 +5,7 @@ using Mono.Cecil.Cil;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using TowerFall.Patching;
 
 namespace TowerFall 
 {

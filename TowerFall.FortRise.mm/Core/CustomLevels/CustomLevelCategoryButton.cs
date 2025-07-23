@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Monocle;
 using TowerFall;
+using TowerFall.Patching;
 
 namespace FortRise;
 

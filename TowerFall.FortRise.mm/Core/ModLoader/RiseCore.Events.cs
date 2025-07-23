@@ -11,6 +11,7 @@ public static partial class RiseCore
 {
     /// <summary>
     /// List of built-in useful events that can be subscribe by a modules.
+    /// Note that you should use <see cref="IModuleContext.Events"/> instead, as these Events are no longer stable.
     /// </summary>
     public static partial class Events
     {

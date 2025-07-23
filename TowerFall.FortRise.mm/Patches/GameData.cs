@@ -43,7 +43,7 @@ public static class patch_GameData
             trialTowers.SetLevelSet("TowerFall");
         }
 
-        patch_MapScene.FixedStatic();
+        TowerFall.Patching.MapScene.FixedStatic();
         RiseCore.Events.Invoke_OnAfterDataLoad();
     }
 }

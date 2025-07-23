@@ -1,10 +1,12 @@
+using FortRise;
 using MonoMod;
 
-namespace TowerFall;
+namespace TowerFall.Patching;
 
-public class patch_DarkWorldMapButton : DarkWorldMapButton
+[MonoModPatch("TowerFall.DarkWorldMapButton")]
+public class DarkWorldMapButton : TowerFall.DarkWorldMapButton
 {
-    public patch_DarkWorldMapButton(DarkWorldTowerData tower) : base(tower)
+    public DarkWorldMapButton(DarkWorldTowerData tower) : base(tower)
     {
     }
 
@@ -21,6 +23,9 @@ public class patch_DarkWorldMapButton : DarkWorldMapButton
             return !SaveData.Instance.DarkWorld.Towers[Data.ID.X].Revealed;
         }
 
-        return false;
+        var entry = TowerRegistry.DarkWorldTowers[(Data as patch_TowerMapData).LevelData.GetLevelID()];
+        var locked = entry.Configuration.ShowLocked?.Invoke(entry);
+
+        return locked is { } l && l;
     }
 }

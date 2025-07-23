@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
+using TowerFall.Patching;
 
 namespace TowerFall;
 
