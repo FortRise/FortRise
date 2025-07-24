@@ -119,7 +119,7 @@ public class patch_RollcallElement : RollcallElement
         }
 
         GamePad.SetLightBarEXT((PlayerIndex)playerIndex, portrait.ArcherData.LightbarColor);
-        rightArrow.Color = leftArrow.Color = Color.Lerp(ArcherData.Archers[playerIndex].ColorB, Color.White, 0.5f);
+        rightArrow.Color = leftArrow.Color = Color.Lerp(ArcherData.Archers[CharacterIndex].ColorB, Color.White, 0.5f);
 
         Add(darkWorldAlphaSine = new SineWave(120));
     }
