@@ -8,10 +8,6 @@
     <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PublishDir>..\..\$(ArtifactDirectory)\Internals\FortRise.Content</PublishDir>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="FortRise.Configuration" Version="1.5.0" />
   </ItemGroup>

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -15,6 +17,7 @@ public class patch_WorkshopListLoader : WorkshopListLoader
     private float spin;
     private float tweenStart;
     private float tweenEnd;
+    private Task task;
 
     public patch_WorkshopListLoader(MapScene map) : base(map)
     {
@@ -55,7 +58,16 @@ public class patch_WorkshopListLoader : WorkshopListLoader
         };
 
         Add(introTween);
-        Load();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            task = new Task(Load);
+            task.Start();
+        }
+        else
+        {
+            Load();
+        }
     }
 
     [MonoModIgnore]
