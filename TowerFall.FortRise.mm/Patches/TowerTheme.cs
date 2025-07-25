@@ -17,7 +17,12 @@ public class patch_TowerTheme : TowerTheme
     public extern void orig_ctor(XmlElement xml);
 
     [MonoModConstructor]
-    public void ctor() {}
+    [MonoModReplace]
+    public void ctor()
+    { 
+        CrackedBlockColor = Calc.HexToColor("4EB1E9");
+        InvisibleOpacities = [0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f];
+    }
 
     [MonoModConstructor]
     public void ctor(XmlElement xml) 
