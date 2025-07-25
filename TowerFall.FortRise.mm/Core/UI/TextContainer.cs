@@ -396,14 +396,14 @@ public class TextContainer : MenuItem
 
         public override void OptionLeft()
         {
-            Value -= Math.Max(Min, Value - Step);
+            Value = Math.Max(Min, Value - Step);
             OnValueChanged?.Invoke(Value);
             Sounds.ui_move1.Play();
         }
 
         public override void OptionRight()
         {
-            Value += Math.Min(Min, Value + Step);
+            Value = Math.Min(Max, Value + Step);
             OnValueChanged?.Invoke(Value);
             Sounds.ui_move1.Play();
         }
