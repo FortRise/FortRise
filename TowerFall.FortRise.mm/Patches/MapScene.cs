@@ -307,9 +307,12 @@ namespace TowerFall.Patching
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet())
                 {
-                    Buttons.Add(new VersusMapButton(tower));
+                    if (SaveData.Instance.Unlocks.GetTowerUnlocked(i))
+                    {
+                        Buttons.Add(new VersusMapButton(tower));
+                    }
                     continue;
                 }
                 var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
@@ -323,10 +326,10 @@ namespace TowerFall.Patching
             LinkButtonsList();
             if (HasBegun)
             {
-                InitButtons(this.Buttons[2]);
-                foreach (MapButton mapButton in this.Buttons)
+                InitButtons(Buttons[2]);
+                foreach (MapButton mapButton in Buttons)
                 {
-                    Add<MapButton>(mapButton);
+                    Add(mapButton);
                 }
             }
         }
@@ -349,9 +352,12 @@ namespace TowerFall.Patching
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet())
                 {
-                    Buttons.Add(new DarkWorldMapButton(tower));
+                    if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
+                    {
+                        Buttons.Add(new DarkWorldMapButton(tower));
+                    }
                     continue;
                 }
                 var customTower = TowerRegistry.DarkWorldTowers[tower.GetLevelID()];
@@ -383,9 +389,12 @@ namespace TowerFall.Patching
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                if (tower.IsOfficialLevelSet())
                 {
-                    Buttons.Add(new QuestMapButton(tower));
+                    if (SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                    {
+                        Buttons.Add(new QuestMapButton(tower));
+                    }
                     continue;
                 }
 
