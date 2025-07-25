@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <FortRiseVersion>5.0.0-rc.2</FortRiseVersion>
+    <FortRiseVersion>5.0.0-rc.3</FortRiseVersion>
     <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
   </PropertyGroup>
 </Project>
