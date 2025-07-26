@@ -43,7 +43,7 @@ public sealed class ModTask : Task
             return true;
         }
 
-        var files = GetAllFiles(ModProjectDir, ModTargetDir);
+        var files = GetAllFilesAndDirectory(ModProjectDir, ModTargetDir);
 
         if (ModEnablePublish)
         {
@@ -58,9 +58,9 @@ public sealed class ModTask : Task
         return true;
     }
 
-    private List<ReadFile> GetAllFiles(string projectDir, string targetDir)
+    private List<ReadEntry> GetAllFilesAndDirectory(string projectDir, string targetDir)
     {
-        var list = new List<ReadFile>();
+        var list = new List<ReadEntry>();
         var projectDirUri = new Uri(projectDir);
         var targetDirUri = new Uri(targetDir);
 
@@ -68,9 +68,12 @@ public sealed class ModTask : Task
 
         if (File.Exists(metadataFile))
         {
-            list.Add(new ReadFile(
-                Path.GetFullPath(metadataFile),
-                Uri.UnescapeDataString(projectDirUri.MakeRelativeUri(new Uri(Path.GetFullPath(metadataFile))).OriginalString))
+            list.Add(
+                new ReadEntry(
+                    Path.GetFullPath(metadataFile),
+                    Uri.UnescapeDataString(projectDirUri.MakeRelativeUri(new Uri(Path.GetFullPath(metadataFile))).OriginalString),
+                    false
+                )
             );
         }
 
@@ -108,6 +111,12 @@ public sealed class ModTask : Task
             foreach (var info in source.GetDirectories().Where(IsNotIgnoredDirectory))
             {
                 AddToList(info, ignore);
+                list.Add(new ReadEntry(
+                        info.FullName,
+                        Uri.UnescapeDataString(targetDirUri.MakeRelativeUri(new Uri(info.FullName)).OriginalString),
+                        true
+                    )
+                );
             }
 
             foreach (var file in source.GetFiles().Where(IsNotIgnoredFile))
@@ -127,9 +136,11 @@ public sealed class ModTask : Task
                     continue;
                 }
 
-                list.Add(new ReadFile(
-                    file.FullName,
-                    Uri.UnescapeDataString(targetDirUri.MakeRelativeUri(new Uri(file.FullName)).OriginalString))
+                list.Add(new ReadEntry(
+                        file.FullName,
+                        Uri.UnescapeDataString(targetDirUri.MakeRelativeUri(new Uri(file.FullName)).OriginalString),
+                        false
+                    )
                 );
             }
         }
@@ -137,10 +148,14 @@ public sealed class ModTask : Task
         return list;
     }
 
-    private void DeployMod(List<ReadFile> files, string destination)
+    private void DeployMod(List<ReadEntry> files, string destination)
     {
         foreach (var file in files)
         {
+            if (file.Directory)
+            {
+                continue;
+            }
             var from = file;
             var to = Path.Combine(destination, file.Relative);
 
@@ -162,21 +177,27 @@ public sealed class ModTask : Task
         }
     }
 
-    private void ZipMod(List<ReadFile> files, string destination)
+    private void ZipMod(List<ReadEntry> files, string destination)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(destination));
         using var zipStream = new FileStream(destination, FileMode.Create, FileAccess.Write);
         using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
 
 
-        foreach (var file in files)
+        foreach (var entry in files)
         {
-            var from = file;
-            var zipEntryName = file.Relative.Replace(Path.DirectorySeparatorChar, '/');
+            var from = entry;
+            var zipEntryName = entry.Relative.Replace(Path.DirectorySeparatorChar, '/');
 
-            if (!TryMetadataRewrite(file, out string? meta))
+            if (!TryMetadataRewrite(entry, out string? meta))
             {
                 throw new Exception("Cannot proceed as 'meta.json' not found!");
+            }
+
+            if (entry.Directory)
+            {
+                archive.CreateEntry(zipEntryName + "/");
+                continue;
             }
 
             using var fileStreamInZip = archive.CreateEntry(zipEntryName).Open();
@@ -188,13 +209,13 @@ public sealed class ModTask : Task
             }
             else
             {
-                using var fs = File.OpenRead(file.Absolute);
+                using var fs = File.OpenRead(entry.Absolute);
                 fs.CopyTo(fileStreamInZip);
             }
         }
     }
 
-    private bool TryMetadataRewrite(ReadFile readFile, out string? metadataJson)
+    private bool TryMetadataRewrite(ReadEntry readFile, out string? metadataJson)
     {
         JsonSerializerOptions metaJsonOptions = new JsonSerializerOptions
         {
@@ -244,6 +265,6 @@ public sealed class ModTask : Task
     }
 }
 
-public record struct ReadFile(string Absolute, string Relative);
+public record struct ReadEntry(string Absolute, string Relative, bool Directory);
 
 internal sealed class InsensitiveDictionary() : Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) {}
