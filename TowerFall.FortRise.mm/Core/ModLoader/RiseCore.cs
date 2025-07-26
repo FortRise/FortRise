@@ -103,6 +103,8 @@ public static partial class RiseCore
 
     internal static bool Start()
     {
+        RiseCore.Flags();   
+
         ModuleManager = new ModuleManager(logger, loggerFactory);
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
 
@@ -216,7 +218,6 @@ public static partial class RiseCore
         IDPool.WarmIndex("boss", 3);
         IDPool.WarmIndex("archers", 8);
         IDPool.WarmIndex("characterSounds", 13);
-        RiseCore.Flags();
         GameChecksum = GetChecksum(typeof(TFGame).Assembly.Location).ToHexadecimalString();
 
         FortRiseModule = ModuleManager.CreateFortRiseModule();

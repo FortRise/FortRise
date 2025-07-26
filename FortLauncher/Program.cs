@@ -9,13 +9,14 @@ using SDL3;
 using FortLauncher.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace FortLauncher;
 
 internal class Program
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
-    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-rc.3");
+    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-rc.4");
 
     public static int Main(string[] args)
     {
@@ -229,7 +230,8 @@ internal class Program
 
         if (!shouldSkip)
         {
-            if (isSteam)
+            // windows have a special Steamworks.NET.dll
+            if (isSteam && (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
             {
                 using var steamAssemblyEditor = new AssemblyEditor(steamworksPath);
                 steamAssemblyEditor.Add(new Remove32BitFlagsPatcher(logger));
