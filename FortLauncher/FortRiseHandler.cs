@@ -39,6 +39,8 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
                 catch (Exception e)
                 {
                     logger.LogCritical("Unhandled exception occured: {e}", e);
+                    Console.WriteLine("Press any key to exit...");
+                    Console.ReadKey();
                 }
 
                 logger.LogInformation("FortRise is closing...");
