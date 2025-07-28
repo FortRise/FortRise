@@ -30,11 +30,26 @@ namespace TowerFall
         }
 
         [MonoModReplace]
-        public new virtual void OnLevelLoadFinish()
+        [MonoModPatch("OnLevelLoadFinish")]
+        [MonoModIfFlag("Steamworks")]
+        public virtual void OnLevelLoadFinish_Steamworks()
         {
             if (!Session.MatchSettings.SoloMode)
             {
                 SaveData.Instance.Stats.RoundsPlayed++;
+                SessionStats.RoundsPlayed++;
+            }
+
+            ModEventsManager.Instance.OnLevelLoaded.Raise(this, this);
+        }
+
+        [MonoModReplace]
+        [MonoModPatch("OnLevelLoadFinish")]
+        [MonoModIfFlag("NoLauncher")]
+        public virtual void OnLevelLoadFinish_NoLauncher()
+        {
+            if (!Session.MatchSettings.SoloMode)
+            {
                 SessionStats.RoundsPlayed++;
             }
 

@@ -443,7 +443,9 @@ namespace TowerFall.Patching
                 }
                 else
                 {
-                    var customTower = TowerRegistry.TrialTowers[towers[k, 0].GetLevelID()];
+                    var levelID = towers[k, 0].GetLevelID();
+                    
+                    var customTower = TowerRegistry.TrialTowers[levelID[0..(levelID.Length - 2)]];
                     var hidden = customTower.Configuration.IsHidden;
                     show = hidden is null || !hidden.Invoke(customTower);
                 }
