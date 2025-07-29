@@ -16,7 +16,7 @@ namespace FortLauncher;
 internal class Program
 {
     private static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
-    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-rc.5");
+    private static readonly SemanticVersion Version = new SemanticVersion("5.0.0-rc.6");
 
     public static int Main(string[] args)
     {
