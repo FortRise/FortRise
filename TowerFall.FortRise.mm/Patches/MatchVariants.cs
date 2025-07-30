@@ -40,7 +40,8 @@ public class patch_MatchVariants : MatchVariants
             var flags = configuration.Flags;
             Pickups[] itemExclusions = configuration.Exclusions;
             bool perPlayer = flags.HasFlag(CustomVariantFlags.PerPlayer);
-            string description = configuration.Description?.ToUpperInvariant();
+
+            string description = configuration.Description?.ToUpperInvariant() ?? string.Empty;
             string header = configuration.Header?.ToUpperInvariant();
 
             bool scrollEffect = flags.HasFlag(CustomVariantFlags.ScrollEffect);
@@ -50,6 +51,7 @@ public class patch_MatchVariants : MatchVariants
             bool tournamentRule2v = flags.HasFlag(CustomVariantFlags.TournamentRule2v2);
             bool unlisted = flags.HasFlag(CustomVariantFlags.Unlisted);
             bool darkWorldDLC = flags.HasFlag(CustomVariantFlags.DarkWorldDLC);
+
             int coopValue = 0;
             if (flags.HasFlag(CustomVariantFlags.CoopCurses))
             {
@@ -59,11 +61,13 @@ public class patch_MatchVariants : MatchVariants
             {
                 coopValue = 1;
             }
+
             var title = configuration.Title.ToUpperInvariant();
             var icon = configuration.Icon.Subtexture;
             var variant = new Variant(icon, title, description, itemExclusions, perPlayer,
                 header, null, scrollEffect, hidden, flag, tournamentRule1v,
                 tournamentRule2v, unlisted, darkWorldDLC, coopValue);
+
             if (flag)
             {
                 canRandoms.Add(variant);
