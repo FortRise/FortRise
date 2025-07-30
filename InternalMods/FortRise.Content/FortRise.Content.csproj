@@ -1,15 +1,3 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\..\Configuration.props" />
-
-  <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <Version>$(FortRiseVersion)</Version>
-    <ModLoaderPath>..\..\FortLauncher\bin\Debug\net9.0\</ModLoaderPath>
-    <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FortRise.Configuration" Version="1.5.0" />
-  </ItemGroup>
-
+	<Import Project="..\..\Configuration.Internals.props" />
 </Project>

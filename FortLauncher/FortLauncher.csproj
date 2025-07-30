@@ -82,4 +82,23 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="GenerateVersionInfo" BeforeTargets="BeforeCompile">
+    <PropertyGroup>
+      <FileContent>
+namespace FortLauncher%3B
+
+public static class FortRiseConstants
+{
+    public const string Version = "$(FortRiseVersion)"%3B
+}
+      </FileContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="FortRiseConstants.cs" Lines="$(FileContent)" Overwrite="true" />
+
+    <ItemGroup>
+      <Compile Include="FortRiseConstants.cs"/>
+    </ItemGroup>
+  </Target>
+
 </Project>

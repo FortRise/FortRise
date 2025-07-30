@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <FortRiseVersion>5.0.0-rc.6</FortRiseVersion>
+    <FortRiseVersion>$([System.IO.File]::ReadAllText('$(SolutionDir)/version.txt').TrimEnd())</FortRiseVersion>
     <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
   </PropertyGroup>
 </Project>

@@ -1,0 +1,37 @@
+<Project>
+	<Import Project="Configuration.props" />
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <Version>$(FortRiseVersion)</Version>
+    <ModLoaderPath>..\..\FortLauncher\bin\Debug\net9.0\</ModLoaderPath>
+    <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FortRise.Configuration" Version="1.5.0" />
+  </ItemGroup>
+
+  <Target Name="GenerateMetadata" BeforeTargets="BeforeCompile">
+    <PropertyGroup>
+      <FileContent>
+{
+    "name": "$(MSBuildProjectName)",
+    "version": "$(FortRiseVersion)",
+    "dependencies": [
+        {
+            "name": "FortRise",
+            "version": "$(FortRiseVersion)"
+        }
+    ],
+    "dll": "$(MSBuildProjectName).dll"
+}
+      </FileContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="meta.json" Lines="$(FileContent)" Overwrite="true" />
+  </Target>
+
+
+</Project>
+
