@@ -477,16 +477,28 @@ public class TextContainer : MenuItem
     {
         public string[] Options;
         public override bool HasArrows => false;
+        private string currentOption;
+
         public SelectionOption(string text, string[] options) : base(text)
         {
-            Options = options.Select(x => x.ToUpperInvariant()).ToArray();
+            Options = options;
+            if (options.Length == 0)
+            {
+                return;
+            }
+            currentOption = options[0].ToUpperInvariant();
         }
 
         public SelectionOption(string text, string[] options, int start) : base(text)
         {
-            Options = options.Select(x => x.ToUpperInvariant()).ToArray();
+            Options = options;
+            if (start == -1)
+            {
+                start = 0;
+            }
             Value.Item2 = start;
             Value.Item1 = Options[Value.Item2];
+            currentOption = Value.Item1.ToUpperInvariant();
         }
 
         public override bool CanLeft => Value.Item2 > 0;
@@ -501,6 +513,7 @@ public class TextContainer : MenuItem
             OnValueChanged?.Invoke(Value);
             ValueWiggler.Start();
             Sounds.ui_subclickOff.Play();
+            currentOption = Value.Item1?.ToUpperInvariant();
         }
 
         public override void OptionRight()
@@ -511,11 +524,18 @@ public class TextContainer : MenuItem
             OnValueChanged?.Invoke(Value);
             ValueWiggler.Start();
             Sounds.ui_subclickOff.Play();
+            currentOption = Value.Item1?.ToUpperInvariant();
         }
 
         public override void RenderValue(ref Vector2 position, ref Vector2 vector, ref Color color)
         {
-            Draw.OutlineTextJustify(TFGame.Font, Options[Value.Item2], position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+            if (string.IsNullOrEmpty(currentOption))
+            {
+                Draw.OutlineTextJustify(TFGame.Font, "NULL", position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
+                return;
+            }
+
+            Draw.OutlineTextJustify(TFGame.Font, currentOption, position + vector, color, Color.Black, Vector2.One * 0.5f, 1f);
         }
     }
 
