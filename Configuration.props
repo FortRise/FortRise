@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <FortRiseVersion>$([System.IO.File]::ReadAllText('$(SolutionDir)/version.txt').TrimEnd())</FortRiseVersion>
+    <FortRiseVersion Condition="'$(FortRiseVersion)' == ''">$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../version.txt').TrimEnd())</FortRiseVersion>
     <ArtifactDirectory>artifacts/FortRise.v$(FortRiseVersion)-$(RuntimeIdentifier)/FortRise</ArtifactDirectory>
   </PropertyGroup>
 </Project>

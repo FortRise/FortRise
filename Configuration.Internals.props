@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup>
+    <FortRiseVersion>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../../version.txt').TrimEnd())</FortRiseVersion>
+  </PropertyGroup>
+
 	<Import Project="Configuration.props" />
 
   <PropertyGroup>

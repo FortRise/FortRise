@@ -1,10 +1,10 @@
 {
     "name": "FortRise.Content",
-    "version": "5.0.0-rc.7",
+    "version": "5.0.0-rc.8",
     "dependencies": [
         {
             "name": "FortRise",
-            "version": "5.0.0-rc.7"
+            "version": "5.0.0-rc.8"
         }
     ],
     "dll": "FortRise.Content.dll"
