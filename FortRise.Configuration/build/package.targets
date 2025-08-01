@@ -13,7 +13,6 @@
 		<ModEnablePublish Condition="'$(ModEnablePublish)' == ''">true</ModEnablePublish>
     <ModEnableZip Condition="'$(ModEnableZip)' == '' And '$(Configuration)' == 'Release'">true</ModEnableZip>
 		<ModEnableZip Condition="'$(ModEnableZip)' == ''">false</ModEnableZip>
-    <UseLegacyOnHooks>false</UseLegacyOnHooks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -45,9 +44,7 @@
     <FNAPath>FNA.dll</FNAPath>
     <HookPath>MMHOOK_TowerFall.dll</HookPath>
     <MonoCecilPath>Mono.Cecil.dll</MonoCecilPath>
-    <MonoModRuntimeDetourPath>MonoMod.RuntimeDetour.dll</MonoModRuntimeDetourPath>
     <MonoModUtilsPath>MonoMod.Utils.dll</MonoModUtilsPath>
-    <MonoModPatcherPath>MonoMod.Patcher.dll</MonoModPatcherPath>
     <ModPublishPath Condition="'$(ModPublishPath)' == ''">$(ModLoaderPath)\Mods</ModPublishPath>
   </PropertyGroup>
 
@@ -55,10 +52,6 @@
     <Reference Include="0Harmony" Private="False" HintPath="$(ModLoaderPath)\0Harmony.dll" />
     <Reference Include="TowerFall">
       <HintPath>$(TowerFallDirPath)$(TowerFallPath)</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MMHOOK_TowerFall" Condition="'$(UseLegacyOnHooks)' == 'true'">
-      <HintPath>$(TowerFallDirPath)$(HookPath)</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="FNA">

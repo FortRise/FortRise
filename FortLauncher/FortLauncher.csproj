@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>FortRise</AssemblyName>
-    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
     <ApplicationIcon>../Icon.ico</ApplicationIcon>
 		<ApplicationManifest>../app.manifest</ApplicationManifest>
     <Nullable>enable</Nullable>
@@ -74,12 +74,6 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Utils\release_net9.0\MonoMod.Utils.dll</HintPath>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour\release_net9.0\MonoMod.RuntimeDetour.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoMod.RuntimeDetour.HookGen">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.RuntimeDetour.HookGen\release_net9.0\MonoMod.RuntimeDetour.HookGen.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <Target Name="GenerateVersionInfo" BeforeTargets="BeforeCompile">
@@ -96,5 +90,25 @@ public static class FortRiseConstants
 
     <WriteLinesToFile File="FortRiseConstants.cs" Lines="$(FileContent)" Overwrite="true" />
   </Target>
+
+  <!-- Bundle MacOS app -->
+
+  <ItemGroup>
+    <PackageReference Include="Dotnet.Bundle" Version="*" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CFBundleName>FortRise</CFBundleName>
+    <CFBundleDisplayName>FortRise</CFBundleDisplayName>
+    <CFBundleIdentifier>com.teuria</CFBundleIdentifier>
+    <CFBundleVersion>$(FortRiseVersion)</CFBundleVersion>
+    <CFBundleShortVersionString>$(FortRiseVersion)</CFBundleShortVersionString>
+    <CFBundlePackageType>APPL</CFBundlePackageType>
+    <CFBundleSignature>????</CFBundleSignature>
+    <CFBundleExecutable>FortRise</CFBundleExecutable>
+    <CFBundleIconFile>Icon.icns</CFBundleIconFile> 
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+  </PropertyGroup>
 
 </Project>

@@ -7,7 +7,6 @@ using System.Runtime.Loader;
 using Microsoft.Extensions.Logging;
 using Mono.Cecil;
 using MonoMod;
-using MonoMod.RuntimeDetour.HookGen;
 
 namespace FortLauncher;
 
@@ -49,41 +48,6 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
         }
 
         logger.LogCritical("Failed to run the game.");
-    }
-
-    public static void GenerateHooks(Stream stream, string patchFile)
-    {
-        Environment.SetEnvironmentVariable("MONOMOD_HOOKGEN_PRIVATE", "1");
-        string mmhookPath = Path.Combine(Path.GetDirectoryName(patchFile)!, "MMHOOK_TowerFall.dll");
-        using (var modder = new MonoModder()
-        {
-            Input = stream,
-            OutputPath = mmhookPath,
-            ReadingMode = ReadingMode.Deferred,
-            LogVerboseEnabled = false
-        })
-        {
-            modder.Read();
-
-            modder.MapDependencies();
-
-            if (File.Exists(mmhookPath))
-            {
-                modder.Log($"[HookGen] Clearing {mmhookPath}");
-                File.Delete(mmhookPath);
-            }
-
-            modder.Log("[HookGen] Starting HookGenerator for compatibility reason");
-            var gen = new HookGenerator(modder, Path.GetFileName(mmhookPath));
-            using (var mOut = gen.OutputModule)
-            {
-                gen.Generate();
-                mOut.Write(mmhookPath);
-            }
-
-            modder.Log("[HookGen] Done.");
-        }
-        Environment.SetEnvironmentVariable("MONOMOD_HOOKGEN_PRIVATE", null);
     }
 
     public bool TryPatch(Stream stream, string patchFile)

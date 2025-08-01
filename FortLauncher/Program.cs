@@ -247,11 +247,6 @@ internal class Program
             {
                 return -1;
             }
-
-            using (FileStream fs = File.OpenRead(patchFile))
-            {
-                FortRiseHandler.GenerateHooks(fs, patchFile);
-            }
         }
 
         if (!shouldSkip && !string.IsNullOrEmpty(mmSumStr))
@@ -284,21 +279,44 @@ internal class Program
 
     private static string? LocateExecutable(string baseDirectory)
     {
-        string? path;
-        path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
-        if (File.Exists(path))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return path;
-        }
+            string? path;
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall", "TowerFall.exe"));
 
-        // second attempt
-        path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall.exe"));
-        if (File.Exists(path))
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            // second attempt
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall.exe"));
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            // nope
+            return null;
+        }
+        else
         {
-            return path;
-        }
+            string? path;
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall", "TowerFall.exe"));
+            if (File.Exists(path))
+            {
+                return path;
+            }
 
-        // nope
-        return null;
+            // second attempt
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "TowerFall.exe"));
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            // nope
+            return null;
+        }
     }
 }
