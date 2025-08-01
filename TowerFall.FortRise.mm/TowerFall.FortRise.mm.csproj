@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Jint" Version="4.4.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <PackageReference Include="Pintail" Version="2.8.1" />
     <PackageReference Include="Lib.Harmony.Thin" Version="2.3.6" />

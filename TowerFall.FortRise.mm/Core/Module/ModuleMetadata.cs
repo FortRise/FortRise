@@ -30,6 +30,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public string Description { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
+    public string JS { get; set; } = string.Empty;
     public string[]? Tags { get; set; } = null;
     public ModuleMetadata[]? Dependencies { get; set; } = null;
     public ModuleMetadata[]? OptionalDependencies { get; set; } = null;

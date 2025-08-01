@@ -54,9 +54,11 @@ internal class ModuleManager
     private ILogger logger;
     private ILoggerFactory loggerFactory;
     private ModFlags flags;
+    private Jint.Engine engine;
 
-    internal ModuleManager(ILogger logger, ILoggerFactory factory)
+    internal ModuleManager(ILogger logger, ILoggerFactory factory, Jint.Engine engine)
     {
+        this.engine = engine;
         flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
         this.logger = logger;
         this.loggerFactory = factory;
@@ -297,7 +299,7 @@ internal class ModuleManager
         {
             LoadAssembly(metadata, content, asm);
         }
-        else
+        else if (string.IsNullOrEmpty(metadata.JS))
         {
             // for content mods that does not have C# Mod class
             var logger = loggerFactory.CreateLogger(metadata.Name);
@@ -305,6 +307,10 @@ internal class ModuleManager
             EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
 
             logger.LogInformation("{modName} {modVersion} has been loaded.", metadata.Name, metadata.Version);
+        }
+        else
+        {
+            LoadJS(metadata, content, metadata.JS);
         }
 
         InternalMods.Add(modResource);
@@ -374,6 +380,29 @@ internal class ModuleManager
                 LoadModSkipDependecies(delayedMod.Metadata);
             }
         }
+    }
+
+    private void LoadJS(ModuleMetadata metadata, IModContent content, string jsPath)
+    {
+        var context = GetModuleContext(metadata, logger);
+        EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
+
+        var mod = new JSMod(
+            content,
+            context,
+            logger,
+            engine,
+            jsPath
+        );
+
+        mod.Meta = metadata;
+        mod.ParseArgs(RiseCore.ApplicationArgs);
+        mod.OnLoad?.Invoke(mod.Context);
+
+        InternalFortModules.Add(mod);
+        NameToFortModule.Add(metadata.Name, mod);
+
+        logger.LogInformation("{modName} {modVersion} has been loaded.", mod.Meta.Name, mod.Meta.Version);
     }
 
     private void LoadAssembly(ModuleMetadata metadata, IModContent content, Assembly asm)

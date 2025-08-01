@@ -13,6 +13,12 @@ using MonoMod;
 using TowerFall;
 using YYProject.XXHash;
 using Microsoft.Extensions.Logging;
+using Jint;
+using HarmonyLib;
+using Jint.Native;
+using MonoMod.Utils;
+using Mono.Cecil.Cil;
+using System.Reflection;
 
 namespace FortRise;
 
@@ -67,6 +73,7 @@ public static partial class RiseCore
     internal static string[] ApplicationArgs;
 
     internal static bool CantRestart = true;
+    internal static Jint.Engine jsEngine;
 
     /// <summary>
     /// Check if the game is about to restart.
@@ -101,14 +108,96 @@ public static partial class RiseCore
         }
     }
 
+    internal static void BuiltInModules(Jint.Engine engine)
+    {
+        engine.Modules.Add("Lib.Harmony", options =>
+        {
+            options.ExportType<HarmonyMethod>();
+            options.ExportFunction("DeclareMethod", value =>
+            {
+                string name = value[0].AsString();
+                string methodName = value[1].AsString();
+
+                var type = AccessTools.TypeByName(name);
+
+                return JsValue.FromObject(engine, AccessTools.DeclaredMethod(type, methodName));
+            });
+
+            options.ExportFunction("Patch", value =>
+            {
+
+            });
+        });
+
+
+        engine.Modules.Add("Microsoft.Xna.Framework", options =>
+        {
+            var assembly = typeof(Vector2).Assembly;
+
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.IsNotPublic ||
+                    type.IsNested ||
+                    type.Namespace is null ||
+                    type.FullName.Contains("SDL") ||
+                    type.FullName.Contains("FNA3D"))
+                {
+                    continue;
+                }
+
+                if (type.IsClass || type.IsValueType)
+                {
+                    options.ExportType(type);
+                }
+            }
+        });
+
+        engine.Modules.Add("TowerFall", options =>
+        {
+            var assembly = typeof(TFGame).Assembly;
+
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.IsNotPublic ||
+                    type.IsNestedPrivate ||
+                    type.Namespace is null ||
+                    type.FullName.Contains("FortRise") ||
+                    type.FullName.Contains("Editor"))
+                {
+                    continue;
+                }
+
+                logger.LogInformation("{FullName}", type.FullName);
+                if (type.IsNested)
+                {
+                    var firstType = $"{type.DeclaringType.Name}.{type.Name}";
+                    options.ExportType(firstType, type);
+                }
+                else
+                {
+                    options.ExportType(type);
+                }
+            }
+        });
+    }
+
     internal static bool Start()
     {
-        RiseCore.Flags();   
-
-        ModuleManager = new ModuleManager(logger, loggerFactory);
         GameRootPath = Path.GetDirectoryName(typeof(TFGame).Assembly.Location);
-
         var modDirectory = Path.Combine(GameRootPath, "Mods");
+
+        Flags();
+
+        jsEngine = new Jint.Engine(options =>
+        {
+            options.EnableModules(modDirectory, false);
+            options.Interop.AllowSystemReflection = true;
+        });
+
+        BuiltInModules(jsEngine);
+
+        ModuleManager = new ModuleManager(logger, loggerFactory, jsEngine);
+
         var modUpdater = Path.Combine(GameRootPath, "ModUpdater");
 
         // Check for the important directories
@@ -389,7 +478,7 @@ public static partial class RiseCore
     internal static void InternalRestart()
     {
         WillRestart = true;
-        Engine.Instance.Exit();
+        Monocle.Engine.Instance.Exit();
     }
 
     internal static void RunTowerFallProcess(string towerFallPath, string[] args)
