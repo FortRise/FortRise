@@ -235,6 +235,11 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             {
                 return handle;
             }
+
+            if (NativeLibrary.TryLoad(Path.Combine(directoryDll, Unmanaged, UnmanagedFolders, "native", libName), out handle)) 
+            {
+                return handle;
+            }
         }
         else if (!string.IsNullOrEmpty(Metadata.PathZip))
         {
@@ -247,15 +252,15 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 Directory.Delete(extractionPath, true);
             }
 
-
             if (!Directory.Exists(extractionPath))
             {
                 string unmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders);
+                string secondUnmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders, "native");
                 using (ZipArchive zip = ZipFile.OpenRead(Metadata.PathZip))
                 {
                     foreach (ZipArchiveEntry entry in zip.Entries)
                     {
-                        if (!entry.FullName.StartsWith(unmanagedPath) || entry.FullName.EndsWith('/'))
+                        if (!(entry.FullName.StartsWith(unmanagedPath) || entry.FullName.StartsWith(secondUnmanagedPath)) || entry.FullName.EndsWith('/'))
                         {
                             continue;
                         }
