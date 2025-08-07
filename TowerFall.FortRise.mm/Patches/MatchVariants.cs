@@ -10,6 +10,8 @@ namespace TowerFall;
 public class patch_MatchVariants : MatchVariants
 {
     internal Dictionary<string, Variant> InternalCustomVariants;
+
+    private HashSet<Variant> Customs;
     public IReadOnlyDictionary<string, Variant> CustomVariants => InternalCustomVariants;
 
     public List<(Variant, ArrowTypes)> StartWithVariants;
@@ -23,6 +25,7 @@ public class patch_MatchVariants : MatchVariants
     [MonoModConstructor]
     public void ctor(bool noPerPlayer = false)
     {
+        Customs = new();
         InternalCustomVariants = new();
         StartWithVariants = new();
 
@@ -78,6 +81,7 @@ public class patch_MatchVariants : MatchVariants
             }
 
             InternalCustomVariants.Add(name, variant);
+            Customs.Add(variant);
             Variants[count] = variant;
             count++;
         }
@@ -165,6 +169,7 @@ public class patch_MatchVariants : MatchVariants
         grid[0].Add(new VariantDisableAll());
         grid[0].Add(new VariantRandomize());
         grid[0].Add(new VariantTournament1v1());
+
         if (GameData.DarkWorldDLC)
         {
             grid[0].Add(new VariantTournament2v2(true));
@@ -210,7 +215,7 @@ public class patch_MatchVariants : MatchVariants
         foreach (var variant in Variants)
         {
             // if this is not a custom variant, perform the vanilla variant insertion
-            if (!InternalCustomVariants.ContainsValue(variant))
+            if (!Customs.Contains(variant))
             {
                 if (!string.IsNullOrEmpty(variant.Header))
                 {
@@ -256,6 +261,10 @@ public class patch_MatchVariants : MatchVariants
         foreach (var p in InternalCustomVariants)
         {
             var variant = p.Value;
+            if (!Customs.Contains(variant))
+            {
+                continue;
+            }
             if (string.IsNullOrEmpty(variant.Header))
             {
                 continue;
