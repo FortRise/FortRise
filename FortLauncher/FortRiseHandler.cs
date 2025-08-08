@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using Microsoft.Extensions.Logging;
-using Mono.Cecil;
-using MonoMod;
 
 namespace FortLauncher;
 

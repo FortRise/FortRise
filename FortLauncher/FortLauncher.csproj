@@ -100,7 +100,7 @@ public static class FortRiseConstants
   <PropertyGroup>
     <CFBundleName>FortRise</CFBundleName>
     <CFBundleDisplayName>FortRise</CFBundleDisplayName>
-    <CFBundleIdentifier>com.teuria</CFBundleIdentifier>
+    <CFBundleIdentifier>com.teuria.FortRise</CFBundleIdentifier>
     <CFBundleVersion>$(FortRiseVersion)</CFBundleVersion>
     <CFBundleShortVersionString>$(FortRiseVersion)</CFBundleShortVersionString>
     <CFBundlePackageType>APPL</CFBundlePackageType>

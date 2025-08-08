@@ -37,6 +37,7 @@ internal class Program
         Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "1");
         logger.LogInformation("Version: {Version}", Version);
 
+        // check if this specific file exists to override some parameters
         bool canOverride = File.Exists("launch_override.json");
 
         string? exePath;
