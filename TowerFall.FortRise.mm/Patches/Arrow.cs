@@ -135,6 +135,7 @@ public abstract class patch_Arrow : Actor
                 _ => CreateCustomArrow(type)
             };
         }
+
         arrow.OverrideCharacterIndex = overrideCharacterIndex;
         arrow.OverridePlayerIndex = overridePlayerIndex;
         arrow.Init(owner, position, direction);

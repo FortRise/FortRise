@@ -45,6 +45,7 @@ namespace TowerFall.Patching
         [MonoModLinkTo("Monocle.Scene", "Begin")]
         public void base_Begin() { }
 
+        [MonoModReplace]
         public override void Begin()
         {
             if (!this.IsOfficialLevelSet())

@@ -36,43 +36,40 @@ namespace TowerFall
         {
         }
 
-        public extern void orig_ctor(Session session, XmlElement xml);
 
-        [MonoModConstructor]
-        public void ctor(Session session, XmlElement xml) 
+        [Postfix("System.Void .ctor(TowerFall.Session,System.Xml.XmlElement)")]
+        private void InitializeModdedLevel(Session session) 
         {
-            orig_ctor(session, xml);
             ActiveShaders = new();
             if (session.GetLevelSet() == "TowerFall") 
+            {
                 return;
+            }
             
             var levelSystem = session.MatchSettings.LevelSystem;
 
-            string levelPath = null;
-            switch (levelSystem) 
+            string levelPath = levelSystem switch 
             {
-            case VersusLevelSystem versus:
-                levelPath = versus.GetLastLevel();
-                break;
-            case QuestLevelSystem quest:
-                levelPath = quest.QuestTowerData.Path;
-                break;
-            case DarkWorldLevelSystem darkWorld:
-                var file = darkWorld.DarkWorldTowerData
-                    [session.MatchSettings.DarkWorldDifficulty][session.RoundIndex + darkWorld.GetStartLevel()].File; 
-                levelPath = darkWorld.DarkWorldTowerData.Levels[file];
-                break;
-            case TrialsLevelSystem trials:
-                levelPath = trials.TrialsLevelData.Path;
-                break;
-            }
+                VersusLevelSystem versus => versus.GetLastLevel(),
+                QuestLevelSystem quest => quest.QuestTowerData.Path,
+                DarkWorldLevelSystem darkWorld => darkWorld.DarkWorldTowerData.Levels
+                    [darkWorld.DarkWorldTowerData
+                        [session.MatchSettings.DarkWorldDifficulty]
+                        [session.RoundIndex + darkWorld.GetStartLevel()]
+                    .File],
+                TrialsLevelSystem trials => trials.TrialsLevelData.Path,
+                _ => $"{levelSystem.ID.X},{levelSystem.ID.Y}"
+            };
 
             if (RiseCore.ResourceTree.TreeMap.TryGetValue(levelPath, out var res)) 
             {
                 var fullPath = Path.GetDirectoryName(res.FullPath);
                 // we need it to be in the folder. If it's in the zip, don't watch
                 if (!Directory.Exists(fullPath))
+                {
                     return;
+                }
+
                 levelWatcher = new FileSystemWatcher(fullPath, "*.oel");
                 levelWatcher.EnableRaisingEvents = true;
                 levelWatcher.Changed += OnFileChanged;
@@ -161,13 +158,10 @@ namespace TowerFall
         [GlobalPreFix("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelEntered()", true)]
         public extern override void Begin();
 
-        [MonoModIgnore]
-        [GlobalPostFix("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelExited()", true)]
-        public extern void orig_End();
-
-        public override void End() 
+        [Postfix(nameof(End))]
+        private void PostEnd() 
         {
-            orig_End();
+            RiseCore.Events.Invoke_OnLevelExited();
             if (levelWatcher != null) 
             {
                 levelWatcher.Changed -= OnFileChanged;
@@ -175,10 +169,7 @@ namespace TowerFall
             }
         }
 
-        [MonoModIgnore]
-        [GlobalPostFix("TowerFall.Level", "System.Void DebugModeRender()")]
-        public extern override void Render();
-
+        [Postfix(nameof(Render))]
         public void DebugModeRender() 
         {
             if (DebugMode) 
@@ -197,7 +188,10 @@ namespace TowerFall
         {
             // This event sometimes called twice.
             if (reload)
+            {
                 return;    
+            }
+
             try 
             {
                 using var fullPath = File.OpenRead(e.FullPath);
