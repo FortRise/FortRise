@@ -7,6 +7,7 @@ namespace TowerFall;
 
 public static class patch_Sounds 
 {
+    private static List<IBaseSFXEntry> queuedModdedSFXs = new List<IBaseSFXEntry>();
     public static Dictionary<string, SFX> SoundsLoaded { get; private set; } = new Dictionary<string, SFX>();
 
     public static void LoadModdedCharacterSounds()
@@ -22,6 +23,19 @@ public static class patch_Sounds
         }
 
         Sounds.Characters = characters;
+
+        foreach (var queue in queuedModdedSFXs)
+        {
+            ReadOnlySpan<char> name = queue.Name;
+
+            var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
+            lookup[name] = queue.BaseSFX;
+        }
+    }
+
+    internal static void AddSFX(IBaseSFXEntry entry) 
+    {
+        queuedModdedSFXs.Add(entry);
     }
 
     public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx) 

@@ -138,6 +138,6 @@ internal sealed class ModSFXs : IModSFXs
 
     private void Invoke(IBaseSFXEntry entry)
     {
-        patch_Sounds.AddSFX(metadata, entry.Name, entry.BaseSFX);
+        patch_Sounds.AddSFX(entry);
     }
 }
