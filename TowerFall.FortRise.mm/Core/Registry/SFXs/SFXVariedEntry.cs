@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.IO;
 using Monocle;
 
@@ -12,9 +13,11 @@ internal sealed class SFXVariedEntry : ISFXVariedEntry
 
     public patch_SFXVaried? SFXVaried => GetActualSFXVaried();
 
-    public int Count { get; init; }
+    public int Count { get => count; init => count = value; }
 
     public SFX? BaseSFX => SFXVaried;
+    private int count;
+    private Func<patch_SFXVaried>? sfxVariedCallback;
 
     public SFXVariedEntry(string name, IResourceInfo[] variations, int count, bool obeysMasterPitch)
     {
@@ -24,11 +27,26 @@ internal sealed class SFXVariedEntry : ISFXVariedEntry
         Count = count;
     }
 
+    public SFXVariedEntry(string name, Func<patch_SFXVaried> callback, bool obeysMasterPitch)
+    {
+        Name = name;
+        Variations = Array.Empty<IResourceInfo>();
+        ObeysMasterPitch = obeysMasterPitch;
+        sfxVariedCallback = callback;
+    }
+
     private patch_SFXVaried? cache;
     private patch_SFXVaried? GetActualSFXVaried()
     {
         if (cache != null)
         {
+            return cache;
+        }
+
+        if (sfxVariedCallback != null)
+        {
+            cache = sfxVariedCallback();
+            count = cache.Datas.Length;
             return cache;
         }
 
