@@ -91,6 +91,12 @@ internal static class SpriteDataLoader
                 dest
             ) : null;
 
+            int[]? headXOrigins = null;
+            if (element.HasChild("HeadXOrigins"))
+            {
+                headXOrigins = Calc.ReadCSVInt(element.ChildText("HeadXOrigins"));
+            }
+
             int[]? headYOrigins = null;
             if (element.HasChild("HeadYOrigins"))
             {
@@ -142,6 +148,7 @@ internal static class SpriteDataLoader
                     Y = element.ChildInt("Y", 0),
                     Animations = animns.ToArray(),
                     AdditionalData = additionalData,
+                    HeadXOrigins = headXOrigins,
                     HeadYOrigins = headYOrigins,
                     RedTexture = redTexture,
                     RedTeam = redTeam,
@@ -200,6 +207,7 @@ internal static class SpriteDataLoader
                     Y = element.ChildInt("Y", 0),
                     Animations = animns.ToArray(),
                     AdditionalData = additionalData,
+                    HeadXOrigins = headXOrigins,
                     HeadYOrigins = headYOrigins,
                     RedTexture = redTexture,
                     RedTeam = redTeam,

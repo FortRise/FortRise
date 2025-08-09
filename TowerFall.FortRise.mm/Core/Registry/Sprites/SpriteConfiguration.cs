@@ -18,6 +18,10 @@ public readonly struct SpriteConfiguration<T>
     /// <summary>
     /// Field only for archers
     /// </summary>
+    public int[]? HeadXOrigins { get; init; }
+    /// <summary>
+    /// Field only for archers
+    /// </summary>
     public int[]? HeadYOrigins { get; init; }
     /// <summary>
     /// Field only for archers

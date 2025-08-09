@@ -87,6 +87,12 @@ internal class SpriteEntry<T> : ISpriteEntry<T>
             CreateProperty(document, sprite, "Flash", Configuration.Flash.ID);
         }
 
+        if (Configuration.HeadXOrigins != null)
+        {
+            string headXorigins = string.Join(',', Configuration.HeadXOrigins);
+            CreateProperty(document, sprite, "HeadXOrigins", headXorigins);
+        }
+
         if (Configuration.HeadYOrigins != null)
         {
             string headYorigins = string.Join(',', Configuration.HeadYOrigins);
