@@ -108,8 +108,7 @@ public override void Initialize()
 }
 ```
 
-### Old
-While this is technically correct, there's some changes to the API as well which make this invalid.
+### New
 ```csharp
 // TowerPatch API
 public class Flight : ITowerPatch
@@ -122,7 +121,7 @@ public class Flight : ITowerPatch
     public void VersusPatch(VersusPatchTowerContext context) 
     {
         // you might have an arrow entry called `TestArrow`.
-        context.IncreaseTreasureRates(TestArrow.Name);
+        context.IncreaseTreasureRates(TestArrow.Pickups);
     }
 }
 ```
