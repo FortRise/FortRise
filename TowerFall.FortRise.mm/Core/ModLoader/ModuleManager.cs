@@ -453,6 +453,19 @@ internal class ModuleManager
     }
 
 #nullable enable
+    internal ILogger? GetModLogger(string modName) 
+    {
+        foreach (var mod in InternalFortModules)
+        {
+            if (mod.Meta.Name == modName)
+            {
+                return mod.Logger;
+            }
+        }
+
+        return null;
+    }
+
     internal IReadOnlyList<IModResource> GetModsByTag(string tag)
     {
         return [.. InternalMods.Where(x =>

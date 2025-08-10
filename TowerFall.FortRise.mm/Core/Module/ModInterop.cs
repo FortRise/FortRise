@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 using Nanoray.Pintail;
 
 namespace FortRise;
@@ -25,13 +26,22 @@ internal class ModInterop : IModInterop
 
     public string[]? GetTags(string modName) => manager.GetTags(modName);
     public string[] GetAllTags() => manager.GetAllTags();
+
     public IReadOnlyList<IModResource> GetModsByTag(string tag) => manager.GetModsByTag(tag);
+
     public IModResource? GetMod(string tag) => manager.GetMod(tag);
+
     public IReadOnlyList<IModResource> GetModDependents() => manager.GetModDependents(metadata.Name);
+
     public bool IsModDepends(ModuleMetadata metadata) => ModuleManager.IsModDepends(this.metadata, metadata);
     
     public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
+
     public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);
+
+    public ILogger? GetModLogger(string modName) => manager.GetModLogger(modName);
+
+    public ILogger? GetModLogger(ModuleMetadata metadata) => manager.GetModLogger(metadata.Name);
 
     public bool IsModExists(string name)
     {
