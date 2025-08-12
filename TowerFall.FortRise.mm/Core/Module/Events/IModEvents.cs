@@ -18,4 +18,5 @@ public interface IModEvents
     /// Called after the game initialization state.
     /// </summary>
     event EventHandler<MenuLoadedEventArgs> OnMenuLoaded;
+    event EventHandler<Level> OnLevelExited;
 }

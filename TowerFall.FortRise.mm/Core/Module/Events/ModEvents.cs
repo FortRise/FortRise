@@ -41,4 +41,10 @@ internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IM
         add => manager.OnMenuLoaded.Add(metadata, value);
         remove => manager.OnMenuLoaded.Remove(metadata, value);
     }
+
+    public event EventHandler<Level> OnLevelExited 
+    {
+        add => manager.OnLevelExited.Add(metadata, value);
+        remove => manager.OnLevelExited.Remove(metadata, value);
+    }
 }

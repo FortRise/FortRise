@@ -161,7 +161,7 @@ namespace TowerFall
         [Postfix(nameof(End))]
         private void PostEnd() 
         {
-            RiseCore.Events.Invoke_OnLevelExited();
+            ModEventsManager.Instance.OnLevelExited.Raise(this, this);
             if (levelWatcher != null) 
             {
                 levelWatcher.Changed -= OnFileChanged;

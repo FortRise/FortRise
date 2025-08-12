@@ -12,6 +12,7 @@ internal sealed class ModEventsManager
     public SafeModEventHandler<RoundLogic> OnLevelLoaded;
     public SafeModEventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated;
     public SafeModEventHandler<MenuLoadedEventArgs> OnMenuLoaded;
+    public SafeModEventHandler<Level> OnLevelExited;
 
     public ModEventsManager()
     {
@@ -22,6 +23,18 @@ internal sealed class ModEventsManager
         OnLevelLoaded = new();
         OnSlotVariantCreated = new();
         OnMenuLoaded = new();
+        OnLevelExited = new();
+    }
+
+    public void Dispose() 
+    {
+        OnModInitialize.RemoveAll();
+        OnBeforeModInstantiation.RemoveAll();
+        OnModLoadStateFinished.RemoveAll();
+        OnLevelLoaded.RemoveAll();
+        OnSlotVariantCreated.RemoveAll();
+        OnMenuLoaded.RemoveAll();
+        OnLevelExited.RemoveAll();
     }
 }
 

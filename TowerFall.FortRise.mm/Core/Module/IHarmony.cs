@@ -11,4 +11,5 @@ public interface IHarmony
     void PatchAll(Assembly assembly);
     void ReversePatch(MethodBase original, HarmonyMethod standin, MethodInfo transpiler);
     void Unpatch(MethodBase original, MethodInfo patch);
+    internal void UnpatchAll();
 }

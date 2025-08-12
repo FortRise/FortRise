@@ -53,11 +53,14 @@ internal class ModuleManager
     internal HashSet<string> CantLoad = new();
     private ILogger logger;
     private ILoggerFactory loggerFactory;
+    // we can cache these for now
     private ModFlags flags;
+    private ModEnvironment environment;
 
     internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
         flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
+        environment = new ModEnvironment(RiseCore.FortRiseVersion);
         this.logger = logger;
         this.loggerFactory = factory;
 
@@ -412,6 +415,7 @@ internal class ModuleManager
             new ModInterop(this, metadata, proxyManager),
             new ModEvents(metadata, EventsManager),
             flags,
+            environment,
             logger,
             new LimitedHarmony(new Harmony(metadata.Name))
         );

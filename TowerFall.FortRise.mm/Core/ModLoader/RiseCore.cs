@@ -461,10 +461,21 @@ public static partial class RiseCore
 
     internal static void ModuleEnd()
     {
-        foreach (var t in ModuleManager.InternalFortModules)
+        foreach (var mod in ModuleManager.InternalFortModules)
         {
-            t.OnUnload?.Invoke(t.Context);
+            UnloadMod(mod);
         }
+    }
+
+    internal static void UnloadMod(Mod mod)
+    {
+        // first, call the unload first
+        mod.OnUnload?.Invoke(mod.Context);
+
+        // then unload all FortRise managed objects
+        // TODO: unload all mod's features, useful for hot reload
+        mod.Context.Harmony.UnpatchAll();
+        ModEventsManager.Instance.Dispose();
     }
 
     internal static void WriteBlacklist(List<string> ctx, string path)

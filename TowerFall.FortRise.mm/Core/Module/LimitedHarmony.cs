@@ -31,4 +31,9 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
     {
         Harmony.Unpatch(original, patch);
     }
+
+    public void UnpatchAll() 
+    {
+        Harmony.UnpatchAll();
+    }
 }

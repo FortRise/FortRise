@@ -69,15 +69,6 @@ public static partial class RiseCore
         }
 
         /// <summary>
-        /// Called when exited the level via Quit or Map.
-        /// </summary>
-        public static event Action OnLevelExited;
-        internal static void Invoke_OnLevelExited()
-        {
-            OnLevelExited?.Invoke();
-        }
-
-        /// <summary>
         /// Called before the GameData.Load() called.
         /// </summary>
         public static event Action OnBeforeDataLoad;

@@ -16,7 +16,6 @@ public sealed class SafeModEventHandler<TEventArgs>
     private List<(DelayType type, SafeEventHandler handler)> delayedHandlers = new();
     private bool isRaising;
 
-
     public void Add(ModuleMetadata metadata, EventHandler<TEventArgs> handler)
     {
         lock (safeHandlers)
@@ -38,6 +37,34 @@ public sealed class SafeModEventHandler<TEventArgs>
         lock (safeHandlers)
         {
             safeHandlers.Add(handler);
+        }
+    }
+
+    public void RemoveAll() 
+    {
+        lock (safeHandlers)
+        {
+            safeHandlers.Clear();
+        }
+    }
+
+    public void RemoveAllWithMetadata(ModuleMetadata metadata)
+    {
+        lock (safeHandlers)
+        {
+            var handlerToRemove = new List<SafeEventHandler>();
+            foreach (var handler in safeHandlers)
+            {
+                if (handler.Metadata == metadata)
+                {
+                    handlerToRemove.Add(handler);
+                }
+            }
+
+            foreach (var handler in handlerToRemove)
+            {
+                Remove(handler);
+            }
         }
     }
 
