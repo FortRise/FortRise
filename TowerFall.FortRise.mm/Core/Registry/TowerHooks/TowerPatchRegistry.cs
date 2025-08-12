@@ -40,6 +40,8 @@ public static class TowerPatchRegistry
 
 public interface IVersusTowerTreasurePatchContext
 {
+    int[] TreasureRates { get; }
+
     void DecreaseTreasureRates(string pickup, int rate = 1);
     void DecreaseTreasureRates(Pickups pickup, int rate = 1);
     void IncreaseTreasureRates(Pickups pickup, int rate = 1);
@@ -51,11 +53,24 @@ public interface IVersusTowerTreasurePatchContext
 internal class VersusTowerTreasurePatchContext : IVersusTowerTreasurePatchContext
 {
     private int[] treasureRates;
+    private static VersusTowerTreasurePatchContext TowerPatchCached;
 
+    public int[] TreasureRates => treasureRates;
 
     internal VersusTowerTreasurePatchContext(int[] treasureRates)
     {
         this.treasureRates = treasureRates;
+    }
+
+    internal static VersusTowerTreasurePatchContext CreateVersusTowerTreasurePatchContext(int[] treasureRates) 
+    {
+        if (TowerPatchCached is not null) 
+        {
+            TowerPatchCached.treasureRates = treasureRates;
+            return TowerPatchCached;
+        }
+
+        return TowerPatchCached = new VersusTowerTreasurePatchContext(treasureRates);
     }
 
     #region TreasureRates

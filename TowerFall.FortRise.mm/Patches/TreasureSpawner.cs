@@ -90,7 +90,7 @@ public class patch_TreasureSpawner : TreasureSpawner
             TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
             var clonedMask = new int[mask.Length];
             Array.Fill(clonedMask, 1);
-            var patchContext = new VersusTowerTreasurePatchContext(clonedMask);
+            var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(clonedMask);
             
             foreach (var tower in TowerPatchRegistry.Hooks.Values)
             {
@@ -113,7 +113,7 @@ public class patch_TreasureSpawner : TreasureSpawner
         else
         {
             TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
-            var patchContext = new VersusTowerTreasurePatchContext(mask);
+            var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(mask);
 
             foreach (var tower in TowerPatchRegistry.Hooks.Values)
             {
