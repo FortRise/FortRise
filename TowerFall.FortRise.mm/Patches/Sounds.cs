@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using FortRise;
 using Monocle;
 
@@ -9,6 +10,8 @@ public static class patch_Sounds
 {
     private static List<IBaseSFXEntry> queuedModdedSFXs = new List<IBaseSFXEntry>();
     public static Dictionary<string, SFX> SoundsLoaded { get; private set; } = new Dictionary<string, SFX>();
+
+    public static Lock SoundLoadLock = new Lock();
 
     public static void LoadModdedCharacterSounds()
     {

@@ -386,18 +386,17 @@ namespace TowerFall
 
             TaskHelper.Run("loading sfx", () => 
             {
+
                 try 
                 {
                     Stopwatch watch = Stopwatch.StartNew();
                     Logger.Log("[LOAD] ...Music");
                     TFGame.WriteLineToLoadLog("Loading Music...");
-                    patch_Music.Initialize();
-                    patch_Audio.InitMusicSystems();
-
-                    // foreach (var mods in RiseCore.ModuleManager.InternalMods) 
-                    // {
-                    //     mods.Content.LoadAudio();
-                    // }
+                    lock (patch_Sounds.SoundLoadLock) 
+                    {
+                        patch_Music.Initialize();
+                        patch_Audio.InitMusicSystems();
+                    }
 
                     Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
 
@@ -407,7 +406,6 @@ namespace TowerFall
                         Logger.Log("[LOAD] ...SFX" );
                         TFGame.WriteLineToLoadLog("Loading Sounds...");
                         Sounds.Load();
-                        patch_Sounds.LoadModdedCharacterSounds();
                     }
 
                     SoundLoaded = true;
@@ -488,6 +486,8 @@ namespace TowerFall
             {
                 yield return 0;
             }
+
+            patch_Sounds.LoadModdedCharacterSounds();
             XNAFileDialog.GraphicsDevice = Instance.GraphicsDevice;
 
             Loader.Message = "";
