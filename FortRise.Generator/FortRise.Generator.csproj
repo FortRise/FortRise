@@ -10,7 +10,7 @@
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>NU5128</NoWarn>
-    <Version>1.5.4</Version>
+    <Version>1.5.6</Version>
   </PropertyGroup>
 
   <ItemGroup>
