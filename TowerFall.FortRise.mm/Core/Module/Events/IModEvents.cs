@@ -19,4 +19,8 @@ public interface IModEvents
     /// </summary>
     event EventHandler<MenuLoadedEventArgs> OnMenuLoaded;
     event EventHandler<Level> OnLevelExited;
+    /// <summary>
+    /// Called when the game is initialized. This is different from mod initialization and it is run before that happens.
+    /// </summary>
+    event EventHandler<TFGame> OnGameInitialized;
 }

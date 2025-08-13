@@ -449,7 +449,7 @@ public static partial class RiseCore
     }
 
 
-    internal static void LogAllTypes()
+    internal static void LogTotalModsLoaded()
     {
         Logger.Info(ModuleManager.InternalMods.Count + " total of mods loaded");
     }

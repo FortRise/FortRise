@@ -239,7 +239,8 @@ namespace TowerFall
             orig_LoadContent();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             orig_Initialize();
-            FortRise.RiseCore.LogAllTypes();
+            FortRise.RiseCore.LogTotalModsLoaded();
+            ModEventsManager.Instance.OnGameInitialized.Raise(this, this);
         }
 
         protected extern void orig_UnloadContent();

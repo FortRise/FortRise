@@ -13,6 +13,7 @@ internal sealed class ModEventsManager
     public SafeModEventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated;
     public SafeModEventHandler<MenuLoadedEventArgs> OnMenuLoaded;
     public SafeModEventHandler<Level> OnLevelExited;
+    public SafeModEventHandler<TFGame> OnGameInitialized;
 
     public ModEventsManager()
     {
@@ -24,6 +25,7 @@ internal sealed class ModEventsManager
         OnSlotVariantCreated = new();
         OnMenuLoaded = new();
         OnLevelExited = new();
+        OnGameInitialized = new();
     }
 
     public void Dispose() 
@@ -35,6 +37,7 @@ internal sealed class ModEventsManager
         OnSlotVariantCreated.RemoveAll();
         OnMenuLoaded.RemoveAll();
         OnLevelExited.RemoveAll();
+        OnGameInitialized.RemoveAll();
     }
 }
 

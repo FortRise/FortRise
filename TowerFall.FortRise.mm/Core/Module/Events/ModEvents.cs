@@ -47,4 +47,10 @@ internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IM
         add => manager.OnLevelExited.Add(metadata, value);
         remove => manager.OnLevelExited.Remove(metadata, value);
     }
+
+    public event EventHandler<TFGame> OnGameInitialized
+    {
+        add => manager.OnGameInitialized.Add(metadata, value);
+        remove => manager.OnGameInitialized.Remove(metadata, value);
+    }
 }
