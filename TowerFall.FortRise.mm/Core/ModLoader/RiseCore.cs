@@ -475,7 +475,7 @@ public static partial class RiseCore
         // then unload all FortRise managed objects
         // TODO: unload all mod's features, useful for hot reload
         mod.Context.Harmony.UnpatchAll();
-        ModEventsManager.Instance.Dispose();
+        ModEventsManager.Instance.RemoveByMod(mod);
     }
 
     internal static void WriteBlacklist(List<string> ctx, string path)

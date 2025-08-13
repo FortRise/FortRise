@@ -28,6 +28,18 @@ internal sealed class ModEventsManager
         OnGameInitialized = new();
     }
 
+    public void RemoveByMod(Mod mod)
+    {
+        OnModInitialize.RemoveAllWithMetadata(mod.Meta);
+        OnBeforeModInstantiation.RemoveAllWithMetadata(mod.Meta);
+        OnModLoadStateFinished.RemoveAllWithMetadata(mod.Meta);
+        OnLevelLoaded.RemoveAllWithMetadata(mod.Meta);
+        OnSlotVariantCreated.RemoveAllWithMetadata(mod.Meta);
+        OnMenuLoaded.RemoveAllWithMetadata(mod.Meta);
+        OnLevelExited.RemoveAllWithMetadata(mod.Meta);
+        OnGameInitialized.RemoveAllWithMetadata(mod.Meta);     
+    }
+
     public void Dispose() 
     {
         OnModInitialize.RemoveAll();
