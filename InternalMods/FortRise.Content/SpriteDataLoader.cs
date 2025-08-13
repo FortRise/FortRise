@@ -61,33 +61,31 @@ internal static class SpriteDataLoader
             };
 
             var id = element.Attr("id");
-            var texture = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("Texture")),
-                dest
-            );
 
-            ISubtextureEntry? redTexture = element.HasChild("RedTexture") ? registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("RedTexture")),
+            var texture = content.LoadTexture(registry, element.ChildText("Texture").Trim(), dest);
+
+            ISubtextureEntry? redTexture = element.HasChild("RedTexture") ? content.LoadTexture(registry, 
+                element.ChildText("RedTexture"),
                 dest
             ) : null;
 
-            ISubtextureEntry? blueTexture = element.HasChild("BlueTexture") ? registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("BlueTexture")),
+            ISubtextureEntry? blueTexture = element.HasChild("BlueTexture") ? content.LoadTexture(registry, 
+                element.ChildText("BlueTexture"),
                 dest
             ) : null;
 
-            ISubtextureEntry? redTeam = element.HasChild("RedTeam") ? registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("RedTeam")),
+            ISubtextureEntry? redTeam = element.HasChild("RedTeam") ? content.LoadTexture(registry, 
+                element.ChildText("RedTeam"),
                 dest
             ) : null;
 
-            ISubtextureEntry? blueTeam = element.HasChild("BlueTeam") ? registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("BlueTeam")),
+            ISubtextureEntry? blueTeam = element.HasChild("BlueTeam") ? content.LoadTexture(registry, 
+                element.ChildText("BlueTeam"),
                 dest
             ) : null;
 
-            ISubtextureEntry? flash = element.HasChild("Flash") ? registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("Flash")),
+            ISubtextureEntry? flash = element.HasChild("Flash") ? content.LoadTexture(registry, 
+                element.ChildText("Flash"),
                 dest
             ) : null;
 

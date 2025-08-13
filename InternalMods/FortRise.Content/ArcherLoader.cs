@@ -100,9 +100,7 @@ internal static class ArcherLoader
 
         if (element.HasChild("Aimer"))
         {
-            aimer = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(element.ChildText("Aimer").Trim())
-            );
+            aimer = content.LoadTexture(registry, element.ChildText("Aimer").Trim(), SubtextureAtlasDestination.Atlas);
         }
         else
         {
