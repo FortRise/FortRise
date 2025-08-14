@@ -21,45 +21,6 @@ public static partial class RiseCore
             bool dark, bool slow, bool scroll);
 
         /// <summary>
-        /// Called when the quest wave spawn
-        /// </summary>
-        public static event QuestSpawnWaveHandler OnQuestSpawnWave;
-        internal static void Invoke_OnQuestSpawnWave(
-            QuestControl control, int waveNum,
-            List<IEnumerator> groups, int[] floors,
-            bool dark, bool slow, bool scroll)
-        {
-            OnQuestSpawnWave?.Invoke(control, waveNum, groups, floors, dark, slow, scroll);
-        }
-
-        /// <summary>
-        /// Called when the main menu has started
-        /// </summary>
-        public static event Action<MainMenu> OnMainBegin;
-        internal static void Invoke_OnMainBegin(MainMenu menu)
-        {
-            OnMainBegin?.Invoke(menu);
-        }
-
-        /// <summary>
-        /// Called when the map scene has started
-        /// </summary>
-        public static event Action<MapScene> OnMapBegin;
-        internal static void Invoke_OnMapBegin(MapScene map)
-        {
-            OnMapBegin?.Invoke(map);
-        }
-
-        /// <summary>
-        /// Called when a enemy has been killed by a player
-        /// </summary>
-        public static event Action<QuestRoundLogic, Vector2, int, int> OnQuestRegisterEnemyKills;
-        internal static void Invoke_OnQuestRegisterEnemyKills(QuestRoundLogic roundLogic, Vector2 at, int killerIndex, int points)
-        {
-            OnQuestRegisterEnemyKills?.Invoke(roundLogic, at, killerIndex, points);
-        }
-
-        /// <summary>
         /// Called when entered a level.
         /// </summary>
         public static event Action OnLevelEntered;

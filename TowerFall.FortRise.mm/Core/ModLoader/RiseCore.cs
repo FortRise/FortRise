@@ -62,7 +62,6 @@ public static partial class RiseCore
     public static bool NoIntro { get; private set; }
     public static bool NoAutoPause { get; private set; }
     public static bool NoErrorScene { get; private set; }
-    public static bool NoRichPresence { get; private set; }
     public static bool DumpResources { get; private set; }
     internal static string[] ApplicationArgs;
 
@@ -229,10 +228,6 @@ public static partial class RiseCore
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
-        // if (!NoRichPresence)
-        // {
-        //     DiscordComponent.Create();
-        // }
     }
 
     internal static void ParseArgs(string[] args)
@@ -281,9 +276,6 @@ public static partial class RiseCore
             {
                 case "--verbose":
                     Logger.Verbosity = Logger.LogLevel.Assert;
-                    break;
-                case "--no-rich-presence":
-                    NoRichPresence = true;
                     break;
                 case "--no-auto-pause":
                     NoAutoPause = true;

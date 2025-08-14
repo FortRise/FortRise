@@ -20,7 +20,6 @@
     <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Patcher/MonoMod.Patcher.csproj" />
     <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Utils/MonoMod.Utils.csproj" />
     <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Core/MonoMod.Core.csproj" />
-    <ProjectReference Include="../DiscordGameSdk/DiscordGameSdk.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -167,8 +167,6 @@ namespace TowerFall.Patching
                 base.Add(new MapDarkWorldGate(this));
             }
             base_Begin();
-
-            FortRise.RiseCore.Events.Invoke_OnMapBegin(this);
         }
 
         [MonoModReplace]
