@@ -271,37 +271,12 @@ namespace MonoMod
             MethodDefinition complete = method.GetEnumeratorMoveNext();
 
             new ILContext(complete).Invoke(ctx => {
-                var OnQuestSpawnWave = ctx.Module.GetType("FortRise.RiseCore/Events").FindMethod(
-                    "System.Void Invoke_OnQuestSpawnWave(TowerFall.QuestControl,System.Int32,System.Collections.Generic.List`1<System.Collections.IEnumerator>,System.Int32[],System.Boolean,System.Boolean,System.Boolean)");
-
                 var DespawnEvents = ctx.Module.GetType("TowerFall.QuestControl").FindMethod(
                     "System.Void DespawnEvents()");
+
                 var f__4this = ctx.Method.DeclaringType.FindField("<>4__this");
-                var waveNum = ctx.Method.DeclaringType.FindField("waveNum");
-                var scroll = ctx.Method.DeclaringType.FindField("scroll");
-                var dark = ctx.Method.DeclaringType.FindField("dark");
-                var slow = ctx.Method.DeclaringType.FindField("slow");
-                var floors = ctx.Method.DeclaringType.FindField("floors");
-                var groups = ctx.Method.DeclaringType.FindField("groups");
 
                 var cursor = new ILCursor(ctx);
-                cursor.GotoNext(MoveType.After, instr => instr.MatchStfld("TowerFall.QuestRoundLogic", "CurrentWave"));
-
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, f__4this);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, waveNum);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, groups);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, floors);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, dark);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, slow);
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, scroll);
-                cursor.Emit(OpCodes.Call, OnQuestSpawnWave);
 
                 cursor.GotoNext(MoveType.After, instr => instr.MatchStfld("TowerFall.QuestRoundLogic", "BetweenWaves"));
                 cursor.Emit(OpCodes.Ldarg_0);

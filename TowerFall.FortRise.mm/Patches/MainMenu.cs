@@ -59,10 +59,6 @@ namespace TowerFall
         [PatchMainMenuCtor]
         public extern void ctor(MenuState state);
 
-        [MonoModIgnore]
-        [PatchMainMenuBegin]
-        public extern override void Begin();
-
         [MonoModReplace]
         private void CallStateFunc(string name, MainMenu.MenuState state)
         {
@@ -264,9 +260,6 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCtor))]
     public class PatchMainMenuCtor : Attribute {}
 
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuBegin))]
-    public class PatchMainMenuBegin : Attribute {}
-
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCreateOptions))]
     public class PatchMainMenuCreateOptions : Attribute {}
 
@@ -293,17 +286,6 @@ namespace MonoMod
 
             cursor.GotoNext(MoveType.Before, instr => instr.MatchLdsfld("TowerFall.TFGame", "GameLoaded"));
             cursor.RemoveRange(numToRemove);
-        }
-
-        public static void PatchMainMenuBegin(ILContext ctx, CustomAttribute attrib) 
-        {
-            var OnMainBegin = ctx.Module.GetType("FortRise.RiseCore/Events").FindMethod("System.Void Invoke_OnMainBegin(TowerFall.MainMenu)");
-            var cursor = new ILCursor(ctx);
-
-            cursor.GotoNext(MoveType.After, instr => instr.MatchCallOrCallvirt("Monocle.Scene", "Begin"));
-
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Call, OnMainBegin);
         }
     }
 }
