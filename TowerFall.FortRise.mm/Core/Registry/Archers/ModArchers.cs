@@ -9,6 +9,7 @@ public interface IModArchers
 {
     IArcherEntry RegisterArcher(string id, ArcherConfiguration configuration);
     IArcherEntry? GetArcher(string id);
+    IReadOnlyList<IArcherEntry>? GetAllArchers();
 }
 
 internal sealed class ModArchers : IModArchers
@@ -158,5 +159,10 @@ internal sealed class ModArchers : IModArchers
                 ArcherData.SecretArchers[entry.Index] = archerData;
                 break;
         }
+    }
+
+    public IReadOnlyList<IArcherEntry>? GetAllArchers()
+    {
+        return ArcherRegistry.GetAllArcherEntries();
     }
 }
