@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/InternalMods/">
+    <Project Path="InternalMods/FortRise.Content/FortRise.Content.csproj" />
+    <Project Path="InternalMods/FortRise.ImGui/FortRise.ImGui.csproj" />
+  </Folder>
+  <Project Path="FortLauncher/FortLauncher.csproj" />
+  <Project Path="FortRise.Configuration/FortRise.Configuration.csproj" />
+  <Project Path="FortRise.Generator/FortRise.Generator.csproj" />
+  <Project Path="TowerFall.FortRise.mm/TowerFall.FortRise.mm.csproj" />
+</Solution>

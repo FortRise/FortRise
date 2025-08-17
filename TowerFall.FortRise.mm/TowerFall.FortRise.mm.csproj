@@ -17,17 +17,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Patcher/MonoMod.Patcher.csproj" />
-    <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Utils/MonoMod.Utils.csproj" />
-    <ProjectReference Include="../lib-ext/MonoMod/src/MonoMod.Core/MonoMod.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <PackageReference Include="Pintail" Version="2.8.1" />
     <PackageReference Include="Lib.Harmony.Thin" Version="2.3.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+  </ItemGroup>
+
+  <!-- Local Packages -->
+  <ItemGroup>
+    <PackageReference Include="MonoMod.Patcher" Version="25.0.0-alpha.dev" PrivateAssets="all"/>
+    <PackageReference Include="MonoMod.Utils" Version="25.0.8" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,17 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- In order for the intellisense to work, you had to reference the artifacts again... -->
-    <Reference Include="MonoMod.Patcher">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Patcher\release_net9.0\MonoMod.Patcher.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoMod.Core">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Core\release_net9.0\MonoMod.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>..\lib-ext\MonoMod\artifacts\bin\MonoMod.Utils\release_net9.0\MonoMod.Utils.dll</HintPath>
-    </Reference>
-
     <Reference Include="TowerFall">
       <HintPath>..\lib-stripped\TowerFall.exe</HintPath>
       <Private>False</Private>
