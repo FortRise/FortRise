@@ -44,6 +44,7 @@ internal sealed class ImGuiModule : Mod
 
     private void OnInitialization(IModuleContext context)
     {
+        // renderer must be initialized after the game launched
         renderer = new ImGuiRenderer(Engine.Instance);
         renderer.RebuildFontAtlas();
     }
