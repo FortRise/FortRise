@@ -11,17 +11,35 @@ namespace FortRise.Content;
 
 internal static class ArcherLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content)
+    internal static void Load(IModRegistry registry, IModContent content, Loader? loader)
     {
-        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/archerData.xml", out IResourceInfo archerRes))
+        loader ??= new Loader() { Path = ["Content/Atlas/GameData/archerData.xml"] };
+
+        if (loader.Path is null)
         {
             return;
         }
 
-        var archerDataXml = archerRes.Xml ??
-            throw new Exception($"[{content.Metadata.Name}] Failed to load Xml file Atlas/GameData/archerData.xml.");
+        List<IResourceInfo> resources = [];
+        
+        foreach (var path in loader.Path)
+        {
+            resources.AddRange(content.Root.EnumerateChildrens(path));
+        }
 
-        var archers = archerDataXml["Archers"] ??
+        foreach (var res in resources)
+        {
+            var archerDataXml = res.Xml ??
+                throw new Exception($"[{content.Metadata.Name}] Failed to load Xml file {res.Path}.");
+
+            LoadAll(content, registry, archerDataXml);
+        }
+    }
+
+    internal static IList<IArcherEntry> LoadAll(IModContent content, IModRegistry registry, XmlDocument xml) 
+    {
+        var list = new List<IArcherEntry>();
+        var archers = xml["Archers"] ??
             throw new Exception($"[{content.Metadata.Name}] Missing Archers element.");
 
         foreach (var archer in archers)
@@ -39,42 +57,31 @@ internal static class ArcherLoader
             if (isAlt)
             {
                 var altID = element.Attr("Alt");
-                var archerToCopy = registry.Archers.GetArcher(altID);
-                if (archerToCopy is null)
-                {
-                    throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
-                }
+                var archerToCopy = registry.Archers.GetArcher(altID) ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
 
-                registry.Archers.RegisterArcher(
-                    id,
-                    CreateArcherConfigurationWithDefaults(id, element, registry, content, archerToCopy.Configuration) with
-                    {
-                        AltFor = archerToCopy
-                    }
-                );
+                list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { AltFor = archerToCopy }));
                 continue;
             }
 
             if (isSecret)
             {
                 var secretID = element.Attr("Secret");
-                var archerToCopy = registry.Archers.GetArcher(secretID);
-                if (archerToCopy is null)
-                {
-                    throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
-                }
+                var archerToCopy = registry.Archers.GetArcher(secretID) ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
 
-                registry.Archers.RegisterArcher(
-                    id,
-                    CreateArcherConfigurationWithDefaults(id, element, registry, content, archerToCopy.Configuration) with
-                    {
-                        SecretFor = archerToCopy
-                    });
+                list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { SecretFor = archerToCopy }));
                 continue;
             }
 
-            registry.Archers.RegisterArcher(id, CreateArcherConfigurationWithDefaults(id, element, registry, content, default));
+
+            list.Add(LoadArcher(registry, content, element, id, default));
         }
+
+        return list;
+    }
+
+    internal static IArcherEntry LoadArcher(IModRegistry registry, IModContent content, XmlElement element, string id, in ArcherConfiguration configuration)
+    {
+        return registry.Archers.RegisterArcher(id, CreateArcherConfigurationWithDefaults(id, element, registry, content, configuration));
     }
 
     private static ArcherConfiguration CreateArcherConfigurationWithDefaults(string id, XmlElement element, IModRegistry registry, IModContent content, in ArcherConfiguration original)
@@ -107,7 +114,7 @@ internal static class ArcherLoader
             aimer = original.Aimer;
             if (aimer == null)
             {
-                ContentModule.Instance.Logger.LogWarning($"Archer: '{id}' is missing Aimer field. Falling back to Green's Aimer");
+                ContentModule.Instance.Logger.LogWarning("Archer: '{id}' is missing Aimer field. Falling back to Green's Aimer", id);
                 aimer = registry.Subtextures.RegisterTexture(() => TFGame.Atlas["aimers/green"]);
             }
         }
@@ -383,6 +390,8 @@ internal static class ArcherLoader
             Statue = statueInfo,
             Gems = gemInfo,
             Portraits = portraitInfo,
+            AltFor = original.AltFor,
+            SecretFor = original.SecretFor,
             Sprites = spriteInfo
         };
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Xml;
 
 namespace FortRise;
@@ -88,6 +89,17 @@ public abstract class ResourceInfo : IResourceInfo
     {
         string actualPath = System.IO.Path.Combine(RootPath, path);
         return RiseCore.ResourceTree.IsExist(actualPath);
+    }
+
+    public IEnumerable<IResourceInfo> EnumerateChildrens(string pattern)
+    {
+        foreach (var child in Source.OwnedResources.Values)
+        {
+            if (IsWildCardMatch(child.Path, pattern) == 1)
+            {
+                yield return child;
+            }
+        }
     }
 
     public void AssignType()
@@ -211,5 +223,57 @@ public abstract class ResourceInfo : IResourceInfo
             ResourceType = typeof(RiseCore.ResourceTypeFile);
         }
         RiseCore.Events.Invoke_OnResourceAssignType(path, filename, ref ResourceType);
+    }
+
+    private static byte IsWildCardMatch(string text, string pattern)
+    {
+        int n = text.Length;
+        int m = pattern.Length;
+
+        int length = m + 1 + m + 1;
+
+        Span<byte> buffer = length < 4096 ? stackalloc byte[length] : new byte[length];
+
+        buffer[0] = 1;
+
+        for (int j = 1; j <= m; j += 1)
+        {
+            if (pattern[j - 1] == '*')
+            {
+                buffer[j] = buffer[j - 1];
+            }
+        }
+
+        for (int i = 1; i <= n; i += 1)
+        {
+            for (int j = 1; j <= m; j += 1)
+            {
+                char pat = pattern[j - 1];
+
+                if (pat == text[i - 1] || pat == '?')
+                {
+                    buffer[m + 1 + j] = buffer[j - 1];
+                    continue;
+                }
+
+                if (pat == '*')
+                {
+                    buffer[m + 1 + j] = (byte)(buffer[m + 1 + j - 1] | buffer[j]);
+                    continue;
+                }
+
+                buffer[m + 1 + j] = 0;
+            }
+
+            unsafe 
+            {
+                fixed (byte *ptr = buffer)
+                {
+                    NativeMemory.Copy(&ptr[m + 1], ptr, (nuint)m + 1);
+                }
+            }
+        }
+
+        return buffer[m];
     }
 }

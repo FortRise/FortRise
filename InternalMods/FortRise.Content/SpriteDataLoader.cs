@@ -7,23 +7,10 @@ namespace FortRise.Content;
 
 internal static class SpriteDataLoader
 {
-    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType)
+    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, IResourceInfo spriteDataRes)
     {
-        string file = spriteType switch
-        {
-            ContainerSpriteType.Menu => "menuSpriteData",
-            ContainerSpriteType.BG => "bgSpriteData",
-            ContainerSpriteType.Boss => "bossSpriteData",
-            ContainerSpriteType.Corpse => "corpseSpriteData",
-            _ => "spriteData"
-        };
-        if (!content.Root.TryGetRelativePath($"Content/Atlas/SpriteData/{file}.xml", out IResourceInfo spriteDataRes))
-        {
-            return;
-        }
-
         var spriteDataXml = spriteDataRes.Xml ??
-            throw new Exception($"[{content.Metadata.Name}] Content/Atlas/GameData/spriteData.xml cannot be read.");
+            throw new Exception($"[{content.Metadata.Name}] '{spriteDataRes.Path}' cannot be read as xml.");
         var spriteData = spriteDataXml["SpriteData"] ??
             throw new Exception($"[{content.Metadata.Name}] Missing SpriteData element.");
 
@@ -117,7 +104,7 @@ internal static class SpriteDataLoader
             if (element.Name == "sprite_string")
             {
 
-                List<Animation<string>> animns = new List<Animation<string>>();
+                var animns = new List<Animation<string>>();
 
                 foreach (var animationXml in animationsXml)
                 {
@@ -176,7 +163,7 @@ internal static class SpriteDataLoader
             }
             else if (element.Name == "sprite_int")
             {
-                List<Animation<int>> animns = new List<Animation<int>>();
+                var animns = new List<Animation<int>>();
 
                 foreach (var animationXml in animationsXml)
                 {
@@ -233,6 +220,50 @@ internal static class SpriteDataLoader
                         break;
                 }
             }
+        }
+    }
+
+    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, Loader? loader)
+    {
+        loader ??= spriteType switch
+        {
+            ContainerSpriteType.Main => new()
+            {
+                Path = ["Content/Atlas/SpriteData/spriteData.xml"]
+            },
+            ContainerSpriteType.Boss => new()
+            {
+                Path = ["Content/Atlas/SpriteData/bossSpriteData.xml"]
+            },
+            ContainerSpriteType.Corpse => new()
+            {
+                Path = ["Content/Atlas/SpriteData/corpseSpriteData.xml"]
+            },
+            ContainerSpriteType.Menu => new()
+            {
+                Path = ["Content/Atlas/SpriteData/menuSpriteData.xml"]
+            },
+            ContainerSpriteType.BG => new()
+            {
+                Path = ["Content/Atlas/SpriteData/bgSpriteData.xml"]
+            },
+            _ => throw new NotImplementedException()
+        };
+
+        // the path is not configured
+        if (loader.Path is null)
+        {
+            return;
+        }
+
+        foreach (var path in loader.Path)
+        {
+            if (!content.Root.TryGetRelativePath(path, out IResourceInfo spriteDataRes))
+            {
+                continue;
+            }
+
+            LoadSpriteData(registry, content, spriteType, spriteDataRes);
         }
     }
 }
