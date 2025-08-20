@@ -29,4 +29,5 @@ public interface IResourceInfo
     bool TryGetRelativePath(string path, [NotNullWhen(true)] out IResourceInfo resource);
 
     bool ExistsRelativePath(string path);
+    IEnumerable<IResourceInfo> EnumerateChildrens(string pattern);
 }
