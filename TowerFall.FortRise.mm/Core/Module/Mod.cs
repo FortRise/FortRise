@@ -20,6 +20,10 @@ public abstract class Mod
     public Action<IModuleContext>? OnLoad { get; set; }
     public Action<IModuleContext>? OnUnload { get; set; }
     public Action<IModuleContext>? OnInitialize { get; set; }
+    /// <summary>
+    /// Called whenever a mod requests your Api.
+    /// </summary>
+    public Action<ModuleMetadata>? OnModRequestApi { get; set; }
     public Action<IModuleContext, IModContent>? OnLoadContent { get; set; }
 
     private object? saveDataCache;
@@ -41,6 +45,9 @@ public abstract class Mod
     /// </summary>
     /// <param name="args">A launch arguments that has been passed to the game</param>
     public virtual void ParseArgs(string[] args) { }
+    /// <summary>
+    /// A method to return an Api implementation and will be proxied by another's mod interface.
+    /// </summary>
     public virtual object? GetApi() => null;
 
     public virtual ModuleSettings? CreateSettings() => null;

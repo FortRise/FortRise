@@ -59,7 +59,9 @@ internal class ModInterop : IModInterop
     public T? GetApi<T>(string modName, Option<SemanticVersion> minimumVersion = default) where T : class
     {
         if (!typeof(T).IsInterface)
+        {
             throw new ArgumentException($"The requested API type {typeof(T)} is not an interface.");
+        }
 
         manager.NameToFortModule.TryGetValue(modName, out Mod? mod);        
 
@@ -83,6 +85,8 @@ internal class ModInterop : IModInterop
         {
             throw new ArgumentException($"The mod {modName} does not expose an API.");
         }
+
+        mod.OnModRequestApi?.Invoke(metadata);
 
         return ProxyManager.ObtainProxy<string, T>(apiObject, modName, mod.Meta.Name);
     }

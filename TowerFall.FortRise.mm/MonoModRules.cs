@@ -92,7 +92,9 @@ internal static partial class MonoModRules
         MonoModRule.Modder.MissingDependencyThrow = false;
 
         if (MonoModRule.Modder.WriterParameters.WriteSymbols)
+        {
             MonoModRule.Modder.WriterParameters.SymbolWriterProvider = new PortablePdbWriterProvider();
+        }
 
         IsWindows = PlatformDetection.OS == OSKind.Windows;
         MonoModRule.Flag.Set("OS:Windows", IsWindows);

@@ -17,9 +17,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Pintail" Version="2.8.1" />
-    <PackageReference Include="Lib.Harmony.Thin" Version="2.3.6" />
+    <PackageReference Include="Lib.Harmony.Thin" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
   </ItemGroup>
@@ -27,7 +27,7 @@
   <!-- Local Packages -->
   <ItemGroup>
     <PackageReference Include="MonoMod.Patcher" Version="25.0.0-alpha.dev" PrivateAssets="all"/>
-    <PackageReference Include="MonoMod.Utils" Version="25.0.8" PrivateAssets="all"/>
+    <PackageReference Include="MonoMod.Utils" Version="25.0.9-alpha.dev" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -19,7 +19,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
     public const string Unmanaged = "Unmanaged";
     private string directoryDll;
     private bool isDisposed;
-    private static Dictionary<string, AssemblyDefinition> loadAsm = new Dictionary<string, AssemblyDefinition>();
+    private readonly static Dictionary<string, AssemblyDefinition> loadAsm = new Dictionary<string, AssemblyDefinition>();
     internal readonly Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
     internal readonly Dictionary<string, ModuleDefinition> LoadedModules = new Dictionary<string, ModuleDefinition>();
     private static readonly Lock syncRoot = new Lock();
