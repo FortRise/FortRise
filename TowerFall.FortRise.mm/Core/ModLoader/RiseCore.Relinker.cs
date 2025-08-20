@@ -272,8 +272,6 @@ public static partial class RiseCore
                         long stamp2 = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                         cachedPath = Path.Combine(Path.GetTempPath(), $"FortRise.{asmName}.{Path.GetFileNameWithoutExtension(dirPath)}.{stamp2}.dll");
                         Logger.Info($"[Relinker] Moving to {cachedPath}");
-                        modder.Module.Name += "." + stamp2;
-                        modder.Module.Assembly.Name.Name += "." + stamp2;
                         modder.OutputPath = cachedPath;
                         goto Retry;
                     }
