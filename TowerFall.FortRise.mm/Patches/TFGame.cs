@@ -286,6 +286,30 @@ namespace TowerFall
                 {
                     Loader.Message = "LOADING";
                     Logger.Log("[LOAD] --- LOADING DATA ---");
+                    Loader.Message = "LOADING SFX";
+
+                    Stopwatch watch = Stopwatch.StartNew();
+                    Logger.Log("[LOAD] ...Music");
+                    TFGame.WriteLineToLoadLog("Loading Music...");
+                    lock (patch_Sounds.SoundLoadLock) 
+                    {
+                        patch_Music.Initialize();
+                        patch_Audio.InitMusicSystems();
+                    }
+
+                    Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
+
+                    watch = Stopwatch.StartNew();
+                    if (!Sounds.Loaded)
+                    {
+                        Logger.Log("[LOAD] ...SFX" );
+                        TFGame.WriteLineToLoadLog("Loading Sounds...");
+                        Sounds.Load();
+                    }
+
+                    SoundLoaded = true;
+                    Logger.Info($"[LOAD] -- SOUND LOADING: {watch.ElapsedMilliseconds} ms --");
+                    watch.Stop();
 
                     RiseCore.ResourceTree.AfterModdedLoadContent();
                     Loader.Message = "INITIALIZING INPUT";
@@ -384,42 +408,6 @@ namespace TowerFall
 
             if (RiseCore.DumpResources)
                 TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
-
-            TaskHelper.Run("loading sfx", () => 
-            {
-
-                try 
-                {
-                    Stopwatch watch = Stopwatch.StartNew();
-                    Logger.Log("[LOAD] ...Music");
-                    TFGame.WriteLineToLoadLog("Loading Music...");
-                    lock (patch_Sounds.SoundLoadLock) 
-                    {
-                        patch_Music.Initialize();
-                        patch_Audio.InitMusicSystems();
-                    }
-
-                    Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
-
-                    watch = Stopwatch.StartNew();
-                    if (!Sounds.Loaded)
-                    {
-                        Logger.Log("[LOAD] ...SFX" );
-                        TFGame.WriteLineToLoadLog("Loading Sounds...");
-                        Sounds.Load();
-                    }
-
-                    SoundLoaded = true;
-                    Logger.Info($"[LOAD] -- SOUND LOADING: {watch.ElapsedMilliseconds} ms --");
-                    watch.Stop();
-                }
-                catch (Exception ex)
-                {
-                    TFGame.Log(ex, true);
-                    TFGame.OpenLog();
-                    Engine.Instance.Exit();
-                }
-            });
 
             Task.Run(CheckUpdate);
             Task.Run(CheckModUpdate);
