@@ -179,6 +179,7 @@ internal static class ArcherLoader
 
         int sfxIDFallback = element.ChildInt("SFXFallback", 0);
         string sfx = element.ChildText("SFX", null);
+
         if (!string.IsNullOrEmpty(sfx))
         {
             if (int.TryParse(sfx, out int s))
@@ -225,21 +226,12 @@ internal static class ArcherLoader
         {
             var portraits = element["Portraits"];
 
-            var joined = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(portraits.ChildText("Joined"))
-            );
+            var joined = content.LoadTexture(registry, portraits.ChildText("Joined").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var notJoined = content.LoadTexture(registry, portraits.ChildText("NotJoined").Trim(), SubtextureAtlasDestination.MenuAtlas);
 
-            var notJoined = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(portraits.ChildText("NotJoined"))
-            );
+            var win = content.LoadTexture(registry, portraits.ChildText("Win").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var lose = content.LoadTexture(registry, portraits.ChildText("Lose").Trim(), SubtextureAtlasDestination.MenuAtlas);
 
-            var win = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(portraits.ChildText("Win"))
-            );
-
-            var lose = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(portraits.ChildText("Lose"))
-            );
             portraitInfo = new()
             {
                 Joined = joined,
@@ -258,13 +250,8 @@ internal static class ArcherLoader
         if (element.HasChild("Statue"))
         {
             var statue = element["Statue"];
-            var statueImage = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(statue.ChildText("Image"))
-            );
-
-            var statueGlow = registry.Subtextures.RegisterTexture(
-                content.Root.GetRelativePath(statue.ChildText("Glow"))
-            );
+            var statueImage = content.LoadTexture(registry, statue.ChildText("Image").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var statueGlow = content.LoadTexture(registry, statue.ChildText("Glow").Trim(), SubtextureAtlasDestination.MenuAtlas);
 
             statueInfo = new()
             {
