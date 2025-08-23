@@ -34,8 +34,13 @@ public static partial class RiseCore
     /// </summary>
     public static string GameRootPath { get; internal set; }
     internal static Dictionary<string, EnemyLoader> EnemyLoader => EntityRegistry.EnemyLoader;
-    internal static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = new();
+    internal static Dictionary<string, DarkWorldBossLoader> DarkWorldBossLoader = [];
     internal static Dictionary<string, LevelEntityLoader> LevelEntityLoader => EntityRegistry.LevelEntityLoader;
+
+    /// <summary>
+    /// A TowerFall checksum executable.
+    /// </summary>
+    public static string GameChecksum { get; internal set; }
 
 
     internal static Mod FortRiseModule;
@@ -130,7 +135,10 @@ public static partial class RiseCore
 
             foreach (var info in updaterInfos)
             {
-                Logger.Info($"Updating {info.ModName} {info.Version} --> {info.ModName} {info.UpdateVersion}");
+                logger.LogInformation(
+                    "Updating {modName}, {version} -> {modName} {updateVersion}",
+                    info.ModName, info.Version, info.ModName, info.UpdateVersion
+                );
                 string oldMod = Path.Combine(modDirectory, info.ModPath);
                 if (info.IsZipped)
                 {
@@ -149,6 +157,7 @@ public static partial class RiseCore
 
                 File.Move(info.UpdateModPath, Path.Combine(modDirectory, Path.GetFileName(info.UpdateModPath)));
             }
+
             File.Delete(updaterPath);
         }
 
@@ -214,6 +223,7 @@ public static partial class RiseCore
     internal static void ModuleStart()
     {
         // warm up
+        // TODO: make archers follows the vanilla archerData xml count
         IDPool.WarmIndex("boss", 3);
         IDPool.WarmIndex("archers", 8);
         IDPool.WarmIndex("characterSounds", 13);
@@ -257,14 +267,16 @@ public static partial class RiseCore
         else
         {
             using var fs = File.CreateText(file);
-            fs.WriteLine("; Add any of available launch arguments here.");
-            fs.WriteLine("; Lines starting with ; are ignored, so all of the arguments are disabled.");
-            fs.WriteLine("");
-            fs.WriteLine(";--debug");
-            fs.WriteLine(";--nointro");
-            fs.WriteLine("; You can also change your graphics driver, it can be either OpenGL, DirectX, or Vulkan");
-            fs.WriteLine("; The defualt may be depends on your platform and some platform doesn't support one of the other graphics driver.");
-            fs.WriteLine(";--graphics OpenGL");
+            fs.WriteLine(
+                """
+                ; Add any available launch arguments here.
+                ; Lines starting with ; are ignored
+
+                ;--nointro
+                ;--no-auto-pause
+                ;--use-scancodes
+                """
+            );
         }
 
         Logger.Verbosity = Logger.LogLevel.Error;
@@ -298,16 +310,8 @@ public static partial class RiseCore
                 case "--nointro":
                     NoIntro = true;
                     break;
-                case "--no-error-scene":
-                    NoErrorScene = true;
-                    break;
                 case "--loadlog":
                     TFGame.StartLoadLog();
-                    break;
-                case "--graphics":
-                    cursor++;
-                    arg = compiledArgs[cursor];
-                    Environment.SetEnvironmentVariable("FNA3D_FORCE_DRIVER", arg);
                     break;
                 case "--level-quick-start":
                     cursor++;
@@ -375,7 +379,7 @@ public static partial class RiseCore
             cursor++;
         }
 
-        ApplicationArgs = compiledArgs.ToArray();
+        ApplicationArgs = [.. compiledArgs];
     }
 
     internal static void InternalRestart()
@@ -409,20 +413,19 @@ public static partial class RiseCore
     [PatchFlags]
     internal static void Flags() { }
 
-
-    internal static byte[] GetChecksum(string path)
+    internal static ReadOnlySpan<byte> GetChecksum(string path)
     {
         using var fs = File.OpenRead(path);
         return ChecksumHasher.ComputeHash(fs);
     }
 
-    internal static byte[] GetChecksum(ModuleMetadata meta)
+    internal static ReadOnlySpan<byte> GetChecksum(ModuleMetadata meta)
     {
         return GetChecksum(meta.DLL);
     }
 
     // https://github.com/EverestAPI/Everest/blob/dev/Celeste.Mod.mm/Mod/Everest/Everest.cs
-    internal static byte[] GetChecksum(ref Stream stream)
+    internal static ReadOnlySpan<byte> GetChecksum(ref Stream stream)
     {
         if (!stream.CanSeek)
         {
@@ -443,7 +446,10 @@ public static partial class RiseCore
 
     internal static void LogTotalModsLoaded()
     {
-        Logger.Info(ModuleManager.InternalMods.Count + " total of mods loaded");
+        logger.LogInformation(
+            "{modsCount} total of mods loaded.", 
+            ModuleManager.InternalMods.Count
+        );
     }
 
     internal static void Initialize()
@@ -474,9 +480,5 @@ public static partial class RiseCore
     {
         var json = JsonSerializer.Serialize(ctx);
         File.WriteAllText(path, json);
-    }
-
-    internal static void Unregister()
-    {
     }
 }

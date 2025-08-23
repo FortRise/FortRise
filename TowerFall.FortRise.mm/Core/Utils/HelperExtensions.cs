@@ -89,6 +89,9 @@ public static class StreamExt
 {
     public static string ToHexadecimalString(this byte[] data)
         => Convert.ToHexString(data);
+
+    public static string ToHexadecimalString(this ReadOnlySpan<byte> data)
+        => Convert.ToHexString(data);
 }
 
 public static class HarmonyExt

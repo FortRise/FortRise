@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Mono.Cecil;
 
 namespace FortRise;
@@ -17,11 +18,12 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
     public ModuleMetadata Metadata { get; private set; }
     public static readonly string UnmanagedFolders;
     public const string Unmanaged = "Unmanaged";
-    private string directoryDll;
     private bool isDisposed;
-    private readonly static Dictionary<string, AssemblyDefinition> loadAsm = new Dictionary<string, AssemblyDefinition>();
-    internal readonly Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
-    internal readonly Dictionary<string, ModuleDefinition> LoadedModules = new Dictionary<string, ModuleDefinition>();
+
+    private readonly string directoryDll;
+    private readonly static Dictionary<string, AssemblyDefinition> loadAsm = [];
+    internal readonly Dictionary<string, Assembly> LoadedAssemblies = [];
+    internal readonly Dictionary<string, ModuleDefinition> LoadedModules = [];
     private static readonly Lock syncRoot = new Lock();
 
     static ModAssemblyLoadContext()
@@ -34,7 +36,8 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
         {
             UnmanagedFolders = "linux-x64";
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || 
+                RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
         {
             UnmanagedFolders = "osx-x64";
         }
@@ -47,31 +50,39 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
         if (!string.IsNullOrEmpty(metadata.PathDirectory))
         {
-            directoryDll = Path.GetDirectoryName(Path.Combine(metadata.PathDirectory, metadata.DLL)).Replace('\\', '/');
+            directoryDll = Path.GetDirectoryName(
+                Path.Combine(metadata.PathDirectory, metadata.DLL)).Replace('\\', '/');
         }
         else 
         {
-            directoryDll = Path.GetDirectoryName(Path.Combine(Path.GetFileNameWithoutExtension(metadata.PathZip), metadata.DLL)).Replace('\\', '/');
+            directoryDll = Path.GetDirectoryName(
+                Path.Combine(Path.GetFileNameWithoutExtension(metadata.PathZip), metadata.DLL))
+                .Replace('\\', '/');
         }
     }
 
     protected override Assembly Load(AssemblyName assemblyName)
     {
         Assembly asm;
-        if ((asm = LoadModAssembly(Path.Combine(directoryDll, $"{assemblyName.Name}.dll"))) != null) 
+        if ((asm = LoadModAssembly(
+                    Path.Combine(directoryDll, $"{assemblyName.Name}.dll"))) != null) 
         {
             return asm;
         }
 
         // load from launcher instead
-        return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+        return Default.LoadFromAssemblyName(assemblyName);
     }
 
     public Assembly LoadModAssembly(string path)
     {
         lock (syncRoot)
         {
-            ref var asm = ref CollectionsMarshal.GetValueRefOrAddDefault(LoadedAssemblies, path, out bool exists);
+            ref var asm = ref CollectionsMarshal.GetValueRefOrAddDefault(
+                LoadedAssemblies, 
+                path, 
+                out bool exists);
+
             if (exists)
             {
                 return asm;
@@ -83,38 +94,40 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             {
                 if (File.Exists(path))
                 {
-                    using (var asmFS = File.OpenRead(path))
+                    using var asmFS = File.OpenRead(path);
+
+                    asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, asmFS);
+                    if (asm == null)
                     {
-                        
-                        asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, asmFS);
-                        if (asm == null) 
-                        {
-                            // let's try our best to load the dependency
-                            asmFS.Seek(0, SeekOrigin.Begin);
-                            asm = RiseCore.Relinker.FakeRelink(Metadata, Path.GetFileNameWithoutExtension(asmDLL), asmFS);
-                        }
+                        // let's try our best to load the dependency
+                        asmFS.Seek(0, SeekOrigin.Begin);
+                        asm = RiseCore.Relinker.FakeRelink(
+                            Metadata,
+                            Path.GetFileNameWithoutExtension(asmDLL),
+                            asmFS);
                     }
                 }
             }
             else if (!string.IsNullOrEmpty(Metadata.PathZip))
             {
-                using (var asmZip = ZipFile.OpenRead(Metadata.PathZip))
-                {
-                    string entryPath = path.Replace('\\', '/');
-                    ZipArchiveEntry entry = asmZip.GetEntry(entryPath);
+                using var asmZip = ZipFile.OpenRead(Metadata.PathZip);
 
-                    if (entry != null)
+                string entryPath = path.Replace('\\', '/');
+                ZipArchiveEntry entry = asmZip.GetEntry(entryPath);
+
+                if (entry != null)
+                {
+                    using var dllStream = entry.ExtractStream();
+
+                    asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, dllStream);
+                    if (asm == null)
                     {
-                        using (var dllStream = entry.ExtractStream())
-                        {
-                            asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, dllStream);
-                            if (asm == null)
-                            {
-                                // let's try our best to load the dependency
-                                dllStream.Seek(0, SeekOrigin.Begin);
-                                asm = RiseCore.Relinker.FakeRelink(Metadata, Path.GetFileNameWithoutExtension(asmDLL), dllStream);
-                            }
-                        }
+                        // let's try our best to load the dependency
+                        dllStream.Seek(0, SeekOrigin.Begin);
+                        asm = RiseCore.Relinker.FakeRelink(
+                            Metadata,
+                            Path.GetFileNameWithoutExtension(asmDLL),
+                            dllStream);
                     }
                 }
             }
@@ -145,10 +158,8 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             {
                 if (File.Exists(symPath))
                 {
-                    using (var symFS = File.OpenRead(symPath))
-                    {
-                        asm = LoadFromStream(asmFS, symFS);
-                    }
+                    using var symFS = File.OpenRead(symPath);
+                    asm = LoadFromStream(asmFS, symFS);
                 }
                 else 
                 {
@@ -158,7 +169,11 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             string asmName = asm.GetName().Name;
             if (!LoadedModules.TryAdd(asmName, mod))
             {
-                Logger.Warning($"[Relinker] Encountered a module name conflict loading cached assembly {Metadata} - {mod.Assembly.Name}");
+                RiseCore.logger.LogWarning(
+                    "Encountered module name conflict loading cached assembly {metadata} - {asm}",
+                    Metadata,
+                    mod.Assembly.Name
+                );
             }
 
             return asm;
@@ -172,7 +187,12 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
     public AssemblyDefinition Resolve(AssemblyNameReference name)
     {
-        ref var asm = ref CollectionsMarshal.GetValueRefOrAddDefault(loadAsm, name.Name, out bool exists);
+        ref var asm = ref CollectionsMarshal.GetValueRefOrAddDefault(
+            loadAsm, 
+            name.Name, 
+            out bool exists
+        );
+
         if (exists)
         {
             return asm;
@@ -186,7 +206,9 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
         }
 
         // try to load the launcher assembly instead
-        var globalAsmRef = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(name.Name));
+        var globalAsmRef = Default.LoadFromAssemblyName(
+            new AssemblyName(name.Name));
+
         if (globalAsmRef == null)
         {
             return null;
@@ -215,39 +237,59 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
     private IntPtr LoadUnmanaged(string name)
     {
-        string libName = name;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        string libName = name switch 
         {
-            libName = $"{name}.dll";
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            libName = $"lib{name}.so";
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
-        {
-            libName = $"lib{name}.dylib";
-        }
+            _ when RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => $"{name}.dll",
+            _ when RuntimeInformation.IsOSPlatform(OSPlatform.Linux) => $"{name}.so",
+            _ when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
+                || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) => $"{name}.dylib",
+            _ => name
+        };
 
         if (!string.IsNullOrEmpty(Metadata.PathDirectory))
         {
-            if (NativeLibrary.TryLoad(Path.Combine(directoryDll, Unmanaged, UnmanagedFolders, libName), out IntPtr handle))
+            if (NativeLibrary.TryLoad(
+                    Path.Combine(
+                        directoryDll, 
+                        Unmanaged, 
+                        UnmanagedFolders, 
+                        libName), 
+                    out IntPtr handle
+                )
+            )
             {
                 return handle;
             }
 
-            if (NativeLibrary.TryLoad(Path.Combine(directoryDll, Unmanaged, UnmanagedFolders, "native", libName), out handle)) 
+            if (NativeLibrary.TryLoad(
+                    Path.Combine(
+                        directoryDll, 
+                        Unmanaged, 
+                        UnmanagedFolders, 
+                        "native", 
+                        libName), 
+                    out handle
+                )
+            )
             {
                 return handle;
             }
         }
         else if (!string.IsNullOrEmpty(Metadata.PathZip))
         {
-            string extractionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "_RelinkerCache", Unmanaged, UnmanagedFolders, Metadata.Name);
+            string extractionPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, 
+                "Mods", 
+                "_RelinkerCache", 
+                Unmanaged, 
+                UnmanagedFolders, 
+                Metadata.Name
+            );
 
-            string metaHash = Metadata.Hash.ToHexadecimalString();
+            ReadOnlySpan<char> metaHash = Metadata.Hash.ToHexadecimalString();
 
-            if (Directory.Exists(extractionPath) && !File.Exists(extractionPath + ".sum") || File.ReadAllText(extractionPath + ".sum") != metaHash)
+            if (Directory.Exists(extractionPath) && !File.Exists(extractionPath + ".sum") 
+                    || !metaHash.SequenceEqual(File.ReadAllText(extractionPath + ".sum")))
             {
                 Directory.Delete(extractionPath, true);
             }
@@ -260,7 +302,9 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 {
                     foreach (ZipArchiveEntry entry in zip.Entries)
                     {
-                        if (!(entry.FullName.StartsWith(unmanagedPath) || entry.FullName.StartsWith(secondUnmanagedPath)) || entry.FullName.EndsWith('/'))
+                        if (!(entry.FullName.StartsWith(unmanagedPath) || 
+                            entry.FullName.StartsWith(secondUnmanagedPath)) || 
+                            entry.FullName.EndsWith('/'))
                         {
                             continue;
                         }
@@ -270,13 +314,11 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                             Directory.CreateDirectory(extractionPath);
                         }
 
-                        using (Stream input = entry.Open())
-                        {
-                            using (Stream output = File.Create(Path.Combine(extractionPath, entry.Name))) 
-                            {
-                                input.CopyTo(output);
-                            }
-                        }
+                        using Stream input = entry.Open();
+                        using Stream output = File.Create(
+                            Path.Combine(extractionPath, entry.Name));
+
+                        input.CopyTo(output);
                     }
                 }
 
@@ -320,6 +362,6 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
-        System.GC.SuppressFinalize(this);
+        GC.SuppressFinalize(this);
     }
 }

@@ -41,7 +41,7 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     internal ModAssemblyLoadContext? AssemblyLoadContext { get; set; } = null;
 
     [JsonIgnore]
-    internal byte[] Hash => RiseCore.GetChecksum(this);
+    internal ReadOnlySpan<byte> Hash => RiseCore.GetChecksum(this);
 
     public bool IsZipped => !string.IsNullOrEmpty(PathZip);
     public bool IsDirectory => !string.IsNullOrEmpty(PathDirectory);

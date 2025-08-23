@@ -276,7 +276,7 @@ internal class ModuleManager
                 metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
                 using var dll = dllMeta.ExtractStream();
-                asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
+                asm = Relinker.LoadModAssembly(metadata, metadata.DLL, dll);
             }
         }
         else if (!string.IsNullOrEmpty(metadata.PathDirectory))
@@ -292,7 +292,7 @@ internal class ModuleManager
                 metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
 
                 using var stream = File.OpenRead(fullDllPath);
-                asm = RiseCore.Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
+                asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
             }
         }
         else
@@ -491,7 +491,7 @@ internal class ModuleManager
 
     internal string[] GetAllTags()
     {
-        return InternalTags.ToArray();
+        return [.. InternalTags];
     }
 
     internal string[]? GetTags(string modName)
@@ -617,8 +617,8 @@ internal class ModuleManager
                     continue;
                 }
 
-                patchInfo.prefix = prefix.PatchMethod.ReturnType != typeof(bool);
-                patchInfo.skippingPrefix = prefix.PatchMethod.ReturnType == typeof(bool);
+                patchInfo.Prefix = prefix.PatchMethod.ReturnType != typeof(bool);
+                patchInfo.SkippingPrefix = prefix.PatchMethod.ReturnType == typeof(bool);
             }
 
             foreach (var postfix in patches.Postfixes)
@@ -629,7 +629,7 @@ internal class ModuleManager
                     continue;
                 }
 
-                patchInfo.postfix = true;
+                patchInfo.Postfix = true;
             }
 
             foreach (var transpiler in patches.Transpilers)
@@ -640,7 +640,7 @@ internal class ModuleManager
                     continue;
                 }
 
-                patchInfo.transpiler = true;
+                patchInfo.Transpiler = true;
             }
 
             foreach (var finalizer in patches.Finalizers)
@@ -651,34 +651,34 @@ internal class ModuleManager
                     continue;
                 }
 
-                patchInfo.finalizer = true;
+                patchInfo.Finalizer = true;
             }
 
             foreach (var info in infos)
             {
                 var patchInfo = info.Value;
                 List<string> opts = new List<string>(5);
-                if (patchInfo.prefix)
+                if (patchInfo.Prefix)
                 {
                     opts.Add("prefix");
                 }
 
-                if (patchInfo.postfix)
+                if (patchInfo.Postfix)
                 {
                     opts.Add("postfix");
                 }
 
-                if (patchInfo.transpiler)
+                if (patchInfo.Transpiler)
                 {
                     opts.Add("transpiler");
                 }
 
-                if (patchInfo.finalizer)
+                if (patchInfo.Finalizer)
                 {
                     opts.Add("finalizer");
                 }
 
-                if (patchInfo.skippingPrefix)
+                if (patchInfo.SkippingPrefix)
                 {
                     opts.Add("skippingPrefix");
                 }
@@ -692,10 +692,10 @@ internal class ModuleManager
     }
 
     private record struct PatchInfo(
-        bool prefix,
-        bool postfix,
-        bool transpiler,
-        bool finalizer,
-        bool skippingPrefix = false
+        bool Prefix,
+        bool Postfix,
+        bool Transpiler,
+        bool Finalizer,
+        bool SkippingPrefix = false
     );
 }
