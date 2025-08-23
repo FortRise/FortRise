@@ -39,7 +39,7 @@ internal static class VanillaXmlCacher
         {
             return atlasIDCached;
         }
-        atlasIDCached = new();
+        atlasIDCached = [];
         string atlasPath;
         string bossAtlasPath;
 

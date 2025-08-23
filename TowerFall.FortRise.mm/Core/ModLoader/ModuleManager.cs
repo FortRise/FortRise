@@ -34,35 +34,41 @@ internal class ModuleManager
     /// Contains a read-only access to all of the Mods' metadata and resource.
     /// </summary>
     public ReadOnlyCollection<IModResource> Mods => InternalMods.AsReadOnly();
-    internal List<Mod> InternalFortModules = new();
-    internal HashSet<ModuleMetadata> InternalModuleMetadatas = new();
-    internal List<IModResource> InternalMods = new();
-    internal HashSet<string> InternalTags = new();
+    internal List<Mod> InternalFortModules = [];
+    internal List<IModResource> InternalMods = [];
+
+    internal HashSet<ModuleMetadata> InternalModuleMetadatas = [];
+    internal HashSet<string> InternalTags = [];
+
     internal ModEventsManager EventsManager = new();
 
-    internal Dictionary<string, Mod> NameToFortModule = new Dictionary<string, Mod>();
-    internal Dictionary<string, IModResource> NameToMod = new Dictionary<string, IModResource>();
+    internal Dictionary<string, Mod> NameToFortModule = [];
+    internal Dictionary<string, IModResource> NameToMod = [];
+    internal HashSet<string> BlacklistedMods;
+    internal HashSet<string> CantLoad = [];
 
-
-    private List<RegistryQueue> registryBatch = new List<RegistryQueue>();
-    private Dictionary<string, IModRegistry> registries = new Dictionary<string, IModRegistry>();
-    private IProxyManager<string> proxyManager;
+    private readonly List<RegistryQueue> registryBatch = [];
+    private readonly Dictionary<string, IModRegistry> registries = [];
+    private readonly IProxyManager<string> proxyManager;
 
     public enum LoadError { Delayed, Failure }
-    internal HashSet<string> BlacklistedMods;
-    internal HashSet<string> CantLoad = new();
-    private ILogger logger;
-    private ILoggerFactory loggerFactory;
+
+    private readonly ILogger logger;
+    private readonly ILoggerFactory loggerFactory;
     // we can cache these for now
-    private ModFlags flags;
-    private ModEnvironment environment;
+    private readonly ModFlags flags;
+    private readonly ModEnvironment environment;
 
     internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
         flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
-        environment = new ModEnvironment(RiseCore.FortRiseVersion);
+        environment = new ModEnvironment(
+            RiseCore.FortRiseVersion,
+            RiseCore.GameRootPath,
+            AppDomain.CurrentDomain.BaseDirectory
+        );
         this.logger = logger;
-        this.loggerFactory = factory;
+        loggerFactory = factory;
 
         var moduleBuilders = new Dictionary<(string, string), ModuleBuilder>();
         proxyManager = new ProxyManager<string>((proxyInfo) =>
@@ -411,7 +417,7 @@ internal class ModuleManager
     private ModuleContext GetModuleContext(ModuleMetadata metadata, ILogger logger)
     {
         return new ModuleContext(
-            AddOrGetRegistry(metadata),
+            AddOrGetRegistry(metadata, logger),
             new ModInterop(this, metadata, proxyManager),
             new ModEvents(metadata, EventsManager),
             flags,
@@ -559,13 +565,14 @@ internal class ModuleManager
         return value;
     }
 #nullable disable
+    internal IModRegistry AddOrGetRegistry(ModuleMetadata metadata) => AddOrGetRegistry(metadata, GetModLogger(metadata.Name));
 
-    internal IModRegistry AddOrGetRegistry(ModuleMetadata metadata)
+    internal IModRegistry AddOrGetRegistry(ModuleMetadata metadata, ILogger logger)
     {
         ref var registry = ref CollectionsMarshal.GetValueRefOrAddDefault(registries, metadata.Name, out bool exists);
         if (!exists)
         {
-            IModRegistry reg = new ModRegistry(metadata, this);
+            IModRegistry reg = new ModRegistry(metadata, this, logger);
             registry = reg;
         }
 
@@ -589,7 +596,7 @@ internal class ModuleManager
         {
             string methodFullName = $"{method.DeclaringType.FullName}/{method.Name}";
             builder.AppendLine("\t" + methodFullName);
-            Dictionary<string, PatchInfo> infos = new Dictionary<string, PatchInfo>();
+            Dictionary<string, PatchInfo> infos = [];
             var patches = Harmony.GetPatchInfo(method);
 
             foreach (var owner in patches.Owners)
@@ -598,6 +605,7 @@ internal class ModuleManager
                 {
                     continue;
                 }
+
                 infos[owner] = new PatchInfo();
             }
 
@@ -613,9 +621,9 @@ internal class ModuleManager
                 patchInfo.skippingPrefix = prefix.PatchMethod.ReturnType == typeof(bool);
             }
 
-            foreach (var prefix in patches.Postfixes)
+            foreach (var postfix in patches.Postfixes)
             {
-                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, postfix.owner);
                 if (Unsafe.IsNullRef(ref patchInfo))
                 {
                     continue;
@@ -624,9 +632,9 @@ internal class ModuleManager
                 patchInfo.postfix = true;
             }
 
-            foreach (var prefix in patches.Transpilers)
+            foreach (var transpiler in patches.Transpilers)
             {
-                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, transpiler.owner);
                 if (Unsafe.IsNullRef(ref patchInfo))
                 {
                     continue;
@@ -635,15 +643,15 @@ internal class ModuleManager
                 patchInfo.transpiler = true;
             }
 
-            foreach (var prefix in patches.Finalizers)
+            foreach (var finalizer in patches.Finalizers)
             {
-                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, prefix.owner);
+                ref var patchInfo = ref CollectionsMarshal.GetValueRefOrNullRef(infos, finalizer.owner);
                 if (Unsafe.IsNullRef(ref patchInfo))
                 {
                     continue;
                 }
 
-                patchInfo.transpiler = true;
+                patchInfo.finalizer = true;
             }
 
             foreach (var info in infos)

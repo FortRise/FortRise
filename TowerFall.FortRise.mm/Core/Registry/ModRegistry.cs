@@ -1,4 +1,6 @@
 #nullable enable
+using Microsoft.Extensions.Logging;
+
 namespace FortRise;
 
 internal class ModRegistry : IModRegistry
@@ -33,9 +35,9 @@ internal class ModRegistry : IModRegistry
     public IModCommands Commands { get; }
 
 
-    internal ModRegistry(ModuleMetadata metadata, ModuleManager manager)
+    internal ModRegistry(ModuleMetadata metadata, ModuleManager manager, ILogger logger)
     {
-        Subtextures = new ModSubtextures(metadata, manager);
+        Subtextures = new ModSubtextures(metadata, manager, logger);
         Sprites = new ModSprites(metadata, manager);
         SFXs = new ModSFXs(metadata, manager);
         Musics = new ModMusics(metadata, manager);

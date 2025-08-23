@@ -1,7 +1,9 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 using Monocle;
 using TowerFall;
 
@@ -52,11 +54,13 @@ internal sealed class ModSubtextures : IModSubtextures
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<ISubtextureEntry> subtexturesQueue;
     private readonly Dictionary<string, ISubtextureEntry> subtextureEntries = new();
+    private readonly ILogger logger;
 
-    internal ModSubtextures(ModuleMetadata metadata, ModuleManager manager)
+    internal ModSubtextures(ModuleMetadata metadata, ModuleManager manager, ILogger logger)
     {
         this.metadata = metadata;
         subtexturesQueue = manager.CreateQueue<ISubtextureEntry>(Invoke);
+        this.logger = logger;
     }
 
     /// <summary>
@@ -102,7 +106,7 @@ internal sealed class ModSubtextures : IModSubtextures
         {
             if (subtexture!.Path != file)
             {
-                Logger.Warning($"[{metadata.Name}] The subtexture ID: {id} but with a different path has already been registered, overriding!");
+                logger.LogWarning("The subtexture ID: {id} but with a different path has already been registered, overriding!", id);
             }
             else
             {
@@ -128,7 +132,7 @@ internal sealed class ModSubtextures : IModSubtextures
         ref var subtexture = ref CollectionsMarshal.GetValueRefOrAddDefault(subtextureEntries, id, out bool exists);
         if (exists)
         {
-            Logger.Warning($"[{metadata.Name}] The subtexture ID: {id} has already been registered, overriding!");
+            logger.LogWarning("The subtexture ID: {id} has already been registered, overriding", id);
         }
 
         var entry = new SubtextureEntry(name, callback, atlasDestination);
@@ -158,6 +162,17 @@ internal sealed class ModSubtextures : IModSubtextures
 
     public ISubtextureEntry? GetTexture(string id, SubtextureAtlasDestination atlasDestination)
     {
-        return SubtextureRegistry.GetSubtexture(id, atlasDestination);
+        var subTexture = SubtextureRegistry.GetSubtexture(id, atlasDestination);
+        if (subTexture is null)
+        {
+            subTexture = SubtextureRegistry.GetVanillaSubtextureEntry(id, atlasDestination);
+            if (Unsafe.IsNullRef(ref subTexture))
+            {
+                logger.LogError("The texture name: '{id}' on '{dest}' cannot be found on the registry.", id, atlasDestination);
+                return null;
+            }
+        }
+
+        return subTexture;
     }
 }
