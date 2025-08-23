@@ -36,6 +36,9 @@
     <WriteLinesToFile File="meta.json" Lines="$(FileContent)" Overwrite="true" />
   </Target>
 
+  <PropertyGroup>
+      <PathMap>$(MSBuildProjectDirectory)=$(ModName)/</PathMap>
+  </PropertyGroup>
 
 </Project>
 

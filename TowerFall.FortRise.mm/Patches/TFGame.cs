@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using FortRise;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil;
@@ -335,6 +336,7 @@ namespace TowerFall
 
                     Arrow.Initialize();
                     patch_Arrow.ExtendArrows();
+
                     patch_TreasureSpawner.ExtendTreasures();
 
                     Loader.Message = "INITIALIZING DEFAULT SESSION";
@@ -429,11 +431,11 @@ namespace TowerFall
 
             foreach (var task in tasks)
             {
-                if (!task.Result.Check(out var res, out string err))
+                if (!task.Result.Check(out var _, out string err))
                 {
                     if (err != "NRF")
                     {
-                        Logger.Error(err);
+                        RiseCore.logger.LogError("Mod Update Error: {error}", err);
                     }
                     continue;
                 }
@@ -446,13 +448,13 @@ namespace TowerFall
             if (!result.Check(out var res, out string err))
             {
                 RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
-                Logger.Error(err);
+                RiseCore.logger.LogError("Update Error: {error}", err);
                 return;
             }
 
             string url = res.Ref;
             int index = url.LastIndexOf('/');
-            if (!SemanticVersion.TryParse(url.Substring(index + 1), out SemanticVersion version))
+            if (!SemanticVersion.TryParse(url.AsSpan(index + 1), out SemanticVersion version))
             {
                 RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
                 return;
@@ -465,6 +467,7 @@ namespace TowerFall
                 RiseCore.UpdateChecks.UpdateMessage = "FORTRISE UPDATE IS AVAILABLE!";
                 return;
             }
+
             RiseCore.UpdateChecks.UpdateMessage = string.Empty;
         }
 

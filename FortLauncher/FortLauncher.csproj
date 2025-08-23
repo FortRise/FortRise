@@ -101,4 +101,8 @@ public static class FortRiseConstants
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>
 
+  <PropertyGroup>
+      <PathMap>$(MSBuildProjectDirectory)=FortRise/</PathMap>
+  </PropertyGroup>
+
 </Project>

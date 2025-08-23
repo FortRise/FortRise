@@ -53,4 +53,8 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+
+  <PropertyGroup>
+      <PathMap>$(MSBuildProjectDirectory)=TowerFall.mm/</PathMap>
+  </PropertyGroup>
 </Project>

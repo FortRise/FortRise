@@ -96,12 +96,12 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 {
                     using var asmFS = File.OpenRead(path);
 
-                    asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, asmFS);
+                    asm = Relinker.LoadModAssembly(Metadata, asmDLL, asmFS);
                     if (asm == null)
                     {
                         // let's try our best to load the dependency
                         asmFS.Seek(0, SeekOrigin.Begin);
-                        asm = RiseCore.Relinker.FakeRelink(
+                        asm = Relinker.FakeRelink(
                             Metadata,
                             Path.GetFileNameWithoutExtension(asmDLL),
                             asmFS);
@@ -119,12 +119,12 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 {
                     using var dllStream = entry.ExtractStream();
 
-                    asm = RiseCore.Relinker.LoadModAssembly(Metadata, asmDLL, dllStream);
+                    asm = Relinker.LoadModAssembly(Metadata, asmDLL, dllStream);
                     if (asm == null)
                     {
                         // let's try our best to load the dependency
                         dllStream.Seek(0, SeekOrigin.Begin);
-                        asm = RiseCore.Relinker.FakeRelink(
+                        asm = Relinker.FakeRelink(
                             Metadata,
                             Path.GetFileNameWithoutExtension(asmDLL),
                             dllStream);
@@ -240,7 +240,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
         string libName = name switch 
         {
             _ when RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => $"{name}.dll",
-            _ when RuntimeInformation.IsOSPlatform(OSPlatform.Linux) => $"{name}.so",
+            _ when RuntimeInformation.IsOSPlatform(OSPlatform.Linux) => $"lib{name}.so",
             _ when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
                 || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) => $"{name}.dylib",
             _ => name
