@@ -52,10 +52,10 @@ internal sealed class ModThemes : IModThemes
         towerTheme.Raining = entry.Configuration.Raining;
         towerTheme.BackgroundID = entry.Configuration.BackgroundID ?? "SacredGround";
 
-        if (GameData.BGs.ContainsKey(towerTheme.BackgroundID))
+        if (GameData.BGs.TryGetValue(towerTheme.BackgroundID, out System.Xml.XmlElement? value))
         {
-            towerTheme.BackgroundData = GameData.BGs[towerTheme.BackgroundID]["Background"];
-            towerTheme.ForegroundData = GameData.BGs[towerTheme.BackgroundID]["Foreground"];
+            towerTheme.BackgroundData = value["Background"];
+            towerTheme.ForegroundData = value["Foreground"];
         }
 
         towerTheme.DrillParticleColor = entry.Configuration.DrillParticleColor;

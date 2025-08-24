@@ -146,16 +146,28 @@ internal sealed class ModSubtextures : IModSubtextures
         switch (entry.AtlasDestination)
         {
             case SubtextureAtlasDestination.Atlas:
-                TFGame.Atlas.SubTextures[entry.ID] = entry.Subtexture;
+                lock (TFGame.Atlas)
+                {
+                    TFGame.Atlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
+                }
                 break;
             case SubtextureAtlasDestination.MenuAtlas:
-                TFGame.MenuAtlas.SubTextures[entry.ID] = entry.Subtexture;
+                lock (TFGame.MenuAtlas)
+                {
+                    TFGame.MenuAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
+                }
                 break;
             case SubtextureAtlasDestination.BGAtlas:
-                TFGame.BGAtlas.SubTextures[entry.ID] = entry.Subtexture;
+                lock (TFGame.BGAtlas)
+                {
+                    TFGame.BGAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
+                }
                 break;
             case SubtextureAtlasDestination.BossAtlas:
-                TFGame.BossAtlas.SubTextures[entry.ID] = entry.Subtexture;
+                lock (TFGame.BossAtlas)
+                {
+                    TFGame.BossAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
+                }
                 break;
         }
     }
