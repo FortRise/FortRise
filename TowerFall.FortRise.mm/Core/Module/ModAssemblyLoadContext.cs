@@ -88,22 +88,24 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 return asm;
             }
 
-            string asmDLL = Path.GetFileNameWithoutExtension(path);
-
             if (!string.IsNullOrEmpty(Metadata.PathDirectory))
             {
                 if (File.Exists(path))
                 {
                     using var asmFS = File.OpenRead(path);
 
-                    asm = Relinker.LoadModAssembly(Metadata, asmDLL, asmFS);
+                    asm = Relinker.LoadModAssembly(
+                        Metadata, 
+                        path, 
+                        asmFS);
+
                     if (asm == null)
                     {
                         // let's try our best to load the dependency
                         asmFS.Seek(0, SeekOrigin.Begin);
                         asm = Relinker.FakeRelink(
                             Metadata,
-                            Path.GetFileNameWithoutExtension(asmDLL),
+                            Path.GetFileNameWithoutExtension(path),
                             asmFS);
                     }
                 }
@@ -119,14 +121,17 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 {
                     using var dllStream = entry.ExtractStream();
 
-                    asm = Relinker.LoadModAssembly(Metadata, asmDLL, dllStream);
+                    asm = Relinker.LoadModAssembly(
+                        Metadata, 
+                        path, 
+                        dllStream);
                     if (asm == null)
                     {
                         // let's try our best to load the dependency
                         dllStream.Seek(0, SeekOrigin.Begin);
                         asm = Relinker.FakeRelink(
                             Metadata,
-                            Path.GetFileNameWithoutExtension(asmDLL),
+                            Path.GetFileNameWithoutExtension(path),
                             dllStream);
                     }
                 }
@@ -153,6 +158,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             mod = ModuleDefinition.ReadModule(path);
 
             string symPath = Path.ChangeExtension(path, "pdb");
+
             Assembly asm;
             using (var asmFS = File.OpenRead(path))
             {

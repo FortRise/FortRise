@@ -118,8 +118,8 @@ internal static class Relinker
                 {
                     continue;
                 }
-                
-                Logger.Info($"[Relinker] Relinking {asmRef.Name}");
+
+                RiseCore.logger.LogInformation("[Relinker] Relinking {asmName}", asmRef.Name);
 
                 var asm = Assembly.Load(asmRef);
                 var module = ModuleDefinition.ReadModule(
@@ -213,8 +213,8 @@ internal static class Relinker
             modder.Input = stream;
             modder.OutputPath = cachedPath;
 
-            var metaPath = string.Concat(meta.DLL.AsSpan(0, meta.DLL.Length - 4), ".pdb");
-            modder.ReaderParameters.SymbolStream = OpenSymbol(meta, metaPath);
+            var symbolPath = string.Concat(meta.DLL.AsSpan(0, meta.DLL.Length - 4), ".pdb");
+            modder.ReaderParameters.SymbolStream = OpenSymbol(meta, symbolPath);
             modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
 
             if (modder.ReaderParameters.SymbolReaderProvider != null && 
@@ -275,7 +275,9 @@ internal static class Relinker
             var runtimeRulesType = runtimeRulesModule.GetType("MonoMod.MonoModRules");
             modder.ParseRules(runtimeRulesModule);
             if (runtimeRulesType != null)
+            {
                 runtimeRulesModule.Types.Add(runtimeRulesType);
+            }
 
             modder.ParseRules(modder.Module);
             modder.AutoPatch();
@@ -285,17 +287,20 @@ internal static class Relinker
             Retry:
             try 
             {
-                Logger.Info("[Relinker] Try writing the module with symbols");
+                RiseCore.logger.LogInformation("[Relinker] Try writing the module with symbols.");
                 modder.WriterParameters.SymbolWriterProvider = symbolWriterProvider;
                 modder.WriterParameters.WriteSymbols = true;
                 using var fs = File.Create(cachedPath);
                 modder.Write(fs);
             }
-            catch 
+            catch (Exception e)
             {
                 try 
                 {
-                    Logger.Info("[Relinker] Writing the module without symbols");
+                    RiseCore.logger.LogError("Exception: {ex}", e);
+                    RiseCore.logger.LogInformation(
+                        "[Relinker] Try writing the module without symbols.");
+
                     modder.WriterParameters.SymbolWriterProvider = null;
                     modder.WriterParameters.WriteSymbols = false;
                     using var fs = File.Create(cachedPath);
