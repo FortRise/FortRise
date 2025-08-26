@@ -20,6 +20,19 @@ internal class Program
 
     public static int Main(string[] args)
     {
+        var argsList = new List<string>();
+
+        foreach (var arg in args)
+        {
+            if (arg == "--enable-trace")
+            {
+                Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "0");
+            }
+            argsList.Add(arg);
+        }
+        argsList.Add("--version");
+        argsList.Add(Version.ToString());
+
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
         // create logging instance
@@ -36,6 +49,7 @@ internal class Program
 
         Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "1");
         logger.LogInformation("Version: {Version}", Version);
+        logger.LogInformation("OS: {OS}", RuntimeInformation.OSDescription);
 
         // check if this specific file exists to override some parameters
         bool canOverride = File.Exists("launch_override.json");
@@ -87,8 +101,12 @@ internal class Program
 
                 var data = new SDL.SDL_MessageBoxData();
                 using RawString title = "Manual Path Override Required!";
-                using RawString message = """
+                using RawString message = !RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? """
                 TowerFall path cannot be found with this relative path: '../TowerFall/TowerFall.exe', 
+                Will need a manual path override, would you like to select a proper TowerFall executable?
+                """ : 
+                """
+                TowerFall path cannot be found with this relative path: '../TowerFall/TowerFall.app/Contents/Resources/TowerFall.exe', 
                 Will need a manual path override, would you like to select a proper TowerFall executable?
                 """;
 
@@ -102,11 +120,20 @@ internal class Program
                     {
                         if (id == 0)
                         {
-                            FileDialog.OpenFile(null, new Property()
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                             {
-                                Title = "Select a TowerFall executable",
-                                Filter = new DialogFilter("TowerFall executable", "exe")
-                            });
+                                FileDialog.OpenDirectory(null, new Property() 
+                                {
+                                    Title = "Select TowerFall.app",
+                                });
+                            }
+                            else 
+                            {
+                                FileDialog.OpenFile(null, new Property() 
+                                {
+                                    Title = "Select TowerFall.exe"
+                                });
+                            }
 
                             while (FileDialog.IsOpened)
                             {
@@ -119,14 +146,18 @@ internal class Program
 
             string? path = FileDialog.ResultPath;
 
+            if (string.IsNullOrEmpty(path))
+            {
+                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
+            }
             // we might need a good way to filter out the files, but hardcoding should do for now
-            if (!string.IsNullOrEmpty(path) && path.EndsWith("TowerFall.exe"))
+            else if (path.EndsWith("TowerFall.exe"))
             {
                 exePath = path;
             }
-            else
+            else if (path.EndsWith("TowerFall.app"))
             {
-                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
+                exePath = Path.Combine(path, "Contents", "Resources", "TowerFall.exe");
             }
 
             SDL.SDL_Quit();
@@ -156,7 +187,7 @@ internal class Program
 
         BackupSaveFile(logger, exePath);
 
-        return Launch(args, baseDirectory, exePath, logger, loggerFactory);
+        return Launch(argsList, baseDirectory, exePath, logger, loggerFactory);
     }
 
     private static bool CheckLegacyFortRiseInstalled(ILogger logger, string exePath)
@@ -184,7 +215,7 @@ internal class Program
         }
     }
 
-    private static int Launch(string[] args, string baseDirectory, string exePath, ILogger logger, ILoggerFactory factory)
+    private static int Launch(List<string> argsList, string baseDirectory, string exePath, ILogger logger, ILoggerFactory factory)
     {
         string patchFile = Path.GetFullPath("TowerFall.Patch.dll");
         string mmFile = Path.GetFullPath("TowerFall.FortRise.mm.dll");
@@ -214,20 +245,8 @@ internal class Program
             mmSumStr = mmSum.ToString();
         }
 
-        var argList = new List<string>();
 
-        foreach (var arg in args)
-        {
-            if (arg == "--enable-trace")
-            {
-                Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "0");
-            }
-            argList.Add(arg);
-        }
-        argList.Add("--version");
-        argList.Add(Version.ToString());
-
-        FortRiseHandler handler = new FortRiseHandler(baseDirectory, argList, logger, factory);
+        FortRiseHandler handler = new FortRiseHandler(baseDirectory, argsList, logger, factory);
 
         if (!shouldSkip)
         {
@@ -283,7 +302,7 @@ internal class Program
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             string? path;
-            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall", "TowerFall.exe"));
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall", "TowerFall.app", "Contents", "Resources", "TowerFall.exe"));
 
             if (File.Exists(path))
             {
@@ -291,6 +310,14 @@ internal class Program
             }
 
             // second attempt
+            path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall.app", "Contents", "Resources", "TowerFall.exe"));
+
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            // third attempt
             path = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "TowerFall.exe"));
             if (File.Exists(path))
             {

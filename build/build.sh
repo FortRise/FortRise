@@ -51,9 +51,6 @@ dotnet publish -c Release -r win-x64 --self-contained
 
 echo "Publishing Artifacts for Mac"
 dotnet publish -c Release -r osx-x64 --self-contained
-# Mac is such a special case and I hate it
-cd FortLauncher
-dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-x64 # we need to bundle the app as well
 cd $MAIN
 
 
@@ -83,8 +80,20 @@ cd "artifacts/FortRise.v$FR_VERSION-linux-x64/"
 zip -r "../FortRise.v$FR_VERSION-linux-x64.zip" "FortRise"
 cd "$MAIN"
 
+if [ -d "artifacts/FortRise.app" ]; then
+    rm -r artifacts/FortRise.app
+fi
+
+mkdir artifacts/FortRise.app
+mkdir artifacts/FortRise.app/Contents
+
+cp -r MacOS/**/* artifacts/FortRise.app/Contents
+mkdir artifacts/FortRise.app/Contents/MacOS
+
 cd "artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise"
-zip -r "../../FortRise.v$FR_VERSION-osx-x64.zip" "FortRise.app"
+cp -r ./* ../../FortRise.app/Contents/MacOS
+cd "$MAIN"
+zip -r "FortRise.v$FR_VERSION-osx-x64.zip" -i "FortRise.app"
 cd "$MAIN"
 
 echo "Cleaning up"

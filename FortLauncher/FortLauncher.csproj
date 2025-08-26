@@ -81,26 +81,6 @@ public static class FortRiseConstants
     <WriteLinesToFile File="FortRiseConstants.cs" Lines="$(FileContent)" Overwrite="true" />
   </Target>
 
-  <!-- Bundle MacOS app -->
-
-  <ItemGroup>
-    <PackageReference Include="Dotnet.Bundle" Version="*" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <CFBundleName>FortRise</CFBundleName>
-    <CFBundleDisplayName>FortRise</CFBundleDisplayName>
-    <CFBundleIdentifier>com.teuria.FortRise</CFBundleIdentifier>
-    <CFBundleVersion>$(FortRiseVersion)</CFBundleVersion>
-    <CFBundleShortVersionString>$(FortRiseVersion)</CFBundleShortVersionString>
-    <CFBundlePackageType>APPL</CFBundlePackageType>
-    <CFBundleSignature>????</CFBundleSignature>
-    <CFBundleExecutable>FortRise</CFBundleExecutable>
-    <CFBundleIconFile>Icon.icns</CFBundleIconFile> 
-    <NSPrincipalClass>NSApplication</NSPrincipalClass>
-    <NSHighResolutionCapable>true</NSHighResolutionCapable>
-  </PropertyGroup>
-
   <PropertyGroup>
       <PathMap>$(MSBuildProjectDirectory)=FortRise/</PathMap>
   </PropertyGroup>

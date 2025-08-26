@@ -78,9 +78,9 @@ public static class FileDialog
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE);
     }
 
-    public static unsafe void OpenFolder(string? path = null) 
+    public static unsafe void OpenDirectory(string? path = null, Property property = default) 
     {
-        ShowDialog(path, default, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER);
+        ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER);
     }
 
     private static unsafe void ShowDialog(string? path = null, Property property = default, SDL.SDL_FileDialogType access = SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE) 
