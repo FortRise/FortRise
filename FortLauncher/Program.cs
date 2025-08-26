@@ -127,7 +127,7 @@ internal class Program
                             {
                                 FileDialog.OpenDirectory(null, new Property() 
                                 {
-                                    Title = "Select TowerFall.app",
+                                    Title = "Select TowerFall directory or TowerFall.app",
                                 });
                             }
                             else 
@@ -162,6 +162,10 @@ internal class Program
             else if (path.EndsWith("TowerFall.app"))
             {
                 exePath = Path.Combine(path, "Contents", "Resources", "TowerFall.exe");
+            }
+            else if (path.EndsWith("TowerFall"))
+            {
+                exePath = Path.Combine(path, "TowerFall.app", "Contents", "Resources", "TowerFall.exe");
             }
             else 
             {
