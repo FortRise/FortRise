@@ -223,27 +223,27 @@ internal static class SpriteDataLoader
         }
     }
 
-    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, Loader? loader)
+    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
     {
         loader ??= spriteType switch
         {
-            ContainerSpriteType.Main => new()
+            ContainerSpriteType.Main => new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/spriteData.xml"]
             },
-            ContainerSpriteType.Boss => new()
+            ContainerSpriteType.Boss => new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/bossSpriteData.xml"]
             },
-            ContainerSpriteType.Corpse => new()
+            ContainerSpriteType.Corpse => new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/corpseSpriteData.xml"]
             },
-            ContainerSpriteType.Menu => new()
+            ContainerSpriteType.Menu => new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/menuSpriteData.xml"]
             },
-            ContainerSpriteType.BG => new()
+            ContainerSpriteType.BG => new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/bgSpriteData.xml"]
             },
@@ -251,19 +251,21 @@ internal static class SpriteDataLoader
         };
 
         // the path is not configured
-        if (loader.Path is null)
+        if (loader.Path is null || !loader.Enabled)
         {
             return;
         }
 
+        List<IResourceInfo> resources = [];
+
         foreach (var path in loader.Path)
         {
-            if (!content.Root.TryGetRelativePath(path, out IResourceInfo spriteDataRes))
-            {
-                continue;
-            }
+            resources.AddRange(content.Root.EnumerateChildrens(path));
+        }
 
-            LoadSpriteData(registry, content, spriteType, spriteDataRes);
+        foreach (var res in resources)
+        {
+            LoadSpriteData(registry, content, spriteType, res);
         }
     }
 }

@@ -11,11 +11,11 @@ namespace FortRise.Content;
 
 internal static class ArcherLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content, Loader? loader)
+    internal static void Load(IModRegistry registry, IModContent content, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
     {
         loader ??= new Loader() { Path = ["Content/Atlas/GameData/archerData.xml"] };
 
-        if (loader.Path is null)
+        if (loader.Path is null || !loader.Enabled)
         {
             return;
         }

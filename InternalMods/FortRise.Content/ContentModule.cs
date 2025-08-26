@@ -46,7 +46,10 @@ internal sealed class ContentModule : Mod
 
         contentConfiguration.Loaders ??= GetDefaultLoaderConfiguration();
 
-        SubtextureLoader.Load(registry, content);
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.Atlas, contentConfiguration.Loaders.Atlas);
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.MenuAtlas, contentConfiguration.Loaders.MenuAtlas);
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BGAtlas, contentConfiguration.Loaders.BGAtlas);
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BossAtlas, contentConfiguration.Loaders.BossAtlas);
 
         SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Main, contentConfiguration.Loaders.SpriteData);
         SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Menu, contentConfiguration.Loaders.MenuSpriteData);
@@ -64,43 +67,59 @@ internal sealed class ContentModule : Mod
         TrialsLoader.Load(registry, content, Logger);
     }
 
-    private static LoaderConfiguration GetDefaultLoaderConfiguration()
+    internal static LoaderConfiguration GetDefaultLoaderConfiguration()
     {
         return new()
         {
-            ArcherData = new() 
+            Atlas = new Loader() 
+            {
+                Path = ["Content/Atlas/atlas.xml"]
+            },
+            MenuAtlas = new Loader() 
+            {
+                Path = ["Content/Atlas/menuAtlas.xml"]
+            },
+            BGAtlas = new Loader() 
+            {
+                Path = ["Content/Atlas/bgAtlas.xml"]
+            },
+            BossAtlas = new Loader() 
+            {
+                Path = ["Content/Atlas/bossAtlas.xml"]
+            },
+            ArcherData = new Loader() 
             {
                 Path = ["Content/Atlas/GameData/archerData.xml"]
             },
 
-            SpriteData = new() 
+            SpriteData = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/spriteData.xml"]
             },
 
-            BgSpriteData = new() 
+            BgSpriteData = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/bgSpriteData.xml"]
             },
 
-            MenuSpriteData = new() 
+            MenuSpriteData = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/menuSpriteData.xml"]
             },
 
-            BossSpriteData = new() 
+            BossSpriteData = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/bossSpriteData.xml"]
             },
 
-            CorpseSpriteData = new() 
+            CorpseSpriteData = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/corpseSpriteData.xml"]
             },
         };
     }
 
-    private static ContentConfiguration GetDefaultConfiguration()
+    internal static ContentConfiguration GetDefaultConfiguration()
     {
         var config = new ContentConfiguration() 
         {
@@ -108,69 +127,5 @@ internal sealed class ContentModule : Mod
         };
 
         return config;
-    }
-}
-
-[JsonSerializable(typeof(ContentConfiguration))]
-[JsonConverter(typeof(StringOrStringArrayConverter))]
-internal partial class ContentConfigurationContext : JsonSerializerContext {}
-
-internal class ContentConfiguration 
-{
-    [JsonPropertyName("loader")]
-    public LoaderConfiguration? Loaders { get; set; } 
-}
-
-internal class LoaderConfiguration 
-{
-    [JsonPropertyName("archerData")]
-    public Loader? ArcherData { get; set; }
-
-    [JsonPropertyName("spriteData")]
-    public Loader? SpriteData { get; set; }
-
-    [JsonPropertyName("menuSpriteData")]
-    public Loader? MenuSpriteData { get; set; }
-
-    [JsonPropertyName("bgSpriteData")]
-    public Loader? BgSpriteData { get; set; }
-
-    [JsonPropertyName("bossSpriteData")]
-    public Loader? BossSpriteData { get; set; }
-
-    [JsonPropertyName("corpseSpriteData")]
-    public Loader? CorpseSpriteData { get; set; }
-}
-
-internal class Loader 
-{
-    public Loader()
-    {
-    }
-
-    [JsonPropertyName("path")]
-    [JsonConverter(typeof(StringOrStringArrayConverter))]
-    public string[]? Path { get; set; }
-}
-
-internal sealed class StringOrStringArrayConverter : JsonConverter<string[]>
-{
-    public override string[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType == JsonTokenType.String)
-        {
-            return [reader.GetString()!];
-        }
-        if (reader.TokenType == JsonTokenType.StartArray)
-        {
-            return JsonSerializer.Deserialize<string[]>(ref reader, options);
-        }
-        
-        throw new JsonException($"Unexpected token type: {reader.TokenType}. Expected String or StringArray.");
-    }
-
-    public override void Write(Utf8JsonWriter writer, string[] value, JsonSerializerOptions options)
-    {
-        JsonSerializer.Serialize(writer, value, options);
     }
 }
