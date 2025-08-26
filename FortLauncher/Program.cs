@@ -20,6 +20,10 @@ internal class Program
 
     public static int Main(string[] args)
     {
+        // Fixed the pathing, especially on Mac
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        Directory.SetCurrentDirectory(baseDirectory);
+
         var argsList = new List<string>();
 
         foreach (var arg in args)
@@ -33,7 +37,6 @@ internal class Program
         argsList.Add("--version");
         argsList.Add(Version.ToString());
 
-        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
         // create logging instance
         var conOut = Console.Out;
@@ -148,7 +151,8 @@ internal class Program
 
             if (string.IsNullOrEmpty(path))
             {
-                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
+                SDL.SDL_Quit();
+                return - 1;
             }
             // we might need a good way to filter out the files, but hardcoding should do for now
             else if (path.EndsWith("TowerFall.exe"))
@@ -158,6 +162,17 @@ internal class Program
             else if (path.EndsWith("TowerFall.app"))
             {
                 exePath = Path.Combine(path, "Contents", "Resources", "TowerFall.exe");
+            }
+            else 
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "Directory is not 'TowerFall.app'", IntPtr.Zero);
+                }
+                else 
+                {
+                    SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, "Error", "File is not 'TowerFall.exe'", IntPtr.Zero);
+                }
             }
 
             SDL.SDL_Quit();
