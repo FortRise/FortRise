@@ -5,6 +5,7 @@ namespace FortRise;
 
 public class UIModOptions : CustomMenuState
 {
+    private bool onRefresh;
     public UIModOptions(MainMenu main) : base(main)
     {
     }
@@ -70,9 +71,20 @@ public class UIModOptions : CustomMenuState
         var settings = main.CurrentModule.GetSettings();
         if (settings is not null)
         {
-            settings.Create(new SettingsCreate(textContainer));
+            settings.Create(new SettingsCreate(textContainer, () => 
+            {
+                textContainer.RemoveSelf();
+                onRefresh = true;
+                Create();
+            }));
         }
         main.Add(textContainer);
+
+        if (onRefresh)
+        {
+            onRefresh = false;
+            textContainer.Position.X = textContainer.ToX;
+        }
 
         main.ToStartSelected = textContainer;
         main.BackState = ModRegisters.MenuState<UIModMenu>();

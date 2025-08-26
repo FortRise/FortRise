@@ -11,15 +11,24 @@ public interface ISettingsCreate
     void CreateButton(string name, Action onPressed);
     void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
     void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
+
+    void Refresh();
 }
 
 internal sealed class SettingsCreate : ISettingsCreate
 {
     public TextContainer Container { get; init; }
+    private readonly Action onRefresh;
 
-    public SettingsCreate(TextContainer container)
+    public SettingsCreate(TextContainer container, Action onRefresh)
     {
         Container = container;
+        this.onRefresh = onRefresh;
+    }
+
+    public void Refresh()
+    {
+        onRefresh();
     }
 
     public void CreateButton(string name, Action onPressed)
@@ -83,6 +92,7 @@ public abstract class ModuleSettings
 /// NOTE: This does not rename the field name when save.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
+[Obsolete("Create should do all the work")]
 public class SettingsNameAttribute : Attribute 
 {
     /// <summary>
@@ -105,6 +115,7 @@ public class SettingsNameAttribute : Attribute
 /// It can specify a minimum length, maximum length, and how it step through the number.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
+[Obsolete("Create should do all the work")]
 public class SettingsNumberAttribute : Attribute 
 {
     /// <summary>
@@ -138,6 +149,7 @@ public class SettingsNumberAttribute : Attribute
 /// An attribute marker that turns an option to have an ability to select a different option.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
+[Obsolete("Create should do all the work")]
 public class SettingsOptionsAttribute : Attribute 
 {
     /// <summary>
@@ -160,12 +172,14 @@ public class SettingsOptionsAttribute : Attribute
 /// Note that the field will still be serialized.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
+[Obsolete("Create should do all the work")]
 public class SettingsHideAttribute : Attribute {}
 
 /// <summary>
 /// An attribute marker that makes the button shows a text input. Field should be marked as string when using this.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
+[Obsolete("Create should do all the work")]
 public class SettingsInputAttribute : Attribute 
 {
     public TextContainer.InputText.InputBehavior InputBehavior { get; }
