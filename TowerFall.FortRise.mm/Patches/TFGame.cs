@@ -546,7 +546,7 @@ namespace TowerFall
                     process.StartInfo.FileName = "xdg-open";
                     process.StartInfo.Arguments = "\"" + FILENAME + "\"";
                 }
-                else if (os.Equals("Mac OS X"))
+                else if (os.Equals("macOS"))
                 {
                     process.StartInfo.FileName = "open";
                     process.StartInfo.Arguments = $"-a TextEdit \"{FILENAME}\"";

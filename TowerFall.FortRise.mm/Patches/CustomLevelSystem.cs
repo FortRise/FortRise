@@ -58,7 +58,7 @@ public class patch_CustomLevelSystem : CustomLevelSystem
         {
             uint itemState = Steamworks.SteamUGC.GetItemState(fileID);
             WorkshopSubscribed = (itemState & 1U) != 0U;
-            if (SDL.SDL_GetPlatform().Equals("Mac OS X"))
+            if (SDL.SDL_GetPlatform().Equals("macOS"))
             {
                 WorkshopRating = Steamworks.EWorkshopVote.k_EWorkshopVoteUnvoted;
             }

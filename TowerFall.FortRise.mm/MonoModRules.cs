@@ -441,6 +441,13 @@ internal static partial class MonoModRules
         {
             cursor.Next.Operand = SDL_GetPlatform;
         }
+
+        cursor.Goto(0);
+
+        while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdstr("Mac OS X")))
+        {
+            cursor.Next.Operand = "macOS";
+        }
     }
 
 
