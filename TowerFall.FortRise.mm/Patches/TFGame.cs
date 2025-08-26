@@ -229,6 +229,7 @@ namespace TowerFall
 
         protected override void LoadContent()
         {
+            orig_LoadContent();
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
         }
 
@@ -237,7 +238,6 @@ namespace TowerFall
         protected override void Initialize() 
         {
             Content = new ModContentManager(Services, Directory.GetCurrentDirectory());
-            orig_LoadContent();
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             orig_Initialize();
             FortRise.RiseCore.LogTotalModsLoaded();
@@ -334,9 +334,11 @@ namespace TowerFall
                     Loader.Message = "INITIALIZING MODS";
                     FortRise.RiseCore.Initialize();
 
+                    Loader.Message = "INITIALIZING ARROWS";
                     Arrow.Initialize();
                     patch_Arrow.ExtendArrows();
 
+                    Loader.Message = "INITIALIZING TREASURE";
                     patch_TreasureSpawner.ExtendTreasures();
 
                     Loader.Message = "INITIALIZING DEFAULT SESSION";
@@ -417,58 +419,73 @@ namespace TowerFall
 
         private static async Task CheckModUpdate()
         {
-            var tasks = new List<Task<Result<bool, string>>>();
-            foreach (var metadata in RiseCore.ModuleManager.InternalModuleMetadatas)
+            try 
             {
-                if (metadata.Name is "FortRise" or "Adventure")
+                var tasks = new List<Task<Result<bool, string>>>();
+                foreach (var metadata in RiseCore.ModuleManager.InternalModuleMetadatas)
                 {
-                    continue;
-                }
-                tasks.Add(RiseCore.UpdateChecks.CheckModUpdate(metadata));
-            }
-
-            await Task.WhenAll(tasks);
-
-            foreach (var task in tasks)
-            {
-                if (!task.Result.Check(out var _, out string err))
-                {
-                    if (err != "NRF")
+                    if (metadata.Name is "FortRise" or "Adventure")
                     {
-                        RiseCore.logger.LogError("Mod Update Error: {error}", err);
+                        continue;
                     }
-                    continue;
+                    tasks.Add(RiseCore.UpdateChecks.CheckModUpdate(metadata));
                 }
+
+                await Task.WhenAll(tasks);
+
+                foreach (var task in tasks)
+                {
+                    if (!task.Result.Check(out var _, out string err))
+                    {
+                        if (err != "NRF")
+                        {
+                            RiseCore.logger.LogError("Mod Update Error: {error}", err);
+                        }
+                        continue;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                RiseCore.logger.LogError("Exception: {error}", e);
             }
         }
 
         private static async Task CheckUpdate()
         {
-            var result = await RiseCore.UpdateChecks.CheckFortRiseUpdate();
-            if (!result.Check(out var res, out string err))
+            try 
             {
-                RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
-                RiseCore.logger.LogError("Update Error: {error}", err);
-                return;
-            }
+                var result = await RiseCore.UpdateChecks.CheckFortRiseUpdate();
+                if (!result.Check(out var res, out string err))
+                {
+                    RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
+                    RiseCore.logger.LogError("Update Error: {error}", err);
+                    return;
+                }
 
-            string url = res.Ref;
-            int index = url.LastIndexOf('/');
-            if (!SemanticVersion.TryParse(url.AsSpan(index + 1), out SemanticVersion version))
+                string url = res.Ref;
+                int index = url.LastIndexOf('/');
+                if (!SemanticVersion.TryParse(url.AsSpan(index + 1), out SemanticVersion version))
+                {
+                    RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
+                    return;
+                }
+
+                RiseCore.UpdateChecks.UpdateFortRiseConfirm(version);
+
+                if (RiseCore.UpdateChecks.FortRiseUpdateAvailable)
+                {
+                    RiseCore.UpdateChecks.UpdateMessage = "FORTRISE UPDATE IS AVAILABLE!";
+                    return;
+                }
+
+                RiseCore.UpdateChecks.UpdateMessage = string.Empty;
+            }
+            catch (Exception e)
             {
-                RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
-                return;
+                RiseCore.logger.LogError("Exception: {error}", e);
+                RiseCore.UpdateChecks.UpdateMessage = "FAILED TO CHECK UPDATE.";
             }
-
-            RiseCore.UpdateChecks.UpdateFortRiseConfirm(version);
-
-            if (RiseCore.UpdateChecks.FortRiseUpdateAvailable)
-            {
-                RiseCore.UpdateChecks.UpdateMessage = "FORTRISE UPDATE IS AVAILABLE!";
-                return;
-            }
-
-            RiseCore.UpdateChecks.UpdateMessage = string.Empty;
         }
 
         [MonoModReplace]
@@ -478,6 +495,11 @@ namespace TowerFall
             {
                 yield return 0;
             }
+
+            (Atlas as patch_Atlas).ConvertToFastLookup();
+            (BGAtlas as patch_Atlas).ConvertToFastLookup();
+            (MenuAtlas as patch_Atlas).ConvertToFastLookup();
+            (BossAtlas as patch_Atlas).ConvertToFastLookup();
 
             patch_Sounds.LoadModdedCharacterSounds();
             XNAFileDialog.GraphicsDevice = Instance.GraphicsDevice;

@@ -143,31 +143,29 @@ internal sealed class ModSubtextures : IModSubtextures
 
     private void Invoke(ISubtextureEntry entry)
     {
+        /*
+         * Ok here me out, there is a reason why I am doing this for subtexture is because of a
+         * random crashes when the mods are on initialize.
+         * I am not sure why, but everytime I add a subtexture to the Atlas, the game crashes.
+         * I don't know if .NET apparently has some lock mechanism applies to the Dictionary.
+         * So, this should solve the issue for now. Until someone has figure to fix this bug,
+         * This will stay for long.
+         *
+         * - Teuria
+        */
         switch (entry.AtlasDestination)
         {
             case SubtextureAtlasDestination.Atlas:
-                lock (TFGame.Atlas)
-                {
-                    TFGame.Atlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
-                }
+                TFGame.Atlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
             case SubtextureAtlasDestination.MenuAtlas:
-                lock (TFGame.MenuAtlas)
-                {
-                    TFGame.MenuAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
-                }
+                TFGame.MenuAtlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
             case SubtextureAtlasDestination.BGAtlas:
-                lock (TFGame.BGAtlas)
-                {
-                    TFGame.BGAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
-                }
+                TFGame.BGAtlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
             case SubtextureAtlasDestination.BossAtlas:
-                lock (TFGame.BossAtlas)
-                {
-                    TFGame.BossAtlas.SubTextures.TryAdd(entry.ID, entry.Subtexture);
-                }
+                TFGame.BossAtlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
         }
     }

@@ -1,7 +1,10 @@
+#pragma warning disable CS0618
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml;
 using FortRise;
@@ -16,132 +19,78 @@ public class patch_Atlas : Atlas
     private string xmlPath;
     internal HashSet<string> injectedAtlas = new HashSet<string>();
 
-    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) {}
+    public patch_Atlas(string xmlPath, string imagePath, bool load) : base(xmlPath, imagePath, load) { }
 
-    public patch_Atlas() : base(null, null, false) {}
+    public patch_Atlas() : base(null, null, false) { }
 
     public extern void orig_ctor(string xmlPath, string imagePath, bool load);
 
     [MonoModConstructor]
-    public void ctor(string xmlPath, string imagePath, bool load) 
+    public void ctor(string xmlPath, string imagePath, bool load)
     {
-        injectedAtlas = new HashSet<string>();
+        SafeSubTextures = [];
+        injectedAtlas = [];
         orig_ctor(xmlPath, imagePath, load);
-
-        TaggedSubTextures = new();
     }
 
-
-    internal static void MergeAtlas(IResourceInfo resource, patch_Atlas source, Atlas destination, string prefix) 
-    {
-        foreach (var subTexture in source.SubTextures) 
-        {
-            destination.SubTextures.Add(prefix + subTexture.Key, subTexture.Value);
-        }
-
-        destination.GetAllInjectedAtlas().Add(resource.Root + resource.Path);
-    }
-
-    internal static void MergeTexture(IResourceInfo resource, Subtexture source, Atlas destination, string prefix) 
-    {
-        var pngPath = resource.RootPath;
-        int indexOfSlash = pngPath.IndexOf('/');
-        var key = Path.ChangeExtension(pngPath[(indexOfSlash + 1)..]
-            .Replace("Content/Atlas/atlas/", "")
-            .Replace("Content/Atlas/menuAtlas/", "")
-            .Replace("Content/Atlas/bossAtlas/", "")
-            .Replace("Content/Atlas/bgAtlas", ""), null);
-        
-        var filename = Path.GetFileName(key);
-
-        if (filename.StartsWith('(')) 
-        {
-            int ending = key.IndexOf(')');
-            var actualKey = key[..ending];
-
-            var tagPath = Path.ChangeExtension(pngPath, "tag");
-            if (ModIO.IsFileExists(tagPath)) 
-            {
-                patch_Atlas dest = (patch_Atlas)destination;               
-                using var text = ModIO.OpenText(tagPath);
-                var tags = Calc.ReadCSV(text.ReadLine());
-
-                foreach (var tag in tags) 
-                {
-                    ref Dictionary<string, Subtexture> textures = ref CollectionsMarshal.GetValueRefOrAddDefault(dest.TaggedSubTextures, tag, out bool exists);
-                    if (exists)
-                    {
-                        textures.Add(actualKey.Replace("(", ""), source);
-                    }
-                    else 
-                    {
-                        textures = new Dictionary<string, Subtexture>
-                        {
-                            { actualKey.Replace("(", ""), source }
-                        };
-                    }
-                }
-            }
-            else 
-            {
-                destination.SubTextures[actualKey.Replace("(", "")] = source;
-            }
-        }
-        else 
-        {
-            destination.SubTextures[prefix + key] = source;
-        }
-
-        destination.GetAllInjectedAtlas().Add(pngPath);
-    }
 
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
-    public Dictionary<string, Dictionary<string, Subtexture>> TaggedSubTextures { get; private set; }
+
+    [Obsolete("Use SubTextures instead")]
+    internal ConcurrentDictionary<string, Subtexture> SafeSubTextures { get; private set; }
 
     public Subtexture this[string name]
     {
         [MonoModReplace]
         get
         {
-            if (TaggedSubTextures == null)
-                return this.SubTextures[name];
-
-            var scene = Engine.Instance.Scene;
-
-            if (scene?.GetSceneTags() != null) 
+            ref var texture = ref CollectionsMarshal.GetValueRefOrNullRef(SubTextures, name);
+            if (!Unsafe.IsNullRef(ref texture))
             {
-                foreach (var tag in scene.GetSceneTags())
-                {
-                    if (TaggedSubTextures.TryGetValue(tag, out var tex))
-                    {
-                        if (tex.TryGetValue(name, out var val))
-                            return val;
-                    }
-                }
+                return texture;
             }
 
-            return this.SubTextures[name];
+            return SafeSubTextures.GetValueOrDefault(name);
+        }
+        set
+        {
+            SubTextures[name] = value;
         }
     }
 
-    internal void SetXMLPath(string xmlPath) 
+    public void SafeAdd(string name, Subtexture texture)
+    {
+        SafeSubTextures[name] = texture;
+    }
+
+    internal void ConvertToFastLookup()
+    {
+        foreach (var concurrent in SafeSubTextures)
+        {
+            SubTextures[concurrent.Key] = concurrent.Value;
+        }
+
+        SafeSubTextures.Clear();
+    }
+
+    internal void SetXMLPath(string xmlPath)
     {
         this.xmlPath = xmlPath;
     }
 
-    internal void SetImagePath(string imagePath) 
+    internal void SetImagePath(string imagePath)
     {
         this.ImagePath = imagePath;
     }
 
-    internal void SetSubTextures(Dictionary<string, Subtexture> subTextures) 
+    internal void SetSubTextures(Dictionary<string, Subtexture> subTextures)
     {
         this.SubTextures = subTextures;
     }
-    
+
 
     [MonoModConstructor]
-    internal void ctor() 
+    internal void ctor()
     {
         injectedAtlas = new HashSet<string>();
     }
@@ -149,16 +98,21 @@ public class patch_Atlas : Atlas
     [MonoModIgnore]
     public extern bool Contains(string name);
 
-    internal void LoadStream(Stream fs) 
+    internal void LoadStream(Stream fs)
     {
         Texture2D = Texture2D.FromStream(Engine.Instance.GraphicsDevice, fs);
         Rect = new Rectangle(0, 0, this.Texture2D.Width, this.Texture2D.Height);
     }
 }
 
-public static class AtlasExt 
+public static class AtlasExt
 {
-    internal static patch_Atlas CreateAtlasFromEmbedded(string xmlPath, string imagePath) 
+    internal static void SafeAdd(this Atlas atlas, string id, Subtexture tex)
+    {
+        ((patch_Atlas)atlas).SafeAdd(id, tex);
+    }
+
+    internal static patch_Atlas CreateAtlasFromEmbedded(string xmlPath, string imagePath)
     {
         var assembly = Assembly.GetExecutingAssembly();
         using Stream xmlStream = assembly.GetManifestResourceStream(xmlPath);
@@ -180,15 +134,15 @@ public static class AtlasExt
             atlas.SubTextures.Add(attributes["name"].Value, new Subtexture(atlas, Convert.ToInt32(attributes["x"].Value), Convert.ToInt32(attributes["y"].Value), Convert.ToInt32(attributes["width"].Value), Convert.ToInt32(attributes["height"].Value)));
         }
         atlas.LoadStream(imageStream);
-        
+
         return atlas;
     }
 
-    public static patch_Atlas CreateAtlas(string xmlPath, string imagePath) 
+    public static patch_Atlas CreateAtlas(string xmlPath, string imagePath)
     {
         using var rootXmlStream = ModIO.OpenRead(xmlPath);
         using var rootImageStream = ModIO.OpenRead(imagePath);
-        return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);       
+        return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
     }
 
     public static patch_Atlas CreateAtlas(Stream xmlStream, Stream imageStream)
