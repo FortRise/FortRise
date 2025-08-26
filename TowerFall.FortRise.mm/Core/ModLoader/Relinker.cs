@@ -213,7 +213,8 @@ internal static class Relinker
             modder.Input = stream;
             modder.OutputPath = cachedPath;
 
-            var symbolPath = string.Concat(meta.DLL.AsSpan(0, meta.DLL.Length - 4), ".pdb");
+            var symbolPath = string.Concat(name, ".pdb");
+
             modder.ReaderParameters.SymbolStream = OpenSymbol(meta, symbolPath);
             modder.ReaderParameters.ReadSymbols = modder.ReaderParameters.SymbolStream != null;
 
