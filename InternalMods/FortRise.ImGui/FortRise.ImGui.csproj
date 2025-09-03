@@ -9,7 +9,7 @@
   <ItemGroup>
     <LinuxMove Include="$(TargetDir)/runtimes/linux-x64/native/**/*"/>
     <WinMove Include="$(TargetDir)/runtimes/win-x64/native/**/*"/>
-    <OSXMove Include="$(TargetDir)/runtimes/osx/native/**/*"/>
+    <OSXMove Include="$(TargetDir)/runtimes/osx-x64/native/**/*"/>
   </ItemGroup>
 
   <Target Name="MoveNativeRuntime" AfterTargets="CoreCompile">

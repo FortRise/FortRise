@@ -8,7 +8,11 @@ using Microsoft.Extensions.Logging;
 
 namespace FortLauncher;
 
-public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logger, ILoggerFactory factory)
+public class FortRiseHandler(
+    string fortriseCWD, 
+    List<string> args, 
+    ILogger logger, 
+    ILoggerFactory factory)
 {
     public string[] Args = args.ToArray();
     private readonly string cwd = fortriseCWD;
@@ -23,7 +27,8 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
         // run the game
         if (asm.EntryPoint is not null)
         {
-            var riseCore = asm.GetType("FortRise.RiseCore")?.GetMethod("LauncherPipe", BindingFlags.NonPublic | BindingFlags.Static);
+            var riseCore = asm.GetType("FortRise.RiseCore")?
+                .GetMethod("LauncherPipe", BindingFlags.NonPublic | BindingFlags.Static);
 
             if (riseCore != null)
             {
@@ -31,7 +36,8 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
                 logger.LogInformation("Running the game!");
                 try
                 {
-                    asm.EntryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
+                    asm.EntryPoint
+                        .Invoke(null, BindingFlags.DoNotWrapExceptions, null, [Args], null);
                 }
                 catch (Exception e)
                 {
@@ -105,6 +111,7 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
             return context.LoadFromAssemblyPath(path);
         };
 
+        // need to resolve native dlls that has a diffrent pathing
         AssemblyLoadContext.Default.ResolvingUnmanagedDll += (asm, name) => 
         {
             string unmanagedFolders = string.Empty;
@@ -114,9 +121,9 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
                 unmanagedFolders = "lib64";
                 dllFormat = ".so";
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                unmanagedFolders = "osx";
+                unmanagedFolders = "../MacOS/osx";
                 dllFormat = ".dylib";
             }
 
@@ -129,13 +136,26 @@ public class FortRiseHandler(string fortriseCWD, List<string> args, ILogger logg
             }
             else 
             {
-                var file = Path.GetFullPath(Path.Combine(unmanagedFolders, "lib" + name + dllFormat));
+                var file = Path.GetFullPath(
+                        Path.Combine(unmanagedFolders, "lib" + name + dllFormat));
                 if (NativeLibrary.TryLoad(file, out nint handle))
                 {
                     return handle;
                 }
+
+                // MacOS has a different directory to locate native libraries
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    file = Path.GetFullPath(
+                            Path.Combine(unmanagedFolders, "lib" + name + dllFormat));
+                    if (NativeLibrary.TryLoad(file, out nint handle2))
+                    {
+                        return handle2;
+                    }
+                }
             }
 
+            // would use the default handler
             return IntPtr.Zero;
         };
 

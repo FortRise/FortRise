@@ -36,8 +36,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
         {
             UnmanagedFolders = "linux-x64";
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || 
-                RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             UnmanagedFolders = "osx-x64";
         }
@@ -243,12 +242,12 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
     private IntPtr LoadUnmanaged(string name)
     {
+        // TODO fallback lib with no lib
         string libName = name switch 
         {
             _ when RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => $"{name}.dll",
             _ when RuntimeInformation.IsOSPlatform(OSPlatform.Linux) => $"lib{name}.so",
-            _ when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
-                || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) => $"{name}.dylib",
+            _ when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) => $"lib{name}.dylib",
             _ => name
         };
 
