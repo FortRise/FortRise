@@ -25,7 +25,10 @@ public static class patch_Audio
     public static bool TryGetTrackMap(string name, out TrackInfo info) 
     {
         if (TrackMap.TryGetValue(name, out info))
+        {
             return true;
+        }
+
         return false;
     }
 

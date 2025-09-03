@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FILoader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.ILoader;
 
 namespace FortRise.Content;
 
@@ -8,7 +10,8 @@ internal sealed partial class ApiImplementation
 {
     internal sealed class LoaderAPI : IFortRiseContentApi.ILoaderAPI
     {
-        public IFortRiseContentApi.ILoaderAPI.IContentConfiguration? GetContentConfiguration(ModuleMetadata metadata)
+        public IFortRiseContentApi.ILoaderAPI.IContentConfiguration? GetContentConfiguration(
+            ModuleMetadata metadata)
         {
             if (!ContentModule.Instance.Context.Interop.IsModDepends(metadata))
             {
@@ -26,7 +29,9 @@ internal sealed partial class ApiImplementation
             if (content.Root.TryGetRelativePath("content.json", out var contentJson))
             {
                 using var stream = contentJson.Stream;
-                return JsonSerializer.Deserialize(stream, ContentConfigurationContext.Default.ContentConfiguration)
+                return JsonSerializer.Deserialize(
+                    stream, 
+                    ContentConfigurationContext.Default.ContentConfiguration)
                     ?? ContentModule.GetDefaultConfiguration();
             }
 
@@ -42,48 +47,11 @@ internal partial class ContentConfigurationContext : JsonSerializerContext {}
 internal class ContentConfiguration : IFortRiseContentApi.ILoaderAPI.IContentConfiguration
 {
     [JsonPropertyName("loader")]
-    public IFortRiseContentApi.ILoaderAPI.ILoaderConfiguration? Loaders { get; set; }
+    public required IReadOnlyDictionary<string, FILoader> Loaders { get; set; }
 }
 
-internal class LoaderConfiguration : IFortRiseContentApi.ILoaderAPI.ILoaderConfiguration
+internal class Loader : FILoader
 {
-    [JsonPropertyName("archerData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? ArcherData { get; set; }
-
-    [JsonPropertyName("spriteData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? SpriteData { get; set; }
-
-    [JsonPropertyName("menuSpriteData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? MenuSpriteData { get; set; }
-
-    [JsonPropertyName("bgSpriteData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? BgSpriteData { get; set; }
-
-    [JsonPropertyName("bossSpriteData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? BossSpriteData { get; set; }
-
-    [JsonPropertyName("corpseSpriteData")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? CorpseSpriteData { get; set; }
-
-    [JsonPropertyName("atlas")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? Atlas { get; set; }
-
-    [JsonPropertyName("menuAtlas")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? MenuAtlas { get; set; }
-
-    [JsonPropertyName("bgAtlas")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? BGAtlas { get; set; }
-
-    [JsonPropertyName("bossAtlas")]
-    public IFortRiseContentApi.ILoaderAPI.ILoader? BossAtlas { get; set; }
-}
-
-internal class Loader : IFortRiseContentApi.ILoaderAPI.ILoader
-{
-    public Loader()
-    {
-    }
-
     [JsonPropertyName("path")]
     [JsonConverter(typeof(StringOrStringArrayConverter))]
     public string[]? Path { get; set; }
@@ -94,7 +62,8 @@ internal class Loader : IFortRiseContentApi.ILoaderAPI.ILoader
 
 internal sealed class StringOrStringArrayConverter : JsonConverter<string[]>
 {
-    public override string[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override string[]? Read(
+        ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.String)
         {
@@ -105,7 +74,8 @@ internal sealed class StringOrStringArrayConverter : JsonConverter<string[]>
             return JsonSerializer.Deserialize<string[]>(ref reader, options);
         }
         
-        throw new JsonException($"Unexpected token type: {reader.TokenType}. Expected String or StringArray.");
+        throw new JsonException(
+            $"Unexpected token type: {reader.TokenType}. Expected String or StringArray.");
     }
 
     public override void Write(Utf8JsonWriter writer, string[] value, JsonSerializerOptions options)

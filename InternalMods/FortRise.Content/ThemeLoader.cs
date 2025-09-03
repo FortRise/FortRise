@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -8,35 +9,47 @@ namespace FortRise.Content;
 
 internal static class ThemeLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content)
+    internal static void Load(IModRegistry registry, IModContent content, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
     {
-        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/themeData.xml", out IResourceInfo theme))
+        loader ??= new Loader() { Path = ["Content/Atlas/GameData/themeData.xml"] };
+
+        if (loader.Path is null || !loader.Enabled)
         {
             return;
         }
 
-        var xml = theme.Xml?["ThemeData"];
-        if (xml is null)
+        List<IResourceInfo> resources = [];
+        
+        foreach (var path in loader.Path)
         {
-            return;
+            resources.AddRange(content.Root.EnumerateChildrens(path));
         }
 
-        foreach (XmlElement xmlTheme in xml)
+        foreach (var theme in resources)
         {
-            var icon = xmlTheme.ChildText("Icon");
-            ISubtextureEntry subIcon = null!;
-
-            if (content.Root.TryGetRelativePath(icon, out var info))
+            var xml = theme.Xml?["ThemeData"];
+            if (xml is null)
             {
-                subIcon = registry.Subtextures.RegisterTexture(info);
-            }
-            else
-            {
-                subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+                return;
             }
 
-            var themeID = xmlTheme.Attr("id", xmlTheme.Name);
-            LoadTheme(themeID, xmlTheme, content, registry);
+            foreach (XmlElement xmlTheme in xml)
+            {
+                var icon = xmlTheme.ChildText("Icon");
+                ISubtextureEntry subIcon = null!;
+
+                if (content.Root.TryGetRelativePath(icon, out var info))
+                {
+                    subIcon = registry.Subtextures.RegisterTexture(info);
+                }
+                else
+                {
+                    subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+                }
+
+                var themeID = xmlTheme.Attr("id", xmlTheme.Name);
+                LoadTheme(themeID, xmlTheme, content, registry);
+            }
         }
     }
 

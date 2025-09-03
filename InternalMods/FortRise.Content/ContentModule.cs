@@ -1,6 +1,5 @@
-using System;
+using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace FortRise.Content;
@@ -46,75 +45,84 @@ internal sealed class ContentModule : Mod
 
         contentConfiguration.Loaders ??= GetDefaultLoaderConfiguration();
 
-        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.Atlas, contentConfiguration.Loaders.Atlas);
-        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.MenuAtlas, contentConfiguration.Loaders.MenuAtlas);
-        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BGAtlas, contentConfiguration.Loaders.BGAtlas);
-        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BossAtlas, contentConfiguration.Loaders.BossAtlas);
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.Atlas, contentConfiguration.Loaders.GetOrNull("atlas"));
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.MenuAtlas, contentConfiguration.Loaders.GetOrNull("menuAtlas"));
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BGAtlas, contentConfiguration.Loaders.GetOrNull("bgAtlas"));
+        SubtextureLoader.Load(registry, content, SubtextureAtlasDestination.BossAtlas, contentConfiguration.Loaders.GetOrNull("bossAtlas"));
 
-        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Main, contentConfiguration.Loaders.SpriteData);
-        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Menu, contentConfiguration.Loaders.MenuSpriteData);
-        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.BG, contentConfiguration.Loaders.BgSpriteData);
-        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Boss, contentConfiguration.Loaders.BossSpriteData);
-        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Corpse, contentConfiguration.Loaders.CorpseSpriteData);
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Main, contentConfiguration.Loaders.GetOrNull("spriteData"));
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Menu, contentConfiguration.Loaders.GetOrNull("menuSpriteData"));
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.BG, contentConfiguration.Loaders.GetOrNull("bgSpriteData"));
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Boss, contentConfiguration.Loaders.GetOrNull("bossSpriteData"));
+        SpriteDataLoader.LoadSpriteData(registry, content, ContainerSpriteType.Corpse, contentConfiguration.Loaders.GetOrNull("corpseSpriteData"));
 
-        MusicLoader.Load(registry, content);
-        ArcherLoader.Load(registry, content, contentConfiguration.Loaders.ArcherData);
-        TilesetLoader.Load(registry, content);
-        ThemeLoader.Load(registry, content);
+        MusicLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("music"));
+        ArcherLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("archerData"));
+        TilesetLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("tilesetData"));
+        ThemeLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("themeData"));
         VersusLoader.Load(registry, content, Logger);
         QuestLoader.Load(registry, content);
         DarkWorldLoader.Load(registry, content);
         TrialsLoader.Load(registry, content, Logger);
     }
 
-    internal static LoaderConfiguration GetDefaultLoaderConfiguration()
+    internal static IReadOnlyDictionary<string, IFortRiseContentApi.ILoaderAPI.ILoader> GetDefaultLoaderConfiguration()
     {
-        return new()
+        return new Dictionary<string, IFortRiseContentApi.ILoaderAPI.ILoader>()
         {
-            Atlas = new Loader() 
-            {
-                Path = ["Content/Atlas/atlas.xml"]
-            },
-            MenuAtlas = new Loader() 
+            ["atlas"] = new Loader() { Path = ["Content/Atlas/atlas.xml"] },
+            ["menuAtlas"] = new Loader() 
             {
                 Path = ["Content/Atlas/menuAtlas.xml"]
             },
-            BGAtlas = new Loader() 
+            ["bgAtlas"] = new Loader() 
             {
                 Path = ["Content/Atlas/bgAtlas.xml"]
             },
-            BossAtlas = new Loader() 
+            ["bossAtlas"] = new Loader() 
             {
                 Path = ["Content/Atlas/bossAtlas.xml"]
             },
-            ArcherData = new Loader() 
+            ["archerData"] = new Loader() 
             {
                 Path = ["Content/Atlas/GameData/archerData.xml"]
             },
 
-            SpriteData = new Loader() 
+            ["spriteData"] = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/spriteData.xml"]
             },
 
-            BgSpriteData = new Loader() 
+            ["bgSpriteData"] = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/bgSpriteData.xml"]
             },
 
-            MenuSpriteData = new Loader() 
+            ["menuSpriteData"] = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/menuSpriteData.xml"]
             },
 
-            BossSpriteData = new Loader() 
+            ["bossSpriteData"] = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/bossSpriteData.xml"]
             },
 
-            CorpseSpriteData = new Loader() 
+            ["corpseSpriteData"] = new Loader() 
             {
                 Path = ["Content/Atlas/SpriteData/corpseSpriteData.xml"]
+            },
+            ["tilesetData"] = new Loader() 
+            {
+                Path = ["Content/Atlas/GameData/tilesetData.xml"]
+            },
+            ["themeData"] = new Loader() 
+            {
+                Path = ["Content/Atlas/GameData/themeData.xml"]
+            },
+            ["music"] = new Loader() 
+            {
+                Path = ["Content/Music/*.ogg"]
             },
         };
     }

@@ -108,96 +108,25 @@ public abstract class ResourceInfo : IResourceInfo
         var filename = System.IO.Path.GetFileName(path);
 
 
-        if (path.StartsWith("Content/Atlas/atlas/") && filename.EndsWith(".png"))
+        if (filename.EndsWith(".png"))
         {
             ResourceType = typeof(RiseCore.ResourceTypeAtlasPng);
-        }
-        else if (path.StartsWith("Content/Atlas/menuAtlas/") && filename.EndsWith(".png"))
-        {
-            ResourceType = typeof(RiseCore.ResourceTypeMenuAtlasPng);
-        }
-        else if (path.StartsWith("Content/Atlas/bossAtlas/") && filename.EndsWith(".png"))
-        {
-            ResourceType = typeof(RiseCore.ResourceTypeBossAtlasPng);
-        }
-        else if (path.StartsWith("Content/Atlas/bgAtlas/") && filename.EndsWith(".png"))
-        {
-            ResourceType = typeof(RiseCore.ResourceTypeBGAtlasPng);
-        }
-        else if (path.StartsWith("Content/Atlas") && filename.EndsWith(".png"))
-        {
-            foreach (var ext in AtlasReader.InternalReaders.Keys)
-            {
-                if (RiseCore.ResourceTree.IsExist(this, path.Replace(".png", ext)))
-                {
-                    ResourceType = typeof(RiseCore.ResourceTypeAtlas);
-                }
-            }
         }
         else if (path.EndsWith(".dll"))
         {
             ResourceType = typeof(RiseCore.ResourceTypeAssembly);
         }
-        else if (path.StartsWith("Content/Atlas/GameData") && filename.EndsWith(".xml"))
+
+        else if (path.EndsWith(".ogg"))
         {
-            ResourceType = typeof(RiseCore.ResourceTypeGameData);
+            ResourceType = typeof(RiseCore.ResourceTypeOggFile);
         }
-        else if (path.StartsWith("Content/Atlas/SpriteData") && filename.EndsWith(".xml"))
+
+        else if (path.EndsWith(".wav"))
         {
-            ResourceType = typeof(RiseCore.ResourceTypeSpriteData);
+            ResourceType = typeof(RiseCore.ResourceTypeWavFile);
         }
-        else if (path.StartsWith("Content/Music"))
-        {
-            if (path.EndsWith(".xgs"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeAudioEngine);
-            }
-            else if (path.EndsWith(".xsb"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeSoundBank);
-            }
-            else if (path.EndsWith("xwb"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeWaveBank);
-            }
-            else if (path.EndsWith(".wav"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeWavFile);
-            }
-            else if (path.EndsWith(".ogg"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeOggFile);
-            }
-            // FIXME fix normal file
-            else
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeFile);
-            }
-        }
-        else if (path.StartsWith("Content/SFX"))
-        {
-            if (path.EndsWith(".wav"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeWavFile);
-            }
-            else if (path.EndsWith(".ogg"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeOggFile);
-            }
-            else if (path.EndsWith("SoundBank.xml"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeXMLSoundBank);
-            }
-            else if (path.EndsWith("SoundBank.json"))
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeJSONSoundBank);
-            }
-            // FIXME fix normal file
-            else
-            {
-                ResourceType = typeof(RiseCore.ResourceTypeFile);
-            }
-        }
+
         else if (path.EndsWith(".json"))
         {
             ResourceType = typeof(RiseCore.ResourceTypeJson);

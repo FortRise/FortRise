@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using Monocle;
@@ -41,19 +42,35 @@ internal static class TilesetLoader
         return list;
     }
 
-    internal static void Load(IModRegistry registry, IModContent content)
+    internal static void Load(IModRegistry registry, IModContent content, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
     {
-        if (!content.Root.TryGetRelativePath("Content/Atlas/GameData/tilesetData.xml", out IResourceInfo theme))
+        loader ??= new Loader() { Path = ["Content/Atlas/GameData/tilesetData.xml"] };
+
+        if (loader.Path is null || !loader.Enabled)
         {
             return;
         }
 
-        var xml = theme.Xml?["TilesetData"];
-        if (xml is null)
+        List<IResourceInfo> resources = [];
+        
+        foreach (var path in loader.Path)
         {
-            return;
+            resources.AddRange(content.Root.EnumerateChildrens(path));
         }
 
-        LoadTilesets(registry, content, xml);
+        foreach (var res in resources)
+        {
+            var tilesetRes = res.Xml ??
+                throw new Exception($"[{content.Metadata.Name}] Failed to load Xml file {res.Path}.");
+
+            var xml = tilesetRes["TilesetData"];
+
+            if (xml is null)
+            {
+                continue;
+            }
+
+            LoadTilesets(registry, content, xml);
+        }
     }
 }
