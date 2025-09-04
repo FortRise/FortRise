@@ -77,17 +77,24 @@ public static class patch_Music
         PlayInternal(filepath, looping);
     }
 
-    private static void PlayInternal(string filepath, bool looping) 
+    private static void PlayInternal(string filepath, bool looping, bool immediate = false) 
     {
-        if (!fromCue)
-        {
-            Stop();
-        }
+        //if (!fromCue)
+        //{
+        //    Stop();
+        //}
         var audioSystem = patch_Audio.GetMusicSystemFromExtension(filepath);
         if (audioSystem != null) 
         {
             fromCue = audioSystem.GetType() == typeof(VanillaMusicSystem);
-            patch_Audio.PlayMusic(audioSystem, filepath, looping);
+            if (immediate)
+            {
+                patch_Audio.PlayMusicImmediate(audioSystem, filepath, looping);
+            }
+            else 
+            {
+                patch_Audio.PlayMusic(audioSystem, filepath, looping);
+            }
         }
         currentSong = filepath;
     }
@@ -102,12 +109,14 @@ public static class patch_Music
     public static void PlayImmediate(string filepath, bool looping) 
     {
         if (audioEngine == null || Music.CurrentSong == filepath) 
+        {
             return;
+        }
         
         audioCategory.Stop(AudioStopOptions.Immediate);
         patch_Audio.StopMusic(AudioStopOptions.Immediate);
         
-        PlayInternal(filepath, looping);
+        PlayInternal(filepath, looping, true);
     }
 
     [MonoModReplace]
@@ -144,14 +153,12 @@ public static class patch_Music
         {
             return;
         }
+
         audioEngine.Update();
 
-        if (musicAwaiter.Count == 0)
-        {
-            return;
-        }
+        patch_Audio.Update();
 
-        if (currentSong == null)
+        if (musicAwaiter.Count == 0 || currentSong == null)
         {
             return;
         }

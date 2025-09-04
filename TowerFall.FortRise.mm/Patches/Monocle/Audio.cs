@@ -11,7 +11,8 @@ public static class patch_Audio
     public static string ORIGINAL_LOAD_PREFIX = Calc.LOADPATH + "SFX" + Path.DirectorySeparatorChar.ToString();
     public static Dictionary<string, IMusicSystem> AudioSystems = new();
     public static Dictionary<string, TrackInfo> TrackMap = new();
-    private static IMusicSystem currentSystem;
+    private static IMusicSystem music1Slot;
+    private static IMusicSystem music2Slot;
     internal static List<SFX> loopList;
     internal static List<SFX> pitchList;
 
@@ -35,7 +36,40 @@ public static class patch_Audio
     public static void PlayMusic(IMusicSystem system, string name, bool looping) 
     {
         system.Play(name, looping);
-        currentSystem = system;
+        music2Slot = music1Slot;
+        music1Slot = system;
+
+        if (music2Slot is not null && !music2Slot.IsStopped)
+        {
+            CrossFadePlay(music2Slot, music1Slot);
+        }
+        else 
+        {
+            music1Slot.Timer = 1.0f;
+            music1Slot.StateEffect = StateEffect.Immediate;
+        }
+    }
+
+    public static void PlayMusicImmediate(IMusicSystem system, string name, bool looping) 
+    {
+        system.Play(name, looping);
+        music2Slot = music1Slot;
+        music1Slot = system;
+
+        if (music2Slot is not null && !music2Slot.IsStopped)
+        {
+            music1Slot.Timer = 1f;
+            music1Slot.StateEffect = StateEffect.FadeOut;
+        }
+
+        music1Slot.Timer = 0.1f;
+        music1Slot.StateEffect = StateEffect.Immediate;
+    }
+
+    public static void Update()
+    {
+        music1Slot?.Update();
+        music2Slot?.Update();
     }
 
     public static void RegisterMusicSystem(IMusicSystem system, string associatedExtension) 
@@ -75,10 +109,22 @@ public static class patch_Audio
 
     public static void StopMusic(AudioStopOptions options) 
     {
-        if (currentSystem != null) 
+        music1Slot?.Stop(options);
+        music1Slot = null;
+    }
+
+    internal static void CrossFadePlay(IMusicSystem fadeOut, IMusicSystem fadeIn)
+    {
+        if (fadeOut is not null)
         {
-            currentSystem.Stop(options);
-            currentSystem = null;
+            fadeOut.Timer = 1.0f;
+            fadeOut.StateEffect = StateEffect.FadeOut;
+        }
+
+        if (fadeIn is not null)
+        {
+            fadeIn.Timer = 1.0f;
+            fadeIn.StateEffect = StateEffect.FadeIn;
         }
     }
 }

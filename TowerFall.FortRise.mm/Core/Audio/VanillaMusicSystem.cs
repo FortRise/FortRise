@@ -17,6 +17,10 @@ public class VanillaMusicSystem : IMusicSystem
         }
     }
 
+    public float Timer { get; set; }
+
+    public StateEffect StateEffect { get; set; }
+
     private SoundBank soundBank;
     private AudioCategory audioCategory;
     private string current;
@@ -58,5 +62,10 @@ public class VanillaMusicSystem : IMusicSystem
         if (MusicExt.GetAudioEngine() == null)
             return;
         audioCategory.Stop(options);
+    }
+
+    public void Update()
+    {
+        Timer -= Engine.DeltaTime;
     }
 }

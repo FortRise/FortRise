@@ -27,6 +27,12 @@ public abstract class AudioTrack : IDisposable
         }
     }
 
+    public float Volume 
+    {
+        get => soundEffect.Volume;
+        set => soundEffect.Volume = value;
+    }
+
     public void Play()
     {
         soundEffect.Volume = Music.MasterVolume;
