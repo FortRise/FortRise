@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.IO;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
 internal static class MusicLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
+    internal static void Load(IModRegistry registry, IModContent content, Loader? loader)
     {
-        loader ??= new Loader() { Path = ["Content/Music/*.ogg"] };
+        loader ??= new Loader() { Path = ["Content/Music/*.ogg", "Content/Music/*.wav"] };
 
         if (loader.Path is null || !loader.Enabled)
         {

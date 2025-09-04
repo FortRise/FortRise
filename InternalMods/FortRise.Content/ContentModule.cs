@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
@@ -66,9 +67,9 @@ internal sealed class ContentModule : Mod
         TrialsLoader.Load(registry, content, Logger);
     }
 
-    internal static IReadOnlyDictionary<string, IFortRiseContentApi.ILoaderAPI.ILoader> GetDefaultLoaderConfiguration()
+    internal static IReadOnlyDictionary<string, Loader> GetDefaultLoaderConfiguration()
     {
-        return new Dictionary<string, IFortRiseContentApi.ILoaderAPI.ILoader>()
+        return new Dictionary<string, Loader>()
         {
             ["atlas"] = new Loader() { Path = ["Content/Atlas/atlas.xml"] },
             ["menuAtlas"] = new Loader() 
@@ -122,7 +123,7 @@ internal sealed class ContentModule : Mod
             },
             ["music"] = new Loader() 
             {
-                Path = ["Content/Music/*.ogg"]
+                Path = ["Content/Music/*.ogg", "Content/Music/*.wav"]
             },
         };
     }

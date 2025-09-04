@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using Monocle;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
 internal static class SubtextureLoader 
 {
-    internal static void Load(IModRegistry registry, IModContent content, SubtextureAtlasDestination destination, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
+    internal static void Load(IModRegistry registry, IModContent content, SubtextureAtlasDestination destination, Loader? loader)
     {
         loader ??= destination switch
         {

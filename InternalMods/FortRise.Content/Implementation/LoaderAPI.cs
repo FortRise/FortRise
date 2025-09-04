@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using FILoader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.ILoader;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
@@ -47,17 +47,7 @@ internal partial class ContentConfigurationContext : JsonSerializerContext {}
 internal class ContentConfiguration : IFortRiseContentApi.ILoaderAPI.IContentConfiguration
 {
     [JsonPropertyName("loader")]
-    public required IReadOnlyDictionary<string, FILoader> Loaders { get; set; }
-}
-
-internal class Loader : FILoader
-{
-    [JsonPropertyName("path")]
-    [JsonConverter(typeof(StringOrStringArrayConverter))]
-    public string[]? Path { get; set; }
-
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; } = true;
+    public required IReadOnlyDictionary<string, Loader> Loaders { get; set; }
 }
 
 internal sealed class StringOrStringArrayConverter : JsonConverter<string[]>

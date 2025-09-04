@@ -6,12 +6,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
 internal static class ArcherLoader
 {
-    internal static void Load(IModRegistry registry, IModContent content, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
+    internal static void Load(IModRegistry registry, IModContent content, Loader? loader)
     {
         loader ??= new Loader() { Path = ["Content/Atlas/GameData/archerData.xml"] };
 

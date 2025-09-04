@@ -2,5 +2,5 @@ namespace FortLauncher;
 
 public static class FortRiseConstants
 {
-    public const string Version = "5.1.0";
+    public const string Version = "5.1.1";
 }

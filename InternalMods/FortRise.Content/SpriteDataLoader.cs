@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using Monocle;
+using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 
@@ -223,7 +224,7 @@ internal static class SpriteDataLoader
         }
     }
 
-    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, IFortRiseContentApi.ILoaderAPI.ILoader? loader)
+    internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, Loader? loader)
     {
         loader ??= spriteType switch
         {
