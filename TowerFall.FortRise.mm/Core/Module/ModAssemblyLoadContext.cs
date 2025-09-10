@@ -232,7 +232,6 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
         return Resolve(name);
     }
 
-
     protected override nint LoadUnmanagedDll(string unmanagedDllName)
     {
         IntPtr handle = LoadUnmanaged(unmanagedDllName);
@@ -242,7 +241,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
     private IntPtr LoadUnmanaged(string name)
     {
-        // TODO fallback lib with no lib
+        // TODO: fallback lib with no lib
         string libName = name switch 
         {
             _ when RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => $"{name}.dll",

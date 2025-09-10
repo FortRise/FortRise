@@ -96,7 +96,7 @@ namespace MonoMod
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Call, m_Internal_DebugRender);
 
-            // TODO Used this as an alternative for method calls.
+            // TODO: Used this as an alternative for method calls.
             // We cannot do it right now, as MonoMod Relinker won't relink types that I've recently imported here.
 
             // if (HasShield)

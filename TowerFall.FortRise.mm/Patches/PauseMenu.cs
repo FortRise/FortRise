@@ -25,7 +25,6 @@ namespace TowerFall
         {
         }
 
-        // FIXME Patch the Trials section to fit with Adventure levels
         [MonoModIgnore]
         [MonoModConstructor]
         [PatchPauseMenuCtor]

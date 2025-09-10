@@ -275,7 +275,7 @@ public class CoOpModeButton : BorderButton
 
     public CoOpModeButton(Vector2 position, Vector2 tweenFrom) : base(position, tweenFrom, 200, 30)
     {
-        // TODO do not hardcode this
+        // TODO: do not hardcode this
         modeID = [QuestMode, DarkWorldMode];
         UpdateSides();
         iconWiggler = Wiggler.Create(15, 6f);
