@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
@@ -10,10 +11,11 @@ namespace FortRise;
 
 public class UIModToggler : CustomMenuState
 {
-    private Dictionary<string, ModuleMetadata> modsMetadata = new();
-    private Dictionary<string, bool> onOffs = new();
-    private HashSet<string> blacklistedMods = new();
-    private HashSet<string> oldBlacklistedMods = new();
+    private Dictionary<string, ModuleMetadata> modsMetadata = [];
+    private Dictionary<string, bool> onOffs = [];
+    private readonly Dictionary<string, TextContainer.Toggleable> toggles = [];
+    private HashSet<string> blacklistedMods = [];
+    private HashSet<string> oldBlacklistedMods = [];
     public TextContainer Container;
 
     public UIModToggler(MainMenu main) : base(main)
@@ -44,10 +46,12 @@ public class UIModToggler : CustomMenuState
 
     public override void Create()
     {
+        toggles.Clear();
         Main.BackState = ModRegisters.MenuState<UIModMenu>();
 
         oldBlacklistedMods = RiseCore.ModuleManager.BlacklistedMods;
         blacklistedMods = [.. oldBlacklistedMods];
+
         var loadedMetadata = RiseCore.ModuleManager.InternalMods.Select(x => x.Metadata);
         var enableAll = new TextContainer.ButtonText("Enabled All");
         enableAll.Pressed(() => ModifyAllButtons(true));
@@ -55,12 +59,16 @@ public class UIModToggler : CustomMenuState
         disableAll.Pressed(() => ModifyAllButtons(false));
         Container.Add(enableAll);
         Container.Add(disableAll);
+
         string modDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods");
         string[] files = Directory.GetFiles(modDirectory);
         foreach (var file in files) 
         {
             if (!file.EndsWith(".zip"))
+            {
                 continue;
+            }
+
             var filename = Path.GetFileName(file);
 
             var metadata = loadedMetadata.Where(meta => meta.PathZip == filename).FirstOrDefault();
@@ -75,6 +83,7 @@ public class UIModToggler : CustomMenuState
                 }
 
                 using var meta = metaZip.ExtractStream();
+
                 var result = ModuleMetadata.ParseMetadata(file, meta, true);
                 if (!result.Check(out metadata, out string error))
                 {
@@ -85,7 +94,7 @@ public class UIModToggler : CustomMenuState
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);
             modsMetadata.Add(filename, metadata);
             onOffs.Add(filename, isBlacklisted);
-            Container.Add(CreateButton(filename, onOffs));
+            Container.Add(CreateButton(filename, metadata.Name, onOffs));
         }
 
         files = Directory.GetDirectories(modDirectory);
@@ -112,13 +121,14 @@ public class UIModToggler : CustomMenuState
             var isBlacklisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);
             onOffs.Add(folderName, isBlacklisted);
-            Container.Add(CreateButton(folderName, onOffs));
+            Container.Add(CreateButton(folderName, metadata.Name, onOffs));
         }
     }
 
-    private TextContainer.Toggleable CreateButton(string modName, Dictionary<string, bool> onOffs) 
+    private TextContainer.Toggleable CreateButton(string physicalName, string modName, Dictionary<string, bool> onOffs) 
     {
-        var toggleable = new TextContainer.Toggleable(modName, onOffs[modName]);
+        var toggleable = new TextContainer.Toggleable(physicalName, onOffs[physicalName]);
+
         if (RiseCore.ModuleManager.CantLoad.Contains(modName))
         {
             toggleable.NotSelectedColor = Color.DarkRed;
@@ -139,38 +149,47 @@ public class UIModToggler : CustomMenuState
                 Main.Add(uiModal);
             };
         }
+
         toggleable.Change(on => {
             if (on) 
-                RemoveToBlacklist(modName);
+            {
+                RemoveToBlacklist(physicalName, modName);
+            }
             else
-                AddToBlacklist(modName);
+            {
+                AddToBlacklist(physicalName, modName);
+            }
         });
+        toggles[modName] = toggleable;
         return toggleable;
     }
 
-    private void AddToBlacklist(string modName) 
+    private void AddToBlacklist(string physicalName, string modName) 
     {
-        if (blacklistedMods.Contains(modName))
-            return;
-        onOffs[modName] = false;
-
-        blacklistedMods.Add(modName);
-
-        var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
-            .FirstOrDefault();
-        if (modmeta == null)
+        if (blacklistedMods.Contains(physicalName))
         {
-            modmeta = modsMetadata
-                .Select(x => x.Value)
-                .Where(x => x.PathDirectory
-                    .Replace('\\', '/')
-                    .Replace("Mods/", "") == modName)
-                .FirstOrDefault();
+            return;
         }
 
-        
-        if (modmeta == null)
+        onOffs[physicalName] = false;
+
+        blacklistedMods.Add(physicalName);
+
+        // Check if some mods depend on this mod
+        ModuleMetadata modMeta = null;
+
+        foreach (var meta in modsMetadata.Values)
+        {
+            if (meta.Name == modName)
+            {
+                modMeta = meta;
+            }
+        }
+
+        if (modMeta is null)
+        {
             return;
+        }
 
         foreach (var mod in modsMetadata.Values) 
         {
@@ -178,6 +197,7 @@ public class UIModToggler : CustomMenuState
             {
                 continue;
             }
+
             foreach (var dep in mod.Dependencies) 
             {
                 // we don't wanna blacklist our loader
@@ -185,75 +205,73 @@ public class UIModToggler : CustomMenuState
                 {
                     continue;
                 }
-                if (modmeta == dep) 
+                if (modMeta == dep) 
                 {
-                    string depName;
-                    if (!string.IsNullOrEmpty(mod.PathZip)) 
+                    string depName = dep.Name;
+                    string depPhysName = dep.IsDirectory ? dep.PathDirectory : dep.PathZip;
+
+                    AddToBlacklist(Path.GetFileName(depPhysName), depName);
+                    if (toggles.TryGetValue(depName, out var toggle))
                     {
-                        depName = Path.GetFileName(mod.PathZip);
+                        toggle.Value = false;
                     }
-                    else 
-                    {
-                        var folderName = Path.GetFileName(mod.PathDirectory);
-                        depName = folderName;
-                    }
-                    AddToBlacklist(depName);
-                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text.Equals(depName, StringComparison.InvariantCultureIgnoreCase))
-                        .Cast<TextContainer.Toggleable>()
-                        .FirstOrDefault();
-                    item.Value = false;
                 }
             }
         }
     }
 
-    private void RemoveToBlacklist(string modName) 
+    private void RemoveToBlacklist(string physicalName, string modName) 
     {
-        if (!blacklistedMods.Contains(modName))
+        if (!blacklistedMods.Contains(physicalName))
+        {
             return;
-        
-        blacklistedMods.Remove(modName);
+        }
 
-        var modmeta = modsMetadata.Select(x => x.Value).Where(x => !string.IsNullOrEmpty(x.PathZip) && x.PathZip.Replace("Mods/", "") == modName)
-            .FirstOrDefault();
-        if (modmeta == null)
-            modmeta = modsMetadata
-            .Select(x => x.Value)
-            .Where(x => x.PathDirectory
-                .Replace('\\', '/')
-                .Replace("Mods\\", "") == modName)
-            .FirstOrDefault();
+        onOffs[physicalName] = true;
 
-        
-        if (modmeta is null || modmeta.Dependencies is null)
+        blacklistedMods.Remove(physicalName);
+
+        // Check if some mods depend on this mod
+        ModuleMetadata modMeta = null;
+
+        foreach (var meta in modsMetadata.Values)
+        {
+            if (meta.Name == modName)
+            {
+                modMeta = meta;
+            }
+        }
+
+        if (modMeta is null)
+        {
             return;
-        
+        }
+
         foreach (var mod in modsMetadata.Values) 
         {
-            foreach (var dep in modmeta.Dependencies)
+            if (mod.Dependencies == null)
             {
-                // FortRise might get checked, which it doesn't have PathDirectory
+                continue;
+            }
+
+            foreach (var dep in modMeta.Dependencies) 
+            {
+                // we don't wanna blacklist our loader
                 if (dep.Name == "FortRise")
                 {
                     continue;
                 }
-                if (mod == dep) 
+
+                if (modMeta == dep) 
                 {
-                    string depName;
-                    if (!string.IsNullOrEmpty(mod.PathZip)) 
+                    string depName = dep.Name;
+                    string depPhysName = dep.IsDirectory ? dep.PathDirectory : dep.PathZip;
+
+                    RemoveToBlacklist(Path.GetFileName(depPhysName), depName);
+                    if (toggles.TryGetValue(depName, out var toggle))
                     {
-                        depName = Path.GetFileName(mod.PathZip);
+                        toggle.Value = true;
                     }
-                    else 
-                    {
-                        var folderName = Path.GetFileName(mod.PathDirectory);
-                        depName = folderName;
-                    }
-                    RemoveToBlacklist(depName);
-                    var item = Container.Items.Where(x => x is TextContainer.Toggleable toggle && toggle.Text.Equals(depName, StringComparison.InvariantCultureIgnoreCase))
-                        .Cast<TextContainer.Toggleable>()
-                        .FirstOrDefault();
-                    item.Value = true;
                 }
             }
         }
@@ -261,6 +279,11 @@ public class UIModToggler : CustomMenuState
 
     public override void Destroy()
     {
+        foreach (var blacklisted in blacklistedMods)
+        {
+            RiseCore.logger.LogInformation("Disabling mod: '{blacklistMod}'.", blacklisted);
+        }
+
         bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
 
         var jsonArray = new List<string>();
@@ -269,6 +292,7 @@ public class UIModToggler : CustomMenuState
         {
             jsonArray.Add(blacklisted);
         }
+
         RiseCore.WriteBlacklist(jsonArray, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "blacklist.txt"));
         
         // cleanup

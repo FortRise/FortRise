@@ -72,6 +72,7 @@ namespace TowerFall
                 else 
                 {
                     menuState.Destroy();
+                    CustomMenuStateRegistry.DestroyTypeCache(menuState.GetType());
                 }
 
                 return;

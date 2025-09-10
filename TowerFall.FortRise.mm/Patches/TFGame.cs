@@ -68,7 +68,6 @@ namespace TowerFall
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            var towerFallPath = Directory.GetCurrentDirectory();
             bool parseVersion = false;
             foreach (var arg in args) 
             {
@@ -98,11 +97,6 @@ namespace TowerFall
                 return;
             }
             RiseCore.ParseArgs(args);
-            var patchFile = "PatchVersion.txt";
-            if (!File.Exists(patchFile)) 
-            {
-                patchFile = Path.Combine(RiseCore.GameRootPath, "PacthVersion.txt");
-            }
             
             TFGame.WriteLineToLoadLog("Initializing Steam...");
             if (!TryInit())
@@ -136,7 +130,12 @@ namespace TowerFall
 
                 if (RiseCore.WillRestart) 
                 {
-                    RiseCore.RunTowerFallProcess(towerFallPath, args);
+                    string fortRisePath = Path.Combine(AppContext.BaseDirectory, "FortRise");
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        fortRisePath += ".exe";
+                    }
+                    RiseCore.RunProcess(fortRisePath, args);
                 }
             }
             catch (Exception e) 
@@ -171,23 +170,23 @@ namespace TowerFall
             bool loadLog = false;
             foreach (string text in args)
             {
-                if (text.ToLower(CultureInfo.InvariantCulture) == "nointro" || text.ToLower(CultureInfo.InvariantCulture) == "-nointro")
+                if (text.Equals("nointro", StringComparison.CurrentCultureIgnoreCase) || text.Equals("-nointro", StringComparison.CurrentCultureIgnoreCase))
                 {
                     noIntro = true;
                 }
-                else if (text.ToLower(CultureInfo.InvariantCulture) == "loadlog" || text.ToLower(CultureInfo.InvariantCulture) == "-loadlog")
+                else if (text.Equals("loadlog", StringComparison.CurrentCultureIgnoreCase) || text.Equals("-loadlog", StringComparison.CurrentCultureIgnoreCase))
                 {
                     loadLog = true;
                 }
-                else if (text.ToLower(CultureInfo.InvariantCulture) == "noquit" || text.ToLower(CultureInfo.InvariantCulture) == "-noquit")
+                else if (text.Equals("noquit", StringComparison.CurrentCultureIgnoreCase) || text.Equals("-noquit", StringComparison.CurrentCultureIgnoreCase))
                 {
                     MainMenu.NoQuit = true;
                 }
-                else if (text.ToLower(CultureInfo.InvariantCulture) == "nogamepads" || text.ToLower(CultureInfo.InvariantCulture) == "-nogamepads")
+                else if (text.Equals("nogamepads", StringComparison.CurrentCultureIgnoreCase) || text.Equals("-nogamepads", StringComparison.CurrentCultureIgnoreCase))
                 {
                     MainMenu.NoGamepads = true;
                 }
-                else if (text.ToLower(CultureInfo.InvariantCulture) == "nogamepadupdates" || text.ToLower(CultureInfo.InvariantCulture) == "-nogamepadupdates")
+                else if (text.Equals("nogamepadupdates", StringComparison.CurrentCultureIgnoreCase) || text.Equals("-nogamepadupdates", StringComparison.CurrentCultureIgnoreCase))
                 {
                     MainMenu.NoGamepadUpdates = true;
                 }

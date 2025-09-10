@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using TowerFall;
 
 namespace FortRise;
@@ -8,6 +9,7 @@ namespace FortRise;
 public static class CustomMenuStateRegistry 
 {
     private static Dictionary<string, IMenuStateEntry> menuStateEntries = [];
+    private static readonly Dictionary<Type, CustomMenuState> typeCache = [];
     public static Dictionary<string, MainMenu.MenuState> StringToMenuStates = new Dictionary<string, MainMenu.MenuState>();
     public static Dictionary<Type, MainMenu.MenuState> TypeToMenuStates = new Dictionary<Type, MainMenu.MenuState>();
     public static Dictionary<MainMenu.MenuState, CustomMenuStateLoader> MenuLoaders = new Dictionary<MainMenu.MenuState, CustomMenuStateLoader>();
@@ -44,7 +46,12 @@ public static class CustomMenuStateRegistry
         {
             loader = (menu) =>
             {
-                var custom = (CustomMenuState)ctor.Invoke([menu]);
+                ref var custom = ref CollectionsMarshal.GetValueRefOrAddDefault(typeCache, type, out bool exists);
+                if (!exists)
+                {
+                    custom = (CustomMenuState)ctor.Invoke([menu]);
+                }
+
                 return custom;
             };
         }
@@ -54,5 +61,10 @@ public static class CustomMenuStateRegistry
         TypeToMenuStates[type] = state;
         MenuLoaders[state] = loader;
         MenuStates.Add(state);
+    }
+
+    public static void DestroyTypeCache(Type type) 
+    {
+        typeCache.Remove(type);
     }
 }

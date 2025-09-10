@@ -161,62 +161,9 @@ public static partial class RiseCore
             File.Delete(updaterPath);
         }
 
-
-        // Load env mods here
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
-        var directory = Directory.GetDirectories(modDirectory);
-        foreach (var dir in directory)
-        {
-            if (dir.Contains("_RelinkerCache"))
-                continue;
-            var dirInfo = new DirectoryInfo(dir);
-            if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(dirInfo.Name))
-                continue;
-
-            SetEnvDir(dir);
-        }
-        var files = Directory.GetFiles(modDirectory);
-        foreach (var file in files)
-        {
-            if (!file.EndsWith("zip"))
-                continue;
-            var fileName = Path.GetFileName(file);
-            if (ModuleManager.BlacklistedMods != null && ModuleManager.BlacklistedMods.Contains(Path.GetFileName(fileName)))
-                continue;
-
-            SetEnvZip(file);
-        }
 
         ModuleStart();
-        static void SetEnvDir(string dir)
-        {
-            var metaPath = Path.Combine(dir, "env.json");
-            if (!File.Exists(metaPath))
-                return;
-            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metaPath));
-            foreach (var val in value)
-            {
-                Environment.SetEnvironmentVariable(val.Key, val.Value);
-            }
-        }
-
-        static void SetEnvZip(string file)
-        {
-            using var zipFile = ZipFile.OpenRead(file);
-
-            var envZip = zipFile.GetEntry("env.json");
-
-            if (envZip == null)
-                return;
-
-            using var memStream = envZip.ExtractStream();
-            var value = JsonSerializer.Deserialize<Dictionary<string, string>>(memStream);
-            foreach (var val in value)
-            {
-                Environment.SetEnvironmentVariable(val.Key, val.Value);
-            }
-        }
-
         return true;
     }
 
@@ -388,7 +335,7 @@ public static partial class RiseCore
         Engine.Instance.Exit();
     }
 
-    internal static void RunTowerFallProcess(string towerFallPath, string[] args)
+    internal static void RunProcess(string path, string[] args)
     {
         bool noIntroFound = false;
         var sb = new StringBuilder();
@@ -401,9 +348,12 @@ public static partial class RiseCore
             }
         }
         if (!noIntroFound)
+        {
             sb.Append("-nointro");
+        }
+
         var process = new Process();
-        process.StartInfo.FileName = towerFallPath;
+        process.StartInfo.FileName = path;
         process.StartInfo.Arguments = sb.ToString();
 
         process.Start();
