@@ -2,6 +2,7 @@ using System;
 using FortRise;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
@@ -9,7 +10,6 @@ using TowerFall.Patching;
 
 namespace TowerFall 
 {
-
     public class patch_QuestLevelSelectOverlay : QuestLevelSelectOverlay
     {
         private int statsID;
@@ -19,6 +19,7 @@ namespace TowerFall
         private string levelTimeString;
         private bool levelRed;
         private bool levelGold;
+        private float drawStatsLerp;
 
         public patch_QuestLevelSelectOverlay(MapScene map) : base(map)
         {
@@ -37,6 +38,7 @@ namespace TowerFall
                 return true;
             }
 
+            drawStatsLerp = Calc.Approach(drawStatsLerp, 0f, 0.15f * Engine.TimeMult);
             base_Update();
             return false;
         }
