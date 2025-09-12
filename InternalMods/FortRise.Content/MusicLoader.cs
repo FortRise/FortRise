@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 

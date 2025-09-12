@@ -4,7 +4,6 @@ using System.Xml;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
-using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 

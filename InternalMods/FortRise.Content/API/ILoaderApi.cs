@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
 namespace FortRise.Content;
 
 public partial interface IFortRiseContentApi 
@@ -11,17 +8,13 @@ public partial interface IFortRiseContentApi
 
         public interface IContentConfiguration
         {
-            IReadOnlyDictionary<string, Loader> Loaders { get; set; }
+            ILoader? GetLoader(string loaderID);
         }
 
-        public class Loader
+        public interface ILoader 
         {
-            [JsonPropertyName("path")]
-            [JsonConverter(typeof(StringOrStringArrayConverter))]
-            public string[]? Path { get; set; }
-
-            [JsonPropertyName("enabled")]
-            public bool Enabled { get; set; } = true;
+            string[]? Path { get; }
+            bool Enabled { get; }
         }
     }
 }

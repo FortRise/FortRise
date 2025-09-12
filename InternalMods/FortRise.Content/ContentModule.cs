@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 

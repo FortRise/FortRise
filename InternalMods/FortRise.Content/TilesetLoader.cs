@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Xml;
 using Monocle;
 using TowerFall;
-using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
 
 namespace FortRise.Content;
 

@@ -302,6 +302,7 @@ internal class ModuleManager
             return LoadError.Failure;
         }
 
+        NameToMod.Add(metadata.Name, modResource);
         if (asm != null)
         {
             LoadAssembly(metadata, content, asm);
@@ -318,7 +319,6 @@ internal class ModuleManager
 
         InternalMods.Add(modResource);
         InternalModuleMetadatas.Add(metadata);
-        NameToMod.Add(metadata.Name, modResource);
         if (metadata.Tags != null)
         {
             foreach (var tag in metadata.Tags)

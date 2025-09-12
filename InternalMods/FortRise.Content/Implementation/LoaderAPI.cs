@@ -2,24 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Loader = FortRise.Content.IFortRiseContentApi.ILoaderAPI.Loader;
+using Microsoft.Extensions.Logging;
+namespace FortRise.Content; 
 
-namespace FortRise.Content;
-
-internal sealed partial class ApiImplementation
+internal sealed partial class ApiImplementation 
 {
-    internal sealed class LoaderAPI : IFortRiseContentApi.ILoaderAPI
+    internal sealed class LoaderAPI : IFortRiseContentApi.ILoaderAPI 
     {
         public IFortRiseContentApi.ILoaderAPI.IContentConfiguration? GetContentConfiguration(
             ModuleMetadata metadata)
         {
-            if (!ContentModule.Instance.Context.Interop.IsModDepends(metadata))
-            {
-                return null;
-            }
-
             var mod = ContentModule.Instance.Context.Interop.GetMod(metadata.Name);
-            
+
             if (mod is null)
             {
                 return null;
@@ -40,6 +34,17 @@ internal sealed partial class ApiImplementation
     }
 }
 
+
+public class Loader : IFortRiseContentApi.ILoaderAPI.ILoader
+{
+    [JsonPropertyName("path")]
+    [JsonConverter(typeof(StringOrStringArrayConverter))]
+    public string[]? Path { get; set; }
+
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+}
+
 [JsonSerializable(typeof(ContentConfiguration))]
 [JsonConverter(typeof(StringOrStringArrayConverter))]
 internal partial class ContentConfigurationContext : JsonSerializerContext {}
@@ -48,6 +53,36 @@ internal class ContentConfiguration : IFortRiseContentApi.ILoaderAPI.IContentCon
 {
     [JsonPropertyName("loader")]
     public required IReadOnlyDictionary<string, Loader> Loaders { get; set; }
+
+    public IFortRiseContentApi.ILoaderAPI.ILoader? GetLoader(string loaderID)
+    {
+        if (Loaders.TryGetValue(loaderID, out var loader))
+        {
+            return loader;
+        }
+
+        var d = GetDefault(loaderID);
+
+        if (d is not null)
+        {
+            return d;
+        }
+
+        ContentModule.Instance.Logger.LogError("'{loaderID}' is not a valid loader.", loaderID);
+        return null;
+    }
+
+    private static IFortRiseContentApi.ILoaderAPI.ILoader? GetDefault(string loader)
+    {
+        var defaults = ContentModule.GetDefaultLoaderConfiguration();
+
+        if (defaults.TryGetValue(loader, out var l))
+        {
+            return l;
+        }
+
+        return null;
+    }
 }
 
 internal sealed class StringOrStringArrayConverter : JsonConverter<string[]>
