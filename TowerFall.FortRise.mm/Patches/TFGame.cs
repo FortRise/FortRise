@@ -410,7 +410,9 @@ namespace TowerFall
             });
 
             if (RiseCore.DumpResources)
+            {
                 TaskHelper.RunAsync("dumping assets", RiseCore.ResourceTree.DumpAll);
+            }
 
             Task.Run(CheckUpdate);
             Task.Run(CheckModUpdate);
