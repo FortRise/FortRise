@@ -21,9 +21,12 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         Map.MatchStarting = false;
         Map.MapPaused = true;
 
-        var textContainer = new TextContainer(160);
-        textContainer.LayerIndex = 0;
-        textContainer.WithFade = true;
+        var textContainer = new TextContainer(160)
+        {
+            LayerIndex = 0,
+            WithFade = true
+        };
+
         textContainer.BackAction = () => 
         {
             Map.Selection = this;
@@ -39,14 +42,7 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         });
         textContainer.Add(towerFallButton);
 
-        List<string> sets = Mode switch
-        {
-            MainMenu.RollcallModes.Versus => TowerRegistry.VersusLevelSets,
-            MainMenu.RollcallModes.Quest => TowerRegistry.QuestLevelSets,
-            MainMenu.RollcallModes.DarkWorld => TowerRegistry.DarkWorldLevelSets,
-            MainMenu.RollcallModes.Trials => TowerRegistry.TrialsLevelSet,
-            _ => throw new NotImplementedException()
-        };
+        var sets = CreateLevelSets();
 
         int startIndex = 0;
         for (int i = 0; i < sets.Count; i++) 
@@ -76,6 +72,20 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         textContainer.Selection = startIndex;
         textContainer.Selected = true;
         textContainer.TweenIn();
+    }
+
+    private List<string> CreateLevelSets()
+    {
+        List<string> sets = Mode switch
+        {
+            MainMenu.RollcallModes.Versus => TowerRegistry.VersusLevelSets,
+            MainMenu.RollcallModes.Quest => TowerRegistry.QuestLevelSets,
+            MainMenu.RollcallModes.DarkWorld => TowerRegistry.DarkWorldLevelSets,
+            MainMenu.RollcallModes.Trials => TowerRegistry.TrialsLevelSet,
+            _ => throw new NotImplementedException()
+        };
+
+        return [..sets];
     }
 
     private void ChangeLevelSet(string levelSet) 
