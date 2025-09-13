@@ -524,6 +524,18 @@ internal class ModuleManager
             }
         }
 
+        if (mod.OptionalDependencies != null)
+        {
+            foreach (var dependent in mod.OptionalDependencies)
+            {
+                if (dependent.Name == targetMod.Name)
+                {
+                    return true;
+                }
+            }
+        }
+
+
         return false;
     }
 
@@ -540,6 +552,20 @@ internal class ModuleManager
                 {
                     list.Add(mod);
                     break;
+                }
+            }
+
+            if (mod.Metadata.OptionalDependencies != null)
+            {
+                var optDependencies = mod.Metadata.OptionalDependencies;
+                for (int i = 0; i < optDependencies.Length; i++)
+                {
+                    var dependency = optDependencies[i];
+                    if (dependency.Name == modName)
+                    {
+                        list.Add(mod);
+                        break;
+                    }
                 }
             }
         }
