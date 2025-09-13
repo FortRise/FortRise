@@ -298,10 +298,22 @@ namespace TowerFall.Patching
             }
             else
             {
-                towers = TowerRegistry.VersusTowerSets[this.GetLevelSet()];
+                towers = [];
+                var tempTowers = TowerRegistry.VersusTowerSets[this.GetLevelSet()];
+                foreach (var tow in tempTowers)
+                {
+                    if (tow.Levels.Count > 0)
+                    {
+                        towers.Add(tow);
+                    }
+                }
             }
 
-            Buttons.Add(new VersusRandomSelect());
+            if (towers.Count > 0)
+            {
+                Buttons.Add(new VersusRandomSelect());
+            }
+
 
             for (int i = 0; i < towers.Count; i++)
             {
@@ -314,7 +326,9 @@ namespace TowerFall.Patching
                     }
                     continue;
                 }
+
                 var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
+
                 var hidden = customTower.Configuration.IsHidden;
                 if (hidden is null || !hidden.Invoke(customTower))
                 {
@@ -325,7 +339,7 @@ namespace TowerFall.Patching
             LinkButtonsList();
             if (HasBegun)
             {
-                InitButtons(Buttons[2]);
+                InitButtons(Buttons[0]);
                 foreach (MapButton mapButton in Buttons)
                 {
                     Add(mapButton);
@@ -345,7 +359,15 @@ namespace TowerFall.Patching
             }
             else
             {
-                towers = TowerRegistry.DarkWorldTowerSets[this.GetLevelSet()];
+                towers = [];
+                var tempTowers = TowerRegistry.DarkWorldTowerSets[this.GetLevelSet()];
+                foreach (var tow in tempTowers)
+                {
+                    if (tow.Levels.Count > 0)
+                    {
+                        towers.Add(tow);
+                    }
+                }
             }
 
             for (int i = 0; i < towers.Count; i++)

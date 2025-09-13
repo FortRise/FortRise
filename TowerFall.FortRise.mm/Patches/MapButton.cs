@@ -205,7 +205,7 @@ public class patch_MapButton : MapButton
         }
         else
         {
-            tower = TowerRegistry.QuestGet(scene.GetLevelSet(), levelID);
+            tower = TowerRegistry.QuestTowerSets[scene.GetLevelSet()][levelID];
             stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.GetLevelID());
         }
 
