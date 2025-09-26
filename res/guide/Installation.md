@@ -19,18 +19,12 @@
 3. Open the FortRise directory.
 4. Launch `FortRise` and it should be good to go.
 
-> [!NOTE]
-> You might need to put FortRise as a Non-Steam game if you happen to use Steam to ensure that Steam will launch the FortRise executable.
-
 ### MacOS
 1. Download the latest version of FortRise in [Github](https://github.com/releases/latest) or [Gamebanana](https://gamebanana.com/tools/13617).
 2. Extract the `.zip` or `.tar.gz` file inside of the TowerFall.app/Contents directory.
 + FortRise will check if TowerFall executable is present above its directory. This will ensure that FortRise will be able to patch the game necessary for FortRise to be able to launch TowerFall with mods.
 3. Open the FortRise directory.
 4. Launch `FortRise` and it should be good to go. 
-
-> [!NOTE]
-> You might need to put FortRise as a Non-Steam game if you happen to use Steam to ensure that Steam will launch the FortRise executable.
 
 ## Installing Mods
 For installing mods, you may want to go to [Gamebanana](https://gamebanana.com/games/18654) to find some mods. If you have found one:
