@@ -62,7 +62,6 @@ internal class FortRiseGenerator : IIncrementalGenerator
                         {
                     """);
 
-        // group by the target enum.
         foreach (var invocation in toIntercept)
         {
             var location = invocation.Location;
@@ -205,7 +204,7 @@ internal class FortRiseGenerator : IIncrementalGenerator
 
         // Add the source to the compilation
         string contents = sb.ToString();
-        string filename = $"Test_Interception_Interception.g.cs";
+        string filename = $"FortRise_Private_Interception.g.cs";
         context.AddSource(filename, SourceText.From(contents, Encoding.UTF8));
         sb.Clear();
     }

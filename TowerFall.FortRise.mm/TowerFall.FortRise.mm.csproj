@@ -6,6 +6,7 @@
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
     <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+    <LangVersion>14</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
