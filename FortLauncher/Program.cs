@@ -10,6 +10,7 @@ using FortLauncher.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using System.Runtime.InteropServices;
+using FortRise.GameBanana;
 
 namespace FortLauncher;
 
@@ -28,12 +29,30 @@ internal class Program
 
         foreach (var arg in args)
         {
+            if (arg.StartsWith("fortrise:"))
+            {
+                var gameBanana = new GameBanana(arg);
+                try 
+                {
+                    gameBanana.Parse(false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    Console.Read();
+                    return 1;
+                }
+
+                return 0;
+            }
+
             if (arg == "--enable-trace")
             {
                 Environment.SetEnvironmentVariable("MONOMOD_DISABLE_TRACE_LOG", "0");
             }
             argsList.Add(arg);
         }
+
         argsList.Add("--version");
         argsList.Add(Version.ToString());
 
