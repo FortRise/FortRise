@@ -7,13 +7,12 @@ using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using TowerFall.Patching;
 
 namespace TowerFall 
 {
     public class patch_PauseMenu : PauseMenu
     {
-        private PauseMenu.MenuType menuType;
+        private MenuType menuType;
         private Level level;
         private Action backAction;
         private Action oldBackAction;
@@ -58,6 +57,7 @@ namespace TowerFall
         [MonoModReplace]
         private void DarkWorldRestart() 
         {
+            (level.Session as patch_Session).DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
             var oldLevelSet = this.level.Session.GetLevelSet();
             var session = new Session(this.level.Session.MatchSettings);
@@ -68,22 +68,26 @@ namespace TowerFall
         [MonoModReplace]
         private void DarkWorldMap() 
         {
+            (level.Session as patch_Session).DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
             var mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             Engine.Instance.Scene = mapScene;
             mapScene.SetLevelSet(level.Session.GetLevelSet());
-            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
         private void DarkWorldMapAndSave() 
         {
+            (level.Session as patch_Session).DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             mapScene.ShouldSave = true;
             Engine.Instance.Scene = mapScene;
             mapScene.SetLevelSet(level.Session.GetLevelSet());
-            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -93,7 +97,8 @@ namespace TowerFall
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.Quest);
             Engine.Instance.Scene = mapScene;
             mapScene.SetLevelSet(level.Session.GetLevelSet());
-            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         
@@ -105,18 +110,42 @@ namespace TowerFall
             mapScene.ShouldSave = true;
             Engine.Instance.Scene = mapScene;
             mapScene.SetLevelSet(level.Session.GetLevelSet());
-            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
 
-
-        [Prefix("Quit")]
-        [Prefix("QuitAndSave")]
-        [Prefix(nameof(DarkWorldMap))]
-        [Prefix(nameof(DarkWorldMapAndSave))]
-        private static void DisableTempVariantsIfCan(patch_PauseMenu __instance)
+        [MonoModReplace]
+        private void Quit()
         {
-            (__instance.level.Session as patch_Session).DisableTempVariants(__instance.level);
+            (level.Session as patch_Session).DisableTempVariants(level);
+            Sounds.ui_clickBack.Play(160f, 1f);
+            for (int i = 0; i < 4; i += 1)
+            {
+                TFGame.Players[i] = false;
+            }
+
+            Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.Main);
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
+
+        [MonoModReplace]
+        private void QuitAndSave()
+        {
+            (level.Session as patch_Session).DisableTempVariants(level);
+            Sounds.ui_clickBack.Play(160f, 1f);
+            for (int i = 0; i < 4; i += 1)
+            {
+                TFGame.Players[i] = false;
+            }
+
+            MainMenu mainMenu = new MainMenu(MainMenu.MenuState.Main);
+            mainMenu.SaveOnTransition = true;
+            Engine.Instance.Scene = mainMenu;
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
 
         [MonoModReplace]
         private void VersusRematch() 
@@ -125,7 +154,41 @@ namespace TowerFall
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.Versus);
             Engine.Instance.Scene = mapScene;
             mapScene.SetLevelSet(level.Session.GetLevelSet());
-            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
+        [MonoModReplace]
+        private void VersusArcherSelect()
+        {
+            Sounds.ui_clickBack.Play(160f, 1f);
+            for (int i = 0; i < 4; i += 1)
+            {
+                TFGame.Players[i] = false;
+            }
+            Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.Rollcall);
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
+        [MonoModReplace]
+        private void VersusMatchSettings()
+        {
+            Sounds.ui_clickBack.Play(160f, 1f);
+            Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.VersusOptions);
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
+        [MonoModReplace]
+        private void VersusMatchSettingsAndSave()
+        {
+            Sounds.ui_clickBack.Play(160f, 1f);
+            MainMenu mainMenu = new MainMenu(MainMenu.MenuState.VersusOptions);
+            mainMenu.SaveOnTransition = true;
+            Engine.Instance.Scene = mainMenu;
+            level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         private void Settings() 
@@ -149,7 +212,7 @@ namespace TowerFall
             var music = new TextContainer.Number("Music", (int)Math.Round((double)(oldMusicVolume * 10f)), 0, 10);
             music.Change(val => {
                 oldMusicVolume = (float)val / 10;
-                Music.MasterVolume = ((float)val / 10) * 0.5f;
+                Music.MasterVolume = (float)val / 10 * 0.5f;
                 SaveData.Instance.Options.MusicVolume = oldMusicVolume;
             });
 

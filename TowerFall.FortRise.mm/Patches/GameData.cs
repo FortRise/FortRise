@@ -10,9 +10,8 @@ public static class patch_GameData
     {
         // Should be safe to restart here
         RiseCore.CantRestart = false;
-        RiseCore.Events.Invoke_OnBeforeDataLoad();
+        ModEventsManager.Instance.OnBeforeDataLoad.Raise(null, new OnDataLoadEventArgs(RiseCore.WillRestart));
         orig_Load();
-        ExtendedGameData.Load();
 
         // Assign its LevelID
         foreach (var questTowers in GameData.QuestLevels) 
@@ -44,7 +43,7 @@ public static class patch_GameData
         }
 
         TowerFall.Patching.MapScene.FixedStatic();
-        RiseCore.Events.Invoke_OnAfterDataLoad();
+        ModEventsManager.Instance.OnAfterDataLoad.Raise(null, new OnDataLoadEventArgs(RiseCore.WillRestart));
     }
 }
 

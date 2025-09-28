@@ -30,24 +30,6 @@ public static partial class RiseCore
         }
 
         /// <summary>
-        /// Called before the GameData.Load() called.
-        /// </summary>
-        public static event Action OnBeforeDataLoad;
-        internal static void Invoke_OnBeforeDataLoad()
-        {
-            OnBeforeDataLoad?.Invoke();
-        }
-
-        /// <summary>
-        /// Called after the GameData.Load() called.
-        /// </summary>
-        public static event Action OnAfterDataLoad;
-        internal static void Invoke_OnAfterDataLoad()
-        {
-            OnAfterDataLoad?.Invoke();
-        }
-
-        /// <summary>
         /// Called before the game initialization state.
         /// </summary>
         public static event Action OnPreInitialize;

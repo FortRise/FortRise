@@ -23,4 +23,7 @@ public interface IModEvents
     /// Called when the game is initialized. This is different from mod initialization and it is run before that happens.
     /// </summary>
     event EventHandler<TFGame> OnGameInitialized;
+    event EventHandler<OnDataLoadEventArgs> OnBeforeDataLoad;
+    event EventHandler<OnDataLoadEventArgs> OnAfterDataLoad;
+    event EventHandler<OnSessionQuitEventArgs> OnSessionQuit;
 }

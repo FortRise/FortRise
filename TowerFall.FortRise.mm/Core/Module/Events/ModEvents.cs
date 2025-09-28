@@ -53,4 +53,22 @@ internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IM
         add => manager.OnGameInitialized.Add(metadata, value);
         remove => manager.OnGameInitialized.Remove(metadata, value);
     }
+
+    public event EventHandler<OnDataLoadEventArgs> OnBeforeDataLoad
+    {
+        add => manager.OnBeforeDataLoad.Add(metadata, value);
+        remove => manager.OnBeforeDataLoad.Remove(metadata, value);
+    }
+
+    public event EventHandler<OnDataLoadEventArgs> OnAfterDataLoad
+    {
+        add => manager.OnAfterDataLoad.Add(metadata, value);
+        remove => manager.OnAfterDataLoad.Remove(metadata, value);
+    }
+
+    public event EventHandler<OnSessionQuitEventArgs> OnSessionQuit
+    {
+        add => manager.OnSessionQuit.Add(metadata, value);
+        remove => manager.OnSessionQuit.Remove(metadata, value);
+    }
 }
