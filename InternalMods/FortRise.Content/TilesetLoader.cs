@@ -13,16 +13,7 @@ internal static class TilesetLoader
         var themeID = xmlTileset.Attr("id");
 
         var image = xmlTileset.Attr("image");
-        ISubtextureEntry texture = null!;
-
-        if (content.Root.TryGetRelativePath(image, out var info))
-        {
-            texture = registry.Subtextures.RegisterTexture(info);
-        }
-        else
-        {
-            texture = registry.Subtextures.RegisterTexture(() => TFGame.Atlas[image]);
-        }
+        ISubtextureEntry texture = content.LoadTexture(registry, image, SubtextureAtlasDestination.Atlas);
 
         return registry.Tilesets.RegisterTileset(themeID, new()
         {

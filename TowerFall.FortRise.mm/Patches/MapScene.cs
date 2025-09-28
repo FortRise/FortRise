@@ -53,10 +53,10 @@ namespace TowerFall.Patching
                 WorkshopLevels = true;
             }
             Entity entity = new Entity(-1);
-            entity.Add(this.Renderer = new patch_MapRenderer(false));
-            Add<Entity>(entity);
+            entity.Add(Renderer = new patch_MapRenderer(false));
+            Add(entity);
 
-            this.Buttons = new List<MapButton>();
+            Buttons = [];
 
             switch (Mode)
             {
@@ -76,9 +76,9 @@ namespace TowerFall.Patching
                     throw new Exception("Mode not recognized!");
             }
 
-            foreach (MapButton mapButton in this.Buttons)
+            foreach (MapButton mapButton in Buttons)
             {
-                base.Add<MapButton>(mapButton);
+                Add(mapButton);
             }
 
             MapButton buttonSelected;
@@ -87,16 +87,16 @@ namespace TowerFall.Patching
                 case MainMenu.RollcallModes.Versus:
                     if (MainMenu.VersusMatchSettings.LevelSystem.CustomTower)
                     {
-                        buttonSelected = this.Buttons[0];
+                        buttonSelected = Buttons[0];
                     }
                     else if (MainMenu.VersusMatchSettings.RandomVersusTower)
                     {
-                        buttonSelected = this.Buttons[1];
-                        for (int num6 = 0; num6 < this.Buttons.Count; num6++)
+                        buttonSelected = Buttons[1];
+                        for (int num6 = 0; num6 < Buttons.Count; num6 += 1)
                         {
-                            if (this.Buttons[num6] is VersusRandomSelect)
+                            if (Buttons[num6] is VersusRandomSelect)
                             {
-                                buttonSelected = this.Buttons[num6];
+                                buttonSelected = Buttons[num6];
                                 break;
                             }
                         }
@@ -104,51 +104,39 @@ namespace TowerFall.Patching
                     else
                     {
                         buttonSelected = this.GetButtonFromID(MainMenu.VersusMatchSettings.LevelSystem.ID);
-                        if (buttonSelected == null)
-                        {
-                            buttonSelected = this.Buttons[1];
-                        }
+                        buttonSelected ??= Buttons[1];
                     }
                     break;
                 case MainMenu.RollcallModes.Trials:
                     buttonSelected = this.GetButtonFromID(MainMenu.TrialsMatchSettings.LevelSystem.ID);
-                    if (buttonSelected == null)
-                    {
-                        buttonSelected = this.Buttons[0];
-                    }
+                    buttonSelected ??= Buttons[0];
                     break;
                 case MainMenu.RollcallModes.Quest:
                     buttonSelected = this.GetButtonFromID(MainMenu.QuestMatchSettings.LevelSystem.ID);
-                    if (buttonSelected == null)
-                    {
-                        buttonSelected = this.Buttons[0];
-                    }
+                    buttonSelected ??= Buttons[0];
                     break;
                 case MainMenu.RollcallModes.DarkWorld:
                     buttonSelected = this.GetButtonFromID(MainMenu.DarkWorldMatchSettings.LevelSystem.ID);
-                    if (buttonSelected == null)
-                    {
-                        buttonSelected = this.Buttons[0];
-                    }
+                    buttonSelected ??= Buttons[0];
                     break;
                 default:
                     throw new Exception("Mode not recognized!");
             }
 
-            if (buttonSelected.Data == null)
+            if (buttonSelected.Data is null)
             {
                 Renderer.OnStartSelection("");
             }
             else
             {
-                Renderer.OnStartSelection(buttonSelected.Data.Title);
+                Renderer.OnStartSelection(buttonSelected.Data.LevelData.LevelID);
             }
             InitButtons(buttonSelected);
             CanAct = false;
-            Add<CoroutineEntity>(new CoroutineEntity(this.IntroSequence()));
+            Add(new CoroutineEntity(this.IntroSequence()));
             Camera.Position = MapScene.FixedClampCamera(this.Selection.MapPosition, this);
             Cursor = new MapCursor(this.Selection);
-            Add<MapCursor>(this.Cursor);
+            Add(this.Cursor);
 
             switch (Mode)
             {
@@ -605,23 +593,89 @@ namespace TowerFall.Patching
             lastWorkshopVersusTowerAuthor = list[0].Data.Author;
             return list[0];
         }
+
+        [MonoModReplace]
+        public void SelectLevel(MapButton button, bool scrollTo = true)
+        {
+            if (button is null)
+            {
+                return;
+            }
+
+            Selection.OnDeselect();
+            Selection = button;
+            Selection.OnSelect();
+
+            if (scrollTo)
+            {
+                ScrollToButton(Selection);
+            }
+
+            if (button.Data is null)
+            {
+                MapButton.PlayTowerSound(MapButton.TowerType.Random);
+                Renderer.OnSelectionChange("");
+            }
+            else 
+            {
+                MapButton.PlayTowerSound(button.Data.IconTile);
+                Renderer.OnSelectionChange(button.Data.LevelData.LevelID);
+            }
+        }
+    }
+}
+
+namespace TowerFall
+{
+    internal static class TowerMapDataExt
+    {
+        extension(TowerMapData data)
+        {
+            public LevelData LevelData 
+            {
+                get => ((patch_TowerMapData)data).LevelData;
+            }
+        }
     }
 
     public static class MapSceneExt 
     {
-        public static void SetLevelSet(this TowerFall.MapScene mapScene, string levelSet) 
+        extension(TowerFall.MapScene mapScene)
         {
-            ((TowerFall.Patching.MapScene)mapScene).LevelSet = levelSet;
-        }
+            // TODO: Deprecate this when .NET 10 comes out
+            public void SetLevelSet(string levelSet)
+            {
+                ((Patching.MapScene)mapScene).LevelSet = levelSet;
+            }
 
-        public static string GetLevelSet(this TowerFall.MapScene mapScene) 
-        {
-            return ((TowerFall.Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
-        }
+            // TODO: Deprecate this when .NET 10 comes out
+            public string GetLevelSet() 
+            {
+                return ((Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
+            }
 
-        public static bool IsOfficialLevelSet(this TowerFall.MapScene mapScene) 
-        {
-            return ((TowerFall.Patching.MapScene)mapScene).GetLevelSet() == "TowerFall";
+            // TODO: Deprecate this when .NET 10 comes out
+            public bool IsOfficialLevelSet() 
+            {
+                return mapScene.IsOfficialTowerSet;
+            }
+
+            public string TowerSet
+            {
+                get => ((Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
+                set 
+                {
+                    ((Patching.MapScene)mapScene).LevelSet = value;
+                }
+            }
+
+            public bool IsOfficialTowerSet
+            {
+                get
+                {
+                    return ((Patching.MapScene)mapScene).GetLevelSet() == "TowerFall";
+                }
+            }
         }
     }
 }

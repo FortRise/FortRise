@@ -25,5 +25,6 @@ public interface IModRegistry
     IModTowerHooks TowerHooks { get; }
     IModQuestEvents QuestEvents { get; }
     IModThemes Themes { get; }
+    IModMapRenderers MapRenderers  { get; }
     IModCommands Commands { get; }
 }

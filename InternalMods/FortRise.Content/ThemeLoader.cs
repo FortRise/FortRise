@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -35,16 +36,22 @@ internal static class ThemeLoader
 
             foreach (XmlElement xmlTheme in xml)
             {
-                var icon = xmlTheme.ChildText("Icon");
-                ISubtextureEntry subIcon = null!;
+                var icon = xmlTheme.ChildText("Icon").Trim();
+                ISubtextureEntry? subIcon = null;
 
-                if (content.Root.TryGetRelativePath(icon, out var info))
+                subIcon = registry.Subtextures.GetTexture(icon, SubtextureAtlasDestination.MenuAtlas);
+                subIcon ??= registry.Subtextures.GetTexture($"{content.Metadata.Name}/{icon}", SubtextureAtlasDestination.MenuAtlas); 
+
+                if (subIcon is null)
                 {
-                    subIcon = registry.Subtextures.RegisterTexture(info);
-                }
-                else
-                {
-                    subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+                    if (content.Root.TryGetRelativePath(icon, out var info))
+                    {
+                        subIcon = registry.Subtextures.RegisterTexture(info);
+                    }
+                    else
+                    {
+                        subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+                    }
                 }
 
                 var themeID = xmlTheme.Attr("id", xmlTheme.Name);
@@ -74,16 +81,36 @@ internal static class ThemeLoader
     public static string LoadTheme(string id, XmlElement xmlTheme, IModContent content, IModRegistry registry)
     {
         // load inline themes
-        var icon = xmlTheme.ChildText("Icon");
-        ISubtextureEntry subIcon = null!;
+        var icon = xmlTheme.ChildText("Icon").Trim();
+        ISubtextureEntry? subIcon = null;
 
-        if (content.Root.TryGetRelativePath(icon, out var info))
+        subIcon = registry.Subtextures.GetTexture(icon, SubtextureAtlasDestination.MenuAtlas);
+        subIcon ??= registry.Subtextures.GetTexture($"{content.Metadata.Name}/{icon}", SubtextureAtlasDestination.MenuAtlas); 
+
+        if (subIcon is null)
         {
-            subIcon = registry.Subtextures.RegisterTexture(info);
+            if (content.Root.TryGetRelativePath(icon, out var info))
+            {
+                subIcon = registry.Subtextures.RegisterTexture(info);
+            }
+            else
+            {
+                subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+            }
         }
-        else
+        string musicID = xmlTheme.ChildText("Music", string.Empty).Trim();
+
+        // validate if this music exists
+        string musicName = string.Empty;
+        var music = registry.Musics.GetMusic(musicID);
+        music ??= registry.Musics.GetMusic($"{content.Metadata.Name}/{musicID}");
+        if (music is null)
         {
-            subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
+            musicName = musicID;
+        }
+        else 
+        {
+            musicName = music.Name;
         }
 
         var themeLoaded = registry.Themes.RegisterTheme(id, new()
@@ -92,7 +119,7 @@ internal static class ThemeLoader
             Icon = subIcon,
             TowerType = xmlTheme.ChildEnum<MapButton.TowerType>("TowerType", MapButton.TowerType.Normal),
             MapPosition = xmlTheme!["MapPosition"].Position(),
-            Music = xmlTheme.ChildText("Music", string.Empty),
+            Music = musicName,
             DarknessColor = xmlTheme.ChildHexColor("DarknessColor", Color.Black),
             DarknessOpacity = xmlTheme.ChildFloat("DarknessOpacity", 0.2f),
             Wind = xmlTheme.ChildInt("Wind", 0),

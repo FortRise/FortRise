@@ -28,10 +28,12 @@ internal class ModRegistry : IModRegistry
 
     // Loaded Content
     public IModTowers Towers { get; }
+    public IModMapRenderers MapRenderers { get; }
 
     // Post-loaded Content
     public IModTowerHooks TowerHooks { get; }
     public IModQuestEvents QuestEvents { get; }
+
     public IModCommands Commands { get; }
 
 
@@ -59,6 +61,7 @@ internal class ModRegistry : IModRegistry
         Tilesets = new ModTilesets(metadata, manager);
         Themes = new ModThemes(metadata, manager);
         Towers = new ModTowers(metadata, manager);
+        MapRenderers = new ModMapRenderers(metadata, manager);
 
         TowerHooks = new ModTowerHooks(metadata);
         QuestEvents = new ModQuestEvents(metadata, manager);

@@ -7,68 +7,72 @@ using TowerFall;
 
 namespace FortRise;
 
-public class MapRendererNode : CompositeComponent
+public class MapRendererData : CompositeComponent
 {
-    public XmlElement Xml;
     public Subtexture Water;
     public Subtexture Land;
+    public Vector2 Size;
     public bool HideVanilla;
 
-    public Dictionary<string, AnimatedTower> AnimatedTowers = new();
+    public Dictionary<string, AnimatedTower> AnimatedTowers = [];
     public AnimatedTower CurrentTower;
 
-    public MapRendererNode(XmlElement xml) : base(true, true)
+    public MapRendererData(in MapRendererConfiguration configuration)
+        : base(true, true)
     {
-        Xml = xml;
-        foreach (XmlElement element in xml["elements"]) 
+        Water = configuration.Water.Subtexture;
+        Land = configuration.Land.Subtexture;
+
+        int width = Land.Width;
+        int height = Land.Height;
+
+        if (configuration.Width.TryGetValue(out int w))
         {
-            switch (element.Name) 
-            {
-            case "hideVanilla":
-                HideVanilla = true;
-                break;
-            case "landImage":
-                var landImageName = element.Attr("image", "mapLand");
-                Land = TFGame.MenuAtlas[landImageName];
-                Add(new Image(Land));
-                break;
-            case "waterImage":
-                var waterImageName = element.Attr("image", "mapWater");
-                Water = TFGame.MenuAtlas[waterImageName];
-                break;
-            case "mapImage":
-                var mapImageName = element.Attr("image");
-                var x = element.AttrInt("x");
-                var y = element.AttrInt("y");
-                
-                Add(new Image(TFGame.MenuAtlas[mapImageName]));
-                break;
-            case "mapAnimated":
-                var mapAnimated = element.Attr("name");
-                
-                var mapX = element.AttrInt("x");
-                var mapY = element.AttrInt("y");
-                var inAnimation = element.ChildText("in", "in");
-                var outAnimation = element.ChildText("out", "out");
-                var notSelected = element.ChildText("notSelected", "notSelected");
-                var selected = element.ChildText("selected", "selected");
-                Sprite<string> animation = TFGame.MenuSpriteData.GetSpriteString(mapAnimated);
-                
-                var tower = new AnimatedTower(inAnimation, outAnimation, selected, notSelected, animation);
+            width = w;
+        }
 
-                animation.Position = new Vector2(mapX, mapY);
-                
-                animation.Play(notSelected);
-                animation.OnAnimationComplete = (s) => {
-                    if (s.CurrentAnimID == outAnimation)
-                        s.Play(notSelected);
-                    if (s.CurrentAnimID == inAnimation)
-                        s.Play(selected);
-                };
+        if (configuration.Height.TryGetValue(out int h))
+        {
+            height = h;
+        }
 
-                AddAnimatedTowers(element.ChildText("towerName", ""), tower);
-                break;
-            }
+        Size = new Vector2(width, height);
+
+        Add(new Image(Land));
+
+        foreach (var elm in configuration.Elements)
+        {
+            elm.Sprite.Switch(
+                subtexture => {
+                    float x = elm.Position.X;
+                    float y = elm.Position.Y;
+                    Add(new Image(subtexture.Subtexture) { Position = new Vector2(x, y) });
+                },
+                data => {
+                    var inAnimation = data.In;
+                    var outAnimation = data.Out;
+                    var notSelected = data.NotSelected;
+                    var selected = data.Selected;
+
+                    var sprite = data.Sprite.GetCastEntry<string>().Sprite;
+                    sprite.Position = new Vector2(elm.Position.X, elm.Position.Y);
+
+                    sprite.Play(notSelected);
+                    sprite.OnAnimationComplete = (s) => {
+                        if (s.CurrentAnimID == outAnimation)
+                        {
+                            s.Play(notSelected);
+                        }
+
+                        if (s.CurrentAnimID == inAnimation)
+                        {
+                            s.Play(selected);
+                        }
+                    };
+
+                    Add(sprite);
+                }
+            );
         }
     }
 

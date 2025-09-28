@@ -13,6 +13,14 @@ internal static class TextureUtilities
         }
         else 
         {
+            var texture = registry.Subtextures.GetTexture(path, atlas);
+            texture ??= registry.Subtextures.GetTexture(content.Metadata.Name + "/" + path, atlas);
+
+            if (texture is not null)
+            {
+                return texture;
+            }
+
             var ids = VanillaXmlCacher.GetAllAvailableSubtexturesID();
 
             if (!ids.Contains(path))

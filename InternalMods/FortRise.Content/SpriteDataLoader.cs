@@ -52,27 +52,27 @@ internal static class SpriteDataLoader
             var texture = content.LoadTexture(registry, element.ChildText("Texture").Trim(), dest);
 
             ISubtextureEntry? redTexture = element.HasChild("RedTexture") ? content.LoadTexture(registry, 
-                element.ChildText("RedTexture"),
+                element.ChildText("RedTexture").Trim(),
                 dest
             ) : null;
 
             ISubtextureEntry? blueTexture = element.HasChild("BlueTexture") ? content.LoadTexture(registry, 
-                element.ChildText("BlueTexture"),
+                element.ChildText("BlueTexture").Trim(),
                 dest
             ) : null;
 
             ISubtextureEntry? redTeam = element.HasChild("RedTeam") ? content.LoadTexture(registry, 
-                element.ChildText("RedTeam"),
+                element.ChildText("RedTeam").Trim(),
                 dest
             ) : null;
 
             ISubtextureEntry? blueTeam = element.HasChild("BlueTeam") ? content.LoadTexture(registry, 
-                element.ChildText("BlueTeam"),
+                element.ChildText("BlueTeam").Trim(),
                 dest
             ) : null;
 
             ISubtextureEntry? flash = element.HasChild("Flash") ? content.LoadTexture(registry, 
-                element.ChildText("Flash"),
+                element.ChildText("Flash").Trim(),
                 dest
             ) : null;
 
@@ -103,85 +103,49 @@ internal static class SpriteDataLoader
 
             if (element.Name == "sprite_string")
             {
-
-                var animns = new List<Animation<string>>();
-
-                foreach (var animationXml in animationsXml)
-                {
-                    if (animationXml is XmlElement animElm)
-                    {
-                        animns.Add(
-                            new()
-                            {
-                                ID = animElm.Attr("id"),
-                                Loop = animElm.AttrBool("loop", false),
-                                Delay = animElm.AttrFloat("delay", 0),
-                                Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
-                            }
-                        );
-                    }
-                }
-
-                SpriteConfiguration<string> conf = new()
-                {
-                    Texture = texture,
-                    FrameWidth = element.ChildInt("FrameWidth"),
-                    FrameHeight = element.ChildInt("FrameHeight"),
-                    OriginX = element.ChildInt("OriginX", 0),
-                    OriginY = element.ChildInt("OriginY", 0),
-                    X = element.ChildInt("X", 0),
-                    Y = element.ChildInt("Y", 0),
-                    Animations = animns.ToArray(),
-                    AdditionalData = additionalData,
-                    HeadXOrigins = headXOrigins,
-                    HeadYOrigins = headYOrigins,
-                    RedTexture = redTexture,
-                    RedTeam = redTeam,
-                    BlueTeam = blueTeam,
-                    BlueTexture = blueTexture,
-                    Flash = flash
-                };
-
-                switch (spriteType)
-                {
-                    case ContainerSpriteType.Main:
-                        registry.Sprites.RegisterSprite(id, conf);
-                        break;
-                    case ContainerSpriteType.Menu:
-                        registry.Sprites.RegisterMenuSprite(id, conf);
-                        break;
-                    case ContainerSpriteType.Corpse:
-                        registry.Sprites.RegisterCorpseSprite(id, conf);
-                        break;
-                    case ContainerSpriteType.BG:
-                        registry.Sprites.RegisterBGSprite(id, conf);
-                        break;
-                    case ContainerSpriteType.Boss:
-                        registry.Sprites.RegisterBossSprite(id, conf);
-                        break;
-                }
+                Register<string>();
             }
             else if (element.Name == "sprite_int")
             {
-                var animns = new List<Animation<int>>();
+                Register<int>();
+            }
+
+            void Register<T>()
+            {
+                var animns = new List<Animation<T>>();
 
                 foreach (var animationXml in animationsXml)
                 {
                     if (animationXml is XmlElement animElm)
                     {
-                        animns.Add(
-                            new()
-                            {
-                                ID = animElm.AttrInt("id"),
-                                Loop = animElm.AttrBool("loop", false),
-                                Delay = animElm.AttrFloat("delay", 0),
-                                Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
-                            }
-                        );
+                        if (typeof(T) == typeof(int))
+                        {
+                            animns.Add(
+                                new()
+                                {
+                                    ID = (T)(object)animElm.AttrInt("id"),
+                                    Loop = animElm.AttrBool("loop", false),
+                                    Delay = animElm.AttrFloat("delay", 0),
+                                    Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
+                                }
+                            );
+                        }
+                        else if (typeof(T) == typeof(string))
+                        {
+                            animns.Add(
+                                new()
+                                {
+                                    ID = (T)(object)animElm.Attr("id"),
+                                    Loop = animElm.AttrBool("loop", false),
+                                    Delay = animElm.AttrFloat("delay", 0),
+                                    Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
+                                }
+                            );
+                        }
                     }
                 }
 
-                SpriteConfiguration<int> conf = new()
+                SpriteConfiguration<T> conf = new()
                 {
                     Texture = texture,
                     FrameWidth = element.ChildInt("FrameWidth"),
@@ -190,7 +154,7 @@ internal static class SpriteDataLoader
                     OriginY = element.ChildInt("OriginY", 0),
                     X = element.ChildInt("X", 0),
                     Y = element.ChildInt("Y", 0),
-                    Animations = animns.ToArray(),
+                    Animations = [.. animns],
                     AdditionalData = additionalData,
                     HeadXOrigins = headXOrigins,
                     HeadYOrigins = headYOrigins,
@@ -222,6 +186,7 @@ internal static class SpriteDataLoader
             }
         }
     }
+
 
     internal static void LoadSpriteData(IModRegistry registry, IModContent content, ContainerSpriteType spriteType, Loader? loader)
     {

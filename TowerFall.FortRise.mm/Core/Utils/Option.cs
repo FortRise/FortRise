@@ -1,29 +1,27 @@
+using System.Runtime.CompilerServices;
+
 namespace FortRise;
 
-public struct Option<T>
+[method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+public struct Option<T>(T value)
 {
-    public T Value { get; private set; }
-    public bool HasValue { get; private set; }
+    public T Value { get; private set; } = value;
+    public bool HasValue { get; private set; } = true;
 
-
-    public Option(T value)
-    {
-        Value = value;
-        HasValue = true;
-    }
-
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> None()
     {
         return new Option<T>();
     }
 
-    public bool TryGetValue(out T value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool TryGetValue(out T value)
     {
         value = Value; // No need for if checks since Value could be default anyway
         return HasValue; // only important here is the HasValue
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Option<T>(T value)
     {
         return new Option<T>(value);

@@ -57,7 +57,9 @@ internal static class ArcherLoader
             if (isAlt)
             {
                 var altID = element.Attr("Alt");
-                var archerToCopy = registry.Archers.GetArcher(altID) ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
+                var archerToCopy = registry.Archers.GetArcher(altID) ;
+                archerToCopy ??= registry.Archers.GetArcher($"{content.Metadata.Name}/{altID}")
+                    ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
 
                 list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { AltFor = archerToCopy }));
                 continue;
@@ -66,7 +68,9 @@ internal static class ArcherLoader
             if (isSecret)
             {
                 var secretID = element.Attr("Secret");
-                var archerToCopy = registry.Archers.GetArcher(secretID) ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
+                var archerToCopy = registry.Archers.GetArcher(secretID);
+                archerToCopy ??= registry.Archers.GetArcher($"{content.Metadata.Name}/{secretID}")
+                    ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
 
                 list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { SecretFor = archerToCopy }));
                 continue;
@@ -91,12 +95,12 @@ internal static class ArcherLoader
 
         if (name0 == null)
         {
-            throw new Exception($"Archer: '{id}' is missing Name0 field.");
+            throw new Exception($"Archer: '{id}' is missing <Name0> element.");
         }
 
         if (name1 == null)
         {
-            throw new Exception($"Archer: '{id}' is missing Name1 field.");
+            throw new Exception($"Archer: '{id}' is missing <Name1> element.");
         }
 
         Color colorA = element.ChildHexColor("ColorA", original.ColorA);
@@ -122,25 +126,32 @@ internal static class ArcherLoader
         IBaseSpriteContainerEntry? corpse;
         if (element.HasChild("Corpse"))
         {
-            corpse = registry.Sprites.GetCorpseSpriteEntry<string>(element.ChildText("Corpse"));
+            string corpseID = element.ChildText("Corpse").Trim();
+            corpse = registry.Sprites.GetCorpseSpriteEntry<string>(corpseID);
+            corpse ??= registry.Sprites.GetCorpseSpriteEntry<string>($"{content.Metadata.Name}/{corpseID}");
+
+            if (corpse is null)
+            {
+                corpse = registry.Sprites.GetSpriteEntry<string>(corpseID);
+
+                if (corpse == null)
+                {
+                    throw new Exception($"Archer: '{id}' is missing <Corpse> element. Falling back to Green's Corpse");
+                }
+            }
         }
         else
         {
             corpse = original.CorpseSprite;
-        }
-
-
-        if (corpse is null)
-        {
-            corpse = registry.Sprites.GetSpriteEntry<string>(element.ChildText("Corpse"));
 
             if (corpse == null)
             {
-                throw new Exception($"Archer: '{id}' is missing Aimer field. Falling back to Green's Corpse");
+                throw new Exception($"Archer: '{id}' is missing <Corpse> element. Falling back to Green's Corpse");
             }
         }
 
-        TFGame.Genders gender = element.ChildEnum<TFGame.Genders>("Genders", original.Gender);
+
+        TFGame.Genders gender = element.ChildEnum("Genders", original.Gender);
         bool startNoHat = element.ChildBool("StartNoHat", original.StartNoHat);
 
         Option<HairInfo> hairInfo = Option<HairInfo>.None();
@@ -270,8 +281,14 @@ internal static class ArcherLoader
         {
             var gems = element["Gems"];
 
-            var gemMenu = registry.Sprites.GetMenuSpriteEntry<string>(gems.ChildText("Menu"));
+            string menuID = gems.ChildText("Menu");
+            string gameplayID = gems.ChildText("Gameplay");
+
+            var gemMenu = registry.Sprites.GetMenuSpriteEntry<string>(menuID);
+            gemMenu ??= registry.Sprites.GetMenuSpriteEntry<string>($"{content.Metadata.Name}/{menuID}");
+
             var gemGameplay = registry.Sprites.GetSpriteEntry<int>(gems.ChildText("Gameplay"));
+            gemGameplay ??= registry.Sprites.GetSpriteEntry<int>($"{content.Metadata.Name}/{gameplayID}");
 
             gemInfo = new()
             {
@@ -290,28 +307,38 @@ internal static class ArcherLoader
         {
             var sprites = element["Sprites"];
 
-            var bodyText = sprites.ChildText("Body");
-            var body = registry.Sprites.GetSpriteEntry<string>(bodyText)
+            var bodyText = sprites.ChildText("Body").Trim();
+            var body = registry.Sprites.GetSpriteEntry<string>(bodyText);
+            body ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{bodyText}")
                 ?? throw new Exception($"[{content.Metadata.Name}] {bodyText} on SpriteData cannot be found.");
 
-            var headNormalText = sprites.ChildText("HeadNormal");
-            var headNormal = registry.Sprites.GetSpriteEntry<string>(headNormalText)
+            var headNormalText = sprites.ChildText("HeadNormal").Trim();
+            var headNormal = registry.Sprites.GetSpriteEntry<string>(headNormalText);
+            headNormal ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headNormalText}")
                 ?? throw new Exception($"[{content.Metadata.Name}] {headNormalText} on SpriteData cannot be found.");
 
-            var headNoHatText = sprites.ChildText("HeadNoHat");
-            var headNoHat = registry.Sprites.GetSpriteEntry<string>(headNoHatText)
+            var headNoHatText = sprites.ChildText("HeadNoHat").Trim();
+            var headNoHat = registry.Sprites.GetSpriteEntry<string>(headNoHatText);
+            headNoHat ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headNoHatText}")
                 ?? throw new Exception($"[{content.Metadata.Name}] {headNoHatText} on SpriteData cannot be found.");
 
-            var headCrownText = sprites.ChildText("HeadCrown");
-            var headCrown = registry.Sprites.GetSpriteEntry<string>(headCrownText)
+            var headCrownText = sprites.ChildText("HeadCrown").Trim();
+            var headCrown = registry.Sprites.GetSpriteEntry<string>(headCrownText);
+            headCrown ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headCrownText}")
                 ?? throw new Exception($"[{content.Metadata.Name}] {headCrownText} on SpriteData cannot be found.");
 
-            var bowText = sprites.ChildText("Bow");
-            var bow = registry.Sprites.GetSpriteEntry<string>(bowText)
+            var bowText = sprites.ChildText("Bow").Trim();
+            var bow = registry.Sprites.GetSpriteEntry<string>(bowText);
+            bow ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{bowText}")
                 ?? throw new Exception($"[{content.Metadata.Name}] {bowText} on SpriteData cannot be found.");
 
-            var headBackText = sprites.ChildText("HeadBack", "");
-            var headBack = string.IsNullOrEmpty(headBackText) ? null : registry.Sprites.GetSpriteEntry<string>(headBackText);
+            var headBackText = sprites.ChildText("HeadBack", "").Trim();
+            ISpriteContainerEntry? headBack = null;
+            if (!string.IsNullOrEmpty(headBackText))
+            {
+                headBack = registry.Sprites.GetSpriteEntry<string>(headBackText);
+                headBack ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headBackText}");
+            }
 
             spriteInfo = new()
             {
@@ -332,8 +359,9 @@ internal static class ArcherLoader
 
         if (element.HasChild("VictoryMusic"))
         {
-            string music = element.ChildText("VictoryMusic");
+            string music = element.ChildText("VictoryMusic").Trim();
             var entry = registry.Musics.GetMusic(music);
+            entry ??= registry.Musics.GetMusic($"{content.Metadata.Name}/{music}");;
             // another step if the user takes the whole path instead
             if (entry is null)
             {

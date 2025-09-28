@@ -13,7 +13,7 @@ public static partial class VanillaConstants
         public const string KingsCourt = "KingsCourt";
         public const string SunkenCity = "SunkenCity";
         public const string Moonstone = "Moonstone";
-        public const string Towerforge = "Towerforge";
+        public const string Towerforge = "TowerForge";
         public const string Ascension = "Ascension";
         public const string GauntletA = "GauntletA";
         public const string GauntletB = "GauntletB";
