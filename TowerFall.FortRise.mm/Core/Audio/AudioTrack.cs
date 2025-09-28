@@ -58,9 +58,9 @@ public abstract class AudioTrack : IDisposable
 
     public virtual void CreateSoundEffect(int sampleRate, int channels) 
     {
-        var dynamicSoundEffectInstance = new DynamicSoundEffectInstance((int)sampleRate, (AudioChannels)channels);
+        var dynamicSoundEffectInstance = new DynamicSoundEffectInstance(sampleRate, (AudioChannels)channels);
         dynamicSoundEffectInstance.BufferNeeded += OnBufferNeeded;
-        dynamicSoundEffectInstance.SubmitFloatBufferEXT(new float[0]);
+        dynamicSoundEffectInstance.SubmitFloatBufferEXT([]);
         soundEffect = dynamicSoundEffectInstance;
     }
 
@@ -81,9 +81,12 @@ public abstract class AudioTrack : IDisposable
     public virtual void Dispose()
     {
         if (soundEffect is DynamicSoundEffectInstance instance) 
+        {
             instance.BufferNeeded -= OnBufferNeeded;
+        }
         
         soundEffect.Dispose();
         soundEffect = null;
+        GC.SuppressFinalize(this);
     }
 }

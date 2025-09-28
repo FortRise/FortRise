@@ -6,8 +6,8 @@ namespace FortRise;
 
 public class OggAudioTrack : AudioTrack, IDisposable
 {
-    private IntPtr handle;
-    private IntPtr fileDataPtr;
+    private readonly IntPtr handle;
+    private readonly unsafe void *fileDataPtr;
     private uint loopStart;
     private uint loopEnd;
     private uint sampleCount;
@@ -17,20 +17,17 @@ public class OggAudioTrack : AudioTrack, IDisposable
 
     public override bool Looping { get => oggLooping; set => oggLooping = value; }
 
-    public OggAudioTrack(Stream stream) 
+    public unsafe OggAudioTrack(Stream stream) 
     {
-        byte[] data = new byte[stream.Length];
-        int remaining = data.Length; 
-        while (remaining != 0) 
-        { 
-            remaining -= stream.Read(data, data.Length - remaining, remaining);
-        }
+        fileDataPtr = NativeMemory.Alloc((nuint)stream.Length);
+        var dataSpan = new Span<byte>(fileDataPtr, (int)stream.Length);
+        stream.ReadExactly(dataSpan);
         stream.Close();
-        var size = data.Length;
-        fileDataPtr = Marshal.AllocHGlobal(size);
-        Marshal.Copy(data, 0, fileDataPtr, size);
 
-        handle = FAudio.stb_vorbis_open_memory(fileDataPtr, size, out int error, IntPtr.Zero);
+        int size = dataSpan.Length;
+
+        handle = FAudio.stb_vorbis_open_memory((IntPtr)fileDataPtr, size, out int error, IntPtr.Zero);
+
         if (error == 0) 
         {
             var info = FAudio.stb_vorbis_get_info(handle);
@@ -39,35 +36,45 @@ public class OggAudioTrack : AudioTrack, IDisposable
             sampleCount = FAudio.stb_vorbis_stream_length_in_samples(handle);
             FindLoop();
             if (loopEnd == 0)
+            {
                 loopEnd = sampleCount;
+            }
         }
     }
 
-    public override void Dispose()
+    public override unsafe void Dispose()
     {
-        Marshal.FreeHGlobal(fileDataPtr);
+        NativeMemory.Free(fileDataPtr);
+
         FAudio.stb_vorbis_close(handle);
         base.Dispose();
+        GC.SuppressFinalize(this);
     }
     
     public unsafe override float[] CreateBuffer(int countSample)
     {
         float[] buffer = new float[countSample * channels];
         int currentSample = FAudio.stb_vorbis_get_sample_offset(handle);
+        Console.WriteLine(currentSample);
 
         int sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, buffer, buffer.Length);
+        Console.WriteLine(sample);
 
         if (oggLooping) 
         {
             int samplesLeft = (int)(loopEnd - currentSample);
             if (samplesLeft < 0)
+            {
                 samplesLeft = 0;
+            }
+
             if (samplesLeft < countSample) 
             {
                 if (sample < countSample) 
                 {
                     Logger.Warning($"[OGG Decode] Asked for {samplesLeft} received {sample} samples prior to loop");
                 }
+
                 Seek(loopStart);
                 int bufferBase = samplesLeft * channels;
                 fixed (float* p = &buffer[bufferBase]) 
@@ -79,7 +86,9 @@ public class OggAudioTrack : AudioTrack, IDisposable
         }
 
         if (sample > 0 && sample != countSample)
+        {
             Logger.Warning($"[OGG Decode] Wanted {countSample} but actual sample count is {sample}");
+        }
 
         return buffer;
     }
@@ -100,7 +109,7 @@ public class OggAudioTrack : AudioTrack, IDisposable
                 string s = Marshal.PtrToStringAnsi(pointer);
                 if (s.StartsWith(field)) 
                 {
-                    UInt32.TryParse(s.Substring(field.Length), out value);
+                    _ = uint.TryParse(s.AsSpan(field.Length), out value);
                 }
             }
 
@@ -111,9 +120,14 @@ public class OggAudioTrack : AudioTrack, IDisposable
     public override void Seek(uint sampleFrame)
     {
         if (sampleFrame < 0)
+        {
             sampleFrame = 0;
+        }
         else if (sampleFrame > sampleCount)
+        {
             sampleFrame = sampleCount;
-        FAudio.stb_vorbis_seek(handle, sampleFrame);
+        }
+
+        _ = FAudio.stb_vorbis_seek(handle, sampleFrame);
     }
 }
