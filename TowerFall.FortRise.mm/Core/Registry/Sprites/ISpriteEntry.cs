@@ -25,7 +25,8 @@ public interface ISpriteEntry
 public interface ISpriteEntry<T> : ISpriteEntry
 {
     /// <summary>
-    /// A concreted <see cref="Monocle.Sprite{T}"/> component.
+    /// A concreted <see cref="Monocle.Sprite{T}"/> component. 
+    /// Note that this will create a new instance of the sprite.
     /// </summary>
     public Sprite<T>? Sprite { get; }
     /// <summary>

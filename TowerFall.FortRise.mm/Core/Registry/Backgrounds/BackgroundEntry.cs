@@ -9,7 +9,7 @@ internal sealed class BackgroundEntry : IBackgroundEntry
     public BackgroundConfiguration Configuration { get; init; }
 
     public XmlElement Xml => GetActualXml();
-    private XmlElement? xmlElementCache;
+    private readonly XmlElement? xmlElementCache;
 
     public BackgroundEntry(string name, BackgroundConfiguration configuration)
     {
@@ -30,7 +30,7 @@ internal sealed class BackgroundEntry : IBackgroundEntry
 
 
         var background = doc.CreateElement("Background");
-        background.SetAttribute("bgColor", Configuration.BackgroundColor.ColorToRGBHex());
+        background.SetAttribute("bgColor", Configuration.BackgroundColor.ColorToRGBHex);
 
         if (Configuration.Background != null)
         {

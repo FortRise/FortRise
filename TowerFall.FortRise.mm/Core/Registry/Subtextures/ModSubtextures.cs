@@ -153,6 +153,9 @@ internal sealed class ModSubtextures : IModSubtextures
          *
          * - Teuria
         */
+        /*
+         * UPDATE: This still crashes
+         * */
         switch (entry.AtlasDestination)
         {
             case SubtextureAtlasDestination.Atlas:
@@ -178,7 +181,6 @@ internal sealed class ModSubtextures : IModSubtextures
             subTexture = SubtextureRegistry.GetVanillaSubtextureEntry(id, atlasDestination);
             if (Unsafe.IsNullRef(ref subTexture))
             {
-                logger.LogError("The texture name: '{id}' on '{dest}' cannot be found on the registry.", id, atlasDestination);
                 return null;
             }
         }

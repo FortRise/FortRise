@@ -27,7 +27,7 @@ public static class BGElm
             Name = "LightningFlash",
             Data = new Dictionary<string, object>()
             {
-                ["color"] = color.ColorToRGBHex()
+                ["color"] = color.ColorToRGBHex
             }
         };
     }

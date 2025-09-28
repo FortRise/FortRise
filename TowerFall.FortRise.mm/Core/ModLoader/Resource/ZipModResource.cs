@@ -36,7 +36,7 @@ public class ZipModResource : ModResource
             var fileName = entry.FullName.Replace('\\', '/');
 
             ZipResourceInfo zipResource;
-            if (entry.IsEntryDirectory())
+            if (entry.IsEntryDirectory)
             {
                 var file = fileName[..^1];
 
