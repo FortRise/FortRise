@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -228,8 +229,18 @@ namespace TowerFall
 
         protected override void LoadContent()
         {
+
             orig_LoadContent();
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using Stream fortRisePng = assembly.GetManifestResourceStream("Content.Atlas.fortrise.png");
+
+            FortRiseModule.FortRiseIcon = new Subtexture(
+                new Monocle.Texture(Texture2D.FromStream(GraphicsDevice, fortRisePng))
+            );
+
+            RiseCore.ModuleManager.NameToIcon["FortRise"] = FortRiseModule.FortRiseIcon;
         }
 
         protected extern void orig_Initialize();

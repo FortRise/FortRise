@@ -1,5 +1,6 @@
 using FortRise.Entities;
 using Microsoft.Extensions.Logging;
+using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -8,6 +9,7 @@ public sealed class FortRiseModule : Mod
 {
     public static FortRiseModule Instance;
     public static FortRiseModuleSaveData SaveData => Instance.GetSaveData<FortRiseModuleSaveData>();
+    public static Subtexture FortRiseIcon;
     internal static FortRiseModuleSettings Settings => Instance.GetSettings<FortRiseModuleSettings>();
 
     public FortRiseModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)

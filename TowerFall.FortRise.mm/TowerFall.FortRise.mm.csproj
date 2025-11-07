@@ -35,6 +35,9 @@
     <EmbeddedResource Include="Content\Atlas\menuatlas.png">
       <LogicalName>Content.Atlas.menuatlas.png</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="Content\Atlas\fortrise.png">
+      <LogicalName>Content.Atlas.fortrise.png</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Content\Atlas\menuatlas.xml">
       <LogicalName>Content.Atlas.menuatlas.xml</LogicalName>
     </EmbeddedResource>

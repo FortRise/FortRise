@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using HarmonyLib;
 using Microsoft.Extensions.Logging;
+using Monocle;
 using Nanoray.Pintail;
 
 namespace FortRise;
@@ -46,6 +47,7 @@ internal class ModuleManager
     internal Dictionary<string, IModResource> NameToMod = [];
     internal HashSet<string> BlacklistedMods;
     internal HashSet<string> CantLoad = [];
+    internal Dictionary<string, Subtexture> NameToIcon = [];
 
     private readonly List<RegistryQueue> registryBatch = [];
     private readonly Dictionary<string, IModRegistry> registries = [];

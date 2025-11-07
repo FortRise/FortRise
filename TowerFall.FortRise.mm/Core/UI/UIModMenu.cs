@@ -21,59 +21,87 @@ public class UIModMenu : CustomMenuState
         tagDisabled ??= [];
         // if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
         // {
-        //     var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
+             //var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
         //     modButton.Pressed(RiseCore.UpdateChecks.OpenFortRiseUpdateURL);
         //     textContainer.Add(modButton);
         // }
 
-        ModContainer container = new ModContainer(new Vector2(81, 60));
-
-        ButtonBox toggleMods = new ButtonBox(new Rectangle(81, 39, 128, 18), "TOGGLE MODS", new Vector2(81, 260));
-        toggleMods.OnConfirmed = () => Main.State = ModRegisters.MenuState<UIModToggler>();
-        toggleMods.DownItem = container;
-        Main.Add(toggleMods);
-
-        container.UpItem = toggleMods;
-        container.OnConfirmed = (meta) => 
-        {
-            var fortModule = RiseCore.ModuleManager.InternalFortModules
-                .Where(x => x.Meta is not null)
-                .Where(x => x.Meta.ToString() == meta.ToString())
-                .FirstOrDefault();
-            if (fortModule == null)
-            {
-                Sounds.ui_invalid.Play(160f, 1f);
-                return;
-            }
-            if (fortModule.GetSettings() == null && !RiseCore.UpdateChecks.HasUpdates.Contains(fortModule.Meta))
-            {
-                Sounds.ui_invalid.Play(160f, 1f);
-                return;
-            }
-
-            lastIndex = container.ScrollYIndex;
-
-            (Main as patch_MainMenu).CurrentModule = fortModule;
-            Main.CanAct = true;
-            Main.State = ModRegisters.MenuState<UIModOptions>();
-        };
-
-        Refresh(container);
-
-
-        Main.Add(container);
-        if (lastIndex == -1)
-        {
-            (Main as patch_MainMenu).ToStartSelected = toggleMods;
-        }
-        else
-        {
-            (Main as patch_MainMenu).ToStartSelected = container;
-        }
-        container.ScrollYIndex = lastIndex;
-
+        //ModContainer container = new ModContainer(new Vector2(81, 60));
+        //
+        //ButtonBox toggleMods = new ButtonBox(new Rectangle(81, 39, 128, 18), "TOGGLE MODS", new Vector2(81, 260));
+        //toggleMods.OnConfirmed = () => Main.State = ModRegisters.MenuState<UIModToggler>();
+        //toggleMods.DownItem = container;
+        //Main.Add(toggleMods);
+        //
+        //container.UpItem = toggleMods;
+        //container.OnConfirmed = (meta) => 
+        //{
+        //    var fortModule = RiseCore.ModuleManager.InternalFortModules
+        //        .Where(x => x.Meta is not null)
+        //        .Where(x => x.Meta.ToString() == meta.ToString())
+        //        .FirstOrDefault();
+        //    if (fortModule == null)
+        //    {
+                //Sounds.ui_invalid.Play(160f, 1f);
+        //        return;
+        //    }
+        //    if (fortModule.GetSettings() == null && !RiseCore.UpdateChecks.HasUpdates.Contains(fortModule.Meta))
+        //    {
+        //        Sounds.ui_invalid.Play(160f, 1f);
+        //        return;
+        //    }
+        //
+        //    lastIndex = container.ScrollYIndex;
+        //
+        //    (Main as patch_MainMenu).CurrentModule = fortModule;
+        //    Main.CanAct = true;
+        //    Main.State = ModRegisters.MenuState<UIModOptions>();
+        //};
+        //
+        //Refresh(container);
+        //
+        //
+        //Main.Add(container);
+        //if (lastIndex == -1)
+        //{
+        //    (Main as patch_MainMenu).ToStartSelected = toggleMods;
+        //}
+        //else
+        //{
+        //    (Main as patch_MainMenu).ToStartSelected = container;
+        //}
+        //container.ScrollYIndex = lastIndex;
+        //
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
+
+        var modListPanel = new UIModListPanel(new Vector2(160f, 600));
+        modListPanel.Selected = true;
+        Main.Add(modListPanel);
+
+        var modPanel = new UIModPanel(new Vector2(20, 60), new Vector2(20, 900));
+        modListPanel.DownItem = modPanel;
+        modPanel.UpItem = modListPanel;
+        Main.Add(modPanel);
+
+        //var mods = GetMods();
+        //List<ModItem> itemList = [];
+        //int offset = 60;
+        //
+        //foreach (var mod in mods)
+        //{
+        //    ModItem item = new ModItem(new Vector2(20, offset), new Vector2(20, 900), mod);
+        //    itemList.Add(item);
+        //    offset += 25;
+        //}
+        //
+        //if (itemList.Count > 0)
+        //{
+        //    modPanel.DownItem = itemList[0];
+        //    itemList[0].UpItem = modPanel;
+        //}
+
+        //Main.Add(itemList);
     }
 
     public override void Destroy()
@@ -129,6 +157,229 @@ public class UIModMenu : CustomMenuState
     }
 }
 
+internal class UIModPanel : MenuItem
+{
+    private Vector2 tweenFrom;
+    private Vector2 tweenTo;
+    private int index = 0;
+    private bool justSelected;
+    private readonly List<ModItem> modItems = [];
+
+    public UIModPanel(Vector2 position, Vector2 tweenFrom) : base(position)
+    {
+        this.tweenFrom = tweenFrom;
+        tweenTo = Position;
+
+        var mods = GetMods();
+        foreach (var mod in mods)
+        {
+            modItems.Add(new(mod));
+        }
+    }
+
+    [MonoModLinkTo("Monocle.Entity", "Update")]
+    public void base_Update() {}
+
+    public override void Update()
+    {
+        base_Update();
+        if (Selected && !justSelected)
+        {
+            justSelected = true;
+            return;
+        }
+
+        if (!justSelected)
+        {
+            return;
+        }
+
+        if (MenuInput.Up)
+        {
+            Sounds.ui_move1.Play();
+            if (index - 1 == -1)
+            {
+                UpItem.Selected = true;
+                Selected = false;
+            }
+            index -= 1;
+        }
+        else if (MenuInput.Down)
+        {
+            index += 1;
+            Sounds.ui_move1.Play();
+        }
+    }
+
+    public override void TweenIn()
+    {
+        Position = tweenFrom;
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeOut, 20, true);
+        tween.OnUpdate = t =>
+        {
+            Position = Vector2.Lerp(tweenFrom, tweenTo, t.Eased);
+        };
+        Add(tween);
+    }
+
+    public override void TweenOut()
+    {
+        Vector2 start = Position;
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 12, true);
+        tween.OnUpdate = t =>
+        {
+            Position = Vector2.Lerp(start, tweenFrom, t.Eased);
+        };
+        Add(tween);
+    }
+
+    protected override void OnConfirm() {}
+    protected override void OnDeselect() 
+    {
+        justSelected = false;
+        Selected = false;
+    }
+
+    protected override void OnSelect() 
+    {
+        index = 0;
+    }
+
+    public override void Render()
+    {
+        float offsetY = 0;
+
+        int i = 0;
+        foreach (var mod in modItems)
+        {
+            if (Selected && i == index)
+            {
+                Draw.HollowRect(Position.X - 4, Position.Y - 4 + offsetY, 200, 22, Color.Yellow);
+            }
+
+            Draw.TextureJustify(mod.Icon, new Vector2(Position.X, Position.Y + offsetY), Vector2.Zero);
+            Draw.TextJustify(TFGame.Font, mod.Name, Position + new Vector2(20, offsetY), Color.White, new Vector2(0, 0));
+            Draw.TextJustify(TFGame.Font, mod.Version, Position + new Vector2(20, offsetY + 10), Color.DarkGray, new Vector2(0, 0));
+
+            offsetY += 25;
+            i += 1;
+        }
+    }
+
+    private static IReadOnlyList<ModuleMetadata> GetMods() 
+    {
+        return [.. RiseCore.ModuleManager.InternalModuleMetadatas];
+    }
+
+    class ModItem 
+    {
+        private readonly Subtexture icon;
+        private readonly string nameUpper;
+        private readonly string versionUpper;
+
+        public string Name => nameUpper;
+        public string Version => versionUpper;
+        public Subtexture Icon => icon;
+
+        public ModItem(ModuleMetadata metadata) 
+        {
+            if (!string.IsNullOrEmpty(metadata.DisplayName))
+            {
+                nameUpper = metadata.DisplayName.ToUpperInvariant();
+            }
+            else 
+            {
+                nameUpper = metadata.Name.ToUpperInvariant();
+            }
+
+            versionUpper = metadata.Version.ToString().ToUpperInvariant();
+
+            if (RiseCore.ModuleManager.NameToIcon.TryGetValue(metadata.Name, out var icon))
+            {
+                this.icon = icon;
+            }
+            else 
+            {
+                this.icon = TFGame.MenuAtlas["variants/noArrows"];
+            }
+        }
+    }
+}
+
+
+internal class UIModListPanel : MenuItem
+{
+    private Vector2 tweenFrom;
+    private Vector2 tweenTo;
+
+    public UIModListPanel(Vector2 tweenFrom) : base(new Vector2(160f, 120f))
+    {
+        var menuPanel = new MenuPanel(320, 240);
+
+        Add(menuPanel);
+        this.tweenFrom = tweenFrom;
+        tweenTo = new Vector2(160f, 120f);
+    }
+
+    public override void Update()
+    {
+        if (MenuInput.Down)
+        {
+            DownItem?.Selected = true;
+            Selected = false;
+        }
+        base.Update();
+    }
+
+    public override void TweenIn()
+    {
+        Position = tweenFrom;
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeOut, 20, true);
+        tween.OnUpdate = t =>
+        {
+            Position = Vector2.Lerp(tweenFrom, tweenTo, t.Eased);
+        };
+        Add(tween);
+    }
+
+    public override void TweenOut()
+    {
+        Vector2 start = Position;
+        Tween tween = Tween.Create(Tween.TweenMode.Oneshot, Ease.CubeIn, 12, true);
+        tween.OnUpdate = t =>
+        {
+            Position = Vector2.Lerp(start, tweenFrom, t.Eased);
+        };
+        Add(tween);
+    }
+
+    protected override void OnConfirm() {}
+
+    protected override void OnDeselect() {}
+
+    protected override void OnSelect() {}
+
+    public override void Render()
+    {
+        Vector2 justifyWorld = Position - new Vector2(160f, 120f);
+        base.Render();
+
+        DrawRectText("INSTALLED", 0);
+        DrawRectText("BROWSE", 60);
+
+        float y = TFGame.Font.MeasureString("Y").Y;
+
+        Draw.HollowRect(justifyWorld.X + 20 - 4, justifyWorld.Y + 40 - 4, 280, y + 8, Color.White);
+        Draw.TextJustify(TFGame.Font, "SEARCH", justifyWorld + new Vector2(20, 40), Color.DarkGray, new Vector2(0, 0));
+
+        void DrawRectText(string text, int offset)
+        {
+            Vector2 measuredText = TFGame.Font.MeasureString(text);
+            Draw.HollowRect(justifyWorld.X + 20 + offset - 4,  justifyWorld.Y + 20 - 4, measuredText.X + 8, measuredText.Y + 8, Color.White);
+            Draw.TextJustify(TFGame.Font, text, justifyWorld + new Vector2(20 + offset, 20), Color.White, new Vector2(0, 0));
+        }
+    }
+}
 
 internal class ButtonBox : MenuItem
 {
