@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Xml;
-using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -39,10 +38,11 @@ internal static class ThemeLoader
                 var icon = xmlTheme.ChildText("Icon").Trim();
                 ISubtextureEntry? subIcon = null;
 
-                subIcon = registry.Subtextures.GetTexture(icon, SubtextureAtlasDestination.MenuAtlas);
-                subIcon ??= registry.Subtextures.GetTexture($"{content.Metadata.Name}/{icon}", SubtextureAtlasDestination.MenuAtlas); 
-
-                if (subIcon is null)
+                try
+                {
+                    subIcon = content.LoadTexture(registry, icon, SubtextureAtlasDestination.MenuAtlas);
+                }
+                catch (TextureNotFoundException)
                 {
                     if (content.Root.TryGetRelativePath(icon, out var info))
                     {
@@ -84,10 +84,11 @@ internal static class ThemeLoader
         var icon = xmlTheme.ChildText("Icon").Trim();
         ISubtextureEntry? subIcon = null;
 
-        subIcon = registry.Subtextures.GetTexture(icon, SubtextureAtlasDestination.MenuAtlas);
-        subIcon ??= registry.Subtextures.GetTexture($"{content.Metadata.Name}/{icon}", SubtextureAtlasDestination.MenuAtlas); 
-
-        if (subIcon is null)
+        try
+        {
+            subIcon = content.LoadTexture(registry, icon, SubtextureAtlasDestination.MenuAtlas);
+        }
+        catch (TextureNotFoundException)
         {
             if (content.Root.TryGetRelativePath(icon, out var info))
             {
@@ -98,12 +99,12 @@ internal static class ThemeLoader
                 subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
             }
         }
+
         string musicID = xmlTheme.ChildText("Music", string.Empty).Trim();
 
         // validate if this music exists
         string musicName = string.Empty;
-        var music = registry.Musics.GetMusic(musicID);
-        music ??= registry.Musics.GetMusic($"{content.Metadata.Name}/{musicID}");
+        var music = registry.Musics.GetMusicWithRelative(musicID);
         if (music is null)
         {
             musicName = musicID;
@@ -117,21 +118,21 @@ internal static class ThemeLoader
         {
             Name = xmlTheme.ChildText("Name").Trim().ToUpperInvariant(),
             Icon = subIcon,
-            TowerType = xmlTheme.ChildEnum<MapButton.TowerType>("TowerType", MapButton.TowerType.Normal),
+            TowerType = xmlTheme.ChildEnum("TowerType", MapButton.TowerType.Normal),
             MapPosition = xmlTheme!["MapPosition"].Position(),
             Music = musicName,
             DarknessColor = xmlTheme.ChildHexColor("DarknessColor", Color.Black),
             DarknessOpacity = xmlTheme.ChildFloat("DarknessOpacity", 0.2f),
             Wind = xmlTheme.ChildInt("Wind", 0),
-            Lanterns = xmlTheme.ChildEnum<TowerTheme.LanternTypes>("Lanterns", TowerTheme.LanternTypes.CathedralTorch),
-            World = xmlTheme.ChildEnum<TowerTheme.Worlds>("World", TowerTheme.Worlds.Normal),
+            Lanterns = xmlTheme.ChildEnum("Lanterns", TowerTheme.LanternTypes.CathedralTorch),
+            World = xmlTheme.ChildEnum("World", TowerTheme.Worlds.Normal),
             Raining = xmlTheme.ChildBool("Raining", false),
             BackgroundID = xmlTheme.ChildText("Background"),
             DrillParticleColor = xmlTheme.ChildHexColor("DrillParticleColor", Color.Red),
             Cold = xmlTheme.ChildBool("Cold", false),
             CrackedBlockColor = xmlTheme.ChildHexColor("CrackedBlockColor", "4EB1E9"),
-            Tileset = xmlTheme.ChildText("Tileset", "SacredGround"),
-            BGTileset = xmlTheme.ChildText("BGTileset", "SacredGroundBG"),
+            Tileset = xmlTheme.ChildTextWithRelative("Tileset", "SacredGround"),
+            BGTileset = xmlTheme.ChildTextWithRelative("BGTileset", "SacredGroundBG"),
             Cataclysm = xmlTheme.ChildBool("Cataclysm", xmlTheme.ChildText("Tileset") == "Cataclysm")
         });
 

@@ -57,8 +57,7 @@ internal static class ArcherLoader
             if (isAlt)
             {
                 var altID = element.Attr("Alt");
-                var archerToCopy = registry.Archers.GetArcher(altID) ;
-                archerToCopy ??= registry.Archers.GetArcher($"{content.Metadata.Name}/{altID}")
+                var archerToCopy = registry.Archers.GetArcherWithRelative(altID)
                     ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
 
                 list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { AltFor = archerToCopy }));
@@ -68,8 +67,7 @@ internal static class ArcherLoader
             if (isSecret)
             {
                 var secretID = element.Attr("Secret");
-                var archerToCopy = registry.Archers.GetArcher(secretID);
-                archerToCopy ??= registry.Archers.GetArcher($"{content.Metadata.Name}/{secretID}")
+                var archerToCopy = registry.Archers.GetArcherWithRelative(secretID)
                     ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
 
                 list.Add(LoadArcher(registry, content, element, id, archerToCopy.Configuration with { SecretFor = archerToCopy }));
@@ -127,8 +125,7 @@ internal static class ArcherLoader
         if (element.HasChild("Corpse"))
         {
             string corpseID = element.ChildText("Corpse").Trim();
-            corpse = registry.Sprites.GetCorpseSpriteEntry<string>(corpseID);
-            corpse ??= registry.Sprites.GetCorpseSpriteEntry<string>($"{content.Metadata.Name}/{corpseID}");
+            corpse = registry.Sprites.GetCorpseSpriteEntryWithRelative<string>(corpseID);
 
             if (corpse is null)
             {
@@ -284,11 +281,9 @@ internal static class ArcherLoader
             string menuID = gems.ChildText("Menu");
             string gameplayID = gems.ChildText("Gameplay");
 
-            var gemMenu = registry.Sprites.GetMenuSpriteEntry<string>(menuID);
-            gemMenu ??= registry.Sprites.GetMenuSpriteEntry<string>($"{content.Metadata.Name}/{menuID}");
+            var gemMenu = registry.Sprites.GetMenuSpriteEntryWithRelative<string>(menuID);
 
-            var gemGameplay = registry.Sprites.GetSpriteEntry<int>(gems.ChildText("Gameplay"));
-            gemGameplay ??= registry.Sprites.GetSpriteEntry<int>($"{content.Metadata.Name}/{gameplayID}");
+            var gemGameplay = registry.Sprites.GetSpriteEntryWithRelative<int>(gems.ChildText("Gameplay"));
 
             gemInfo = new()
             {
@@ -308,28 +303,23 @@ internal static class ArcherLoader
             var sprites = element["Sprites"];
 
             var bodyText = sprites.ChildText("Body").Trim();
-            var body = registry.Sprites.GetSpriteEntry<string>(bodyText);
-            body ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{bodyText}")
+            var body = registry.Sprites.GetSpriteEntryWithRelative<string>(bodyText)
                 ?? throw new Exception($"[{content.Metadata.Name}] {bodyText} on SpriteData cannot be found.");
 
             var headNormalText = sprites.ChildText("HeadNormal").Trim();
-            var headNormal = registry.Sprites.GetSpriteEntry<string>(headNormalText);
-            headNormal ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headNormalText}")
+            var headNormal = registry.Sprites.GetSpriteEntryWithRelative<string>(headNormalText)
                 ?? throw new Exception($"[{content.Metadata.Name}] {headNormalText} on SpriteData cannot be found.");
 
             var headNoHatText = sprites.ChildText("HeadNoHat").Trim();
-            var headNoHat = registry.Sprites.GetSpriteEntry<string>(headNoHatText);
-            headNoHat ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headNoHatText}")
+            var headNoHat = registry.Sprites.GetSpriteEntryWithRelative<string>(headNoHatText)
                 ?? throw new Exception($"[{content.Metadata.Name}] {headNoHatText} on SpriteData cannot be found.");
 
             var headCrownText = sprites.ChildText("HeadCrown").Trim();
-            var headCrown = registry.Sprites.GetSpriteEntry<string>(headCrownText);
-            headCrown ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{headCrownText}")
+            var headCrown = registry.Sprites.GetSpriteEntryWithRelative<string>(headCrownText)
                 ?? throw new Exception($"[{content.Metadata.Name}] {headCrownText} on SpriteData cannot be found.");
 
             var bowText = sprites.ChildText("Bow").Trim();
-            var bow = registry.Sprites.GetSpriteEntry<string>(bowText);
-            bow ??= registry.Sprites.GetSpriteEntry<string>($"{content.Metadata.Name}/{bowText}")
+            var bow = registry.Sprites.GetSpriteEntryWithRelative<string>(bowText)
                 ?? throw new Exception($"[{content.Metadata.Name}] {bowText} on SpriteData cannot be found.");
 
             var headBackText = sprites.ChildText("HeadBack", "").Trim();
@@ -360,8 +350,7 @@ internal static class ArcherLoader
         if (element.HasChild("VictoryMusic"))
         {
             string music = element.ChildText("VictoryMusic").Trim();
-            var entry = registry.Musics.GetMusic(music);
-            entry ??= registry.Musics.GetMusic($"{content.Metadata.Name}/{music}");;
+            var entry = registry.Musics.GetMusicWithRelative(music);
             // another step if the user takes the whole path instead
             if (entry is null)
             {
@@ -463,7 +452,7 @@ internal static class ArcherLoader
 
     private static ISFXEntry LoadSFXQuick(string id, string type, string sfxPath, IModRegistry registry, IModContent content, Func<SFX> sfxFallback)
     {
-        if (content.Root.TryGetRelativePath((sfxPath.Replace("{action}", type)), out var res))
+        if (content.Root.TryGetRelativePath(sfxPath.Replace("{action}", type), out var res))
         {
             return registry.SFXs.RegisterSFX(id + "_" + type + "_SFX", res);
         }

@@ -7,6 +7,7 @@ namespace FortRise.Content;
 internal sealed class ContentModule : Mod
 {
     public static ContentModule Instance = null!;
+    public static ModuleMetadata CurrentModMetadata = null!;
 
 
     public ContentModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
@@ -30,6 +31,8 @@ internal sealed class ContentModule : Mod
         {
             return;
         }
+
+        CurrentModMetadata = e.ModContent.Metadata;
 
         ContentConfiguration contentConfiguration;
         if (content.Root.TryGetRelativePath("content.json", out var contentJson))

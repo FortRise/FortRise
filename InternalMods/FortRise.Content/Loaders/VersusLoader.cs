@@ -90,20 +90,23 @@ internal static class VersusLoader
             return;
         }
 
-        var text = treasure.Slice(1, treasure.IndexOf(']') - 1);
-        resultTreasure = treasure.Slice(treasure.IndexOf(']') + 1).ToString();
+        var text = treasure[1..treasure.IndexOf(']')];
+        resultTreasure = treasure[(treasure.IndexOf(']') + 1)..].ToString();
+
         var split = text.SplitLines('*');
         chance = -1;
         rate = -1;
         foreach (var sp in split)
         {
             var numText = sp.Line;
+
             if (numText.Contains("%".AsSpan(), StringComparison.InvariantCulture))
             {
-                var chanceSlice = numText.Slice(0, numText.IndexOf('%'));
+                var chanceSlice = numText[..numText.IndexOf('%')];
                 chance = int.Parse(chanceSlice.ToString());
                 continue;
             }
+
             rate = int.Parse(numText.ToString());
         }
     }

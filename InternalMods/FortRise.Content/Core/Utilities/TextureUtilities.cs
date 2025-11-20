@@ -13,8 +13,7 @@ internal static class TextureUtilities
         }
         else 
         {
-            var texture = registry.Subtextures.GetTexture(path, atlas);
-            texture ??= registry.Subtextures.GetTexture(content.Metadata.Name + "/" + path, atlas);
+            var texture = registry.Subtextures.GetTextureWithRelative(path, atlas);
 
             if (texture is not null)
             {
@@ -25,7 +24,7 @@ internal static class TextureUtilities
 
             if (!ids.Contains(path))
             {
-                throw new Exception($"'{path}' does not exists on this mod or in the game. Cannot provide a fallback.");
+                throw new TextureNotFoundException($"'{path}' does not exists on this mod or in the game. Cannot provide a fallback.");
             }
 
             return atlas switch 
@@ -37,5 +36,12 @@ internal static class TextureUtilities
                 _ => throw new NotImplementedException()
             };
         }
+    }
+}
+
+internal sealed class TextureNotFoundException : Exception
+{
+    public TextureNotFoundException(string? message) : base(message)
+    {
     }
 }

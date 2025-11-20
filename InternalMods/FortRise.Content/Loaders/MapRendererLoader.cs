@@ -53,7 +53,7 @@ internal static class MapRendererLoader
             return;
         }
         string id = mapData.Attr("id");
-        string levelSet = mapData.Attr("levelSet", id);
+        string levelSet = mapData.AttrWithRelative("levelSet", id);
 
         int width = mapData.AttrInt("width", -1);
         int height = mapData.AttrInt("height", -1);
@@ -104,8 +104,7 @@ internal static class MapRendererLoader
                     int y = xml.AttrInt("y", 0);
                     var sprite = xml.Attr("sprite");
 
-                    var menuSprite = registry.Sprites.GetMenuSpriteEntry<string>(sprite);
-                    menuSprite ??= registry.Sprites.GetMenuSpriteEntry<string>($"{content.Metadata.Name}/{sprite}")
+                    var menuSprite = registry.Sprites.GetMenuSpriteEntryWithRelative<string>(sprite)
                         ?? throw new Exception($"Menu Sprite: '{sprite}' cannot be found");
 
                     string inAnimation = xml.ChildText("In", "in").Trim();
@@ -113,7 +112,7 @@ internal static class MapRendererLoader
                     string selectedAnimation = xml.ChildText("Selected", "selected").Trim();
                     string notSelectedAnimation = xml.ChildText("NotSelected", "notSelected").Trim();
 
-                    string towerID = xml.ChildText("TowerID", null).Trim();
+                    string towerID = xml.ChildTextWithRelative("TowerID", null);
 
                     mapElements.Add(new() 
                     {
