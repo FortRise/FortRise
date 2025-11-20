@@ -55,10 +55,8 @@ public class OggAudioTrack : AudioTrack, IDisposable
     {
         float[] buffer = new float[countSample * channels];
         int currentSample = FAudio.stb_vorbis_get_sample_offset(handle);
-        Console.WriteLine(currentSample);
 
         int sample = FAudio.stb_vorbis_get_samples_float_interleaved(handle, channels, buffer, buffer.Length);
-        Console.WriteLine(sample);
 
         if (oggLooping) 
         {
