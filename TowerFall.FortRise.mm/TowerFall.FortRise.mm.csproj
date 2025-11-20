@@ -4,7 +4,7 @@
   <PropertyGroup>
     <RootNamespace>TowerFall</RootNamespace>
     <AssemblyName>TowerFall.FortRise.mm</AssemblyName>
-    <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108</NoWarn>
+    <NoWarn>$(NoWarn);CS0414;CS1591;CS0649;CS0169;CS0626;CS0108;NU1605</NoWarn>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <LangVersion>14</LangVersion>
   </PropertyGroup>
@@ -23,12 +23,9 @@
     <PackageReference Include="Lib.Harmony.Thin" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
-  </ItemGroup>
-
-  <!-- Local Packages -->
-  <ItemGroup>
-    <PackageReference Include="MonoMod.Patcher" Version="25.0.0-alpha.dev" PrivateAssets="all"/>
-    <PackageReference Include="MonoMod.Utils" Version="25.0.9-alpha.dev" PrivateAssets="all"/>
+    <PackageReference Include="MonoMod.Patcher" Version="25.0.1" />
+    <PackageReference Include="MonoMod.Utils" Version="25.0.12-alpha.dev" PrivateAssets="all"/>
+    <PackageReference Include="MonoMod.Core" Version="1.3.3" />
   </ItemGroup>
 
   <ItemGroup>

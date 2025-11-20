@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <Version>$(FortRiseVersion)</Version>
-    <ModLoaderPath>..\..\FortLauncher\bin\Debug\net9.0\</ModLoaderPath>
+    <ModLoaderPath>..\..\.bin\$(TargetFramework)\</ModLoaderPath>
     <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
   </PropertyGroup>
 

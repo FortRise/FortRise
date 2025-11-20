@@ -45,7 +45,7 @@ This ensures that the original stays unmodified, the only thing that FortRise to
 You can directly install mods here in [Gamebanana](https://gamebanana.com/games/18654). Most mods are also on the Discord Server #mod-showcase channels.
 
 ## Compiling FortRise
-+ If you haven't already, install .NET 9.0 SDK.
++ If you haven't already, install .NET 10.0 SDK.
 + Clone the FortRise repo recursively (must include submodules) in a CLI or in your IDE.
 + Restore the nuget packages.
 + Run the `./setup.sh` and wait for it to build. (Some packages might fail, but that is expected).

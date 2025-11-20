@@ -5,8 +5,10 @@
     <AssemblyName>FortRise</AssemblyName>
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
     <ApplicationIcon>../Icon.ico</ApplicationIcon>
-		<ApplicationManifest>../app.manifest</ApplicationManifest>
+    <ApplicationManifest>../app.manifest</ApplicationManifest>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <OutputPath>../.bin/</OutputPath>
   </PropertyGroup>
 
   <Import Project="..\Configuration.props"/>
@@ -28,7 +30,8 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
-    <PackageReference Include="MonoMod.Patcher" Version="25.0.0-alpha.dev"/>
+    <PackageReference Include="MonoMod.Patcher" Version="25.0.1" />
+    <PackageReference Include="MonoMod.Utils" Version="25.0.12-alpha.dev" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">

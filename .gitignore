@@ -1,6 +1,7 @@
 .vscode/
 obj/
 bin/
+.bin/
 artifacts/
 options.json
 release/
