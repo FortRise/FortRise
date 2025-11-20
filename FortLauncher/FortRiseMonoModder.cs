@@ -32,9 +32,12 @@ public sealed class FortRiseMonoModder : MonoModder
     public override void PatchRefsInMethod(MethodDefinition method)
     {
         base.PatchRefsInMethod(method);
-
         // Inlining can cause problems on modding, so we need to make sure that it won't inline in some cases
-        if ((method.ImplAttributes & MethodImplAttributes.AggressiveInlining) == 0 && method.Body is MethodBody body && CanInlineLegacyCode(body))
+        if (!method.FullName.Contains("FortRise")
+            && !method.FullName.Contains("XXHash") &&
+            (method.ImplAttributes & MethodImplAttributes.AggressiveInlining) == 0 &&
+            method.Body is MethodBody body &&
+            CanInlineLegacyCode(body))
         {
             method.ImplAttributes |= MethodImplAttributes.NoInlining;
         }
