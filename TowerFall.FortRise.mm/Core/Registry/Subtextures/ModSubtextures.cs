@@ -143,7 +143,6 @@ internal sealed class ModSubtextures : IModSubtextures
 
     private void Invoke(ISubtextureEntry entry)
     {
-        Console.WriteLine("1=========");
         switch (entry.AtlasDestination)
         {
             case SubtextureAtlasDestination.Atlas:
@@ -159,7 +158,6 @@ internal sealed class ModSubtextures : IModSubtextures
                 TFGame.BossAtlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
         }
-        Console.WriteLine("4=========");
     }
 
     public ISubtextureEntry? GetTexture(string id, SubtextureAtlasDestination atlasDestination)

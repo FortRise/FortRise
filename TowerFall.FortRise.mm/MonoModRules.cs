@@ -89,6 +89,7 @@ internal static partial class MonoModRules
 
     static MonoModRules()
     {
+        MonoModRule.Modder.LogVerboseEnabled = false;
         MonoModRule.Modder.MissingDependencyThrow = false;
 
         if (MonoModRule.Modder.WriterParameters.WriteSymbols)

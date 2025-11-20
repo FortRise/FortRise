@@ -13,6 +13,7 @@ public readonly struct MapRendererConfiguration
 
     public Option<int> Width { get; init; }
     public Option<int> Height { get; init; }
+    public bool HideVanillaElements { get; init; }
 }
 
 public readonly struct MapElement
@@ -23,10 +24,10 @@ public readonly struct MapElement
 
 public readonly struct AnimatedTowerConfiguration
 {
-    public required string In { get; init; }
-    public required string Out { get; init; }
+    public string? In { get; init; }
+    public string? Out { get; init; }
+    public string? TowerID { get; init; }
     public required string Selected { get; init; }
     public required string NotSelected { get; init; }
     public required IMenuSpriteContainerEntry Sprite { get; init; }
-    public required string TowerID { get; init; }
 }

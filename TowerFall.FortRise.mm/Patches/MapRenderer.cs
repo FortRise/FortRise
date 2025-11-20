@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using MonoMod;
-using TowerFall.Patching;
 
 namespace TowerFall;
 
 public class patch_MapRenderer : MapRenderer
 {
-    private MapRendererData node;
+    private MapRendererData data;
     private Sprite<string> twilightSpire;
     private Sprite<string> sunkenCity;
     private Sprite<string> towerForge;
@@ -19,7 +19,6 @@ public class patch_MapRenderer : MapRenderer
     private Sprite<string> dreadwood;
     private Sprite<string> darkfang;
     private Sprite<string> cataclysm;
-    private string currentTowerID;
 
     private Vector2 shakeOffset;
     private List<GraphicsComponent> graphics;
@@ -28,27 +27,27 @@ public class patch_MapRenderer : MapRenderer
     // Fine, I'll do it myself.
     public int GetInstanceWidth() 
     {
-        if (node != null && node.Land != null) 
+        if (data != null) 
         {
-            return node.Land.Width;
+            return (int)data.Size.X;
         }
         return Width;
     }
 
     public int GetInstanceHeight() 
     {
-        if (node != null && node.Land != null) 
+        if (data != null) 
         {
-            return node.Land.Height;
+            return (int)data.Size.Y;
         }
         return Height;
     }
 
     public Vector2 GetInstanceCenter() 
     {
-        if (node != null && node.Land != null) 
+        if (data != null) 
         {
-            return node.Land.HalfSize;
+            return data.Size * 0.5f;
         }
         return Center;
     }
@@ -63,20 +62,11 @@ public class patch_MapRenderer : MapRenderer
     [MonoModReplace]
     public void OnSelectionChange(string towerName) 
     {
-        var scene = Scene as MapScene;
-        var levelSet = scene.GetLevelSet();
-        //if (levelSet == "TowerFall") 
-        //{
-        //    orig_OnSelectionChange(towerName);
-        //    return;
-        //}
-
-        if (ExtendedGameData.InternalMapRenderers.TryGetValue(levelSet, out var node)) 
+        if (data is not null)
         {
-            node.StartSelection(towerName);
+            data.StartSelection(towerName);
+            return;
         }
-
-        currentTowerID = towerName;
 
         if (towerName == VanillaConstants.Towers.TwilightSpire)
         {
@@ -189,10 +179,12 @@ public class patch_MapRenderer : MapRenderer
             StartCataclysm();
             break;
         default:
+            if (data is not null)
+            {
+                data.StartSelection(towerName);
+            }
             break;
         }
-        
-        currentTowerID = towerName;
     }
     
 
@@ -210,10 +202,10 @@ public class patch_MapRenderer : MapRenderer
             graphicsComponent.Position += mapOffset;
         }
 
-        if (node != null && node.Water != null)
+        if (data != null && data.Water != null)
         {
             Draw.SineTextureV(
-                node.Water, 
+                data.Water, 
                 Entity.Position + mapOffset, 
                 new Vector2(5f, 0f), 
                 Vector2.One, 0f, 
@@ -270,31 +262,34 @@ public class patch_MapRenderer : MapRenderer
 
     public void ChangeLevelSet(string levelSet) 
     {
-        if (node != null) 
+        if (data != null) 
         {
-            node.Deselection();
-            Remove(node);
-            node = null;
+            data.Deselection();
+            Remove(data);
+            data = null;
         }
 
-        if (levelSet == null || levelSet == "TowerFall") 
+        if (levelSet == null || levelSet == "TowerFall")
         {
-            ToggleAllMainElements(true);
+            ToggleAllVanillaElements(true);
             return;
         }
 
-        if (ExtendedGameData.InternalMapRenderers.TryGetValue(levelSet, out var val)) 
+        var entry = MapRendererRegistry.GetEntryFromLevelSet(levelSet);
+        if (entry is not null)
         {
-            node = val;
-            Add(node); 
-            ToggleAllMainElements(false);
+            var mapRenderer = new MapRendererData(entry.Configuration);
+            data = mapRenderer;
+            Add(data); 
+
+            ToggleAllVanillaElements(!entry.Configuration.HideVanillaElements);
             return;
         }
 
-        ToggleAllMainElements(true);
+        ToggleAllVanillaElements(true);
     }
 
-    public void ToggleAllMainElements(bool toggle) 
+    public void ToggleAllVanillaElements(bool toggle) 
     {
         twilightSpire.Visible = toggle;
         sunkenCity.Visible = toggle;
@@ -362,5 +357,4 @@ public class patch_MapRenderer : MapRenderer
 
     [MonoModIgnore]
     private extern void StartCataclysm();
-
 }

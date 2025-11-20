@@ -60,6 +60,7 @@ internal sealed class ContentModule : Mod
         ArcherLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("archerData"));
         TilesetLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("tilesetData"));
         ThemeLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("themeData"));
+        MapRendererLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("mapData"));
         VersusLoader.Load(registry, content, Logger);
         QuestLoader.Load(registry, content);
         DarkWorldLoader.Load(registry, content);
@@ -124,6 +125,10 @@ internal sealed class ContentModule : Mod
             {
                 Path = ["Content/Music/*.ogg", "Content/Music/*.wav"]
             },
+            ["mapData"] = new Loader()
+            {
+                Path = ["Content/Atlas/GameData/mapData.xml"]
+            }
         };
     }
 

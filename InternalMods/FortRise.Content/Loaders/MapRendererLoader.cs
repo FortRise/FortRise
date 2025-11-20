@@ -34,7 +34,7 @@ internal static class MapRendererLoader
     }
 
     /*
-     * <MapData id="mapID">
+     * <MapData id="mapID" hideVanillaElements="False">
      *  <Land image="path/to/image.png"/>
      *  <Water image="path/to/image.png"/>
      *
@@ -53,10 +53,11 @@ internal static class MapRendererLoader
             return;
         }
         string id = mapData.Attr("id");
-        string levelSet = mapData.Attr("levelSet");
+        string levelSet = mapData.Attr("levelSet", id);
 
         int width = mapData.AttrInt("width", -1);
         int height = mapData.AttrInt("height", -1);
+        bool hideVanilla = mapData.AttrBool("hideVanillaElements", false);
 
         ISubtextureEntry? water = null;
         if (mapData.HasChild("Water"))
@@ -112,7 +113,7 @@ internal static class MapRendererLoader
                     string selectedAnimation = xml.ChildText("Selected", "selected").Trim();
                     string notSelectedAnimation = xml.ChildText("NotSelected", "notSelected").Trim();
 
-                    string towerID = xml.ChildText("TowerID").Trim();
+                    string towerID = xml.ChildText("TowerID", null).Trim();
 
                     mapElements.Add(new() 
                     {
@@ -137,8 +138,9 @@ internal static class MapRendererLoader
             LevelSet = levelSet,
             Water = water,
             Land = land,
-            Width = width == -1 ? Option<int>.None() : width,
-            Height = height == -1 ? Option<int>.None() : height,
+            Width = width <= -1 ? Option<int>.None() : width,
+            Height = height <= -1 ? Option<int>.None() : height,
+            HideVanillaElements = hideVanilla,
             Elements = [.. mapElements]
         });
 }
