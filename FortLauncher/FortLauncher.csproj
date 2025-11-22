@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
     <PackageReference Include="MonoMod.Patcher" Version="25.0.1" />
-    <PackageReference Include="MonoMod.Utils" Version="25.0.12-alpha.dev" PrivateAssets="all"/>
+    <PackageReference Include="MonoMod.Utils" Version="25.0.12-alpha.dev"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">

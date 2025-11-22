@@ -5,7 +5,7 @@ FR_VERSION=$(cat version.txt)
 echo "FortRise Version: $FR_VERSION"
 MAIN=$(pwd)
 
-INTERNALS_DIR="FortLauncher/bin/Debug/$DOTNET_VERSION/Internals"
+INTERNALS_DIR=".bin/$DOTNET_VERSION/Internals"
 INTERNALS_DEST_DIR="artifacts/Internals"
 
 if [ -d "$INTERNALS_DIR" ]; then
@@ -57,7 +57,7 @@ cd $MAIN
 echo "Copying all Internals to its respective artifacts"
 cp -r "$INTERNALS_DEST_DIR" "artifacts/FortRise.v$FR_VERSION-win-x64/FortRise"
 cp -r "$INTERNALS_DEST_DIR" "artifacts/FortRise.v$FR_VERSION-linux-x64/FortRise"
-cp -r "$INTERNALS_DEST_DIR" "artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/FortRise.app/Contents/MacOS"
+cp -r "$INTERNALS_DEST_DIR" "artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise"
 
 mkdir artifacts/FortRise.v$FR_VERSION-linux-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 mkdir artifacts/FortRise.v$FR_VERSION-win-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
@@ -69,7 +69,7 @@ rm -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/win-x86
 
 cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-linux-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-win-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
-cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/FortRise.app/Contents/MacOS/Internals/FortRise.ImGui/Unmanaged
+cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 echo "Zipping all artifacts"
 
 cd "artifacts/FortRise.v$FR_VERSION-win-x64/"
