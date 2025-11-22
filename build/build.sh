@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-DOTNET_VERSION="net9.0"
+DOTNET_VERSION="net10.0"
 FR_VERSION=$(cat version.txt)
 echo "FortRise Version: $FR_VERSION"
 MAIN=$(pwd)
