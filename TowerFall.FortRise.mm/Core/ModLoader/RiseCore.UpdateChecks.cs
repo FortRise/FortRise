@@ -104,6 +104,11 @@ public partial class RiseCore
             OpenURL($"https://github.com/{repo}");
         }
 
+        public static void OpenGamebananaURL(int id)
+        {
+            OpenURL($"https://gamebanana.com/mods/{id}");
+        }
+
         internal static bool ValidateReleaseByte(byte[] data, out SemanticVersion version)
         {
             try 

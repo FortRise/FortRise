@@ -18,6 +18,7 @@ public static class CustomMenuStateRegistry
     internal static void LoadAllBuiltinMenuState()
     {
         Register("FortRise/Mods", EnumPool.Obtain<MainMenu.MenuState>(), new MenuStateConfiguration() { MenuStateType = typeof(UIModMenu )});
+        Register("FortRise/ArcherBlacklist", EnumPool.Obtain<MainMenu.MenuState>(), new MenuStateConfiguration() { MenuStateType = typeof(UIArcherBlacklist)});
         Register("FortRise/UIModOptions", EnumPool.Obtain<MainMenu.MenuState>(), new MenuStateConfiguration() { MenuStateType = typeof(UIModOptions)});
         Register("FortRise/UIModToggler", EnumPool.Obtain<MainMenu.MenuState>(), new MenuStateConfiguration() { MenuStateType = typeof(UIModToggler)});
     }

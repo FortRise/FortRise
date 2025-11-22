@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using MonoMod.Utils;
+using TowerFall;
 
 namespace FortRise;
 
 public interface ISettingsCreate
 {
+    [Obsolete("Container is not used anymore to create settings. This will be removed in FortRise >5.3")]
     TextContainer Container { get; init; }
 
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed);
@@ -13,6 +18,160 @@ public interface ISettingsCreate
     void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
 
     void Refresh();
+}
+
+internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) : ISettingsCreate
+{
+    public TextContainer Container { get; init; }
+    public MainMenu Menu { get; init; } = menu;
+    public List<OptionsButton> OptionsButton { get; init; } = buttons;
+
+    public void CreateButton(string name, Action onPressed)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new OptionsButton(title);
+
+        optionButtons.SetCallbacks(() => { optionButtons.State = ""; }, null, null, () =>
+        {
+            onPressed();
+            return false;
+        });
+        OptionsButton.Add(optionButtons);
+    }
+
+    public void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new OptionsButton(title);
+
+        // HACK: Option button does not have a value.
+        var dynSelf = DynamicData.For(optionButtons);
+        dynSelf.Set("value", initialValue); 
+        
+        optionButtons.SetCallbacks(() =>
+        {
+            if (inputBehavior == TextContainer.InputText.InputBehavior.Sensitive)
+            {
+                optionButtons.State = "***";
+            }
+            else
+            {
+                string value = dynSelf.Get<string>("value");
+                optionButtons.State = value.ToUpperInvariant();
+            }
+        },
+        null, null,
+        () =>
+        {
+            string val = dynSelf.Get<string>("value");
+            var uiInput = new UIInputText(optionButtons, (x) =>
+            {
+                onInput(x);
+                dynSelf.Set("value", x);
+                optionButtons.Selected = true;
+                optionButtons.State = x.ToUpperInvariant();
+            }, new Vector2(0, 240 * 0.5f), val);
+            uiInput.LayerIndex = 0;
+
+            Menu.Add(uiInput);
+            optionButtons.Selected = false;
+            return true;
+        });
+        OptionsButton.Add(optionButtons);
+    }
+
+    public void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new OptionsButton(title);
+
+        // HACK: Option button does not have a value.
+        var dynSelf = DynamicData.For(optionButtons);
+        dynSelf.Set("value", initialValue); 
+        
+        optionButtons.SetCallbacks(() =>
+        {
+            int value = dynSelf.Get<int>("value");
+            optionButtons.State = value.ToString();
+            optionButtons.CanLeft = value > min; 
+            optionButtons.CanRight = value < max;
+        },
+        () =>
+        {
+            int value = dynSelf.Get<int>("value");
+            value -= step;
+            dynSelf.Set("value", value);
+            onChanged(value);
+        },
+        () =>
+        {
+            int value = dynSelf.Get<int>("value");
+            value += step;
+            dynSelf.Set("value", value);
+            onChanged(value);
+        }, null);
+        OptionsButton.Add(optionButtons);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new OptionsButton(title);
+
+        // HACK: Option button does not have a value.
+        var dynSelf = DynamicData.For(optionButtons);
+        dynSelf.Set("value", initialValue); 
+        
+        optionButtons.SetCallbacks(() => optionButtons.State = BoolToString(dynSelf.Get<bool>("value")), null, null, onConfirm: () =>
+        {
+            var value = dynSelf.Get<bool>("value");
+            value = !value;
+            onPressed(value);
+            dynSelf.Set("value", value);
+            return value;
+        });
+        OptionsButton.Add(optionButtons);
+    }
+
+    public void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new OptionsButton(title);
+
+        // HACK: Option button does not have a value.
+        var dynSelf = DynamicData.For(optionButtons);
+        dynSelf.Set("value", initialValue); 
+        
+        optionButtons.SetCallbacks(() =>
+        {
+            string val = dynSelf.Get<string>("value");
+            optionButtons.State = val.ToUpperInvariant();
+        }, null, null, onConfirm: () =>
+        {
+            string val = dynSelf.Get<string>("value");
+            int index = selections.IndexOf(val);
+            index += 1;
+            if (index > selections.Length)
+            {
+                index = 0;
+            }
+
+            string newVal = selections[index];
+
+            dynSelf.Set("value", newVal);
+            onSelect((newVal, index));
+
+            return true;
+        });
+        OptionsButton.Add(optionButtons);
+    }
+
+    public void Refresh() { }
+
+    private static string BoolToString(bool value)
+    {
+        return value ? "ON" : "OFF";
+    }
 }
 
 internal sealed class SettingsCreate : ISettingsCreate

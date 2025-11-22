@@ -146,8 +146,11 @@ public class UIModal : Entity
         Draw.Rect(0, 0, 320, 240, Color.Black * 0.7f);
         base.Render();
         var pos = Position + new Vector2(0f, -panel.Height / 2f - 8f);
-        if (!noTitle)
+        if (!noTitle && !string.IsNullOrEmpty(Title))
+        {
             Draw.OutlineTextCentered(TFGame.Font, Title, pos, Color.White, 2f);
+        }
+
         int offset = !noTitle ? 20 : 0;
 
         int num = (itemCount - 1) * 14 + offset + offset - 1;

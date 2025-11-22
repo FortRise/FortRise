@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -26,6 +27,8 @@ namespace TowerFall
         [MonoModPublic]
         public MenuState switchTo;
         public MenuState BackState;
+
+        public string FilterModOptions { get; set; } = string.Empty;
 
 
 
@@ -69,7 +72,7 @@ namespace TowerFall
                 {
                     menuState.Create();
                 }
-                else 
+                else
                 {
                     menuState.Destroy();
                     CustomMenuStateRegistry.DestroyTypeCache(menuState.GetType());
@@ -86,17 +89,124 @@ namespace TowerFall
         }
 
         [MonoModIgnore]
-        private extern void InitOptions(List<OptionsButton> buttons);
-
-        [MonoModIgnore]
         [PatchMainMenuCreateOptions]
-        private extern void CreateOptions();
+        private extern void orig_CreateOptions();
 
-        public static void Internal_CreateOptions(List<OptionsButton> buttons) 
+        public void CreateOptions()
+        {
+            if (string.IsNullOrEmpty(FilterModOptions))
+            {
+                orig_CreateOptions();
+                return;
+            }
+            var list = new List<OptionsButton>();
+
+            InitOptions(list);
+            ToStartSelected = list[1];
+            BackState = ModRegisters.MenuState<UIModMenu>();
+            TweenBGCameraToY(1);
+        }
+
+        public static void Internal_CreateOptions(List<OptionsButton> buttons)
         {
             // Future use
         }
 
+        private void InitModOptions(List<OptionsButton> buttons)
+        {
+            IEnumerable<Mod> fortModules;
+            if (!string.IsNullOrEmpty(FilterModOptions))
+            {
+                fortModules = RiseCore.ModuleManager.InternalFortModules.Where(x => x.Meta.Name == FilterModOptions);
+            }
+            else
+            {
+                fortModules = RiseCore.ModuleManager.InternalFortModules;
+            }
+
+            foreach (var mod in fortModules)
+            {
+                var settings = mod.GetSettings();
+                if (settings is null)
+                {
+                    continue;
+                }
+
+                string name;
+                if (mod.Meta.DisplayName == null)
+                {
+                    name = mod.Meta.DisplayName.ToUpperInvariant();
+                }
+                else
+                {
+                    name = mod.Meta.Name.ToUpperInvariant();
+                }
+
+                OptionsButtonHeader buttonHeader = new OptionsButtonHeader(name);
+                buttons.Add(buttonHeader);
+
+                settings.Create(
+                    new OptionsCreate(this, buttons)
+                );
+            }
+        }
+
+        [MonoModReplace]
+        private void InitOptions(List<OptionsButton> buttons)
+        {
+            InitModOptions(buttons);
+
+            int num = 0;
+            int extraSpacing = 0;
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                OptionsButton optionsButton = buttons[i];
+                optionsButton.TweenTo = new Vector2(200f, 45 + extraSpacing + i * 12);
+                optionsButton.Position = optionsButton.TweenFrom = new Vector2((i % 2 == 0) ? (-160) : 480, 45 + extraSpacing + i * 12);
+
+                if (optionsButton is not OptionsButtonHeader)
+                {
+                    int i2 = 1;
+                    if (i > 0)
+                    {
+                        var button = buttons[i - 1];
+                        while (button is OptionsButtonHeader)
+                        {
+                            i2 += 1;
+                            if (i - i2 < 0)
+                            {
+                                break;
+                            }
+                            button = buttons[i - i2];
+                        }
+
+                        optionsButton.UpItem = button;
+                    }
+                    i2 = 1;
+
+                    if (i < buttons.Count - 1)
+                    {
+                        var button = buttons[i + i2];
+                        while (button is OptionsButtonHeader)
+                        {
+                            i2 += 1;
+                            if (i - i2 > buttons.Count)
+                            {
+                                break;
+                            }
+                            button = buttons[i + i2];
+                            extraSpacing += 6;
+                        }
+
+                        optionsButton.DownItem = button;
+                    }
+                }
+
+                num += 9 + extraSpacing;
+            }
+            Add(buttons);
+            MaxUICameraY = num;
+        }
 
         [MonoModIgnore]
         private extern void MainOptions();
@@ -108,7 +218,7 @@ namespace TowerFall
         private extern void MainCredits();
         [MonoModIgnore]
         [MonoModPublic]
-        private extern void TweenBGCameraToY(int y);
+        public extern void TweenBGCameraToY(int y);
 
         [MonoModReplace]
         public void CreateMain()
@@ -207,15 +317,30 @@ namespace TowerFall
         public void CreateCoOp()
         {
             CoOpModeButton coopModeButton = new CoOpModeButton(new Vector2(160f, 90), new Vector2(-100f, 90));
-            Add(new List<MenuItem>() {coopModeButton});
+            Add(new List<MenuItem>() { coopModeButton });
             ToStartSelected = coopModeButton;
 
             BackState = MenuState.Main;
             TweenBGCameraToY(1);
 
             QuestButton questButton = new QuestButton(new Vector2(100f, 90f), new Vector2(-160f, 120f));
-			DarkWorldButton darkWorldButton = new DarkWorldButton(new Vector2(220f, 90f), new Vector2(480f, 120f));
+            DarkWorldButton darkWorldButton = new DarkWorldButton(new Vector2(220f, 90f), new Vector2(480f, 120f));
             Add(new patch_CoOpDataDisplay(questButton, darkWorldButton, coopModeButton));
+        }
+
+        [MonoModReplace]
+        public void DestroyOptions()
+        {
+            if (switchTo == MenuState.ControlOptions)
+            {
+                return;
+            }
+
+            SaveOnTransition = true;
+            foreach (var mod in RiseCore.ModuleManager.InternalFortModules)
+            {
+                mod.SaveSettings();
+            }
         }
 
         public extern void orig_Render();
@@ -226,32 +351,34 @@ namespace TowerFall
             {
                 if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
                 {
-                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    Draw.SpriteBatch.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        SamplerState.PointClamp,
+                        DepthStencilState.None,
+                        RasterizerState.CullNone
+                    );
+
                     Draw.OutlineTextJustify(TFGame.Font, RiseCore.UpdateChecks.UpdateMessage, new Vector2(4, 225), Color.Gray, Color.Black, 
                         new Vector2(0, 0.5f));
+
                     Draw.SpriteBatch.End();
                 }
             }
             else if (State == MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
             {
-                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                Draw.SpriteBatch.Begin(
+                    SpriteSortMode.Deferred,
+                    BlendState.AlphaBlend,
+                    SamplerState.PointClamp,
+                    DepthStencilState.None,
+                    RasterizerState.CullNone
+                );
+
                 Draw.Texture(TFGame.MenuAtlas["variants/newVariantsTag"], new Vector2(20, (MainMenu.NoQuit ? 208 : 192) - 28), Color.White);
+
                 Draw.SpriteBatch.End();
             }
-
-            if (Loader.Message == "")
-                return;
-            var tasks = TaskHelper.Tasks;
-            float y = 0;
-
-            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
-            foreach (var task in tasks) 
-            {
-                Draw.OutlineTextJustify(TFGame.Font, task.ToUpperInvariant(), new Vector2(4, 225 - y), Color.Gray, Color.Black, 
-                    new Vector2(0, 0.5f));
-                y += 10;
-            }
-            Draw.SpriteBatch.End();
         }
     }
 }
@@ -269,12 +396,20 @@ namespace MonoMod
         public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib) 
         {
             var Internal_CreateOptions = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void Internal_CreateOptions(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
+            var InterceptOptionsStart = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void ChangeOptionsStart(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
             var cursor = new ILCursor(ctx);
 
             cursor.GotoNext(MoveType.After, 
                 instr => instr.MatchCallOrCallvirt("System.Collections.Generic.List`1<TowerFall.OptionsButton>", "Add"));
 
-            cursor.Emit(OpCodes.Ldloc_1);
+            if (IsWindows)
+            {
+                cursor.Emit(OpCodes.Ldloc_1);               
+            }
+            else
+            {
+                cursor.Emit(OpCodes.Ldloc_0);
+            }
             cursor.Emit(OpCodes.Call, Internal_CreateOptions);
         }
 
