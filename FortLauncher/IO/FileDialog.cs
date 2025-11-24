@@ -68,17 +68,17 @@ public static class FileDialog
         isOpened = false;
     }
 
-    public static unsafe void OpenFile(string? path = null, Property property = default) 
+    public static void OpenFile(string? path = null, Property property = default) 
     {
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE);
     }
 
-    public static unsafe void Save(string? path = null, Property property = default) 
+    public static void Save(string? path = null, Property property = default) 
     {
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE);
     }
 
-    public static unsafe void OpenDirectory(string? path = null, Property property = default) 
+    public static void OpenDirectory(string? path = null, Property property = default) 
     {
         ShowDialog(path, property, SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER);
     }
