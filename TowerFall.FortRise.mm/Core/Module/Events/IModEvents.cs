@@ -23,7 +23,20 @@ public interface IModEvents
     /// Called when the game is initialized. This is different from mod initialization and it is run before that happens.
     /// </summary>
     event EventHandler<TFGame> OnGameInitialized;
-    event EventHandler<OnDataLoadEventArgs> OnBeforeDataLoad;
-    event EventHandler<OnDataLoadEventArgs> OnAfterDataLoad;
-    event EventHandler<OnSessionQuitEventArgs> OnSessionQuit;
+    /// <summary>
+    /// Called before the game data is loaded, such as xml assets.
+    /// </summary>
+    event EventHandler<DataLoadEventArgs> OnBeforeDataLoad;
+    /// <summary>
+    /// Called after the game data is loaded, such as xml assets.
+    /// </summary>
+    event EventHandler<DataLoadEventArgs> OnAfterDataLoad;
+    /// <summary>
+    /// Called after quiting a level within a session.
+    /// </summary>
+    event EventHandler<SessionQuitEventArgs> OnSessionQuit;
+    /// <summary>
+    /// Called after creating level sets before it being rendered. Usually used for modifying and filtering level sets.
+    /// </summary>
+    event EventHandler<LevelSetsCreatedEventArgs> OnLevelSetsCreated;
 }

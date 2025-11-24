@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Monocle;
 using TowerFall;
-using TowerFall.Patching;
 
 namespace FortRise;
 
@@ -43,6 +42,7 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         textContainer.Add(towerFallButton);
 
         var sets = CreateLevelSets();
+        ModEventsManager.Instance.OnLevelSetsCreated.Raise(this, new(Map, Mode, sets));
 
         int startIndex = 0;
         for (int i = 0; i < sets.Count; i++) 
@@ -85,6 +85,7 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
             _ => throw new NotImplementedException()
         };
 
+        // clone the list, so the original will not be modified
         return [..sets];
     }
 
