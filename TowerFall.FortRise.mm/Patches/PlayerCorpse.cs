@@ -89,6 +89,8 @@ public class patch_PlayerCorpse : PlayerCorpse
             hair.DuckingOffset = hairData.DuckingOffset;
             hair.Offset = hairData.Offset;
             hair.OutlineColor = hairData.OutlineColor;
+
+            hair.ChangeHairTexture(hairData.Texture?.Subtexture, hairData.TextureEnd?.Subtexture);
         }
     }
 

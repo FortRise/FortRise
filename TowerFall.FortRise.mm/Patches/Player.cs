@@ -37,6 +37,8 @@ namespace TowerFall
             hair.DuckingOffset = hairData.DuckingOffset;
             hair.Offset = hairData.Offset;
             hair.OutlineColor = hairData.OutlineColor;
+
+            hair.ChangeHairTexture(hairData.Texture?.Subtexture, hairData.TextureEnd?.Subtexture);
         }
 
         [MonoModIgnore]

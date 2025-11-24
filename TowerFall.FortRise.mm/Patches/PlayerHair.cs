@@ -65,6 +65,24 @@ public class patch_PlayerHair : PlayerHair
         OutlineColor = Color.Black;
     }
 
+#nullable enable
+    public void ChangeHairTexture(Subtexture? hair, Subtexture? hairEnd)
+    {
+        if (hair is not null)
+        {
+            for (int i = 0; i < links - 1; i++)
+            {
+                images[i] = hair;
+            }
+        }
+
+        if (hairEnd is not null)
+        {
+            images[links - 1] = hairEnd;
+        }
+    }
+#nullable disable
+
     [MonoModReplace]
     public override void Render()
     {

@@ -170,8 +170,22 @@ internal static class ArcherLoader
                 offset.Y = hairElm["DuckingOffset"].AttrInt("y");
             }
 
+            ISubtextureEntry? texture = null;
+            if (hairElm.HasChild("Texture"))
+            {
+                texture = content.LoadTexture(registry, hairElm.ChildText("Texture").Trim(), SubtextureAtlasDestination.Atlas);
+            }
+
+            ISubtextureEntry? textureEnd = null;
+            if (hairElm.HasChild("TextureEnd"))
+            {
+                textureEnd = content.LoadTexture(registry, hairElm.ChildText("TextureEnd").Trim(), SubtextureAtlasDestination.Atlas);
+            }
+
             hairInfo = new HairInfo()
             {
+                Texture = texture,
+                TextureEnd = textureEnd,
                 Offset = offset,
                 DuckingOffset = duckingOffset,
                 Color = hairElm.ChildHexColor("Color", Color.White),
