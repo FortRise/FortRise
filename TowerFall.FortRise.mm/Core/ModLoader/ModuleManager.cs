@@ -35,6 +35,10 @@ internal class ModuleManager
     /// Contains a read-only access to all of the Mods' metadata and resource.
     /// </summary>
     public ReadOnlyCollection<IModResource> Mods => InternalMods.AsReadOnly();
+
+    public IReadOnlyDictionary<RegistryBatchType, List<RegistryQueue>> RegistryBatches => registryBatch;
+
+    public static ModuleManager Instance { get; private set; }
     internal List<Mod> InternalFortModules = [];
     internal List<IModResource> InternalMods = [];
 
@@ -49,7 +53,7 @@ internal class ModuleManager
     internal HashSet<string> CantLoad = [];
     internal Dictionary<string, Subtexture> NameToIcon = [];
 
-    private readonly List<RegistryQueue> registryBatch = [];
+    private readonly Dictionary<RegistryBatchType, List<RegistryQueue>> registryBatch = [];
     private readonly Dictionary<string, IModRegistry> registries = [];
     private readonly IProxyManager<string> proxyManager;
 
@@ -63,6 +67,7 @@ internal class ModuleManager
 
     internal ModuleManager(ILogger logger, ILoggerFactory factory)
     {
+        Instance = this;
         flags = new ModFlags(RiseCore.IsWindows, RiseCore.IsSteam);
         environment = new ModEnvironment(
             RiseCore.FortRiseVersion,
@@ -433,7 +438,7 @@ internal class ModuleManager
     {
         State = LoadState.Initialize;
 
-        foreach (var batch in registryBatch)
+        foreach (var batch in registryBatch[RegistryBatchType.Initialization])
         {
             batch.Invoke();
         }
@@ -610,8 +615,22 @@ internal class ModuleManager
     internal RegistryQueue<T> CreateQueue<T>(Action<T> invoker)
     where T : class
     {
+        return CreateQueue(invoker, RegistryBatchType.Initialization);
+    }
+
+    internal RegistryQueue<T> CreateQueue<T>(Action<T> invoker, RegistryBatchType batchType)
+    where T : class
+    {
+        ref var col = ref CollectionsMarshal.GetValueRefOrAddDefault(registryBatch, batchType, out bool exists);
+
+        if (!exists)
+        {
+            col = [];
+        }
+
         var registryQueue = new RegistryQueue<T>(this, invoker);
-        registryBatch.Add(registryQueue);
+        col.Add(registryQueue);
+
         return registryQueue;
     }
 

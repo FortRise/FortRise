@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace FortRise;
 
+internal enum RegistryBatchType
+{
+    PreloadedContent,
+    Initialization
+}
+
 internal abstract class RegistryQueue 
 {
     internal abstract void Invoke();

@@ -59,7 +59,7 @@ internal sealed class ModSubtextures : IModSubtextures
     internal ModSubtextures(ModuleMetadata metadata, ModuleManager manager, ILogger logger)
     {
         this.metadata = metadata;
-        subtexturesQueue = manager.CreateQueue<ISubtextureEntry>(Invoke);
+        subtexturesQueue = manager.CreateQueue<ISubtextureEntry>(Invoke, RegistryBatchType.PreloadedContent);
         this.logger = logger;
     }
 

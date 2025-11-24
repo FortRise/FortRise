@@ -28,6 +28,9 @@ namespace TowerFall
     {
         [DllImport("libc", SetLastError = true)]
         public static extern int mprotect(IntPtr ptr, nuint len, int prot);
+
+        [DllImport("libc", SetLastError = true)]
+        public static extern nuint getpagesize();
     }
 
     public partial class patch_TFGame : TFGame
@@ -99,7 +102,7 @@ namespace TowerFall
             }
             RiseCore.ParseArgs(args);
             
-            TFGame.WriteLineToLoadLog("Initializing Steam...");
+            WriteLineToLoadLog("Initializing Steam...");
             if (!TryInit())
             {
                 return;
@@ -110,16 +113,18 @@ namespace TowerFall
             {
                 const int PROT_READ = 1, PROT_WRITE = 2, PROT_EXEC = 4;
 
+                nuint pageSize = NativeMethods.getpagesize();
+
                 //Allocate a bit of memory on the heap
-                IntPtr heapAlloc = Marshal.AllocHGlobal(123);
-                IntPtr heapPage = new IntPtr(heapAlloc.ToInt64() & ~0xfff);
+                var heapAlloc = Marshal.AllocHGlobal(123);
+                var heapPage = heapAlloc & ~(nint)(pageSize - 1);
 
                 //Try to make it executable
-                if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
+                if (NativeMethods.mprotect(heapPage, pageSize, PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
                     throw new Win32Exception(Marshal.GetLastWin32Error(), "SELinux execheap probe failed! Please ensure FortRise has this permission, then try again");
 
                 //Cleanup
-                if (NativeMethods.mprotect(heapPage, 0x1000, PROT_READ | PROT_WRITE) < 0)
+                if (NativeMethods.mprotect(heapPage, pageSize, PROT_READ | PROT_WRITE) < 0)
                     throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to revert memory permissions after SELinux execheap probe");
 
                 Marshal.FreeHGlobal(heapAlloc);
@@ -229,7 +234,6 @@ namespace TowerFall
 
         protected override void LoadContent()
         {
-
             orig_LoadContent();
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
 
@@ -241,6 +245,11 @@ namespace TowerFall
             );
 
             RiseCore.ModuleManager.NameToIcon["FortRise"] = FortRiseModule.FortRiseIcon;
+
+            foreach (var batch in ModuleManager.Instance.RegistryBatches[RegistryBatchType.PreloadedContent])
+            {
+                batch.Invoke();
+            }
         }
 
         protected extern void orig_Initialize();
