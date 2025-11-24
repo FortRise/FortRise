@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -25,7 +26,8 @@ public partial class RiseCore
                     using (var client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
-                        json = await client.GetStringAsync(urlMod);
+                        var j = await client.GetStringAsync(urlMod);
+                        json = j;
                     }
 
                     var updateInfos = JsonSerializer.Deserialize<UpdateInfo[][]>(json);
@@ -48,11 +50,11 @@ public partial class RiseCore
 
                     if (version > metadata.Version)
                     {
-                        Logger.Warning($"Update {metadata.Name} {metadata.Version} -> {metadata.Name} {metadata.Version}");
+                        Logger.Warning($"Update {metadata.Name} {metadata.Version} -> {metadata.Name} {version}");
                         HasUpdates.Add(metadata);
                         MetadataGBUpdates.Add(metadata);
                     }
-                    
+
                     return true;
                 }
                 catch (Exception ex)
@@ -90,7 +92,16 @@ public partial class RiseCore
                         data = await client.GetByteArrayAsync(firstAsset.Value.DownloadURL);
                     }
 
-                    if (!UpdateChecks.ValidateReleaseByte(data, out SemanticVersion version))
+                    var downloadedChecksum = Convert.FromHexString(firstAsset.Value.MD5Checksum);
+
+                    var hashedBytes = MD5.HashData(data);
+
+                    if (!downloadedChecksum.SequenceEqual(hashedBytes))
+                    {
+                        return "Checksum is not valid";
+                    }
+
+                    if (!ValidateReleaseByte(data, out SemanticVersion version))
                     {
                         return "Latest Update file does not have a valid mod metadata.";
                     }
@@ -122,6 +133,8 @@ public partial class RiseCore
             {
                 [JsonPropertyName("_sDownloadUrl")]
                 public string DownloadURL { get; set; }
+                [JsonPropertyName("_sMd5Checksum")]
+                public string MD5Checksum { get; set; }
             }
         }
     }
