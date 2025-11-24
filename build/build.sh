@@ -93,7 +93,9 @@ mkdir artifacts/FortRise.app/Contents/MacOS
 cd "artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise"
 cp -r ./* ../../FortRise.app/Contents/MacOS
 cd "$MAIN"
-zip -r "FortRise.v$FR_VERSION-osx-x64.zip" -i "FortRise.app"
+
+cd "artifacts/"
+zip -r "FortRise.v$FR_VERSION-osx-x64.zip" "FortRise.app"
 cd "$MAIN"
 
 echo "Cleaning up"
