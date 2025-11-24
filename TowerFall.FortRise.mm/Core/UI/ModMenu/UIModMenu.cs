@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
@@ -23,30 +24,6 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
         //toggleMods.OnConfirmed = () => Main.State = ModRegisters.MenuState<UIModToggler>();
         //toggleMods.DownItem = container;
         //Main.Add(toggleMods);
-        //container.UpItem = toggleMods;
-        //container.OnConfirmed = (meta) => 
-        //{
-        //    var fortModule = RiseCore.ModuleManager.InternalFortModules
-        //        .Where(x => x.Meta is not null)
-        //        .Where(x => x.Meta.ToString() == meta.ToString())
-        //        .FirstOrDefault();
-        //    if (fortModule == null)
-        //    {
-                //Sounds.ui_invalid.Play(160f, 1f);
-        //        return;
-        //    }
-        //    if (fortModule.GetSettings() == null && !RiseCore.UpdateChecks.HasUpdates.Contains(fortModule.Meta))
-        //    {
-        //        Sounds.ui_invalid.Play(160f, 1f);
-        //        return;
-        //    }
-        //
-        //    lastIndex = container.ScrollYIndex;
-        //
-        //    (Main as patch_MainMenu).CurrentModule = fortModule;
-        //    Main.CanAct = true;
-        //    Main.State = ModRegisters.MenuState<UIModOptions>();
-        //};
 
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
@@ -99,6 +76,45 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
                 if (item.Metadata.Update is not null)
                 {
+                    if (RiseCore.UpdateChecks.HasUpdates.Contains(item.Metadata))
+                    {
+                        panel.HasUpdate = true;
+                        modal.AddItem("UPDATE", () =>
+                        {
+                            UILoader loader = new UILoader();
+                            loader.LayerIndex = 0;
+                            Main.Add(loader);
+
+                            Task.Run(async () => {
+                                var res = await RiseCore.UpdateChecks.DownloadUpdate(item.Metadata);
+                                loader.Finish();
+
+                                UIModal modal = new UIModal
+                                {
+                                    AutoClose = true
+                                };
+                                modal.LayerIndex = 0;
+                                modal.SetTitle("Update Status");
+
+                                if (!res.Check(out _, out string err))
+                                {
+                                    modal.AddFiller(err);
+                                    modal.AddItem("Ok", () => Close());
+
+                                    Main.Add(modal);
+                                    Logger.Error(err);
+                                    return;
+                                }
+
+                                modal.AddFiller("Restart Required!");
+                                modal.AddItem("Ok", () => Close());
+                                Main.Add(modal);
+                                RiseCore.UpdateChecks.HasUpdates.Remove(item.Metadata);
+                                panel.HasUpdate = false;
+                            });
+                        });
+                    }
+
                     if (item.Metadata.Update.GH is not null)
                     {
                         modal.AddItem("VISIT GITHUB", () =>

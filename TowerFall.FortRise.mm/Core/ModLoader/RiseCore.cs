@@ -6,7 +6,6 @@ using System.Xml;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
@@ -135,6 +134,14 @@ public static partial class RiseCore
 
             foreach (var info in updaterInfos)
             {
+                if (info.FortRiseRequiredVersion > FortRiseVersion)
+                {
+                    logger.LogError("""
+                    {modName}, {version} has FortRise Version {modFRVersion} which is higher than your current version: {version}.
+                    """, info.ModName, info.UpdateVersion, info.FortRiseRequiredVersion, FortRiseVersion);
+                    continue;
+                }
+
                 logger.LogInformation(
                     "Updating {modName}, {version} -> {modName} {updateVersion}",
                     info.ModName, info.Version, info.ModName, info.UpdateVersion

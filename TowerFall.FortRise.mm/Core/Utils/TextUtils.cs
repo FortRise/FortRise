@@ -30,7 +30,7 @@ public static class TextUtils
             {
                 case RichTextType.Text:
                     Draw.OutlineTextJustify(spriteFont, comp.Data, new Vector2(position.X + xOffset, position.Y), color, Color.Black, justify);
-                    xOffset += (spriteFont.MeasureString(comp.Data).X + 8) * justify.X;
+                    xOffset += spriteFont.MeasureString(comp.Data).X + 8;
                     break;
                 case RichTextType.Image:
                     var texture = TFGame.MenuAtlas[comp.Data];

@@ -74,7 +74,7 @@ public partial class RiseCore
             List<UpdaterInfo> updaterInfo;
             if (!File.Exists(updaterListFile))
             {
-                updaterInfo = new List<UpdaterInfo>();
+                updaterInfo = [];
             }
             else 
             {
@@ -93,7 +93,14 @@ public partial class RiseCore
                 path = metadata.PathDirectory;
             }
 
-            updaterInfo.Add(new UpdaterInfo(metadata.Name, metadata.Version, updateVersion, path, updatePath, metadata.IsZipped));
+            var fortrise = metadata.GetFortRiseMetadata();
+
+            if (fortrise is null)
+            {
+                throw new Exception($"Invalid mod: {metadata.Name} found on update list.");
+            }
+
+            updaterInfo.Add(new UpdaterInfo(metadata.Name, metadata.Version, fortrise.Version, updateVersion, path, updatePath, metadata.IsZipped));
 
             string json = JsonSerializer.Serialize(updaterInfo, UpdaterInfoOptions);
             File.WriteAllText(updaterListFile, json);
@@ -219,11 +226,20 @@ public partial class RiseCore
             return url[(index + 1)..];
         }
 
-        public struct UpdaterInfo(string modName, SemanticVersion version, SemanticVersion updateVersion, string modPath, string updateModPath, bool isZipped)
+        public struct UpdaterInfo(
+            string modName, 
+            SemanticVersion version, 
+            SemanticVersion updateVersion, 
+            SemanticVersion fortriseVersion,
+            string modPath, 
+            string updateModPath, 
+            bool isZipped
+        )
         {
             public string ModName { get; set; } = modName;
             public SemanticVersion Version { get; set; } = version;
             public SemanticVersion UpdateVersion { get; set; } = updateVersion;
+            public SemanticVersion FortRiseRequiredVersion { get; set; } = fortriseVersion;
             public string ModPath { get; set; } = modPath;
             public string UpdateModPath { get; set; } = updateModPath;
             public bool IsZipped { get; set; } = isZipped;

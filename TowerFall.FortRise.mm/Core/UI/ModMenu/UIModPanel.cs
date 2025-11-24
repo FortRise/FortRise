@@ -13,6 +13,7 @@ internal class UIModPanel : MenuItem
     private ModItem modItem;
 
     public Action<ModItem> OnConfirmed;
+    public bool HasUpdate;
 
     public UIModPanel(ModItem modItem, Vector2 position, Vector2 tweenFrom) : base(position)
     {
@@ -70,7 +71,15 @@ internal class UIModPanel : MenuItem
         }
 
         Draw.TextureJustify(modItem.Icon, new Vector2(Position.X, Position.Y), Vector2.Zero);
-        Draw.TextJustify(TFGame.Font, modItem.Name, Position + Vector2.UnitX * 20, Color.White, Vector2.Zero);
+
+        if (HasUpdate)
+        {
+            TextUtils.DrawOutlinedIconText(TFGame.Font, modItem.Name + " <t=variants/newVariantsTagSmall>", Position + Vector2.UnitX * 20, Color.White, Vector2.Zero);
+        }
+        else
+        {
+            TextUtils.DrawOutlinedIconText(TFGame.Font, modItem.Name, Position + Vector2.UnitX * 20, Color.White, Vector2.Zero);
+        }
         Draw.TextJustify(TFGame.Font, modItem.Version, Position + new Vector2(20, 10), Color.DarkGray, Vector2.Zero);
     }
 
