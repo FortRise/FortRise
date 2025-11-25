@@ -36,7 +36,7 @@ public class patch_TowerTheme : TowerTheme
     public void ctor(XmlElement xml, IResourceInfo mod) 
     {
         Name = xml.ChildText("Name").ToUpperInvariant();
-        ID = mod.Root.Substring(4) + xml.Attr("id", Name);
+        ID = string.Concat(mod.Root.AsSpan(4), xml.Attr("id", Name));
 
         var icon = xml.ChildText("Icon", "sacredGround");
 
