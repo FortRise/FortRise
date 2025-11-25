@@ -7,6 +7,8 @@ internal static class MusicRegistry
 {
     private static Dictionary<string, IMusicEntry> musicEntries = [];
 
+    public static IReadOnlyCollection<IMusicEntry> MusicEntries => musicEntries.Values;
+
     public static void AddMusic(IMusicEntry entry)
     {
         musicEntries[entry.Name] = entry;

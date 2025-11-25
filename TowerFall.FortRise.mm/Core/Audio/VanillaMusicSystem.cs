@@ -27,8 +27,8 @@ public class VanillaMusicSystem : IMusicSystem
     
     public VanillaMusicSystem()
     {
-        soundBank = MusicExt.GetSoundBank();
-        audioCategory = MusicExt.GetAudioCategory();
+        soundBank = Music.SoundBank;
+        audioCategory = Music.AudioCategory;
     }
 
     public void Pause()
@@ -38,7 +38,7 @@ public class VanillaMusicSystem : IMusicSystem
 
     public void Play(string name, bool looping) // looping depends on FACT itself
     {
-        if (MusicExt.GetAudioEngine() == null)
+        if (Music.AudioEngine == null)
         {
             return;
         }
@@ -59,8 +59,10 @@ public class VanillaMusicSystem : IMusicSystem
 
     public void Stop(AudioStopOptions options)
     {
-        if (MusicExt.GetAudioEngine() == null)
+        if (Music.AudioEngine == null)
+        {
             return;
+        }
         audioCategory.Stop(options);
     }
 

@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using Monocle;
 using TowerFall;
@@ -10,6 +11,12 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
 {
     public bool OldIntroLogo { get; set; }
     public List<BlacklistArcher> BlacklistedArcher { get; set; } = [];
+    public bool MusicMenuShowVanillaMusic { get; set; } = true;
+    public bool MusicMenuShowModdedMusic { get; set; } = true;
+
+    public string? MusicEnableMainMenu { get; set; } = null;
+    public string? MusicEnableArchives { get; set; } = null;
+
 
     public override void Create(ISettingsCreate settings)
     {
@@ -19,6 +26,11 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
             settings.CreateButton("TOGGLE ARCHERS", () =>
             {
                 menu.State = ModRegisters.MenuState<UIArcherBlacklist>();
+            });
+
+            settings.CreateButton("MUSIC LIST", () =>
+            {
+                menu.State = ModRegisters.MenuState<UIMusicList>();
             });
         }
     }

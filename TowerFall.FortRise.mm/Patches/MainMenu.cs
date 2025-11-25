@@ -154,7 +154,10 @@ namespace TowerFall
         [MonoModReplace]
         private void InitOptions(List<OptionsButton> buttons)
         {
-            InitModOptions(buttons);
+            if (State != MenuState.ControlOptions)
+            {
+                InitModOptions(buttons);
+            }
 
             int num = 0;
             int extraSpacing = 0;
@@ -378,6 +381,109 @@ namespace TowerFall
                 Draw.Texture(TFGame.MenuAtlas["variants/newVariantsTag"], new Vector2(20, (MainMenu.NoQuit ? 208 : 192) - 28), Color.White);
 
                 Draw.SpriteBatch.End();
+            }
+        }
+
+        [MonoModReplace]
+        public void CreateArchives()
+        {
+            var archivesController = new ArchivesController();
+            var archivesStatsPage = new ArchivesStatsPage();
+            var archivesSessionPage = new ArchivesSessionPage();
+            var archivesDeathsPage = new ArchivesDeathsPage();
+            var archivesAwardsPage = new ArchivesAwardsPage();
+            var archivesQuestPage = new ArchivesQuestPage();
+            var archivesDarkWorldPage = new ArchivesDarkWorldPage();
+            var archivesTrialsPage = new ArchivesTrialsPage();
+            var archivesTipsPage = new ArchivesTipsPage();
+            var archivesAscensionPage = new ArchivesAscensionPage();
+            var archivesGlobalStatsPage = new ArchivesGlobalStatsPage();
+
+            archivesController.SetPages([
+                archivesStatsPage, archivesSessionPage, archivesDeathsPage, archivesAwardsPage, 
+                archivesQuestPage, archivesDarkWorldPage, archivesTrialsPage, archivesGlobalStatsPage, 
+                archivesTipsPage, archivesAscensionPage]);
+
+            MenuItem[] items = [
+                archivesController, archivesStatsPage, archivesSessionPage, archivesDeathsPage, 
+                archivesAwardsPage, archivesGlobalStatsPage, archivesQuestPage, archivesDarkWorldPage, 
+                archivesTrialsPage, archivesTipsPage,
+                archivesAscensionPage
+            ];
+
+            Add(items);
+
+            if (!string.IsNullOrEmpty(FortRiseModule.Settings.MusicEnableArchives))
+            {
+                try
+                {
+                    Music.Play(FortRiseModule.Settings.MusicEnableArchives);
+                }
+                catch {}
+            }
+            else
+            {
+                Music.Play("TheArchives");
+            }
+
+            ToStartSelected = null;
+            BackState = MenuState.Main;
+            TweenBGCameraToY(1);
+        }
+
+        [MonoModReplace]
+        public static void PlayMenuMusic(bool fromArchives = false, bool forceNormal = false)
+        {
+            if (!string.IsNullOrEmpty(FortRiseModule.Settings.MusicEnableMainMenu))
+            {
+                try
+                {
+                    Music.Play(FortRiseModule.Settings.MusicEnableMainMenu);
+                    return;
+                }
+                catch 
+                {
+                    // No-op
+                }
+            }
+
+            if (Music.CurrentSong == "AltTitle" || Music.CurrentSong == "ChipTitle" || Music.CurrentSong == "Title")
+            {
+                return;
+            }
+
+            if (SaveData.Instance.Unlocks.Ascension)
+            {
+                if (forceNormal)
+                {
+                    Music.Play("AltTitle");
+                    wasChipTheme = false;
+                }
+                else if (fromArchives)
+                {
+                    if (wasChipTheme)
+                    {
+                        Music.Play("ChipTitle");
+                    }
+                    else
+                    {
+                        Music.Play("AltTitle");
+                    }
+                }
+                else if (Calc.Random.Chance(0.01f))
+                {
+                    Music.Play("ChipTitle");
+                    wasChipTheme = true;
+                }
+                else
+                {
+                    Music.Play("AltTitle");
+                    wasChipTheme = false;
+                }
+            }
+            else
+            {
+                Music.Play("Title");
             }
         }
     }

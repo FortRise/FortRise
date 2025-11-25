@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using FortRise;
@@ -189,18 +190,20 @@ public static class patch_Music
 
 public static class MusicExt 
 {
-    public static AudioEngine GetAudioEngine() 
+    extension(Music)
     {
-        return patch_Music.InternalAccessAudioEngine();
+        public static AudioEngine AudioEngine => patch_Music.InternalAccessAudioEngine();
+        public static SoundBank SoundBank => patch_Music.InternalAccessSoundBank();
+        public static AudioCategory AudioCategory => patch_Music.InternalAccessAudioCategory();
     }
 
-    public static SoundBank GetSoundBank() 
-    {
-        return patch_Music.InternalAccessSoundBank();
-    }
+    [Obsolete("Use Music.AudioEngine property instead")]
+    public static AudioEngine GetAudioEngine() => Music.AudioEngine;
 
-    public static AudioCategory GetAudioCategory() 
-    {
-        return patch_Music.InternalAccessAudioCategory(); 
-    }
+    [Obsolete("Use Music.SoundBank property instead")]
+    public static SoundBank GetSoundBank() => Music.SoundBank;
+
+    [Obsolete("Use Music.AudioCategory property instead")]
+    public static AudioCategory GetAudioCategory() => Music.AudioCategory;
+    
 }
