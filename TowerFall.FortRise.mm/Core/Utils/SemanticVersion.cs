@@ -1,4 +1,5 @@
 // Referenced to: https://github.com/Shockah/Nickel/blob/0e8c138e44fb5e9d854d50889aef005ed2d2c53c/NickelCommon/SemanticVersion.cs
+#nullable enable
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,11 +11,11 @@ public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparabl
     public int Major { get; init; }
     public int Minor { get; init; }
     public int Patch { get; init; }
-    public string Prerelease { get; init; }
+    public string? Prerelease { get; init; }
 
     public static readonly SemanticVersion Empty = new SemanticVersion(0, 0, 0, null);
 
-    public SemanticVersion(int major = 1, int minor = 0, int patch = 0, string prerelease = null)
+    public SemanticVersion(int major = 1, int minor = 0, int patch = 0, string? prerelease = null)
     {
         Major = major;
         Minor = minor;
@@ -44,7 +45,7 @@ public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparabl
     {
         version = default;
         int patch = 0;
-        string prerelease = null;
+        string? prerelease = null;
 
         versionString = versionString.Trim();
         if (versionString.IsEmpty)
@@ -112,7 +113,7 @@ public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparabl
         return true;
     }
 
-	private static bool TryParseTag(ReadOnlySpan<char> span, ref int index, out string tag)
+	private static bool TryParseTag(ReadOnlySpan<char> span, ref int index, out string? tag)
 	{
 		var length = 0;
 		for (var i = index; i < span.Length && (char.IsLetterOrDigit(span[i]) || span[i] == '-' || span[i] == '.'); i++)
@@ -213,10 +214,10 @@ public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparabl
 
     public override int GetHashCode()
     {
-        return (Major, Minor, Patch, Prerelease).GetHashCode();
+        return HashCode.Combine(Major, Minor, Patch, Prerelease);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SemanticVersion version && Equals(version);
     }

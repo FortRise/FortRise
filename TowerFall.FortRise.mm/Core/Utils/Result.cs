@@ -8,8 +8,8 @@ public struct Result<T, U>
     public T Value { get; private set; }
     public U ErrorValue { get; private set; }
 
-    public bool IsError => ResponseType == Response.Error;
-    public bool IsOk => ResponseType == Response.Ok;
+    public readonly bool IsError => ResponseType == Response.Error;
+    public readonly bool IsOk => ResponseType == Response.Ok;
 
     public Response ResponseType;
 
@@ -22,7 +22,7 @@ public struct Result<T, U>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Check(out T ok, out U error)
+    public readonly bool Check(out T ok, out U error)
     {
         ok = Value;
         error = ErrorValue;
