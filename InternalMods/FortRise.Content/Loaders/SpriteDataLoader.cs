@@ -124,7 +124,7 @@ internal static class SpriteDataLoader
                                 new()
                                 {
                                     ID = (T)(object)animElm.AttrInt("id"),
-                                    Loop = animElm.AttrBool("loop", false),
+                                    Loop = animElm.AttrBool("loop", true),
                                     Delay = animElm.AttrFloat("delay", 0),
                                     Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
                                 }
@@ -136,7 +136,7 @@ internal static class SpriteDataLoader
                                 new()
                                 {
                                     ID = (T)(object)animElm.Attr("id"),
-                                    Loop = animElm.AttrBool("loop", false),
+                                    Loop = animElm.AttrBool("loop", true),
                                     Delay = animElm.AttrFloat("delay", 0),
                                     Frames = Calc.ReadCSVInt(animElm.Attr("frames"))
                                 }

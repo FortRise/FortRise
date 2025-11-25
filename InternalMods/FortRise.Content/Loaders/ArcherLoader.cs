@@ -272,8 +272,8 @@ internal static class ArcherLoader
         if (element.HasChild("Statue"))
         {
             var statue = element["Statue"];
-            var statueImage = content.LoadTexture(registry, statue.ChildText("Image").Trim(), SubtextureAtlasDestination.MenuAtlas);
-            var statueGlow = content.LoadTexture(registry, statue.ChildText("Glow").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var statueImage = content.LoadTexture(registry, statue.ChildText("Image").Trim(), SubtextureAtlasDestination.Atlas);
+            var statueGlow = content.LoadTexture(registry, statue.ChildText("Glow").Trim(), SubtextureAtlasDestination.Atlas);
 
             statueInfo = new()
             {
@@ -358,6 +358,7 @@ internal static class ArcherLoader
         {
             spriteInfo = original.Sprites;
         }
+
 
         string victoryMusic;
 
