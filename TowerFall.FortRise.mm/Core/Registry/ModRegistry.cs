@@ -18,7 +18,7 @@ internal class ModRegistry : IModRegistry
     public IModEnemies Enemies { get; }
     public IModLevelEntities LevelEntities { get; }
     public IModGameModes GameModes { get; }
-    public IModBackdrops Backdrops { get; }
+    public IModBGElements BGElements { get; }
     public IModBackgrounds Backgrounds { get; }
     public IModMenuStates MenuStates { get; }
     public IModDarkWorldBosses DarkWorldBosses { get; }
@@ -52,7 +52,7 @@ internal class ModRegistry : IModRegistry
         Enemies = new ModEnemies(metadata, manager);
         LevelEntities = new ModLevelEntities(metadata, manager);
         GameModes = new ModGameModes(metadata, manager);
-        Backdrops = new ModBackdrops(metadata, manager);
+        BGElements = new ModBGElements(metadata, manager);
         Backgrounds = new ModBackgrounds(metadata, manager);
         MenuStates = new ModMenuStates(metadata, manager);
 

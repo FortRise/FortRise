@@ -127,7 +127,7 @@ public class patch_Background : Background
                     elements.Add(new patch_Background.CustomWavyLayer(level, xmlElement));
                     break;
                 default:
-                    if (BackdropRegistry.BGElements.TryGetValue(name, out var loader))
+                    if (BGElementsRegistry.BGElements.TryGetValue(name, out var loader))
                     {
                         elements.Add(loader(level, xmlElement));
                     }

@@ -5,27 +5,27 @@ using TowerFall;
 
 namespace FortRise;
 
-public static class BackdropRegistry 
+public static class BGElementsRegistry 
 {
     public delegate Background.BGElement BGElementLoader(Level level, XmlElement xmlElement);
 
-    private static Dictionary<string, IBackdropEntry> backdropEntries = [];
+    private static Dictionary<string, IBGElementEntry> backdropEntries = [];
     public static Dictionary<string, BGElementLoader> BGElements = new Dictionary<string, BGElementLoader>();
 
-    public static void AddBackdrop(IBackdropEntry backdropEntry)
+    public static void AddBGElement(IBGElementEntry backdropEntry)
     {
         backdropEntries[backdropEntry.Name] = backdropEntry;
     }
 
 #nullable enable
-    public static IBackdropEntry? GetBackdrop(string id)
+    public static IBGElementEntry? GetBGElement(string id)
     {
         backdropEntries.TryGetValue(id, out var entry);
         return entry;
     }
 #nullable disable
 
-    public static void Register(string name, BackdropConfiguration configuration)
+    public static void Register(string name, BGElementConfiguration configuration)
     {
         ConstructorInfo ctor = configuration.BackdropType.GetConstructor([typeof(Level), typeof(XmlElement)]);
 

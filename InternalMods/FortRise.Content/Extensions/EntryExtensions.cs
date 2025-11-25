@@ -35,7 +35,7 @@ public static class EntryExtensions
         public string AttrWithRelative(string childName) => ResolveID(xml.Attr(childName));
     }
 
-    private static string ResolveID(string id)
+    public static string ResolveID(string id)
     {
         if (!string.IsNullOrEmpty(id) && id.StartsWith('@'))
         {

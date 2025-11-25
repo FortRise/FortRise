@@ -59,10 +59,10 @@ public class patch_TowerTheme : TowerTheme
         World = xml.ChildEnum("World", TowerTheme.Worlds.Normal);
         Raining = xml.ChildBool("Raining", false);
         BackgroundID = xml.ChildText("Background", "SacredGround");
-        if (GameData.BGs.ContainsKey(BackgroundID)) 
+        if (GameData.BGs.TryGetValue(BackgroundID, out XmlElement value)) 
         {
-            BackgroundData = GameData.BGs[this.BackgroundID]["Background"];
-            ForegroundData = GameData.BGs[this.BackgroundID]["Foreground"];
+            BackgroundData = value["Background"];
+            ForegroundData = value["Foreground"];
         }
 
         DrillParticleColor = xml.ChildHexColor("DrillParticleColor", Color.Red);

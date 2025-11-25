@@ -16,7 +16,8 @@ public interface IModRegistry
     IModEnemies Enemies { get; }
     IModLevelEntities LevelEntities { get; }
     IModGameModes GameModes { get; }
-    IModBackdrops Backdrops { get; }
+    IModBGElements BGElements { get; }
+    IModBackgrounds Backgrounds { get; }
     IModMenuStates MenuStates { get; }
     IModDarkWorldBosses DarkWorldBosses { get; }
 

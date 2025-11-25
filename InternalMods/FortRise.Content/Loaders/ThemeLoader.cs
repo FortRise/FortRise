@@ -127,7 +127,7 @@ internal static class ThemeLoader
             Lanterns = xmlTheme.ChildEnum("Lanterns", TowerTheme.LanternTypes.CathedralTorch),
             World = xmlTheme.ChildEnum("World", TowerTheme.Worlds.Normal),
             Raining = xmlTheme.ChildBool("Raining", false),
-            BackgroundID = xmlTheme.ChildText("Background"),
+            BackgroundID = xmlTheme.ChildTextWithRelative("Background", "SacredGround"),
             DrillParticleColor = xmlTheme.ChildHexColor("DrillParticleColor", Color.Red),
             Cold = xmlTheme.ChildBool("Cold", false),
             CrackedBlockColor = xmlTheme.ChildHexColor("CrackedBlockColor", "4EB1E9"),

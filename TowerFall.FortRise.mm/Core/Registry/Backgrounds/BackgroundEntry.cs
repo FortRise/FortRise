@@ -79,7 +79,7 @@ internal sealed class BackgroundEntry : IBackgroundEntry
                 childElm.InnerText = layer.SingleChildren;
             }
 
-            element.AppendChild(element);
+            element.AppendChild(childElm);
         }
     }
 }
