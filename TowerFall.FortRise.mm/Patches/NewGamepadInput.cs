@@ -1,11 +1,10 @@
-using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
 
 namespace TowerFall;
 
 // these are just stubs, don't touch it!
-[MonoModIfFlag("OS:NotWindows")]
+[MonoModRemove]
 public class NewGamepadInput : PlayerInput
 {
     public NewGamepadInput()

@@ -31,6 +31,11 @@ public sealed class FortRiseMonoModder : MonoModder
 
     public override void PatchRefsInMethod(MethodDefinition method)
     {
+        if (method.FullName.Contains("NewGamepadInput"))
+        {
+            // please, stop
+            return;
+        }
         base.PatchRefsInMethod(method);
         // Inlining can cause problems on modding, so we need to make sure that it won't inline in some cases
         if (!method.FullName.Contains("FortRise")
