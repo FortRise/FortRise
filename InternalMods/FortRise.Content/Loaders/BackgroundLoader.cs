@@ -99,12 +99,11 @@ internal static class BackgroundLoader
                         // we need to guess
                         singleChildren = elm.InnerText;
 
-                        if (content.Root.TryGetRelativePath(singleChildren, out var res))
+                        try
                         {
-                            // try to load that texture
-                            singleChildren = content.LoadTexture(registry, res.Path, SubtextureAtlasDestination.BGAtlas).ID;
+                            singleChildren = content.LoadTexture(registry, singleChildren, SubtextureAtlasDestination.BGAtlas).ID;
                         }
-                        else
+                        catch (TextureNotFoundException)
                         {
                             // if that does not work, maybe its a sprite? (its usually int)
                             var sprite = registry.Sprites.GetBGSpriteEntry<int>(EntryExtensions.ResolveID(singleChildren));
@@ -113,7 +112,6 @@ internal static class BackgroundLoader
                             {
                                 singleChildren = sprite.GetCastEntry<int>().ID;
                             }
-                            // just keep it as is if all does not work
                         }
                     }
                     else
