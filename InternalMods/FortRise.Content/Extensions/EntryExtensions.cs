@@ -14,6 +14,7 @@ public static class EntryExtensions
     extension(IModSprites sprite)
     {
         public ISpriteContainerEntry? GetSpriteEntryWithRelative<T>(string id) => sprite.GetSpriteEntry<T>(ResolveID(id))!;
+        public IBGSpriteContainerEntry? GetBGSpriteEntryWithRelative<T>(string id) => sprite.GetBGSpriteEntry<T>(ResolveID(id))!;
         public IMenuSpriteContainerEntry? GetMenuSpriteEntryWithRelative<T>(string id) => sprite.GetMenuSpriteEntry<T>(ResolveID(id))!;
         public ICorpseSpriteContainerEntry? GetCorpseSpriteEntryWithRelative<T>(string id) => sprite.GetCorpseSpriteEntry<T>(ResolveID(id))!;
     }

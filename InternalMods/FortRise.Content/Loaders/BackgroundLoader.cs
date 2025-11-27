@@ -106,7 +106,7 @@ internal static class BackgroundLoader
                         catch (TextureNotFoundException)
                         {
                             // if that does not work, maybe its a sprite? (its usually int)
-                            var sprite = registry.Sprites.GetBGSpriteEntry<int>(EntryExtensions.ResolveID(singleChildren));
+                            var sprite = registry.Sprites.GetBGSpriteEntryWithRelative<int>(singleChildren);
 
                             if (sprite is not null)
                             {
