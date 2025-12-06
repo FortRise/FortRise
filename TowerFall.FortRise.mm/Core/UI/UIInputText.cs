@@ -19,7 +19,7 @@ public class UIInputText : MenuItem
         this.backItem = backItem;
         this.finished = finished;
         value = initialValue;
-        renderValue = initialValue.ToUpperInvariant();
+        renderValue = initialValue?.ToUpperInvariant() ?? "";
     }
 
     public override void Added()

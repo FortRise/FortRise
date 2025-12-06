@@ -70,11 +70,6 @@ internal class UIModListPanel : MenuItem
         DrawRectText("INSTALLED", 0);
         DrawRectText("BROWSE", 60);
 
-        float y = TFGame.Font.MeasureString("Y").Y;
-
-        Draw.HollowRect(justifyWorld.X + 20 - 4, justifyWorld.Y + 40 - 4, 280, y + 8, Color.White);
-        Draw.TextJustify(TFGame.Font, "SEARCH", justifyWorld + new Vector2(20, 40), Color.DarkGray, new Vector2(0, 0));
-
         void DrawRectText(string text, int offset)
         {
             Vector2 measuredText = TFGame.Font.MeasureString(text);

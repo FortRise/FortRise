@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,21 +10,11 @@ namespace FortRise;
 
 public class UIModMenu(MainMenu main) : CustomMenuState(main)
 {
+    private List<UIModPanel> cachedPanels;
+
     public override void Create()
     {
         ((patch_MainMenu)Main).FilterModOptions = null;
-        // if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
-        // {
-             //var modButton = new TextContainer.ButtonText("UPDATE FORTRISE");
-        //     modButton.Pressed(RiseCore.UpdateChecks.OpenFortRiseUpdateURL);
-        //     textContainer.Add(modButton);
-        // }
-
-        //ModContainer container = new ModContainer(new Vector2(81, 60));
-        //ButtonBox toggleMods = new ButtonBox(new Rectangle(81, 39, 128, 18), "TOGGLE MODS", new Vector2(81, 260));
-        //toggleMods.OnConfirmed = () => Main.State = ModRegisters.MenuState<UIModToggler>();
-        //toggleMods.DownItem = container;
-        //Main.Add(toggleMods);
 
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
@@ -31,9 +22,92 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
         var modListPanel = new UIModListPanel(new Vector2(160f, 600));
         Main.Add(modListPanel);
 
-        var mods = GetMods();
 
-        int sum = 60;
+        var searchPanel = new UISearchPanel(new Vector2(20, 600), new Vector2(20f, 40f));
+        searchPanel.OnSearched = (x) =>
+        {
+            foreach (var p in cachedPanels)
+            {
+                p.TweenOut();
+            }
+
+            cachedPanels.Clear();
+
+            var panels = InitMods(x.ToLowerInvariant(), out int sum);
+
+            if (panels.Count > 0)
+            {
+                searchPanel.DownItem = panels[0];
+            }
+
+            for (int i = 0; i < panels.Count; i += 1)
+            {
+                var panel = panels[i];
+
+                if (i == 0)
+                {
+                    panel.UpItem = searchPanel;
+                }
+                else
+                {
+                    panel.UpItem = panels[i - 1];
+                }
+
+                if (i + 1 < panels.Count)
+                {
+                    panel.DownItem = panels[i + 1];    
+                }
+            }
+
+            Main.Add(panels);
+            Main.MaxUICameraY = sum;
+
+            cachedPanels = panels;
+        };
+        Main.Add(searchPanel);
+
+        searchPanel.UpItem = modListPanel;
+        modListPanel.DownItem = searchPanel;
+
+        var panels = InitMods("", out int sum);
+
+        if (panels.Count > 0)
+        {
+            searchPanel.DownItem = panels[0];
+        }
+
+        for (int i = 0; i < panels.Count; i += 1)
+        {
+            var panel = panels[i];
+
+            if (i == 0)
+            {
+                panel.UpItem = searchPanel;
+            }
+            else
+            {
+                panel.UpItem = panels[i - 1];
+            }
+
+            if (i + 1 < panels.Count)
+            {
+                panel.DownItem = panels[i + 1];    
+            }
+        }
+
+        Main.Add(panels);
+        Main.MaxUICameraY = sum;
+
+        cachedPanels = panels;
+        ((patch_MainMenu)Main).TweenBGCameraToY(2);
+        ((patch_MainMenu)Main).ToStartSelected = modListPanel;
+    }
+
+    private List<UIModPanel> InitMods(string filter, out int sum)
+    {
+        var mods = GetMods(filter);
+
+        sum = 60;
         List<UIModPanel> panels = [];
 
         foreach (var mod in mods)
@@ -157,40 +231,103 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
             panels.Add(panel);
         }
 
-        if (panels.Count > 0)
-        {
-            modListPanel.DownItem = panels[0];
-        }
-
-        for (int i = 0; i < panels.Count; i += 1)
-        {
-            var panel = panels[i];
-
-            if (i == 0)
-            {
-                panel.UpItem = modListPanel;
-            }
-            else
-            {
-                panel.UpItem = panels[i - 1];
-            }
-
-            if (i + 1 < panels.Count)
-            {
-                panel.DownItem = panels[i + 1];    
-            }
-        }
-
-        Main.Add(panels);
-        Main.MaxUICameraY = sum;
-        ((patch_MainMenu)Main).TweenBGCameraToY(2);
-        ((patch_MainMenu)Main).ToStartSelected = modListPanel;
+        return panels;
     }
-
+    
     public override void Destroy() {}
 
-    private static IReadOnlyList<ModuleMetadata> GetMods() 
+    private static IReadOnlyList<ModuleMetadata> GetMods(string filter = null) 
     {
-        return [.. RiseCore.ModuleManager.InternalModuleMetadatas];
+        if (string.IsNullOrEmpty(filter))
+        {
+            return [.. RiseCore.ModuleManager.InternalModuleMetadatas];
+        }
+
+        var list = new List<ModuleMetadata>();
+
+        var sorted = new List<(double, ModuleMetadata)>();
+
+        foreach (var metadata in RiseCore.ModuleManager.InternalModuleMetadatas)
+        {
+            var name = string.IsNullOrEmpty(metadata.DisplayName) ? metadata.Name : metadata.DisplayName;
+            var loweredName = name.ToLowerInvariant();
+
+            var score = 1.0 - ((double)LevenshteinDistance(loweredName, filter) / Math.Max(loweredName.Length, filter.Length));
+
+            sorted.Add((score, metadata));
+        }
+
+        sorted.Sort((x, y) =>
+        {
+            if (x.Item1 < y.Item1)
+            {
+                return 1;
+            }
+
+            if (x.Item1 > y.Item1)
+            {
+                return -1;
+            }
+
+            return 0;
+        });
+
+        if (sorted.Count == 0)
+        {
+            return [];
+        }
+
+        if (sorted.Count > 1)
+        {
+            var radius = sorted[0].Item1 * 0.5;
+
+            return [..sorted.Where(x => x.Item1 > radius).Select(x => x.Item2)];
+        }
+
+        return [.. sorted.Select(x => x.Item2)];
+    }
+
+    private static int LevenshteinDistance(string target, string search)
+    {
+        if (target == search)
+        {
+            return 0;
+        }
+
+        if (target.Length == 0)
+        {
+            return search.Length;
+        }
+
+        if (search.Length == 0)
+        {
+            return target.Length;
+        }
+
+        int[,] distance = new int[target.Length + 1, search.Length + 1];
+
+        for (int i = 0; i <= target.Length; i += 1)
+        {
+            distance[i, 0] = i;
+        }
+
+        for (int j = 0; j <= search.Length; j += 1)
+        {
+            distance[0, j] = j;
+        }
+
+        for (int i = 1; i <= target.Length; i += 1)
+        {
+            for (int j = 1; j <= search.Length; j += 1)
+            {
+                int cost = (target[i - 1] == search[j - 1]) ? 0 : 1;
+                distance[i, j] = Math.Min(
+                    Math.Min(distance[i - 1, j] + 1, distance[i, j - 1] + 1),
+                    distance[i - 1, j - 1] + cost
+                );
+            }
+        }
+
+        return distance[target.Length, search.Length];
     }
 }
