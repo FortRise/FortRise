@@ -160,7 +160,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
             string val = dynSelf.Get<string>("value");
             int index = selections.IndexOf(val);
             index += 1;
-            if (index > selections.Length)
+            if (index >= selections.Length)
             {
                 index = 0;
             }
