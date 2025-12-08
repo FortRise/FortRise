@@ -52,11 +52,11 @@ internal static class ArcherLoader
             bool isAlt = element.Name == "AltArcher";
             bool isSecret = element.Name == "SecretArcher";
 
-            var id = element.Attr("id");
+            var id = element.AttrOrError("id");
 
             if (isAlt)
             {
-                var altID = element.Attr("Alt");
+                var altID = element.AttrOrError("Alt");
                 var archerToCopy = registry.Archers.GetArcherWithRelative(altID)
                     ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Alt ID: {altID} for {id}, or it does not exists.");
 
@@ -66,7 +66,7 @@ internal static class ArcherLoader
 
             if (isSecret)
             {
-                var secretID = element.Attr("Secret");
+                var secretID = element.AttrOrError("Secret");
                 var archerToCopy = registry.Archers.GetArcherWithRelative(secretID)
                     ?? throw new Exception($"[{content.Metadata.Name}] Invalid Archer Secret ID: {secretID} for {id}, or it does not exists.");
 

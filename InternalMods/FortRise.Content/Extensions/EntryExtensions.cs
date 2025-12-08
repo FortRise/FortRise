@@ -34,6 +34,18 @@ public static class EntryExtensions
         public string ChildTextWithRelative(string childName, string? defaultValue) => ResolveID(xml.ChildText(childName, defaultValue).Trim());
         public string AttrWithRelative(string childName, string? defaultValue) => ResolveID(xml.Attr(childName, defaultValue));
         public string AttrWithRelative(string childName) => ResolveID(xml.Attr(childName));
+
+        public string AttrOrError(string attr)
+        {
+            try
+            {
+                return xml.Attr(attr);
+            }
+            catch
+            {
+                throw new System.Exception($"'{attr}' attribute is not set for <{xml.Name}> and it is required.");
+            }
+        }
     }
 
     public static string ResolveID(string id)
