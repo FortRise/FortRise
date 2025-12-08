@@ -12,6 +12,7 @@ using MonoMod;
 using TowerFall;
 using YYProject.XXHash;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace FortRise;
 
@@ -104,7 +105,7 @@ public static partial class RiseCore
         }
     }
 
-    internal static bool Start()
+    internal static void Start()
     {
         RiseCore.Flags();   
 
@@ -170,12 +171,6 @@ public static partial class RiseCore
 
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
 
-        ModuleStart();
-        return true;
-    }
-
-    internal static void ModuleStart()
-    {
         // warm up
         // TODO: make archers follows the vanilla archerData xml count
         IDPool.WarmIndex("boss", 3);
@@ -338,6 +333,8 @@ public static partial class RiseCore
 
     internal static void InternalRestart()
     {
+        var executingAsm = Assembly.GetExecutingAssembly();
+        RiseCore.logger.LogInformation("Requested restart by {asmName}.", executingAsm.GetName().Name);
         WillRestart = true;
         Engine.Instance.Exit();
     }

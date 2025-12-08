@@ -92,14 +92,7 @@ namespace TowerFall
                 }
             }
             
-            if (!FortRise.RiseCore.Start()) 
-            {
-                SDL.SDL_ShowSimpleMessageBox(
-                    SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, 
-                    "CONTENT NOT FOUND",
-                    "TowerFall Content cannot be found elsewhere.", IntPtr.Zero);
-                return;
-            }
+            RiseCore.Start();
             RiseCore.ParseArgs(args);
             
             WriteLineToLoadLog("Initializing Steam...");

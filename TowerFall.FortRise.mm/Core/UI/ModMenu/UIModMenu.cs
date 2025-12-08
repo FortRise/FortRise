@@ -20,6 +20,10 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
         Main.TweenUICameraToY(1);
 
         var modListPanel = new UIModListPanel(new Vector2(160f, 600));
+        modListPanel.OnConfirmed = () =>
+        {
+            Main.State = ModRegisters.MenuState<UIModToggler>();
+        };
         Main.Add(modListPanel);
 
 

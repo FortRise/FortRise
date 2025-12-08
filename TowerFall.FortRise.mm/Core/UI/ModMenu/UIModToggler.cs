@@ -3,62 +3,89 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
 namespace FortRise;
 
+internal class ModOptionsButton : TowerFall.Patching.OptionsButton
+{
+    public string ModName;
+    public string PhysicalName;
+
+    public ModOptionsButton(string title) : base(title)
+    {
+    }
+}
+
 public class UIModToggler : CustomMenuState
 {
-    private Dictionary<string, ModuleMetadata> modsMetadata = [];
-    private Dictionary<string, bool> onOffs = [];
-    private readonly Dictionary<string, TextContainer.Toggleable> toggles = [];
-    private HashSet<string> blacklistedMods = [];
-    private HashSet<string> oldBlacklistedMods = [];
-    public TextContainer Container;
+    private Dictionary<string, ModuleMetadata> modsMetadata;
+    private HashSet<string> oldBlacklistedMods;
+    private HashSet<string> blacklistedMods;
+    private List<ModOptionsButton> buttons;
+    private Dictionary<string, ModOptionsButton> toggles;
+    private Dictionary<string, bool> onOffs;
 
     public UIModToggler(MainMenu main) : base(main)
     {
-        Main.Add(Container = new TextContainer(180));
-        (Main as patch_MainMenu).ToStartSelected = Container;
-    }
-
-    private void ModifyAllButtons(bool enable) 
-    {
-        foreach (var item in Container.Items) 
-        {
-            if (item is TextContainer.Toggleable toggleable) 
-            {
-                if (toggleable.Value == enable)
-                    continue;
-                toggleable.Value = enable;
-                toggleable.WiggleDir = toggleable.Value ? 1 : -1;
-                toggleable.OnValueChanged?.Invoke(toggleable.Value);
-                toggleable.ValueWiggler.Start();
-            }
-        }
-        if (enable)
-            Sounds.ui_subclickOn.Play();
-        else
-            Sounds.ui_subclickOff.Play();
     }
 
     public override void Create()
     {
-        toggles.Clear();
+        modsMetadata = [];
+        toggles = [];
+        buttons = [];
+        onOffs = [];
         Main.BackState = ModRegisters.MenuState<UIModMenu>();
-
         oldBlacklistedMods = RiseCore.ModuleManager.BlacklistedMods;
         blacklistedMods = [.. oldBlacklistedMods];
 
         var loadedMetadata = RiseCore.ModuleManager.InternalMods.Select(x => x.Metadata);
-        var enableAll = new TextContainer.ButtonText("Enabled All");
-        enableAll.Pressed(() => ModifyAllButtons(true));
-        var disableAll = new TextContainer.ButtonText("Disable All");
-        disableAll.Pressed(() => ModifyAllButtons(false));
-        Container.Add(enableAll);
-        Container.Add(disableAll);
+        var enableAll = new OptionsButton("ENABLE ALL");
+        enableAll.SetCallbacks(
+            () => enableAll.State = string.Empty,
+            null,
+            null,
+            () =>
+            {
+                ModifyAllButtons(true);
+                return true;
+            }
+        );
+
+        int sum = 0;
+
+        enableAll.TweenTo = new Vector2(200f, 45 + sum * 12);
+        enableAll.Position = enableAll.TweenFrom = new Vector2((sum % 2 == 0) ? (-160) : 480, 45 + sum * 12);
+
+        var disableAll = new OptionsButton("DISABLE ALL");
+        disableAll.SetCallbacks(
+            () => disableAll.State = string.Empty,
+            null,
+            null,
+            () =>
+            {
+                ModifyAllButtons(false);
+                return true;
+            }
+        );
+
+        sum += 1;
+
+        disableAll.TweenTo = new Vector2(200f, 45 + sum * 12);
+        disableAll.Position = disableAll.TweenFrom = new Vector2((sum % 2 == 0) ? (-160) : 480, 45 + sum * 12);
+
+        sum += 1;
+
+        enableAll.DownItem = disableAll;
+        disableAll.UpItem = enableAll;
+
+        Main.Add(enableAll);
+        Main.Add(disableAll);
 
         string modDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods");
         string[] files = Directory.GetFiles(modDirectory);
@@ -94,7 +121,14 @@ public class UIModToggler : CustomMenuState
             var isBlacklisted = !oldBlacklistedMods.Contains(filename);
             modsMetadata.Add(filename, metadata);
             onOffs.Add(filename, isBlacklisted);
-            Container.Add(CreateButton(filename, metadata.Name, onOffs));
+            var button = CreateButton(filename, metadata.Name, onOffs);
+            if (button is not null)
+            {
+                button.TweenTo = new Vector2(200f, 45 + sum * 12);
+                button.Position = button.TweenFrom = new Vector2((sum % 2 == 0) ? (-160) : 480, 45 + sum * 12);
+                buttons.Add(button);
+                sum += 1;
+            }
         }
 
         files = Directory.GetDirectories(modDirectory);
@@ -121,45 +155,144 @@ public class UIModToggler : CustomMenuState
             var isBlacklisted = !oldBlacklistedMods.Contains(folderName);
             modsMetadata.Add(folderName, metadata);
             onOffs.Add(folderName, isBlacklisted);
-            Container.Add(CreateButton(folderName, metadata.Name, onOffs));
+            var button = CreateButton(folderName, metadata.Name, onOffs);
+            if (button is not null)
+            {
+                button.TweenTo = new Vector2(200f, 45 + sum * 12);
+                button.Position = button.TweenFrom = new Vector2((sum % 2 == 0) ? (-160) : 480, 45 + sum * 12);
+                buttons.Add(button);
+                sum += 1;
+            }
+        }
+
+        if (buttons.Count > 0)
+        {
+            disableAll.DownItem = buttons[0];
+        }
+
+        for (int i = 0; i < buttons.Count; i += 1)
+        {
+            var panel = buttons[i];
+
+            if (i == 0)
+            {
+                panel.UpItem = disableAll;
+            }
+            else
+            {
+                panel.UpItem = buttons[i - 1];
+            }
+
+            if (i + 1 < buttons.Count)
+            {
+                panel.DownItem = buttons[i + 1];    
+            }
+        }
+
+        Main.MaxUICameraY = 45 + sum * 12;
+
+        ((patch_MainMenu)Main).TweenBGCameraToY(2);
+        ((patch_MainMenu)Main).ToStartSelected = enableAll;
+        Main.Add(buttons);
+    }
+
+    public override void Destroy()
+    {
+        bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
+
+        var jsonArray = new List<string>();
+
+        foreach (var blacklisted in blacklistedMods) 
+        {
+            jsonArray.Add(blacklisted);
+        }
+
+        RiseCore.WriteBlacklist(jsonArray, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "blacklist.txt"));
+
+        foreach (var blacklisted in blacklistedMods)
+        {
+            RiseCore.logger.LogInformation("Disabled: '{blacklistMod}'.", blacklisted);
+        }
+        
+        // cleanup
+        modsMetadata = null;
+        onOffs = null;
+        blacklistedMods = null;
+        oldBlacklistedMods = null;
+        
+
+        if (shouldRestart) 
+        {
+            RiseCore.InternalRestart();
+            return;
         }
     }
 
-    private TextContainer.Toggleable CreateButton(string physicalName, string modName, Dictionary<string, bool> onOffs) 
+    private void ModifyAllButtons(bool enable) 
     {
-        var toggleable = new TextContainer.Toggleable(physicalName, onOffs[physicalName]);
+        foreach (var toggleable in buttons) 
+        {
+            if (enable)
+            {
+                toggleable.State = "ON";
+                RemoveToBlacklist(toggleable.PhysicalName, toggleable.ModName);
+            }
+            else
+            {
+                toggleable.State = "OFF";
+                AddToBlacklist(toggleable.PhysicalName, toggleable.ModName);
+            }
+            toggleable.Wiggle();
+        }
+
+        if (enable)
+        {
+            Sounds.ui_subclickOn.Play();
+        }
+        else
+        {
+            Sounds.ui_subclickOff.Play();
+        }
+    }
+
+    private ModOptionsButton CreateButton(string physicalName, string modName, Dictionary<string, bool> onOffs) 
+    {
+        var toggleable = new ModOptionsButton(physicalName.ToUpperInvariant())
+        {
+            PhysicalName = physicalName,
+            ModName = modName
+        };
+
 
         if (RiseCore.ModuleManager.CantLoad.Contains(modName))
         {
-            toggleable.NotSelectedColor = Color.DarkRed;
-            toggleable.SelectedColor = Color.Red;
-            toggleable.Interactable = false;
-            toggleable.OnConfirm = () => {
-                Container.Selected = false;
-                var uiModal = new UIModal(0);
-                uiModal.SetTitle("Missing Mods");
-                uiModal.AddFiller("Cannot load mod due to");
-                uiModal.AddFiller("Missing dependencies.");
-                uiModal.AddFiller("Check fortRiseLog.txt");
-                uiModal.AddItem("Ok", () => {
-                    Container.Selected = true;
-                    uiModal.RemoveSelf();
-                });
-                uiModal.AutoClose = true;
-                Main.Add(uiModal);
-            };
+            return null;
         }
 
-        toggleable.Change(on => {
-            if (on) 
+        toggleable.SetCallbacks(() =>
+        {
+            toggleable.State = toggleable.State == "ON" ? "OFF" : "ON";
+            if (onOffs[physicalName])
             {
+                toggleable.State = "ON";
                 RemoveToBlacklist(physicalName, modName);
             }
             else
             {
+                toggleable.State = "OFF";
                 AddToBlacklist(physicalName, modName);
             }
+        }, null, null, () =>
+        {
+            ref var onOff = ref CollectionsMarshal.GetValueRefOrNullRef(onOffs, physicalName);
+            if (Unsafe.IsNullRef(ref onOff))
+            {
+                return false;
+            }
+
+            return onOff = !onOff;
         });
+
         toggles[modName] = toggleable;
         return toggleable;
     }
@@ -213,7 +346,8 @@ public class UIModToggler : CustomMenuState
                     AddToBlacklist(Path.GetFileName(depPhysName), depName);
                     if (toggles.TryGetValue(depName, out var toggle))
                     {
-                        toggle.Value = false;
+                        toggle.Wiggle();
+                        toggle.State = "OFF";
                     }
                 }
             }
@@ -270,43 +404,11 @@ public class UIModToggler : CustomMenuState
                     RemoveToBlacklist(Path.GetFileName(depPhysName), depName);
                     if (toggles.TryGetValue(depName, out var toggle))
                     {
-                        toggle.Value = true;
+                        toggle.Wiggle();
+                        toggle.State = "ON";
                     }
                 }
             }
-        }
-    }
-
-    public override void Destroy()
-    {
-        foreach (var blacklisted in blacklistedMods)
-        {
-            RiseCore.logger.LogInformation("Disabling mod: '{blacklistMod}'.", blacklisted);
-        }
-
-        bool shouldRestart = !oldBlacklistedMods.SetEquals(blacklistedMods);
-
-        var jsonArray = new List<string>();
-
-        foreach (var blacklisted in blacklistedMods) 
-        {
-            jsonArray.Add(blacklisted);
-        }
-
-        RiseCore.WriteBlacklist(jsonArray, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods", "blacklist.txt"));
-        
-        // cleanup
-        modsMetadata = null;
-        onOffs = null;
-        blacklistedMods = null;
-        oldBlacklistedMods = null;
-        Container = null;
-        
-
-        if (shouldRestart) 
-        {
-            RiseCore.InternalRestart();
-            return;
         }
     }
 }
