@@ -142,7 +142,7 @@ public readonly struct SemanticVersion : IEquatable<SemanticVersion>, IComparabl
         }
         if (Patch != other.Patch)
         {
-            return Minor.CompareTo(other.Patch);
+            return Patch.CompareTo(other.Patch);
         }
         if (Equals(Prerelease, other.Prerelease))
         {
