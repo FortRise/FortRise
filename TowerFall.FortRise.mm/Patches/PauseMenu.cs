@@ -255,6 +255,22 @@ namespace TowerFall
                 }
             });
 
+            var holdToPause = new TextContainer.Toggleable("Hold to pause", SaveData.Instance.Options.HoldToPause);
+            removeScrollEffects.Change(val =>
+            {
+                SaveData.Instance.Options.HoldToPause = val;
+            });
+            var gamepadDiscovery = new TextContainer.Toggleable("Gamepad discovery", SaveData.Instance.Options.GamepadDiscovery);
+            gamepadDiscovery.Change(val =>
+            {
+                SaveData.Instance.Options.GamepadDiscovery = val;
+            });
+            var gamepadVibration = new TextContainer.Toggleable("Gamepad rumble", SaveData.Instance.Options.GamepadVibration);
+            gamepadVibration.Change(val =>
+            {
+                SaveData.Instance.Options.GamepadVibration = val;
+            });
+
             container.Add(fullscreen);
             container.Add(music);
             container.Add(sfx);
@@ -264,6 +280,9 @@ namespace TowerFall
             container.Add(removeSlowMotionWaveEffect);
             container.Add(removeFlashEffects);
             container.Add(removeScrollEffects);
+            container.Add(holdToPause);
+            container.Add(gamepadDiscovery);
+            container.Add(gamepadVibration);
 
             Scene.Add(container);
             container.TweenIn();
