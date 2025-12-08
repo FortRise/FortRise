@@ -20,6 +20,7 @@ public class patch_Engine : Engine
     }
 
     [MonoModLinkTo("Microsoft.Xna.Framework.Game", "System.Void Initialize()")]
+    [MonoModIgnore]
     protected void base_Initialize() 
     {
         base.Initialize();

@@ -140,7 +140,15 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
 
         // HACK: Option button does not have a value.
         var dynSelf = DynamicData.For(optionButtons);
-        dynSelf.Set("value", initialValue); 
+        int index = selections.IndexOf(initialValue);
+        if (index == -1)
+        {
+            index = 0;
+        }
+
+        var value = selections[index];
+
+        dynSelf.Set("value", value); 
         
         optionButtons.SetCallbacks(() =>
         {
