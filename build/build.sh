@@ -61,7 +61,7 @@ cp -r "$INTERNALS_DEST_DIR" "artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise"
 
 mkdir artifacts/FortRise.v$FR_VERSION-linux-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 mkdir artifacts/FortRise.v$FR_VERSION-win-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
-mkdir artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/FortRise.app/Contents/MacOS/Internals/FortRise.ImGui/Unmanaged
+mkdir artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 
 # things that we don't care about yet
 rm -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/win-arm64
