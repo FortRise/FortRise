@@ -202,8 +202,8 @@ public override void OnVariantsRegister(MatchVariants variants, bool noPerPlayer
 ### New
 ```csharp
 // this does not require any of method, just use the Registry
-CustomVariant = context.Registry.Variants.RegisterVariant(new() {
-    Name = "VARIANT NAME",
+CustomVariant = context.Registry.Variants.RegisterVariant("VariantID", new() {
+    Title = "VARIANT NAME",
     Icon = VariantIcon,
     Flags = CustomVariantFlags.PerPlayer
 });
