@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Xml;
-using FortRise;
 using MonoMod;
 
 namespace Monocle;
