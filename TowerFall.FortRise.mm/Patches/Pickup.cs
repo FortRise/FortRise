@@ -59,6 +59,6 @@ public class patch_Pickup : Pickup
             return new ShieldPickup(position, target);
         }
 
-        return PickupsRegistry.CreatePickup(data.Pickups, position, target);
+        return PickupsRegistry.CreatePickup(data.Pickups, position, target, playerIndex);
     }
 }

@@ -40,7 +40,7 @@ public static class PickupsRegistry
 
     private static Dictionary<Type, ConstructorInfo> constructors = new Dictionary<Type, ConstructorInfo>();
 
-    internal static patch_Pickup? CreatePickup(Pickups pickup, Vector2 pos, Vector2 targetPos)
+    internal static patch_Pickup? CreatePickup(Pickups pickup, Vector2 pos, Vector2 targetPos, int playerIndex)
     {
         var entry = GetPickup(pickup);
 
@@ -49,8 +49,6 @@ public static class PickupsRegistry
             RiseCore.logger.LogError("This type does not exists or it is only for vanilla.");
             return null;
         }
-
-        patch_Pickup actualPickup;
 
         if (entry.Configuration.ArrowType.TryGetValue(out var type))
         {
@@ -81,7 +79,7 @@ public static class PickupsRegistry
                 arrowType.ColorB = colB;
             }
 
-            actualPickup = (patch_Pickup)(object)arrowType;
+            return (patch_Pickup)(object)arrowType;
         }
         else
         {
@@ -89,20 +87,26 @@ public static class PickupsRegistry
 
             if (!didExistsAgain)
             {
+                ctor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(int)]);
+            }
+
+            if (ctor is not null)
+            {
+                return (patch_Pickup)ctor.Invoke([pos, targetPos, playerIndex]);
+            }
+            else
+            {
                 ctor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2)]);
             }
 
-            if (ctor is null)
+            if (ctor is not null)
             {
-                RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
-                return null;
+                return (patch_Pickup)ctor.Invoke([pos, targetPos]);
             }
 
-            actualPickup = (patch_Pickup)ctor.Invoke([pos, targetPos]);
+            RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
+            return null;
         }
-
-
-        return actualPickup;
     }
 #nullable disable
 
