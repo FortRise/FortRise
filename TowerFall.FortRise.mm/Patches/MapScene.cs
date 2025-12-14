@@ -48,7 +48,7 @@ namespace TowerFall.Patching
         [MonoModReplace]
         public override void Begin()
         {
-            if (!this.IsOfficialLevelSet())
+            if (!this.IsOfficialTowerSet)
             {
                 WorkshopLevels = true;
             }
@@ -171,7 +171,7 @@ namespace TowerFall.Patching
         {
             for (int i = 0; i < Buttons.Count; i += 1)
             {
-                if (Buttons[i] is not DarkWorldMapButton || !this.IsOfficialLevelSet())
+                if (Buttons[i] is not DarkWorldMapButton || !this.IsOfficialTowerSet)
                 {
                     continue;
                 }
@@ -190,7 +190,7 @@ namespace TowerFall.Patching
         {
             for (int i = 0; i < this.Buttons.Count; i += 1)
             {
-                if (Buttons[i] is not QuestMapButton || !this.IsOfficialLevelSet())
+                if (Buttons[i] is not QuestMapButton || !this.IsOfficialTowerSet)
                 {
                     continue;
                 }
@@ -279,7 +279,7 @@ namespace TowerFall.Patching
 
             List<VersusTowerData> towers;
 
-            if (this.IsOfficialLevelSet())
+            if (this.IsOfficialTowerSet)
             {
                 Buttons.Add(new GoToWorkshopMapButton());
                 towers = GameData.VersusTowers;
@@ -287,7 +287,7 @@ namespace TowerFall.Patching
             else
             {
                 towers = [];
-                var tempTowers = TowerRegistry.VersusTowerSets[this.GetLevelSet()];
+                var tempTowers = TowerRegistry.VersusTowerSets[this.TowerSet];
                 foreach (var tow in tempTowers)
                 {
                     if (tow.Levels.Count > 0)
@@ -341,14 +341,14 @@ namespace TowerFall.Patching
 
             List<DarkWorldTowerData> towers;
 
-            if (this.IsOfficialLevelSet())
+            if (this.IsOfficialTowerSet)
             {
                 towers = GameData.DarkWorldTowers;
             }
             else
             {
                 towers = [];
-                var tempTowers = TowerRegistry.DarkWorldTowerSets[this.GetLevelSet()];
+                var tempTowers = TowerRegistry.DarkWorldTowerSets[this.TowerSet];
                 foreach (var tow in tempTowers)
                 {
                     if (tow.Levels.Count > 0)
@@ -386,13 +386,13 @@ namespace TowerFall.Patching
 
             List<QuestLevelData> towers;
 
-            if (this.IsOfficialLevelSet())
+            if (this.IsOfficialTowerSet)
             {
                 towers = GameData.QuestLevels.ToList();
             }
             else
             {
-                towers = TowerRegistry.QuestTowerSets[this.GetLevelSet()];
+                towers = TowerRegistry.QuestTowerSets[this.TowerSet];
             }
 
             for (int i = 0; i < towers.Count; i++)
@@ -426,13 +426,13 @@ namespace TowerFall.Patching
 
             TrialsLevelData[,] towers;
 
-            if (this.IsOfficialLevelSet())
+            if (this.IsOfficialTowerSet)
             {
                 towers = GameData.TrialsLevels;
             }
             else
             {
-                var rawTowers = TowerRegistry.TrialsTowerSets[this.GetLevelSet()];
+                var rawTowers = TowerRegistry.TrialsTowerSets[this.TowerSet];
                 towers = new TrialsLevelData[rawTowers.Count, 3];
                 for (int i = 0; i < rawTowers.Count; i++)
                 {
@@ -446,7 +446,7 @@ namespace TowerFall.Patching
             for (int k = 0; k < towers.GetLength(0); k++)
             {
                 bool show = false;
-                if (this.IsOfficialLevelSet())
+                if (this.IsOfficialTowerSet)
                 {
                     show = SaveData.Instance.Unlocks.GetTowerUnlocked(k);
                 }
@@ -642,19 +642,20 @@ namespace TowerFall
     {
         extension(TowerFall.MapScene mapScene)
         {
-            // TODO: Deprecate this when .NET 10 comes out
+            [Obsolete("Use 'MapScene.TowerSet' property instead.")]
             public void SetLevelSet(string levelSet)
             {
                 ((Patching.MapScene)mapScene).LevelSet = levelSet;
             }
 
-            // TODO: Deprecate this when .NET 10 comes out
+            [Obsolete("Use 'MapScene.TowerSet' property instead.")]
             public string GetLevelSet() 
             {
                 return ((Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
             }
 
             // TODO: Deprecate this when .NET 10 comes out
+            [Obsolete("Use 'MapScene.IsOfficialTowerSet' property instead.")]
             public bool IsOfficialLevelSet() 
             {
                 return mapScene.IsOfficialTowerSet;
@@ -673,7 +674,7 @@ namespace TowerFall
             {
                 get
                 {
-                    return ((Patching.MapScene)mapScene).GetLevelSet() == "TowerFall";
+                    return ((Patching.MapScene)mapScene).TowerSet == "TowerFall";
                 }
             }
         }
