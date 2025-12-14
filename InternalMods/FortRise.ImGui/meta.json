@@ -1,10 +1,10 @@
 {
     "name": "FortRise.ImGui",
-    "version": "5.2.1",
+    "version": "5.2.2",
     "dependencies": [
         {
             "name": "FortRise",
-            "version": "5.2.1"
+            "version": "5.2.2"
         }
     ],
     "dll": "FortRise.ImGui.dll"
