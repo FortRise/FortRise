@@ -72,6 +72,15 @@ public class patch_Engine : Engine
             break;
         }
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        // make sure to unbind all rendertarget first
+        // and for the love of god, please stop putting exception on Dispose method
+        GraphicsDevice.SetRenderTarget(null);
+
+        base.Dispose(disposing);
+    }
 }
 
 internal static class ErrorSceneBuilder 
