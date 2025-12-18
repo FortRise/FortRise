@@ -133,7 +133,7 @@ internal static class ArcherLoader
 
                 if (corpse == null)
                 {
-                    throw new Exception($"Archer: '{id}' is missing <Corpse> element. Falling back to Green's Corpse");
+                    throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
                 }
             }
         }
@@ -143,7 +143,7 @@ internal static class ArcherLoader
 
             if (corpse == null)
             {
-                throw new Exception($"Archer: '{id}' is missing <Corpse> element. Falling back to Green's Corpse");
+                throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
             }
         }
 
@@ -286,6 +286,30 @@ internal static class ArcherLoader
             statueInfo = original.Statue;
         }
 
+        Option<HatInfo> hatInfo = Option<HatInfo>.None();
+
+        if (element.HasChild("Hat"))
+        {
+            var hat = element["Hat"];
+            var material = hat.ChildEnum("Material", ArcherData.HatMaterials.Default);
+
+            var normalID = hat.ChildText("Normal");
+            var redID = hat.ChildText("Red", normalID);
+            var blueID = hat.ChildText("Blue", normalID);
+
+            hatInfo = new HatInfo()
+            {
+                Material = material,
+                Normal = content.LoadTexture(registry, normalID, SubtextureAtlasDestination.Atlas),
+                Red = content.LoadTexture(registry, redID, SubtextureAtlasDestination.Atlas),
+                Blue = content.LoadTexture(registry, blueID, SubtextureAtlasDestination.Atlas)
+            };
+        }
+        else
+        {
+            hatInfo = original.Hat;
+        }
+
         GemInfo gemInfo;
 
         if (element.HasChild("Gems"))
@@ -403,6 +427,7 @@ internal static class ArcherLoader
             Aimer = aimer,
             CorpseSprite = (ICorpseSpriteContainerEntry)corpse!,
             StartNoHat = startNoHat,
+            Hat = hatInfo,
             Gender = gender,
             Hair = hairInfo,
             SFX = sfxID,
