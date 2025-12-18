@@ -35,6 +35,7 @@ internal static class BackgroundLoader
 
     internal static IList<IBackgroundEntry> LoadAll(IModContent content, IModRegistry registry, XmlDocument xml)
     {
+        var list = new List<IBackgroundEntry>();
         var backgrounds = xml["backgrounds"]
             ?? throw new Exception("Cannot find <backgrounds> element.");
 
@@ -62,14 +63,14 @@ internal static class BackgroundLoader
                 Load(fgLayers, foreground);
             }
 
-            registry.Backgrounds.RegisterBackground(id, new()
+            list.Add(registry.Backgrounds.RegisterBackground(id, new()
             {
                 BackgroundColor = bgColor,
                 Background = [.. bgLayers],
                 Foreground = [.. fgLayers]
-            });
+            }));
         }
-        return [];
+        return list;
 
         void Load(List<BGLayer> bgLayers, XmlElement xml)
         {
