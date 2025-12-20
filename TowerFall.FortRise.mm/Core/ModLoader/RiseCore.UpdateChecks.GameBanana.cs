@@ -78,7 +78,7 @@ public partial class RiseCore
                     }
 
                     var updateRelease = JsonSerializer.Deserialize<Dictionary<string, DownloadInfo>[]>(json);
-                    var firstAsset = updateRelease[0].FirstOrDefault();
+                    var firstAsset = updateRelease[0].LastOrDefault();
                     if (firstAsset.Key == null)
                     {
                         return false;
