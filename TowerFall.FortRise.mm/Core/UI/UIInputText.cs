@@ -34,7 +34,7 @@ public class UIInputText : MenuItem
     {
         base.Update();
 
-        if (MInput.Keyboard.Pressed(Keys.Enter))
+        if (MenuInput.Start)
         {
             Selected = false;
             MainMenu.CanAct = true;
