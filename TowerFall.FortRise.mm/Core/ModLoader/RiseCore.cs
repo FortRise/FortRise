@@ -187,6 +187,11 @@ public static partial class RiseCore
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
+
+        SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_XINPUT_ENABLED, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowXInput ? "1" : "0");
+        SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_JOYSTICK_DIRECTINPUT, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowDInput ? "1" : "0");
+        SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_JOYSTICK_RAWINPUT, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowRawInput ? "1" : "0");
+        SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_JOYSTICK_RAWINPUT_CORRELATE_XINPUT, FortRiseModule.GetSettings<FortRiseModuleSettings>().RawInputCorrelateXInput ? "1" : "0");
     }
 
     internal static void ParseArgs(string[] args)

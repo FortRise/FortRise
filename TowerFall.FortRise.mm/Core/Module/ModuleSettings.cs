@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod.Utils;
 using TowerFall;
 
@@ -12,6 +13,7 @@ public interface ISettingsCreate
     TextContainer Container { get; init; }
 
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed);
+    void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired);
     void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect);
     void CreateButton(string name, Action onPressed);
     void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
@@ -116,6 +118,11 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
 
     public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed)
     {
+        CreateOnOff(name, initialValue, onPressed, false);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired)
+    {
         string title = name.ToUpperInvariant();
         var optionButtons = new OptionsButton(title);
 
@@ -129,6 +136,44 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
             value = !value;
             onPressed(value);
             dynSelf.Set("value", value);
+
+            if (restartRequired)
+            {
+                var uiModal = new UIModal()
+                {
+                    LayerIndex = 0
+                };
+
+                uiModal.AddFiller("RESTART REQUIRED");
+
+                if (Engine.Instance.Scene is MainMenu main)
+                {
+                    optionButtons.Selected = false;
+                    main.CanAct = false;
+                    uiModal.AddItem("RESTART NOW", () =>
+                    {
+                        Saver saver = new Saver(true, () =>
+                        {
+                            RiseCore.InternalRestart();
+                        });
+                        Engine.Instance.Scene.Add(saver);
+                    });
+
+                    uiModal.AddItem("OK", () =>
+                    {
+                        main.CanAct = true;
+                        optionButtons.Selected = true;
+                    });
+
+                    uiModal.SetOnBackCallBack(() =>
+                    {
+                        main.CanAct = true;
+                        optionButtons.Selected = true;
+                    });
+                }
+
+                Engine.Instance.Scene.Add(uiModal);
+            }
             return value;
         });
         OptionsButton.Add(optionButtons);
@@ -242,6 +287,11 @@ internal sealed class SettingsCreate : ISettingsCreate
             fullName, selections, Array.IndexOf(selections, initialValue));
         selectionOption.Change(onSelect);
         Container.Add(selectionOption);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired)
+    {
+        throw new NotImplementedException();
     }
 }
 

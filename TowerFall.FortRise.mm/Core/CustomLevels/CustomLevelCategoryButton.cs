@@ -48,7 +48,7 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         for (int i = 0; i < sets.Count; i++) 
         {
             var item = sets[i];
-            if (Map.GetLevelSet() == item)
+            if (Map.TowerSet == item)
             {
                 startIndex = i + 2;
             }
@@ -99,7 +99,7 @@ public sealed class CustomLevelCategoryButton : patch_MapButton
         }
 
         Map.Renderer.ChangeLevelSet(levelSet);
-        Map.SetLevelSet(levelSet);
+        Map.TowerSet = levelSet;
         Map.ChangeLevelSet();
         Map.MapPaused = false;
     }
