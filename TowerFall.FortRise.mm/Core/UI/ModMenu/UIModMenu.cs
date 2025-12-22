@@ -30,6 +30,11 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
         var searchPanel = new UISearchPanel(new Vector2(20, 600), new Vector2(20f, 40f));
         searchPanel.OnSearched = (x) =>
         {
+            if (x is null)
+            {
+                return;
+            }
+
             foreach (var p in cachedPanels)
             {
                 p.TweenOut();

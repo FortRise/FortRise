@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Monocle;
 using TowerFall;
 
@@ -15,7 +13,6 @@ public class WorkshopRandomSelect : MapButton
 
     protected override List<Image> InitImages() => InitRandomVersusGraphics();
 
-    // Token: 0x060022E3 RID: 8931 RVA: 0x0010C860 File Offset: 0x0010AA60
     public override void OnConfirm()
     {
         Music.Stop();
