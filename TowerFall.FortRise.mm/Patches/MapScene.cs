@@ -26,6 +26,10 @@ namespace TowerFall.Patching
         public bool MapPaused;
         public string LevelSet;
         public patch_MapRenderer Renderer;
+        public static HashSet<string> NoRandom = [];
+
+        [Obsolete("Use 'NoRandom' instead")]
+        public static bool[] NoRandomStates;
 
         public MapScene(MainMenu.RollcallModes mode) : base(mode)
         {
@@ -33,12 +37,15 @@ namespace TowerFall.Patching
 
         [MonoModConstructor]
         [MonoModReplace]
-        public static void cctor() { }
+        public static void cctor()
+        {
+            NoRandom = [];
+        }
 
         internal static void FixedStatic()
         {
             lastRandomVersusTower = -1;
-            MapScene.NoRandomStates = new bool[GameData.VersusTowers.Count];
+            TowerFall.MapScene.NoRandomStates = new bool[GameData.VersusTowers.Count];
         }
 
         [MonoModIgnore]
