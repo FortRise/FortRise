@@ -1,3 +1,4 @@
+using System;
 using MonoMod;
 
 namespace TowerFall;
@@ -12,14 +13,24 @@ public class patch_VersusTowerData : VersusTowerData
 
 public static class VersusTowerDataExt 
 {
-    public static float[] GetTreasureChances(this VersusTowerData data) 
+    extension(VersusTowerData data)
     {
-        var cast = ((patch_VersusTowerData)data);
-        return cast.TreasureChances ?? TreasureSpawner.DefaultTreasureChances;
+        public float[] TreasureChances
+        {
+            get => ((patch_VersusTowerData)data).TreasureChances ?? TreasureSpawner.DefaultTreasureChances;
+            set => ((patch_VersusTowerData)data).TreasureChances = value;
+        }
     }
 
-    public static void SetTreasureChances(this VersusTowerData data, float[] treasureChance) 
+    [Obsolete("Use 'VersusTowerData.TreasureChances' instead")]
+    public static float[] GetTreasureChances(this VersusTowerData data)
     {
-        ((patch_VersusTowerData)data).TreasureChances = treasureChance;
+        return data.TreasureChances;
+    }
+
+    [Obsolete("Use 'VersusTowerData.TreasureChances' instead")]
+    public static void SetTreasureChances(this VersusTowerData data, float[] treasureChance)
+    {
+        data.TreasureChances = treasureChance;
     }
 }

@@ -178,7 +178,7 @@ internal sealed class ModTowers : IModTowers
                 }
             }
 
-            levelData.SetTreasureChances(treasureChances);
+            levelData.TreasureChances = treasureChances;
         }
         else
         {

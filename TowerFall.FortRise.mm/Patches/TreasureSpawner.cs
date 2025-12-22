@@ -63,7 +63,7 @@ public class patch_TreasureSpawner : TreasureSpawner
         float[] newTreasureChances;
         if (levelSystem != null)
         {
-            newTreasureChances = levelSystem.VersusTowerData.GetTreasureChances();
+            newTreasureChances = levelSystem.VersusTowerData.TreasureChances;
         }
         else
         {
