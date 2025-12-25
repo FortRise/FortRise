@@ -92,7 +92,15 @@ public static class PickupsRegistry
 
             if (ctor is not null)
             {
-                return (patch_Pickup)ctor.Invoke([pos, targetPos, playerIndex]);
+                // FIXME: remove this try-catch non sense 
+                try
+                {
+                    return (patch_Pickup)ctor.Invoke([pos, targetPos, playerIndex]);
+                }
+                catch (TargetParameterCountException)
+                {
+                    return (patch_Pickup)ctor.Invoke([pos, targetPos]);
+                }
             }
             else
             {
