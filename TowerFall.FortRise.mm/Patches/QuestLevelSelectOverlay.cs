@@ -53,15 +53,15 @@ namespace TowerFall
         [MonoModReplace]
         private void RefreshLevelStats()
         {
-            var levelSet = map.GetLevelSet();
+            var towerSet = map.TowerSet;
             QuestTowerStats questTowerStats;
-            if (levelSet == "TowerFall")
+            if (towerSet == "TowerFall")
             {
                 questTowerStats = SaveData.Instance.Quest.Towers[statsID];
             }
             else
             {
-                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(TowerRegistry.QuestGet(levelSet, statsID).GetLevelID());
+                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(TowerRegistry.QuestGet(towerSet, statsID).GetLevelID());
             }
 
 

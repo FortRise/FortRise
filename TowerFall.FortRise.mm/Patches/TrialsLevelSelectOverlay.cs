@@ -34,13 +34,13 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
 
     private void RefreshLevelStats()
     {
-        var levelSet = map.GetLevelSet();
+        var towerSet = map.TowerSet;
         long bestTime;
         bool unlockedDevTime;
         bool unlockedDiamond;
         bool unlockedGold;
         ulong attempts;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             var trialsLevelStats = SaveData.Instance.Trials.Levels[statsID.X][statsID.Y];
             bestTime = trialsLevelStats.BestTime;
@@ -51,7 +51,7 @@ public class patch_TrialsLevelSelectOverlay : TrialsLevelSelectOverlay
         }
         else
         {
-            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(TowerRegistry.TrialsGet(levelSet, statsID.X, statsID.Y).GetLevelID());
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(TowerRegistry.TrialsGet(towerSet, statsID.X, statsID.Y).GetLevelID());
             bestTime = trialsLevelStats.BestTime;
             unlockedDevTime = trialsLevelStats.UnlockedDevTime;
             unlockedDiamond = trialsLevelStats.UnlockedDiamond;

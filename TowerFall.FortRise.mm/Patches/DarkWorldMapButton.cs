@@ -18,7 +18,7 @@ public class DarkWorldMapButton : TowerFall.DarkWorldMapButton
             return false;
         }
 
-        if (map.GetLevelSet() == "TowerFall")
+        if (map.TowerSet == "TowerFall")
         {
             return !SaveData.Instance.DarkWorld.Towers[Data.ID.X].Revealed;
         }

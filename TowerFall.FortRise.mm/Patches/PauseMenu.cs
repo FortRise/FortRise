@@ -72,7 +72,7 @@ namespace TowerFall
             Sounds.ui_click.Play(160f, 1f);
             var mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             Engine.Instance.Scene = mapScene;
-            mapScene.SetLevelSet(level.Session.GetLevelSet());
+            mapScene.TowerSet = level.Session.GetLevelSet();
             level.Session.MatchSettings.LevelSystem.Dispose();
             ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
@@ -85,7 +85,8 @@ namespace TowerFall
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.DarkWorld);
             mapScene.ShouldSave = true;
             Engine.Instance.Scene = mapScene;
-            mapScene.SetLevelSet(level.Session.GetLevelSet());
+            mapScene.TowerSet = level.Session.GetLevelSet();
+
             level.Session.MatchSettings.LevelSystem.Dispose();
             ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
@@ -96,7 +97,8 @@ namespace TowerFall
             Sounds.ui_click.Play(160f, 1f);
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.Quest);
             Engine.Instance.Scene = mapScene;
-            mapScene.SetLevelSet(level.Session.GetLevelSet());
+            mapScene.TowerSet = level.Session.GetLevelSet();
+
             level.Session.MatchSettings.LevelSystem.Dispose();
             ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
@@ -109,7 +111,8 @@ namespace TowerFall
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.Quest);
             mapScene.ShouldSave = true;
             Engine.Instance.Scene = mapScene;
-            mapScene.SetLevelSet(level.Session.GetLevelSet());
+            mapScene.TowerSet = level.Session.GetLevelSet();
+
             level.Session.MatchSettings.LevelSystem.Dispose();
             ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }
@@ -153,7 +156,8 @@ namespace TowerFall
             Sounds.ui_click.Play(160f, 1f);
             MapScene mapScene = new MapScene(MainMenu.RollcallModes.Versus);
             Engine.Instance.Scene = mapScene;
-            mapScene.SetLevelSet(level.Session.GetLevelSet());
+            mapScene.TowerSet = level.Session.GetLevelSet();
+
             level.Session.MatchSettings.LevelSystem.Dispose();
             ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
         }

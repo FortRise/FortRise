@@ -165,16 +165,16 @@ public class patch_MapButton : MapButton
         {
             return [];
         }
-        string levelSet = scene.GetLevelSet();
+        string towerSet = scene.TowerSet;
 
         TowerTheme theme;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             theme = GameData.VersusTowers[levelID].Theme;
         }
         else
         {
-            VersusTowerData worldData = TowerRegistry.VersusTowerSets[scene.GetLevelSet()][levelID];
+            VersusTowerData worldData = TowerRegistry.VersusTowerSets[towerSet][levelID];
             theme = worldData.Theme;
         }
 
@@ -196,16 +196,18 @@ public class patch_MapButton : MapButton
             return [];
         }
 
+        string towerSet = scene.TowerSet;
+
         QuestLevelData tower;
         QuestTowerStats stats;
-        if (scene.GetLevelSet() == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             tower = GameData.QuestLevels[levelID];
             stats = SaveData.Instance.Quest.Towers[levelID];
         }
         else
         {
-            tower = TowerRegistry.QuestTowerSets[scene.GetLevelSet()][levelID];
+            tower = TowerRegistry.QuestTowerSets[towerSet][levelID];
             stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.GetLevelID());
         }
 
@@ -256,14 +258,16 @@ public class patch_MapButton : MapButton
             return [];
         }
 
+        string towerSet = scene.TowerSet;
+
         TrialsLevelData tower;
-        if (scene.GetLevelSet() == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             tower = GameData.TrialsLevels[levelID.X, levelID.Y];
         }
         else
         {
-            tower = TowerRegistry.TrialsGet(scene.GetLevelSet(), levelID.X, levelID.Y);
+            tower = TowerRegistry.TrialsGet(towerSet, levelID.X, levelID.Y);
         }
 
         TowerTheme theme = tower.Theme;
@@ -354,18 +358,18 @@ public class patch_MapButton : MapButton
             return [];
         }
 
-        string levelSet = scene.GetLevelSet();
+        string towerSet = scene.TowerSet;
 
         TowerTheme theme;
         DarkWorldTowerStats stats;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             theme = GameData.DarkWorldTowers[levelID].Theme;
             stats = SaveData.Instance.DarkWorld.Towers[levelID];
         }
         else
         {
-            DarkWorldTowerData worldData = TowerRegistry.DarkWorldTowerSets[scene.GetLevelSet()][levelID];
+            DarkWorldTowerData worldData = TowerRegistry.DarkWorldTowerSets[towerSet][levelID];
             stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(worldData.GetLevelID());
             theme = worldData.Theme;
         }
