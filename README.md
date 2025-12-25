@@ -37,7 +37,7 @@ This ensures that the original stays unmodified, the only thing that FortRise to
 
 
 ### Join the official TowerFall Discord Server, we can help you here!
-<a href="https://discord.gg/m25mWsSv8P">
+<a href="https://discord.gg/bsvsURxhRu">
  <img alt="TowerFall" src="https://discordapp.com/api/guilds/248961953656078337/embed.png?style=banner2" />
 </a>
 
