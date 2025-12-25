@@ -27,7 +27,7 @@ public class patch_DarkWorldRoundLogic : DarkWorldRoundLogic
 
         if ((Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData.GetLevelSet() != "TowerFall")
         {
-            var tower = TowerRegistry.DarkWorldGet(Session.GetLevelSet(), Session.MatchSettings.LevelSystem.ID.X);
+            var tower = TowerRegistry.DarkWorldGet(Session.TowerSet, Session.MatchSettings.LevelSystem.ID.X);
             FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.GetLevelID()).Deaths += 1;
         }
         else

@@ -34,7 +34,7 @@ internal sealed class DebugTab : IFortRiseImGuiAPI.ITabItem
             };
 
             ImGui.Text("Level ID: " + levelID);
-            ImGui.Text("Level Set: " + level.Session.GetLevelSet());
+            ImGui.Text("Level Set: " + level.Session.TowerSet);
             ImGui.Text("Tags: " + string.Join(',', level.SceneTags));
         }
 

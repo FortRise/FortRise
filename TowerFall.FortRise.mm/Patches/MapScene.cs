@@ -626,12 +626,12 @@ namespace TowerFall.Patching
             if (button.Data is null)
             {
                 MapButton.PlayTowerSound(MapButton.TowerType.Random);
-                Renderer.OnSelectionChange("");
+                Renderer.OnSelectionChange(string.Empty);
             }
             else 
             {
                 MapButton.PlayTowerSound(button.Data.IconTile);
-                Renderer.OnSelectionChange(button.Data.LevelData.LevelID);
+                Renderer.OnSelectionChange(button.Data.LevelData?.LevelID ?? string.Empty);
             }
         }
     }
