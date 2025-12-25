@@ -46,7 +46,7 @@ internal class ModRegistry : IModRegistry
         CharacterSounds = new ModCharacterSounds(metadata, manager);
         Archers = new ModArchers(metadata, manager);
         Arrows = new ModArrows(metadata, manager);
-        Pickups = new ModPickups(metadata, manager);
+        Pickups = new ModPickups(metadata);
         Variants = new ModVariants(metadata);
         Effects = new ModEffects(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);

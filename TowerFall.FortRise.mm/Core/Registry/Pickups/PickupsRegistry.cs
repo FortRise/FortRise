@@ -18,6 +18,7 @@ public static class PickupsRegistry
     {
         pickupEntries[entry.Name] = entry;
         typeToEntries[entry.Pickups] = entry;
+        StringToTypes[entry.Name] = entry.Pickups;
     }
 
 #nullable enable
@@ -133,12 +134,5 @@ public static class PickupsRegistry
 
         Logger.Error("[PickupRegistry] Unknown Pickups type passed");
         return null;
-    }
-
-    public static void Register(string name, Pickups pickups, in PickupConfiguration configuration)
-    {
-        var stride = pickups;
-
-        StringToTypes[name] = stride;
     }
 }
