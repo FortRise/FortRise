@@ -24,7 +24,12 @@ namespace TowerFall.Patching
         private QuestLevelSelectOverlay questOverlay;
         private Tween cameraTween;
         public bool MapPaused;
-        public string TowerSet;
+        public string TowerSet
+        {
+            get => towerSet ?? "TowerFall";
+            set => towerSet = value;
+        }
+        private string towerSet;
         public patch_MapRenderer Renderer;
         public static HashSet<string> NoRandom = [];
 
