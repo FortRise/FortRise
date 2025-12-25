@@ -57,16 +57,16 @@ public class patch_MapButton : MapButton
             return [];
         }
 
-        string levelSet = scene.Session.GetLevelSet();
+        string towerSet = scene.Session.TowerSet;
 
         TowerTheme theme;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             theme = GameData.DarkWorldTowers[levelID].Theme;
         }
         else
         {
-            theme = TowerRegistry.DarkWorldGet(levelSet, levelID).Theme;
+            theme = TowerRegistry.DarkWorldGet(towerSet, levelID).Theme;
         }
 
         List<Image> list = new List<Image>();
@@ -89,16 +89,16 @@ public class patch_MapButton : MapButton
             return [];
         }
 
-        string levelSet = scene.Session.GetLevelSet();
+        string towerSet = scene.Session.TowerSet;
 
         TowerTheme theme;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             theme = GameData.TrialsLevels[levelID.X, levelID.Y].Theme;
         }
         else
         {
-            theme = TowerRegistry.TrialsGet(levelSet, levelID.X)[levelID.Y].Theme;
+            theme = TowerRegistry.TrialsGet(towerSet, levelID.X)[levelID.Y].Theme;
         }
 
         List<Image> list = [];
@@ -133,16 +133,16 @@ public class patch_MapButton : MapButton
             return [];
         }
 
-        string levelSet = scene.Session.GetLevelSet();
+        string towerSet = scene.Session.TowerSet;
 
         TowerTheme theme;
-        if (levelSet == "TowerFall")
+        if (towerSet == "TowerFall")
         {
             theme = GameData.QuestLevels[levelID].Theme;
         }
         else
         {
-            theme = TowerRegistry.QuestGet(levelSet, levelID).Theme;
+            theme = TowerRegistry.QuestGet(towerSet, levelID).Theme;
         }
 
         List<Image> list = new List<Image>();

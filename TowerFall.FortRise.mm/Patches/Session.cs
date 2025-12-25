@@ -79,9 +79,9 @@ namespace TowerFall
                 ActivateTempVariants(CurrentLevel, levelData);
             }
 
-            var levelType = this.IsOfficialLevelSet() ? "vanilla" : "modded";
+            var levelType = this.IsOfficialTowerSet ? "vanilla" : "modded";
             level.AssignTag(levelType);
-            var set = this.GetLevelSet();
+            var set = this.TowerSet;
             level.AssignTag("set=" + set);
             level.AssignTag("theme=" + ((patch_TowerTheme)(matchSettings.LevelSystem.Theme)).ID);
             var levelSystem = matchSettings.LevelSystem;
@@ -116,14 +116,14 @@ namespace TowerFall
 				GameStats stats = SaveData.Instance.Stats;
 				int num = stats.MatchesPlayed;
 				stats.MatchesPlayed = num + 1;
-                if (this.IsOfficialLevelSet())
+                if (this.IsOfficialTowerSet)
                     stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
 				if (MatchSettings.RandomVersusTower)
 				{
 					num = stats.VersusRandomPlays;
 					stats.VersusRandomPlays = num + 1;
 				}
-				else if (this.IsOfficialLevelSet())
+				else if (this.IsOfficialTowerSet)
 				{
 					stats.RegisterVersusTowerSelection(MatchSettings.LevelSystem.ID.X);
 				}
@@ -140,13 +140,13 @@ namespace TowerFall
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
-                if (this.IsOfficialLevelSet())
+                if (this.IsOfficialTowerSet)
                 {
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
                 }
                 else 
                 {
-                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.TowerSet, MatchSettings.LevelSystem.ID.X);
                     FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
@@ -164,7 +164,7 @@ namespace TowerFall
         {
 			if (!MatchSettings.SoloMode)
 			{
-                if (this.IsOfficialLevelSet()) 
+                if (this.IsOfficialTowerSet) 
                 {
                     GameStats stats = SaveData.Instance.Stats;
                     stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
@@ -182,13 +182,13 @@ namespace TowerFall
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
-                if (this.IsOfficialLevelSet())
+                if (this.IsOfficialTowerSet)
                 {
                     SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
                 }
                 else 
                 {
-                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.GetLevelSet(), MatchSettings.LevelSystem.ID.X);
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.TowerSet, MatchSettings.LevelSystem.ID.X);
                     FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
@@ -225,46 +225,34 @@ namespace TowerFall
 
     public static class SessionExt 
     {
-        public static void SetLevelSet(this Session session, string levelSet) 
+        extension(Session session)
         {
-            ((patch_Session)session).LevelSet = levelSet;
+            public string TowerSet
+            {
+                get => ((patch_Session)session).LevelSet ?? "TowerFall";
+                set => ((patch_Session)session).LevelSet = value;
+            }
+
+            public bool IsOfficialTowerSet => ((patch_Session)session).TowerSet == "TowerFall";
         }
 
+
+        [Obsolete("Use 'Session.TowerSet' instead")]
+        public static void SetLevelSet(this Session session, string levelSet)
+        {
+            session.TowerSet = levelSet;
+        }
+
+        [Obsolete("Use 'Session.TowerSet' instead")]
         public static string GetLevelSet(this Session session) 
         {
-            return ((patch_Session)session).LevelSet ?? "TowerFall";
+            return session.TowerSet;
         }
 
+        [Obsolete("Use 'Session.IsOfficialTowerSet' instead")]
         public static bool IsOfficialLevelSet(this Session session) 
         {
-            return ((patch_Session)session).GetLevelSet() == "TowerFall";
-        }
-    }
-}
-
-namespace MonoMod 
-{
-    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchSessionStartGame))]
-    internal class PatchSessionStartGame : Attribute {}
-
-    internal static partial class MonoModRules 
-    {
-        public static void PatchSessionStartGame(ILContext ctx, CustomAttribute attrib) 
-        {
-            var SaveData = ctx.Module.Assembly.MainModule.GetType("TowerFall", "SaveData");
-            var AdventureActive = SaveData.FindField("AdventureActive");
-            var cursor = new ILCursor(ctx);
-
-            cursor.GotoNext(
-                MoveType.After,
-                instr => instr.MatchAdd(),
-                instr => instr.MatchStfld("TowerFall.DarkWorldTowerStats", "Attempts")
-            );
-            var label = ctx.DefineLabel(cursor.Next);
-
-            cursor.GotoPrev(MoveType.After, instr => instr.MatchStfld("TowerFall.Session", "DarkWorldState"));
-            cursor.Emit(OpCodes.Ldsfld, AdventureActive);
-            cursor.Emit(OpCodes.Brtrue_S, label);
+            return session.IsOfficialTowerSet;
         }
     }
 }

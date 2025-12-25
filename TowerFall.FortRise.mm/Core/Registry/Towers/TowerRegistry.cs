@@ -41,7 +41,7 @@ public static class TowerRegistry
         system.StartLevel = startLevel;
         MainMenu.DarkWorldMatchSettings.LevelSystem = system;
         Session session = new Session(MainMenu.DarkWorldMatchSettings);
-        session.SetLevelSet(levelSet);
+        session.TowerSet = levelSet;
         session.StartGame();
     }
 

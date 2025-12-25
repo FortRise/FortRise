@@ -41,10 +41,10 @@ public class patch_DarkWorldSessionState : DarkWorldSessionState
 
     public int get_ContinuesRemaining() 
     {
-        if (session.GetLevelSet() != "TowerFall")
+        if (!session.IsOfficialTowerSet)
         {
             int id = session.MatchSettings.LevelSystem.ID.X;
-            patch_DarkWorldTowerData tower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(session.GetLevelSet(), id);
+            patch_DarkWorldTowerData tower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(session.TowerSet, id);
             var amountContinue = tower.MaxContinues[(int)session.MatchSettings.DarkWorldDifficulty];
             if (amountContinue >= 0)
             {

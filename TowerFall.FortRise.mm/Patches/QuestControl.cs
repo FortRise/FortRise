@@ -42,7 +42,7 @@ namespace TowerFall
             base_Added();
             LoadSpawns();
             XmlDocument xmlDocument;
-            if (Level.Session.IsOfficialLevelSet()) 
+            if (Level.Session.IsOfficialTowerSet) 
             {
                 xmlDocument = Calc.LoadXML((base.Level.Session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.DataPath);
             }

@@ -14,14 +14,14 @@ public static partial class RiseCore
         {
             OnQuestRoundLogic_LevelLoadFinish?.Invoke(quest);
             var session = quest.Session;
-            var levelSet = session.GetLevelSet();
+            var towerSet = session.TowerSet;
             var levelID = session.MatchSettings.LevelSystem.ID.X;
-            if (levelSet == "TowerFall") 
+            if (towerSet == "TowerFall") 
             {
                 SaveData.Instance.Quest.Towers[levelID].TotalAttempts += 1;
                 return;
             }
-            var tower = TowerRegistry.QuestGet(levelSet, levelID);
+            var tower = TowerRegistry.QuestGet(towerSet, levelID);
             FortRise.FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.GetLevelID()).TotalAttempts += 1;
         }
 
@@ -32,14 +32,14 @@ public static partial class RiseCore
         {
             OnQuestRoundLogic_PlayerDeath?.Invoke(quest);
             var session = quest.Session;
-            var levelSet = session.GetLevelSet();
+            var towerSet = session.TowerSet;
             var levelID = session.MatchSettings.LevelSystem.ID.X;
-            if (levelSet == "TowerFall") 
+            if (towerSet == "TowerFall") 
             {
                 SaveData.Instance.Quest.Towers[levelID].TotalDeaths += 1;
                 return;
             }
-            var tower = TowerRegistry.QuestGet(levelSet, levelID);
+            var tower = TowerRegistry.QuestGet(towerSet, levelID);
             FortRise.FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.GetLevelID()).TotalDeaths += 1;
         }
     }

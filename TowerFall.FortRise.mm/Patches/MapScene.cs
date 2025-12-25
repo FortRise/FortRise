@@ -24,7 +24,7 @@ namespace TowerFall.Patching
         private QuestLevelSelectOverlay questOverlay;
         private Tween cameraTween;
         public bool MapPaused;
-        public string LevelSet;
+        public string TowerSet;
         public patch_MapRenderer Renderer;
         public static HashSet<string> NoRandom = [];
 
@@ -168,7 +168,7 @@ namespace TowerFall.Patching
         private void StartSession()
         {
             var session = new Session(MainMenu.CurrentMatchSettings);
-            session.SetLevelSet(LevelSet);
+            session.TowerSet = TowerSet;
             session.StartGame();
         }
 
@@ -226,7 +226,7 @@ namespace TowerFall.Patching
 
         public void ExitWorkshop()
         {
-            if (LevelSet == "TowerFall")
+            if (TowerSet == "TowerFall")
             {
                 orig_ExitWorkshop();
                 return;
@@ -239,9 +239,9 @@ namespace TowerFall.Patching
         {
             WorkshopLevels = false;
             TweenOutAllButtonsAndRemove();
-            LevelSet = "TowerFall";
+            TowerSet = "TowerFall";
 
-            Renderer.ChangeLevelSet(LevelSet);
+            Renderer.ChangeLevelSet(TowerSet);
             Buttons.Clear();
 
             switch (Mode)
@@ -652,13 +652,13 @@ namespace TowerFall
             [Obsolete("Use 'MapScene.TowerSet' property instead.")]
             public void SetLevelSet(string levelSet)
             {
-                ((Patching.MapScene)mapScene).LevelSet = levelSet;
+                ((Patching.MapScene)mapScene).TowerSet = levelSet;
             }
 
             [Obsolete("Use 'MapScene.TowerSet' property instead.")]
             public string GetLevelSet() 
             {
-                return ((Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
+                return ((Patching.MapScene)mapScene).TowerSet ?? "TowerFall";
             }
 
             // TODO: Deprecate this when .NET 10 comes out
@@ -670,10 +670,10 @@ namespace TowerFall
 
             public string TowerSet
             {
-                get => ((Patching.MapScene)mapScene).LevelSet ?? "TowerFall";
+                get => ((Patching.MapScene)mapScene).TowerSet ?? "TowerFall";
                 set 
                 {
-                    ((Patching.MapScene)mapScene).LevelSet = value;
+                    ((Patching.MapScene)mapScene).TowerSet = value;
                 }
             }
 

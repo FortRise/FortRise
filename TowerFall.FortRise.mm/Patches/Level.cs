@@ -41,7 +41,7 @@ namespace TowerFall
         private void InitializeModdedLevel(Session session) 
         {
             ActiveShaders = new();
-            if (session.GetLevelSet() == "TowerFall") 
+            if (session.IsOfficialTowerSet) 
             {
                 return;
             }
