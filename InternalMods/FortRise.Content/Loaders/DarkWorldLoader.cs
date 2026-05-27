@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -88,7 +89,9 @@ internal static class DarkWorldLoader
                     Option<int> boss;
                     if (normalXml.HasChild("boss"))
                     {
-                        var text = normalXml.InnerText.Trim();
+                        var text = normalXml.ChildText("boss").Trim();
+
+                        Console.WriteLine(text);
                         if (int.TryParse(text, out int bossID))
                         {
                             boss = bossID;
