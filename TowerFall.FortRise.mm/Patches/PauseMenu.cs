@@ -55,13 +55,34 @@ namespace TowerFall
         }
 
         [MonoModReplace]
+        private void TrialsMap()
+        {
+            Sounds.ui_clickBack.Play(160f, 1f);
+            var mapScene = new MapScene(MainMenu.RollcallModes.Trials);
+            mapScene.TowerSet = level.Session.TowerSet;
+            Engine.Instance.Scene = mapScene;
+            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
+        [MonoModReplace]
+        private void TrialsMapAndSave()
+        {
+            Sounds.ui_clickBack.Play(160f, 1f);
+            MapScene mapScene = new MapScene(MainMenu.RollcallModes.Trials);
+            mapScene.ShouldSave = true;
+            mapScene.TowerSet = level.Session.TowerSet;
+            Engine.Instance.Scene = mapScene;
+            this.level.Session.MatchSettings.LevelSystem.Dispose();
+            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+        }
+
+        [MonoModReplace]
         private void DarkWorldRestart() 
         {
             (level.Session as patch_Session).DisableTempVariants(level);
             Sounds.ui_click.Play(160f, 1f);
-            var oldLevelSet = this.level.Session.TowerSet;
             var session = new Session(this.level.Session.MatchSettings);
-            session.TowerSet = oldLevelSet;
             session.StartGame();
         }
 
@@ -316,19 +337,10 @@ namespace TowerFall
 		{
             RoundLogic.Restarted = false;
             Sounds.ui_clickBack.Play(160f, 1f);
-            var trialsData = (level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
 			level.Session.MatchSettings.LevelSystem.Dispose();
-            if (trialsData.IsOfficialLevelSet()) 
-            {
-                Point id = this.level.Session.MatchSettings.LevelSystem.ID;
-                this.level.Session.MatchSettings.LevelSystem = GameData.TrialsLevels[id.X, id.Y + 1].GetLevelSystem();
-            }
-            else 
-            {
-                level.Session.MatchSettings.LevelSystem = TowerRegistry
-                    .TrialsGet(trialsData.GetLevelSet(), trialsData.ID.X)[trialsData.ID.Y + 1]
-                    .GetLevelSystem();
-            }
+
+            Point id = this.level.Session.MatchSettings.LevelSystem.ID;
+            this.level.Session.MatchSettings.LevelSystem = GameData.TrialsLevels[id.X, id.Y + 1].GetLevelSystem();
 
             new Session(this.level.Session.MatchSettings).StartGame();
 		}

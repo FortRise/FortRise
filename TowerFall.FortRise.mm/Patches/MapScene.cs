@@ -88,12 +88,12 @@ namespace TowerFall.Patching
                     throw new Exception("Mode not recognized!");
             }
 
-            foreach (MapButton mapButton in Buttons)
+            foreach (TowerFall.MapButton mapButton in Buttons)
             {
                 Add(mapButton);
             }
 
-            MapButton buttonSelected;
+            TowerFall.MapButton buttonSelected;
             switch (Mode)
             {
                 case MainMenu.RollcallModes.Versus:
@@ -173,7 +173,6 @@ namespace TowerFall.Patching
         private void StartSession()
         {
             var session = new Session(MainMenu.CurrentMatchSettings);
-            session.TowerSet = TowerSet;
             session.StartGame();
         }
 
@@ -183,7 +182,7 @@ namespace TowerFall.Patching
         {
             for (int i = 0; i < Buttons.Count; i += 1)
             {
-                if (Buttons[i] is not DarkWorldMapButton || !this.IsOfficialTowerSet)
+                if (Buttons[i] is not DarkWorldMapButton || !GameData.DarkWorldTowers[Buttons[i].Data.ID.X].IsOfficialTowerSet)
                 {
                     continue;
                 }
@@ -289,24 +288,11 @@ namespace TowerFall.Patching
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.Versus));
 
-            List<VersusTowerData> towers;
-
+            List<VersusTowerData> towers = [.. GameData.VersusTowers.Where(x => x.TowerSet == TowerSet)];
+ 
             if (this.IsOfficialTowerSet)
             {
                 Buttons.Add(new GoToWorkshopMapButton());
-                towers = GameData.VersusTowers;
-            }
-            else
-            {
-                towers = [];
-                var tempTowers = TowerRegistry.VersusTowerSets[this.TowerSet];
-                foreach (var tow in tempTowers)
-                {
-                    if (tow.Levels.Count > 0)
-                    {
-                        towers.Add(tow);
-                    }
-                }
             }
 
             if (towers.Count > 0)
@@ -314,24 +300,20 @@ namespace TowerFall.Patching
                 Buttons.Add(new VersusRandomSelect());
             }
 
-
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet())
+                if (SaveData.Instance.Unlocks.GetTowerUnlocked(i))
                 {
-                    if (SaveData.Instance.Unlocks.GetTowerUnlocked(i))
+                    if (TowerRegistry.VersusTowers.TryGetValue(tower.LevelID, out IVersusTowerEntry entry))
                     {
-                        Buttons.Add(new VersusMapButton(tower));
+                        var hidden = entry.Configuration.IsHidden;
+                        if (hidden is not null && hidden.Invoke(entry))
+                        {
+                            continue;
+                        }
                     }
-                    continue;
-                }
 
-                var customTower = TowerRegistry.VersusTowers[tower.GetLevelID()];
-
-                var hidden = customTower.Configuration.IsHidden;
-                if (hidden is null || !hidden.Invoke(customTower))
-                {
                     Buttons.Add(new VersusMapButton(tower));
                 }
             }
@@ -351,42 +333,26 @@ namespace TowerFall.Patching
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.DarkWorld));
 
-            List<DarkWorldTowerData> towers;
-
-            if (this.IsOfficialTowerSet)
-            {
-                towers = GameData.DarkWorldTowers;
-            }
-            else
-            {
-                towers = [];
-                var tempTowers = TowerRegistry.DarkWorldTowerSets[this.TowerSet];
-                foreach (var tow in tempTowers)
-                {
-                    if (tow.Levels.Count > 0)
-                    {
-                        towers.Add(tow);
-                    }
-                }
-            }
+            List<DarkWorldTowerData> towers = [.. GameData.DarkWorldTowers.Where(x => x.TowerSet == TowerSet)];
 
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet())
+                if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
                 {
-                    if (SaveData.Instance.Unlocks.GetDarkWorldTowerUnlocked(i))
+                    if (TowerRegistry.DarkWorldTowers.TryGetValue(tower.LevelID, out var entry))
                     {
-                        Buttons.Add(new DarkWorldMapButton(tower));
+                        var hidden = entry.Configuration.IsHidden;
+                        if (hidden is not null && !hidden.Invoke(entry))
+                        {
+                            continue;
+                        }
                     }
-                    continue;
-                }
-                var customTower = TowerRegistry.DarkWorldTowers[tower.GetLevelID()];
-                var hidden = customTower.Configuration.IsHidden;
-                if (hidden is null || !hidden.Invoke(customTower))
-                {
+
                     Buttons.Add(new DarkWorldMapButton(tower));
                 }
+
+                continue;
             }
 
             LinkButtonsList();
@@ -396,33 +362,22 @@ namespace TowerFall.Patching
         {
             Buttons.Add(new CustomLevelCategoryButton(MainMenu.RollcallModes.Quest));
 
-            List<QuestLevelData> towers;
-
-            if (this.IsOfficialTowerSet)
-            {
-                towers = GameData.QuestLevels.ToList();
-            }
-            else
-            {
-                towers = TowerRegistry.QuestTowerSets[this.TowerSet];
-            }
+            List<QuestLevelData> towers = [.. GameData.QuestLevels.Where(x => x.TowerSet == TowerSet)];
 
             for (int i = 0; i < towers.Count; i++)
             {
                 var tower = towers[i];
-                if (tower.IsOfficialLevelSet())
+                if (SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
                 {
-                    if (SaveData.Instance.Unlocks.GetQuestTowerUnlocked(i))
+                    if (TowerRegistry.QuestTowers.TryGetValue(tower.LevelID, out var entry))
                     {
-                        Buttons.Add(new QuestMapButton(tower));
+                        var hidden = entry.Configuration.IsHidden;
+                        if (hidden is not null && !hidden.Invoke(entry))
+                        {
+                            continue;
+                        }
                     }
-                    continue;
-                }
 
-                var customTower = TowerRegistry.QuestTowers[tower.GetLevelID()];
-                var hidden = customTower.Configuration.IsHidden;
-                if (hidden is null || !hidden.Invoke(customTower))
-                {
                     Buttons.Add(new QuestMapButton(tower));
                 }
             }
@@ -431,68 +386,60 @@ namespace TowerFall.Patching
 
         public void InitTrialsButtons()
         {
-            var list = new List<MapButton[]>();
+            var list = new List<TowerFall.MapButton[]>();
             var adv = new CustomLevelCategoryButton(MainMenu.RollcallModes.Trials);
             Buttons.Add(adv);
             list.Add([adv, adv, adv]);
 
-            TrialsLevelData[,] towers;
-
-            if (this.IsOfficialTowerSet)
-            {
-                towers = GameData.TrialsLevels;
-            }
-            else
-            {
-                var rawTowers = TowerRegistry.TrialsTowerSets[this.TowerSet];
-                towers = new TrialsLevelData[rawTowers.Count, 3];
-                for (int i = 0; i < rawTowers.Count; i++)
-                {
-                    for (int j = 0; j < rawTowers[i].Length; j++)
-                    {
-                        towers[i, j] = rawTowers[i][j];
-                    }
-                }
-            }
+            TrialsLevelData[,] towers = GameData.TrialsLevels;
+            
 
             for (int k = 0; k < towers.GetLength(0); k++)
             {
-                bool show = false;
-                if (this.IsOfficialTowerSet)
+                if (!SaveData.Instance.Unlocks.GetTowerUnlocked(k))
                 {
-                    show = SaveData.Instance.Unlocks.GetTowerUnlocked(k);
+                    continue;
                 }
-                else
+                
+                var tower = towers[k, 0];
+                if (tower.TowerSet != TowerSet)
                 {
-                    var levelID = towers[k, 0].GetLevelID();
-                    
-                    var customTower = TowerRegistry.TrialTowers[levelID[0..(levelID.Length - 2)]];
-                    var hidden = customTower.Configuration.IsHidden;
-                    show = hidden is null || !hidden.Invoke(customTower);
+                    continue;
                 }
 
-                if (show)
+                var levelID = tower.LevelID;
+
+                if (TowerRegistry.TrialTowers.TryGetValue(levelID[0..(levelID.Length - 2)], out var entry))
                 {
-                    MapButton[] array = new MapButton[towers.GetLength(1)];
-                    for (int l = 0; l < array.Length; l++)
+                    var customTower = TowerRegistry.TrialTowers[levelID[0..(levelID.Length - 2)]];
+                    var hidden = customTower.Configuration.IsHidden;
+                    if (hidden is not null && hidden.Invoke(entry))
                     {
-                        array[l] = new TrialsMapButton(towers[k, l]);
-                        this.Buttons.Add(array[l]);
+                        continue;
                     }
-                    for (int m = 0; m < array.Length; m++)
-                    {
-                        if (m > 0)
-                        {
-                            array[m].UpButton = array[m - 1];
-                        }
-                        if (m < array.Length - 1)
-                        {
-                            array[m].DownButton = array[m + 1];
-                        }
-                    }
-                    list.Add(array);
                 }
+
+                TowerFall.MapButton[] array = new MapButton[towers.GetLength(1)];
+                for (int l = 0; l < array.Length; l++)
+                {
+                    array[l] = new TrialsMapButton(towers[k, l]);
+                    this.Buttons.Add(array[l]);
+                }
+
+                for (int m = 0; m < array.Length; m++)
+                {
+                    if (m > 0)
+                    {
+                        array[m].UpButton = array[m - 1];
+                    }
+                    if (m < array.Length - 1)
+                    {
+                        array[m].DownButton = array[m + 1];
+                    }
+                }
+                list.Add(array);
             }
+
             for (int n = 0; n < list.Count; n++)
             {
                 if (n > 0)
@@ -541,7 +488,7 @@ namespace TowerFall.Patching
         {
             foreach (var mapButton in Buttons)
             {
-                (mapButton as patch_MapButton).TweenOutAndRemoved();
+                (mapButton as MapButton).TweenOutAndRemoved();
             }
         }
 
@@ -551,7 +498,7 @@ namespace TowerFall.Patching
             {
                 if (button == mapButton)
                     continue;
-                (mapButton as patch_MapButton).TweenOutAndRemoved();
+                (mapButton as MapButton).TweenOutAndRemoved();
             }
         }
 
@@ -573,9 +520,9 @@ namespace TowerFall.Patching
             };
         }
 
-        public MapButton GetRandomWorkshopTower()
+        public TowerFall.MapButton GetRandomWorkshopTower()
         {
-            var list = new List<MapButton>(Buttons);
+            var list = new List<TowerFall.MapButton>(Buttons);
             list.RemoveAll(b => b is not CustomMapButton);
 
             for (int i = 0; i < list.Count; i++)

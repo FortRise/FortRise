@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace FortRise;
@@ -6,12 +7,12 @@ namespace FortRise;
 internal static class MapRendererRegistry 
 {
     private static readonly Dictionary<string, IMapRendererEntry> mapEntries = [];
-    private static readonly Dictionary<string, IMapRendererEntry> levelSetToMapEntries = [];
+    private static readonly Dictionary<string, IMapRendererEntry> towerSetToMapEntries = [];
 
     public static void AddEntry(IMapRendererEntry entry)
     {
         mapEntries[entry.Name] = entry;
-        levelSetToMapEntries[entry.Configuration.LevelSet] = entry;
+        towerSetToMapEntries[entry.Configuration.TowerSet] = entry;
     }
 
     public static IMapRendererEntry? GetEntry(string name)
@@ -20,9 +21,9 @@ internal static class MapRendererRegistry
         return map;
     }
 
-    public static IMapRendererEntry? GetEntryFromLevelSet(string levelSet)
+    public static IMapRendererEntry? GetEntryFromTowerSet(string levelSet)
     {
-        levelSetToMapEntries.TryGetValue(levelSet, out var map);
+        towerSetToMapEntries.TryGetValue(levelSet, out var map);
         return map;
     }
 }

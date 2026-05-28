@@ -5,7 +5,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public sealed class CustomLevelCategoryButton : patch_MapButton
+public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
 {
     public MainMenu.RollcallModes Mode;
     public CustomLevelCategoryButton(MainMenu.RollcallModes mode) : base("TOWER CATEGORY")

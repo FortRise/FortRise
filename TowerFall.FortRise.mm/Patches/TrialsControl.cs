@@ -67,7 +67,7 @@ public class patch_TrialsControl : TrialsControl
         long bestTime;
         Sprite<int> smallAward;
         TrialsLevelData trialsLevelData = (base.Level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
-        if (trialsLevelData.GetLevelSet() == "TowerFall") 
+        if (trialsLevelData.TowerSet == "TowerFall") 
         {
             var trialsLevelStats = SaveData.Instance.Trials.Levels[trialsLevelData.ID.X][trialsLevelData.ID.Y];
             nextGoal = trialsLevelStats.NextGoal;
@@ -76,7 +76,7 @@ public class patch_TrialsControl : TrialsControl
         }
         else 
         {
-            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID());
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID);
             nextGoal = trialsLevelStats.NextGoal;
             bestTime = trialsLevelStats.BestTime;
             smallAward = trialsLevelStats.GetNextSmallAwardIcon();
@@ -128,7 +128,7 @@ public class patch_TrialsControl : TrialsControl
         bool oldUnlockDevTime;
         Point id = trialsLevelData.ID;
 
-        if (trialsLevelData.IsOfficialLevelSet())
+        if (trialsLevelData.IsOfficialTowerSet)
         {
             TrialsLevelStats trialsLevelStats = SaveData.Instance.Trials.Levels[id.X][id.Y];
             oldBest = trialsLevelStats.BestTime;
@@ -138,7 +138,7 @@ public class patch_TrialsControl : TrialsControl
         }
         else
         {
-            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID());
+            var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID);
             oldBest = trialsLevelStats.BestTime;
             oldUnlockGold = trialsLevelStats.UnlockedGold;
             oldUnlockDiamond = trialsLevelStats.UnlockedDiamond;
@@ -163,48 +163,48 @@ public class patch_TrialsControl : TrialsControl
         if (oldBest == 0L || currentTime < oldBest)
         {
             newBestTime = true;
-            if (trialsLevelData.IsOfficialLevelSet())
+            if (trialsLevelData.IsOfficialTowerSet)
             {
                 SaveData.Instance.Trials.Levels[id.X][id.Y].BestTime = currentTime;
             }
             else
             {
-                FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).BestTime = currentTime;
+                FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID).BestTime = currentTime;
             }
             if (!oldUnlockGold && this.time <= trialsLevelData.Goals[0])
             {
                 unlockGold = true;
-                if (trialsLevelData.IsOfficialLevelSet())
+                if (trialsLevelData.IsOfficialTowerSet)
                 {
                     SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedGold = true;
                 }
                 else
                 {
-                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedGold = true;
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID).UnlockedGold = true;
                 }
             }
             if (!oldUnlockDiamond && this.time <= trialsLevelData.Goals[1])
             {
                 unlockDiamond = true;
-                if (trialsLevelData.IsOfficialLevelSet())
+                if (trialsLevelData.IsOfficialTowerSet)
                 {
                     SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedDiamond = true;
                 }
                 else
                 {
-                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedDiamond = true;
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID).UnlockedDiamond = true;
                 }
             }
             if (!oldUnlockDevTime && this.time <= trialsLevelData.Goals[2])
             {
                 unlockDevTime = true;
-                if (trialsLevelData.IsOfficialLevelSet())
+                if (trialsLevelData.IsOfficialTowerSet)
                 {
                     SaveData.Instance.Trials.Levels[id.X][id.Y].UnlockedDevTime = true;
                 }
                 else
                 {
-                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.GetLevelID()).UnlockedDevTime = true;
+                    FortRiseModule.SaveData.AdventureTrials.AddOrGet(trialsLevelData.LevelID).UnlockedDevTime = true;
                 }
             }
         }

@@ -9,4 +9,5 @@ public interface ITrialsTowerEntry : ITowerEntry
     public TrialsLevelData? TrialsLevelDataTier1 { get; }
     public TrialsLevelData? TrialsLevelDataTier2 { get; }
     public TrialsLevelData? TrialsLevelDataTier3 { get; }
+    public TrialsLevelData? TrialsLevelData { get; }
 }

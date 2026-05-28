@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
 using FortRise;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod;
-using MonoMod.Cil;
-using MonoMod.Utils;
 
 namespace TowerFall 
 {
     public class patch_Session : Session
     {
         private patch_DarkWorldSessionState DarkWorldState;
-        public string LevelSet;
         [MonoModIgnore]
         public TreasureSpawner TreasureSpawner { get; private set; }
         private List<Variant> temporarilyActivatedVariants;
@@ -88,19 +83,19 @@ namespace TowerFall
             switch (levelSystem) 
             {
             case DarkWorldLevelSystem dwSystem:
-                level.AssignTag("level=" + dwSystem.DarkWorldTowerData.GetLevelID());
+                level.AssignTag("level=" + dwSystem.DarkWorldTowerData.LevelID);
                 level.AssignTag("darkworld");
                 break;
             case TrialsLevelSystem lSystem:
-                level.AssignTag("level=" + lSystem.TrialsLevelData.GetLevelID());
+                level.AssignTag("level=" + lSystem.TrialsLevelData.LevelID);
                 level.AssignTag("trials");
                 break;
             case QuestLevelSystem qSystem:
-                level.AssignTag("level=" + qSystem.QuestTowerData.GetLevelID());
+                level.AssignTag("level=" + qSystem.QuestTowerData.LevelID);
                 level.AssignTag("quest");
                 break;
             case VersusLevelSystem vSystem:
-                level.AssignTag("level=" + vSystem.VersusTowerData.GetLevelID());
+                level.AssignTag("level=" + vSystem.VersusTowerData.LevelID);
                 level.AssignTag("versus");
                 break;
             }
@@ -146,8 +141,8 @@ namespace TowerFall
                 }
                 else 
                 {
-                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.TowerSet, MatchSettings.LevelSystem.ID.X);
-                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)GameData.DarkWorldTowers[MatchSettings.LevelSystem.ID.X];
+                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.LevelID).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
@@ -188,8 +183,8 @@ namespace TowerFall
                 }
                 else 
                 {
-                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)TowerRegistry.DarkWorldGet(this.TowerSet, MatchSettings.LevelSystem.ID.X);
-                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.GetLevelID()).Attempts += 1;
+                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)GameData.DarkWorldTowers[MatchSettings.LevelSystem.ID.X];
+                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.LevelID).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
@@ -199,48 +194,35 @@ namespace TowerFall
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
 			Engine.Instance.Scene = new LevelLoaderXML(this);
         }
-
-            /* Having some problems with this, might use this soon */
-            // if (DarkWorldState != null) 
-            // {
-            //     var originalCount = DarkWorldState.defaultInventory.Arrows.Arrows.Count;
-            //     var matchArrow = MatchSettings.Variants switch 
-            //     {
-            //         { StartWithBoltArrows: { Value: true } } => ArrowTypes.Bolt,
-            //         { StartWithBombArrows: { Value: true } } => ArrowTypes.Bomb,
-            //         { StartWithSuperBombArrows: { Value: true } } => ArrowTypes.SuperBomb,
-            //         { StartWithBrambleArrows: { Value: true } } => ArrowTypes.Bramble,
-            //         { StartWithDrillArrows: { Value: true } } => ArrowTypes.Drill,
-            //         { StartWithFeatherArrows: { Value: true } } => ArrowTypes.Feather,
-            //         { StartWithLaserArrows: { Value: true } } => ArrowTypes.Laser,
-            //         { StartWithPrismArrows: { Value: true } } => ArrowTypes.Prism,
-            //         { StartWithToyArrows: { Value: true } } => ArrowTypes.Toy,
-            //         { StartWithTriggerArrows: { Value: true } } => ArrowTypes.Trigger,
-            //         { StartWithRandomArrows: { Value: true } } => (ArrowTypes)Calc.Random.Next(0, 10),
-            //         _ => ArrowTypes.Normal
-            //     };
-            //     DarkWorldState.defaultInventory.Arrows = new ArrowList(originalCount, matchArrow);
-            // }
     }
 
     public static class SessionExt 
     {
         extension(Session session)
         {
-            public string TowerSet
+            public string TowerSet => ((patch_Session)session).MatchSettings.LevelSystem switch
             {
-                get => ((patch_Session)session).LevelSet ?? "TowerFall";
-                set => ((patch_Session)session).LevelSet = value;
-            }
+                VersusLevelSystem system => GameData.VersusTowers[system.VersusTowerData.ID.X].TowerSet,
+                QuestLevelSystem system => GameData.QuestLevels[system.QuestTowerData.ID.X].TowerSet,
+                DarkWorldLevelSystem system => GameData.DarkWorldTowers[system.DarkWorldTowerData.ID.X].TowerSet,
+                TrialsLevelSystem system => GameData.TrialsLevels[system.TrialsLevelData.ID.X, system.TrialsLevelData.ID.Y].TowerSet,
+                _ => "TowerFall"
+            };
 
-            public bool IsOfficialTowerSet => ((patch_Session)session).TowerSet == "TowerFall";
+            public bool IsOfficialTowerSet => ((patch_Session)session).MatchSettings.LevelSystem switch
+            {
+                VersusLevelSystem system => GameData.VersusTowers[system.VersusTowerData.ID.X].IsOfficialTowerSet,
+                QuestLevelSystem system => GameData.QuestLevels[system.QuestTowerData.ID.X].IsOfficialTowerSet,
+                DarkWorldLevelSystem system => GameData.DarkWorldTowers[system.DarkWorldTowerData.ID.X].IsOfficialTowerSet,
+                TrialsLevelSystem system => GameData.TrialsLevels[system.TrialsLevelData.ID.X, system.TrialsLevelData.ID.Y].IsOfficialTowerSet,
+                _ => true
+            };
         }
 
 
-        [Obsolete("Use 'Session.TowerSet' instead")]
+        [Obsolete("Session.TowerSet can no longer be set")]
         public static void SetLevelSet(this Session session, string levelSet)
         {
-            session.TowerSet = levelSet;
         }
 
         [Obsolete("Use 'Session.TowerSet' instead")]

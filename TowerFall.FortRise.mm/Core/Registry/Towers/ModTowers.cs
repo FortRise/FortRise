@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using TowerFall;
 
 namespace FortRise;
@@ -33,17 +34,17 @@ internal sealed class ModTowers : IModTowers
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IVersusTowerEntry> versusTowerQueue;
-    private readonly RegistryQueue<IQuestTowerEntry> questTowerQueue;
+    private readonly PreparedRegistryQueue<IQuestTowerEntry> questTowerQueue;
     private readonly RegistryQueue<IDarkWorldTowerEntry> darkWorldTowerQueue;
-    private readonly RegistryQueue<ITrialsTowerEntry> trialTowerQueue;
+    private readonly PreparedRegistryQueue<ITrialsTowerEntry> trialTowerQueue;
 
     internal ModTowers(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
         versusTowerQueue = manager.CreateQueue<IVersusTowerEntry>(VersusTowerInvoke);
-        questTowerQueue = manager.CreateQueue<IQuestTowerEntry>(QuestTowerInvoke);
+        questTowerQueue = manager.CreatePrepareQueue<IQuestTowerEntry>(QuestTowerPrepare, QuestTowerInvoke);
         darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(DarkWorldTowerInvoke);
-        trialTowerQueue = manager.CreateQueue<ITrialsTowerEntry>(TrialTowerInvoke);
+        trialTowerQueue = manager.CreatePrepareQueue<ITrialsTowerEntry>(TrialTowerPrepare, TrialTowerInvoke);
     }
 
     public IVersusTowerEntry RegisterVersusTower(string id, in VersusTowerConfiguration configuration)
@@ -51,10 +52,10 @@ internal sealed class ModTowers : IModTowers
         return RegisterVersusTower(id, metadata.Name, configuration);
     }
 
-    public IVersusTowerEntry RegisterVersusTower(string id, string levelSet, in VersusTowerConfiguration configuration)
+    public IVersusTowerEntry RegisterVersusTower(string id, string towerSet, in VersusTowerConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        string set = $"{metadata.Name}/{levelSet}";
+        string set = $"{metadata.Name}/{towerSet}";
         IVersusTowerEntry entry = new VersusTowerEntry(name, set, configuration);
         versusTowerQueue.AddOrInvoke(entry);
         TowerRegistry.VersusTowers.Add(name, entry);
@@ -66,10 +67,10 @@ internal sealed class ModTowers : IModTowers
         return RegisterQuestTower(id, metadata.Name, configuration);
     }
 
-    public IQuestTowerEntry RegisterQuestTower(string id, string levelSet, in QuestTowerConfiguration configuration)
+    public IQuestTowerEntry RegisterQuestTower(string id, string towerSet, in QuestTowerConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        string set = $"{metadata.Name}/{levelSet}";
+        string set = $"{metadata.Name}/{towerSet}";
         IQuestTowerEntry entry = new QuestTowerEntry(name, set, configuration);
         questTowerQueue.AddOrInvoke(entry);
         TowerRegistry.QuestTowers.Add(name, entry);
@@ -81,10 +82,10 @@ internal sealed class ModTowers : IModTowers
         return RegisterDarkWorldTower(id, metadata.Name, configuration);
     }
 
-    public IDarkWorldTowerEntry RegisterDarkWorldTower(string id, string levelSet, in DarkWorldTowerConfiguration configuration)
+    public IDarkWorldTowerEntry RegisterDarkWorldTower(string id, string towerSet, in DarkWorldTowerConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        string set = $"{metadata.Name}/{levelSet}";
+        string set = $"{metadata.Name}/{towerSet}";
         IDarkWorldTowerEntry entry = new DarkWorldTowerEntry(name, set, configuration);
         darkWorldTowerQueue.AddOrInvoke(entry);
         TowerRegistry.DarkWorldTowers.Add(name, entry);
@@ -96,10 +97,10 @@ internal sealed class ModTowers : IModTowers
         return RegisterTrialTower(id, metadata.Name, configuration);
     }
 
-    public ITrialsTowerEntry RegisterTrialTower(string id, string levelSet, in TrialsTowerConfiguration configuration)
+    public ITrialsTowerEntry RegisterTrialTower(string id, string towerSet, in TrialsTowerConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        string set = $"{metadata.Name}/{levelSet}";
+        string set = $"{metadata.Name}/{towerSet}";
         ITrialsTowerEntry entry = new TrialsTowerEntry(name, set, configuration);
         trialTowerQueue.AddOrInvoke(entry);
         TowerRegistry.TrialTowers.Add(name, entry);
@@ -108,12 +109,15 @@ internal sealed class ModTowers : IModTowers
 
     private void VersusTowerInvoke(IVersusTowerEntry entry)
     {
-        var levelData = new patch_VersusTowerData();
-        levelData.SetLevelID(entry.ID);
-        levelData.SetLevelSet(entry.LevelSet);
-        levelData.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
-        levelData.Levels = new();
-        levelData.Procedural = entry.Configuration.Procedural;
+        var levelData = new patch_VersusTowerData
+        {
+            LevelID = entry.ID,
+            TowerSet = entry.TowerSet,
+            Author = entry.Configuration.Author?.ToUpperInvariant().Trim(),
+            Levels = [],
+            Procedural = entry.Configuration.Procedural,
+            ID = new Point(GameData.VersusTowers.Count, 0)
+        };
 
         foreach (var level in entry.Configuration.Levels)
         {
@@ -157,7 +161,7 @@ internal sealed class ModTowers : IModTowers
             var count = PickupsRegistry.GetAllPickups().Count;
 
             levelData.TreasureMask = new int[TreasureSpawner.FullTreasureMask.Length + count];
-            float[] treasureChances = (float[])TreasureSpawner.DefaultTreasureChances.Clone();
+            float[] treasureChances = [.. TreasureSpawner.DefaultTreasureChances];
             Array.Resize(ref treasureChances, TreasureSpawner.DefaultTreasureChances.Length + count);
 
             for (int i = 0; i < entry.Configuration.Treasure.Length; i += 1)
@@ -187,28 +191,51 @@ internal sealed class ModTowers : IModTowers
             levelData.SpecialArrowRate = 0.6f;
         }
 
-        TowerRegistry.VersusAdd(levelData.GetLevelSet(), levelData);
+        // Inject
+        entry.LevelIndex = levelData.ID; 
+        if (!TowerRegistry.VersusLevelSets.Contains(entry.TowerSet))
+        {
+            TowerRegistry.VersusLevelSets.Add(entry.TowerSet);
+        }
+        GameData.VersusTowers.Add(levelData);
+    }
+
+    private int totalQuestCount;
+
+    private void QuestTowerPrepare(List<IQuestTowerEntry> entries)
+    {
+        totalQuestCount = GameData.QuestLevels.Length;
+        Array.Resize(ref GameData.QuestLevels, GameData.QuestLevels.Length + entries.Count);
     }
 
     private void QuestTowerInvoke(IQuestTowerEntry entry)
     {
-        var levelData = new patch_QuestLevelData();
-        levelData.SetLevelID(entry.ID);
-        levelData.SetLevelSet(entry.LevelSet);
-        levelData.Path = entry.Configuration.Level.RootPath;
-        levelData.DataPath = entry.Configuration.Data.RootPath;
+        var levelData = new patch_QuestLevelData
+        {
+            LevelID = entry.ID,
+            TowerSet = entry.TowerSet,
+            Path = entry.Configuration.Level.RootPath,
+            DataPath = entry.Configuration.Data.RootPath,
 
-        levelData.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
-        levelData.Theme = GameData.Themes[entry.Configuration.Theme];
+            Author = entry.Configuration.Author?.ToUpperInvariant().Trim(),
+            Theme = GameData.Themes[entry.Configuration.Theme],
+            ID = new Point(totalQuestCount, 0)
+        };
 
-        TowerRegistry.QuestAdd(levelData.GetLevelSet(), levelData);
+        if (!TowerRegistry.QuestLevelSets.Contains(entry.TowerSet))
+        {
+            TowerRegistry.QuestLevelSets.Add(entry.TowerSet);
+        }
+
+        GameData.QuestLevels[totalQuestCount] = levelData;
+        totalQuestCount += 1;
     }
 
     private void DarkWorldTowerInvoke(IDarkWorldTowerEntry entry)
     {
         var towerData = new patch_DarkWorldTowerData();
-        towerData.SetLevelID(entry.ID);
-        towerData.SetLevelSet(entry.LevelSet);
+        towerData.LevelID = entry.ID;
+        towerData.TowerSet = entry.TowerSet;
         towerData.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
         towerData.TimeAdd = entry.Configuration.TimeAdd;
         towerData.TimeBase = entry.Configuration.TimeBase;
@@ -217,6 +244,7 @@ internal sealed class ModTowers : IModTowers
         towerData.StartingLives = entry.Configuration.StartingLives;
         towerData.EnemySets = entry.Configuration.EnemySets;
         towerData.Levels = [];
+        towerData.ID = new Point(GameData.DarkWorldTowers.Count, 0);
 
         foreach (var level in entry.Configuration.Levels)
         {
@@ -227,7 +255,12 @@ internal sealed class ModTowers : IModTowers
         towerData.Hardcore = CreateLevelData(entry.Configuration.Hardcore, towerData.EnemySets);
         towerData.Legendary = CreateLevelData(entry.Configuration.Legendary, towerData.EnemySets);
 
-        TowerRegistry.DarkWorldAdd(towerData.GetLevelSet(), towerData);
+        entry.LevelIndex = towerData.ID;
+        if (!TowerRegistry.DarkWorldLevelSets.Contains(entry.TowerSet))
+        {
+            TowerRegistry.DarkWorldLevelSets.Add(entry.TowerSet);
+        }
+        GameData.DarkWorldTowers.Add(towerData);
 
 
         static List<DarkWorldTowerData.LevelData> CreateLevelData(
@@ -295,52 +328,80 @@ internal sealed class ModTowers : IModTowers
         }
     }
 
+    private int totalTrialsCount;
+
+    private void TrialTowerPrepare(List<ITrialsTowerEntry> entries)
+    {
+        int origXLength = totalTrialsCount = GameData.TrialsLevels.GetLength(0);
+        int origYLength = GameData.TrialsLevels.GetLength(1);
+        int newRowXLength = origXLength + entries.Count;
+
+        TrialsLevelData[,] resized = new TrialsLevelData[newRowXLength, origYLength];
+
+        for (int x = 0; x < origXLength; x += 1)
+        {
+            for (int y = 0; y < origYLength; y += 1)
+            {
+                resized[x, y] = GameData.TrialsLevels[x, y];
+            }
+        }
+
+        GameData.TrialsLevels = resized;
+    }
+
     private void TrialTowerInvoke(ITrialsTowerEntry entry)
     {
         var tier1 = new patch_TrialsLevelData();
-        tier1.SetLevelID(entry.ID + "-" + "1");
-        tier1.SetLevelSet(entry.LevelSet);
+        tier1.LevelID = entry.ID + "-" + "1";
+        tier1.TowerSet = entry.TowerSet;
         tier1.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
         tier1.Path = entry.Configuration.Tier1.Level.RootPath;
         tier1.Arrows = entry.Configuration.Tier1.Arrows;
         tier1.SwitchBlockTimer = entry.Configuration.Tier1.SwitchBlockTimer;
         tier1.Theme = GameData.Themes[entry.Configuration.Tier1.Theme];
+        tier1.ID = new Point(totalTrialsCount, 0);
         tier1.Goals = new TimeSpan[3];
         tier1.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier1.GoldTime);
         tier1.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier1.DiamondTime);
         tier1.Goals[2] = TimeSpan.FromSeconds(entry.Configuration.Tier1.DevTime);
 
         var tier2 = new patch_TrialsLevelData();
-        tier2.SetLevelID(entry.ID + "-" + "2");
-        tier2.SetLevelSet(entry.LevelSet);
+        tier2.LevelID = entry.ID + "-" + "2";
+        tier2.TowerSet = entry.TowerSet;
         tier2.Author = entry.Configuration.Author;
         tier2.Path = entry.Configuration.Tier2.Level.RootPath;
         tier2.Arrows = entry.Configuration.Tier2.Arrows;
         tier2.SwitchBlockTimer = entry.Configuration.Tier2.SwitchBlockTimer;
         tier2.Theme = GameData.Themes[entry.Configuration.Tier2.Theme];
+        tier2.ID = new Point(totalTrialsCount, 1);
         tier2.Goals = new TimeSpan[3];
         tier2.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier2.GoldTime);
         tier2.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier2.DiamondTime);
         tier2.Goals[2] = TimeSpan.FromSeconds(entry.Configuration.Tier2.DevTime);
 
         var tier3 = new patch_TrialsLevelData();
-        tier3.SetLevelID(entry.ID + "-" + "3");
-        tier3.SetLevelSet(entry.LevelSet);
+        tier3.LevelID = entry.ID + "-" + "3";
+        tier3.TowerSet = entry.TowerSet;
         tier3.Author = entry.Configuration.Author;
         tier3.Path = entry.Configuration.Tier3.Level.RootPath;
         tier3.Arrows = entry.Configuration.Tier3.Arrows;
         tier3.SwitchBlockTimer = entry.Configuration.Tier3.SwitchBlockTimer;
         tier3.Theme = GameData.Themes[entry.Configuration.Tier3.Theme];
+        tier3.ID = new Point(totalTrialsCount, 2);
         tier3.Goals = new TimeSpan[3];
         tier3.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier3.GoldTime);
         tier3.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DiamondTime);
         tier3.Goals[2] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DevTime);
 
-        TowerRegistry.TrialsAdd([
-            tier1,
-            tier2,
-            tier3
-        ]);
+        GameData.TrialsLevels[totalTrialsCount, 0] = tier1;
+        GameData.TrialsLevels[totalTrialsCount, 1] = tier2;
+        GameData.TrialsLevels[totalTrialsCount, 2] = tier3;
+        totalTrialsCount += 1;
+
+        if (!TowerRegistry.TrialsLevelSet.Contains(entry.TowerSet))
+        {
+            TowerRegistry.TrialsLevelSet.Add(entry.TowerSet);
+        }
     }
 
     public IVersusTowerEntry? GetVersusTower(string id)

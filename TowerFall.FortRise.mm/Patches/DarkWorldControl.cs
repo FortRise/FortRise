@@ -101,7 +101,7 @@ namespace TowerFall
                     return;
                 
                 var towerData = (Level.Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData;
-                var id = towerData.GetLevelID();
+                var id = towerData.LevelID;
                 portals.AddRange(allPortals);
             }
         }

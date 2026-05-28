@@ -13,19 +13,19 @@ public class DarkWorldMapButton : TowerFall.DarkWorldMapButton
     [MonoModReplace]
     protected override bool GetLocked()
     {
-        if (Scene is not MapScene map)
+        var tower = GameData.DarkWorldTowers[Data.ID.X];
+
+        if (TowerRegistry.DarkWorldTowers.TryGetValue(tower.LevelID, out var entry))
         {
+            var locked = entry.Configuration.ShowLocked?.Invoke(entry);
+            if (locked is {} l)
+            {
+                return l;
+            }
+
             return false;
         }
 
-        if (map.TowerSet == "TowerFall")
-        {
-            return !SaveData.Instance.DarkWorld.Towers[Data.ID.X].Revealed;
-        }
-
-        var entry = TowerRegistry.DarkWorldTowers[(Data as patch_TowerMapData).LevelData.GetLevelID()];
-        var locked = entry.Configuration.ShowLocked?.Invoke(entry);
-
-        return locked is { } l && l;
+        return !SaveData.Instance.DarkWorld.Towers[Data.ID.X].Revealed;
     }
 }

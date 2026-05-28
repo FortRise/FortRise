@@ -3,6 +3,7 @@ using System;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using Monocle;
+using TowerFall;
 
 namespace FortRise;
 
@@ -23,7 +24,7 @@ internal class SpriteEntry<T> : ISpriteEntry<T>
         xmlCallback = GetActualXml;
     }
 
-    public SpriteEntry(string id, Func<XmlElement> callback)
+    internal SpriteEntry(string id, Func<XmlElement> callback)
     {
         ID = id;
         xmlCallback = callback;

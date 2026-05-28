@@ -1,4 +1,5 @@
 #nullable enable
+using Microsoft.Xna.Framework;
 using TowerFall;
 
 namespace FortRise;
@@ -7,19 +8,14 @@ internal sealed class VersusTowerEntry : IVersusTowerEntry
 {
     public VersusTowerConfiguration Configuration { get; init; }
     public string ID { get; init; }
-    public string LevelSet { get; init; }
+    public VersusTowerData? VersusTowerData => GameData.VersusTowers[LevelIndex.X];
+    public Point LevelIndex { get; set; }
+    public string TowerSet { get; init; }
 
-    public VersusTowerData? VersusTowerData => GetTowerData();
-
-    public VersusTowerEntry(string id, string levelSet, VersusTowerConfiguration configuration)
+    public VersusTowerEntry(string id, string towerSet, VersusTowerConfiguration configuration)
     {
         ID = id;
-        LevelSet = levelSet;
+        TowerSet = towerSet;
         Configuration = configuration;
-    }
-
-    private VersusTowerData GetTowerData()
-    {
-        return TowerRegistry.VersusGet(LevelSet, ID);
     }
 }

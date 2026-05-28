@@ -77,7 +77,22 @@ public class MapRendererData : CompositeComponent
                     var inAnimation = data.In ?? selected;
                     var outAnimation = data.Out ?? notSelected;
 
-                    var sprite = data.Sprite.GetCastEntry<string>().Sprite!;
+                    var spriteData = data.Sprite.GetCastEntry<string>();
+                    if (spriteData is null)
+                    {
+                        return;
+                    }
+
+                    Sprite<string> sprite;
+                    if (spriteData.Configuration.Texture is null)
+                    {
+                        sprite = TFGame.MenuSpriteData.GetSpriteString(spriteData.ID);
+                    }
+                    else
+                    {
+                        sprite = spriteData.Sprite!;
+                    }
+
                     sprite.Position = new Vector2(elm.Position.X, elm.Position.Y);
 
                     sprite.Play(notSelected);

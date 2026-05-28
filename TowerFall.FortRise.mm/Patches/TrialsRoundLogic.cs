@@ -49,13 +49,13 @@ public class patch_TrialsRoundLogic : TrialsRoundLogic
             ));
         }
         var tower = (Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
-        if (tower.GetLevelSet() == "TowerFall") 
+        if (tower.TowerSet == "TowerFall") 
         {
             TrialsLevelStats[] array = SaveData.Instance.Trials.Levels[id.X];
             int y = id.Y;
             array[y].Attempts = array[y].Attempts + 1UL;
             return;
         }
-        FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.GetLevelID()).Attempts += 1;
+        FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.LevelID).Attempts += 1;
     }
 }

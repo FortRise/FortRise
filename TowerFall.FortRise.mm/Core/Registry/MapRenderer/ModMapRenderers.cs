@@ -1,11 +1,15 @@
 #nullable enable
+using System;
+
 namespace FortRise;
 
 public interface IModMapRenderers
 {
     IMapRendererEntry RegisterMapRenderer(string id, MapRendererConfiguration configuration);
     IMapRendererEntry? GetMapRenderer(string name);
-    IMapRendererEntry? GetMapRendererFromLevelSet(string levelSet);
+    [Obsolete("Use IModMapRenderers.GetMapRendererFromTowerSet instead")]
+    IMapRendererEntry? GetMapRendererFromLevelSet(string levelSet) => GetMapRendererFromTowerSet(levelSet);
+    IMapRendererEntry? GetMapRendererFromTowerSet(string towerSet);
 }
 
 internal sealed class ModMapRenderers : IModMapRenderers
@@ -31,8 +35,8 @@ internal sealed class ModMapRenderers : IModMapRenderers
         return MapRendererRegistry.GetEntry(name);
     }
 
-    public IMapRendererEntry? GetMapRendererFromLevelSet(string name)
+    public IMapRendererEntry? GetMapRendererFromTowerSet(string towerSet)
     {
-        return MapRendererRegistry.GetEntry(name);
+        return MapRendererRegistry.GetEntryFromTowerSet(towerSet);
     }
 }

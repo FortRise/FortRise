@@ -1,10 +1,16 @@
+using System;
 using Microsoft.Xna.Framework;
 
 namespace FortRise;
 #nullable enable
 public readonly struct MapRendererConfiguration 
 {
-    public required string LevelSet { get; init; }
+    [Obsolete("Use MapRendererConfiguration.TowerSet instead")]
+    public string LevelSet 
+    { 
+        get => TowerSet;
+    }
+    public required string TowerSet { get; init; }
 
     public ISubtextureEntry? Water { get; init; }
     public ISubtextureEntry? Land { get; init; }

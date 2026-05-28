@@ -29,8 +29,8 @@ public class patch_VersusLevelSystem : VersusLevelSystem
         this.VersusTowerData = tower;
         base.ID = tower.ID;
         base.Theme = tower.Theme;
-        base.ShowControls = base.ID.X == 0 && tower.IsOfficialLevelSet();
-        base.ShowTriggerControls = base.ID.X == 14 && tower.IsOfficialLevelSet();
+        base.ShowControls = base.ID.X == 0 && tower.IsOfficialTowerSet;
+        base.ShowTriggerControls = base.ID.X == 14 && tower.IsOfficialTowerSet;
         this.levels = new List<string>();
     }
 

@@ -55,7 +55,7 @@ namespace TowerFall
                 DarkWorldLevelSystem darkWorld => darkWorld.DarkWorldTowerData.Levels
                     [darkWorld.DarkWorldTowerData
                         [session.MatchSettings.DarkWorldDifficulty]
-                        [session.RoundIndex + darkWorld.GetStartLevel()]
+                        [session.RoundIndex + ((patch_DarkWorldLevelSystem)darkWorld).StartLevel]
                     .File],
                 TrialsLevelSystem trials => trials.TrialsLevelData.Path,
                 _ => $"{levelSystem.ID.X},{levelSystem.ID.Y}"

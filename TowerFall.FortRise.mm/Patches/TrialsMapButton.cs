@@ -12,12 +12,12 @@ public class TrialsMapButton : TowerFall.TrialsMapButton
 
     protected override bool GetLocked()
     {
-        if ((Data as patch_TowerMapData).LevelData.GetLevelSet() == "TowerFall")
+        if ((Data as patch_TowerMapData).LevelData.TowerSet == "TowerFall")
         {
             return false;
         }
 
-        var levelID = (Data as patch_TowerMapData).LevelData.GetLevelID();
+        var levelID = (Data as patch_TowerMapData).LevelData.LevelID;
         
         var tower = TowerRegistry.TrialTowers[levelID[0..(levelID.Length - 2)]];
         var locked = tower.Configuration.ShowLocked?.Invoke(tower);

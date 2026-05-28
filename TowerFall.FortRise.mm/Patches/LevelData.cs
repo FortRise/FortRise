@@ -53,31 +53,31 @@ public static class LevelDataExt
     }
 
 
-    // TODO: Deprecate this when .NET 10 comes out
+    [Obsolete("Use LevelDataExt.LevelID instead")]
     public static void SetLevelID(this LevelData data, string modID) 
     {
         ((patch_LevelData)data).LevelID = modID;
     }
 
-    // TODO: Deprecate this when .NET 10 comes out
+    [Obsolete("Use LevelDataExt.TowerSet instead")]
     public static void SetLevelSet(this LevelData data, string levelSet) 
     {
         ((patch_LevelData)data).InternalTowerSet = levelSet;
     }
 
-    // TODO: Deprecate this when .NET 10 comes out
+    [Obsolete("Use LevelDataExt.IsOfficialTowerSet instead")]
     public static bool IsOfficialLevelSet(this LevelData data) 
     {
         return ((patch_LevelData)data).TowerSet == "TowerFall";
     }
 
-    // TODO: Deprecate this when .NET 10 comes out
+    [Obsolete("Use LevelDataExt.LevelID instead")]
     public static string GetLevelID(this LevelData data) 
     {
         return ((patch_LevelData)data).LevelID ?? "::UNKNOWN::";
     }
 
-    // TODO: Deprecate this when .NET 10 comes out
+    [Obsolete("Use LevelDataExt.TowerSet instead")]
     public static string GetLevelSet(this LevelData data) 
     {
         return ((patch_LevelData)data).TowerSet;

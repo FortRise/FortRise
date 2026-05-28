@@ -91,7 +91,6 @@ internal static class DarkWorldLoader
                     {
                         var text = normalXml.ChildText("boss").Trim();
 
-                        Console.WriteLine(text);
                         if (int.TryParse(text, out int bossID))
                         {
                             boss = bossID;

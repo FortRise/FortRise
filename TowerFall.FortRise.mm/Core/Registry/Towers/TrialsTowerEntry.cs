@@ -1,4 +1,5 @@
 #nullable enable
+using Microsoft.Xna.Framework;
 using TowerFall;
 
 namespace FortRise;
@@ -6,21 +7,25 @@ namespace FortRise;
 internal sealed class TrialsTowerEntry : ITrialsTowerEntry
 {
     public string ID { get; init; }
-    public string LevelSet { get; init; }
+    public Point LevelIndex { get; set; }
     public TrialsTowerConfiguration Configuration { get; init; }
     public TrialsLevelData? TrialsLevelDataTier1 => GetTrialTower(0);
     public TrialsLevelData? TrialsLevelDataTier2 => GetTrialTower(1);
     public TrialsLevelData? TrialsLevelDataTier3 => GetTrialTower(2);
 
-    public TrialsTowerEntry(string id, string levelSet, TrialsTowerConfiguration configuration)
+    public TrialsLevelData? TrialsLevelData => GameData.TrialsLevels[LevelIndex.X, LevelIndex.Y];
+
+    public string TowerSet { get; init; }
+
+    public TrialsTowerEntry(string id, string towerSet, TrialsTowerConfiguration configuration)
     {
         ID = id;
-        LevelSet = levelSet;
+        TowerSet = towerSet;
         Configuration = configuration;
     }
 
     private TrialsLevelData GetTrialTower(int tier)
     {
-        return TowerRegistry.TrialsGet(LevelSet, tier, ID + "-" + (tier + 1));
+        return GameData.TrialsLevels[LevelIndex.X, tier];
     }
 }

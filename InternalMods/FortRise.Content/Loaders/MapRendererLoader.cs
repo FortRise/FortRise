@@ -53,7 +53,7 @@ internal static class MapRendererLoader
             return;
         }
         string id = mapData.Attr("id");
-        string levelSet = mapData.AttrWithRelative("levelSet", id);
+        string towerSet = mapData.AttrWithRelative("towerSet", "@" + content.Metadata.Name);
 
         int width = mapData.AttrInt("width", -1);
         int height = mapData.AttrInt("height", -1);
@@ -134,7 +134,7 @@ internal static class MapRendererLoader
 
         registry.MapRenderers.RegisterMapRenderer(id, new() 
         {
-            LevelSet = levelSet,
+            TowerSet = towerSet,
             Water = water,
             Land = land,
             Width = width <= -1 ? Option<int>.None() : width,

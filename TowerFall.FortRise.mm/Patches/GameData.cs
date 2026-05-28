@@ -17,29 +17,29 @@ public static class patch_GameData
         foreach (var questTowers in GameData.QuestLevels) 
         {
             var name = (questTowers.Theme as patch_TowerTheme).ID;
-            questTowers.SetLevelID(name);
-            questTowers.SetLevelSet("TowerFall");
+            questTowers.LevelID = name;
+            questTowers.TowerSet = "TowerFall";
         }
 
         foreach (var versusTowers in GameData.VersusTowers) 
         {
             var name = (versusTowers.Theme as patch_TowerTheme).ID;
-            versusTowers.SetLevelID(name);
-            versusTowers.SetLevelSet("TowerFall");
+            versusTowers.LevelID = name;
+            versusTowers.TowerSet = "TowerFall";
         }
 
         foreach (var darkWorldTowers in GameData.DarkWorldTowers) 
         {
             var name = (darkWorldTowers.Theme as patch_TowerTheme).ID;
-            darkWorldTowers.SetLevelID(name);
-            darkWorldTowers.SetLevelSet("TowerFall");
+            darkWorldTowers.LevelID = name;
+            darkWorldTowers.TowerSet = "TowerFall";
         }
 
         foreach (var trialTowers in GameData.TrialsLevels) 
         {
             var name = (trialTowers.Theme as patch_TowerTheme).ID;
-            trialTowers.SetLevelID(name + trialTowers.ID.Y);
-            trialTowers.SetLevelSet("TowerFall");
+            trialTowers.LevelID = name + trialTowers.ID.Y;
+            trialTowers.TowerSet = "TowerFall";
         }
 
         TowerFall.Patching.MapScene.FixedStatic();

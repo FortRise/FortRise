@@ -1,4 +1,5 @@
 #nullable enable
+using Microsoft.Xna.Framework;
 using TowerFall;
 
 namespace FortRise;
@@ -6,19 +7,20 @@ namespace FortRise;
 internal sealed class DarkWorldTowerEntry : IDarkWorldTowerEntry
 {
     public string ID { get; init; }
-    public string LevelSet { get; init; }
     public DarkWorldTowerConfiguration Configuration { get; init; }
     public DarkWorldTowerData DarkWorldTowerData => GetDarkWorldTowerData();
+    public Point LevelIndex { get; set; }
+    public string TowerSet { get; init; }
 
-    public DarkWorldTowerEntry(string id, string levelSet, DarkWorldTowerConfiguration configuration)
+    public DarkWorldTowerEntry(string id, string towerSet, DarkWorldTowerConfiguration configuration)
     {
         ID = id;
-        LevelSet = levelSet;
+        TowerSet = towerSet;
         Configuration = configuration;
     }
 
     private DarkWorldTowerData GetDarkWorldTowerData()
     {
-        return TowerRegistry.DarkWorldGet(LevelSet, ID);
+        return GameData.DarkWorldTowers[LevelIndex.X];
     }
 }

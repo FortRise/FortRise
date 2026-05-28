@@ -84,7 +84,7 @@ public class VersusMapButton : TowerFall.VersusMapButton
         {
             return Locked;
         }
-        var id = (Data as patch_TowerMapData).LevelData.GetLevelID();
+        var id = (Data as patch_TowerMapData).LevelData.LevelID;
         var tower = TowerRegistry.VersusTowers[id];
         bool? locked = tower.Configuration.ShowLocked?.Invoke(tower);
 

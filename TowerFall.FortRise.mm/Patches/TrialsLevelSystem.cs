@@ -20,8 +20,8 @@ public class patch_TrialsLevelSystem : TrialsLevelSystem
         this.TrialsLevelData = trial;
         base.ID = trial.ID;
         base.Theme = trial.Theme;
-        base.ShowControls = (base.ID.X == 0 && base.ID.Y == 0) && trial.GetLevelSet() == "TowerFall";
-        base.ShowTriggerControls = base.ID.X == 14 && base.ID.Y != 0 && trial.GetLevelSet() == "TowerFall";
+        base.ShowControls = base.ID.X == 0 && base.ID.Y == 0 && trial.TowerSet == "TowerFall";
+        base.ShowTriggerControls = base.ID.X == 14 && base.ID.Y != 0 && trial.TowerSet == "TowerFall";
     }
 
 
@@ -29,11 +29,6 @@ public class patch_TrialsLevelSystem : TrialsLevelSystem
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)
     {
         randomSeed = this.TrialsLevelData.ID.X * 10 + this.TrialsLevelData.ID.Y;
-        if (TrialsLevelData.GetLevelSet() != "TowerFall") 
-        {
-            using var xmlStream = RiseCore.ResourceTree.TreeMap[TrialsLevelData.Path].Stream;
-            return patch_Calc.LoadXML(xmlStream)["level"];
-        }
         return Calc.LoadXML(this.TrialsLevelData.Path)["level"];
     }
 }

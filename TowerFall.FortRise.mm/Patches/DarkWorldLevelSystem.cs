@@ -39,7 +39,7 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         ID = tower.ID;
         Theme = tower.Theme;
         ShowControls = false;
-        ShowTriggerControls = (tower.GetLevelSet() == "TowerFall" && ID.X == 2);
+        ShowTriggerControls = tower.TowerSet == "TowerFall" && ID.X == 2;
     }
 
     [MonoModReplace]
@@ -53,34 +53,17 @@ public class patch_DarkWorldLevelSystem : DarkWorldLevelSystem
         randomSeed = file;
         var levelFile = DarkWorldTowerData.Levels[file];
 
-        // Load custom levels
-        if (DarkWorldTowerData.GetLevelSet() != "TowerFall")
+        // Load ogmo levels
+        if (levelFile.EndsWith("json"))
         {
-            using var level = RiseCore.ResourceTree.TreeMap[levelFile].Stream;
-            if (levelFile.EndsWith("json"))
-            {
-                return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
-            }
-            else
-            {
-                return patch_Calc.LoadXML(level)["level"];
-            }
+            using var level = ModIO.OpenRead(levelFile);
+            return Ogmo3ToOel.OgmoToOel(Ogmo3ToOel.LoadOgmo(level))["level"];
         }
 
-        // Load vanilla levels 
-        using Stream stream = File.OpenRead(levelFile);
-        return patch_Calc.LoadXML(stream)["level"];
+        return patch_Calc.LoadXML(levelFile)["level"];
     }
 
 
     [MonoModIgnore]
     public extern patch_DarkWorldTowerData.patch_LevelData GetLevelData(DarkWorldDifficulties difficulty, int roundIndex);
-}
-
-public static class DarkWorldLevelSystemExt 
-{
-    public static int GetStartLevel(this DarkWorldLevelSystem system) 
-    {
-        return ((patch_DarkWorldLevelSystem)system).StartLevel;
-    }
 }

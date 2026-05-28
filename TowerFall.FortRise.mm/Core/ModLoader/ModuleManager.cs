@@ -612,6 +612,28 @@ internal class ModuleManager
         return registry;
     }
 
+    internal PreparedRegistryQueue<T> CreatePrepareQueue<T>(Action<List<T>> prepare, Action<T> invoker)
+    where T : class
+    {
+        return CreatePrepareQueue(prepare, invoker, RegistryBatchType.Initialization);
+    }
+
+    internal PreparedRegistryQueue<T> CreatePrepareQueue<T>(Action<List<T>> prepare, Action<T> invoker, RegistryBatchType batchType)
+    where T : class
+    {
+        ref var col = ref CollectionsMarshal.GetValueRefOrAddDefault(registryBatch, batchType, out bool exists);
+
+        if (!exists)
+        {
+            col = [];
+        }
+
+        var registryQueue = new PreparedRegistryQueue<T>(this, prepare, invoker);
+        col.Add(registryQueue);
+
+        return registryQueue;
+    }
+
     internal RegistryQueue<T> CreateQueue<T>(Action<T> invoker)
     where T : class
     {

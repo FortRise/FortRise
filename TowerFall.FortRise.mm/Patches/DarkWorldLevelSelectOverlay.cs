@@ -1,3 +1,4 @@
+using System;
 using FortRise;
 using MonoMod;
 using TowerFall.Patching;
@@ -44,16 +45,15 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
     [MonoModReplace]
     private void RefreshLevelStats() 
     {
-        var towerSet = map.TowerSet;
+        var level = GameData.DarkWorldTowers[statsID];
         DarkWorldTowerStats stats;
-        if (towerSet == "TowerFall")
+        if (level.TowerSet == "TowerFall")
         {
             stats = SaveData.Instance.DarkWorld.Towers[statsID];
         }
         else
         {
-            var data = TowerRegistry.DarkWorldGet(towerSet, statsID);
-            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(data.GetLevelID());
+            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(level.LevelID);
         }
 
         long bestTime;

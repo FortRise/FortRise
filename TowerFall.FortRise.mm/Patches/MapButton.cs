@@ -1,16 +1,17 @@
+using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
-using TowerFall.Patching;
 
-namespace TowerFall;
+namespace TowerFall.Patching;
 
-public class patch_MapButton : MapButton
+[MonoModPatch("TowerFall.MapButton")]
+public class MapButton : TowerFall.MapButton
 {
     [MonoModIgnore]
-    public TowerFall.Patching.MapScene Map { get; set; } 
+    public MapScene Map { get; set; } 
     public string Author { [MonoModIgnore] get; [MonoModIgnore] [MonoModPublic] set; }
     public float TweenAt { get; private set; }
 
@@ -19,7 +20,7 @@ public class patch_MapButton : MapButton
     
 
 
-    public patch_MapButton(string title) : base(title)
+    public MapButton(string title) : base(title)
     {
     }
 
@@ -27,7 +28,7 @@ public class patch_MapButton : MapButton
     [MonoModIgnore]
     public void thisctor(TowerMapData data, string title) {}
 
-    protected patch_MapButton(TowerMapData data) : base(data) {}
+    protected MapButton(TowerMapData data) : base(data) {}
 
     [MonoModConstructor]
     [MonoModReplace]
@@ -51,23 +52,7 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static Image[] InitDarkWorldStartLevelGraphics(int levelID)
     {
-        var scene = Engine.Instance.Scene as Level;
-        if (scene is null)
-        {
-            return [];
-        }
-
-        string towerSet = scene.Session.TowerSet;
-
-        TowerTheme theme;
-        if (towerSet == "TowerFall")
-        {
-            theme = GameData.DarkWorldTowers[levelID].Theme;
-        }
-        else
-        {
-            theme = TowerRegistry.DarkWorldGet(towerSet, levelID).Theme;
-        }
+        TowerTheme theme = GameData.DarkWorldTowers[levelID].Theme;
 
         List<Image> list = new List<Image>();
         Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
@@ -83,23 +68,7 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static Image[] InitTrialsStartLevelGraphics(Point levelID)
     {
-        var scene = Engine.Instance.Scene as Level;
-        if (scene is null)
-        {
-            return [];
-        }
-
-        string towerSet = scene.Session.TowerSet;
-
-        TowerTheme theme;
-        if (towerSet == "TowerFall")
-        {
-            theme = GameData.TrialsLevels[levelID.X, levelID.Y].Theme;
-        }
-        else
-        {
-            theme = TowerRegistry.TrialsGet(towerSet, levelID.X)[levelID.Y].Theme;
-        }
+        TowerTheme theme = GameData.TrialsLevels[levelID.X, levelID.Y].Theme;
 
         List<Image> list = [];
         Image image = new Image(MapButton.GetBlockTexture(theme.TowerType));
@@ -117,33 +86,17 @@ public class patch_MapButton : MapButton
             image3.Origin.Y = -7f;
             image3.Color = MapButton.GetTint(theme.TowerType);
             Image image4 = image2;
-            image4.Origin.Y = image4.Origin.Y + 2f;
+            image4.Origin.Y += 2f;
             list.Add(image3);
         }
 
-        return list.ToArray();
+        return [.. list];
     }
 
     [MonoModReplace]
     public static Image[] InitQuestStartLevelGraphics(int levelID)
     {
-        var scene = Engine.Instance.Scene as Level;
-        if (scene is null)
-        {
-            return [];
-        }
-
-        string towerSet = scene.Session.TowerSet;
-
-        TowerTheme theme;
-        if (towerSet == "TowerFall")
-        {
-            theme = GameData.QuestLevels[levelID].Theme;
-        }
-        else
-        {
-            theme = TowerRegistry.QuestGet(towerSet, levelID).Theme;
-        }
+        TowerTheme theme = GameData.QuestLevels[levelID].Theme;
 
         List<Image> list = new List<Image>();
         Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
@@ -159,24 +112,7 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static List<Image> InitVersusGraphics(int levelID)
     {
-        // We don't have access to the MapScene from MapButton yet.
-        var scene = Engine.Instance.Scene as MapScene;
-        if (scene == null)
-        {
-            return [];
-        }
-        string towerSet = scene.TowerSet;
-
-        TowerTheme theme;
-        if (towerSet == "TowerFall")
-        {
-            theme = GameData.VersusTowers[levelID].Theme;
-        }
-        else
-        {
-            VersusTowerData worldData = TowerRegistry.VersusTowerSets[towerSet][levelID];
-            theme = worldData.Theme;
-        }
+        TowerTheme theme = GameData.VersusTowers[levelID].Theme;
 
         Image image = new Image(MapButton.GetBlockTexture(theme.TowerType), null);
         image.CenterOrigin();
@@ -189,26 +125,16 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static List<Image> InitQuestGraphics(int levelID)
     {
-        // We don't have access to the MapScene from MapButton yet.
-        var scene = Engine.Instance.Scene as MapScene;
-        if (scene == null)
-        {
-            return [];
-        }
-
-        string towerSet = scene.TowerSet;
-
-        QuestLevelData tower;
+        QuestLevelData tower = GameData.QuestLevels[levelID];
         QuestTowerStats stats;
-        if (towerSet == "TowerFall")
+
+        if (tower.IsOfficialTowerSet)
         {
-            tower = GameData.QuestLevels[levelID];
             stats = SaveData.Instance.Quest.Towers[levelID];
         }
         else
         {
-            tower = TowerRegistry.QuestTowerSets[towerSet][levelID];
-            stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.GetLevelID());
+            stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.LevelID);
         }
 
 
@@ -221,7 +147,7 @@ public class patch_MapButton : MapButton
         image2.CenterOrigin();
         list.Add(image2);
         image2.Color = MapButton.GetTint(theme.TowerType);
-        if (!tower.IsOfficialLevelSet() || stats.Revealed)
+        if (!tower.IsOfficialTowerSet || stats.Revealed)
         { 
             if (stats.CompletedNoDeaths)
             {
@@ -251,24 +177,7 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static List<Image> InitTrialsGraphics(Point levelID)
     {
-        // We don't have access to the MapScene from MapButton yet.
-        var scene = Engine.Instance.Scene as TowerFall.MapScene;
-        if (scene == null)
-        {
-            return [];
-        }
-
-        string towerSet = scene.TowerSet;
-
-        TrialsLevelData tower;
-        if (towerSet == "TowerFall")
-        {
-            tower = GameData.TrialsLevels[levelID.X, levelID.Y];
-        }
-        else
-        {
-            tower = TowerRegistry.TrialsGet(towerSet, levelID.X, levelID.Y);
-        }
+        TrialsLevelData tower = GameData.TrialsLevels[levelID.X, levelID.Y];
 
         TowerTheme theme = tower.Theme;
         List<Image> list = new List<Image>();
@@ -297,7 +206,7 @@ public class patch_MapButton : MapButton
                 smallAwardIcon.Origin += new Vector2(10f, 10f);
                 list.Add(smallAwardIcon);
             }
-            if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
+            if (tower.IsOfficialTowerSet && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
             {
                 Image image5 = new Image(TFGame.MenuAtlas["trials/yellowGem"], null);
                 image5.CenterOrigin();
@@ -326,7 +235,7 @@ public class patch_MapButton : MapButton
                 smallAwardIcon2.Origin += new Vector2(10f, 3f);
                 list.Add(smallAwardIcon2);
             }
-            if (tower.IsOfficialLevelSet() && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
+            if (tower.IsOfficialTowerSet && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
             {
                 Image image9 = new Image(TFGame.MenuAtlas["trials/yellowGem"], null);
                 image9.CenterOrigin();
@@ -338,12 +247,12 @@ public class patch_MapButton : MapButton
 
         Sprite<int> GetSmallAwardIcon()
         {
-            if (tower.IsOfficialLevelSet())
+            if (tower.IsOfficialTowerSet)
             {
                 return SaveData.Instance.Trials.Levels[levelID.X][levelID.Y].GetSmallAwardIcon();
             }
 
-            return FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.GetLevelID()).GetSmallAwardIcon();
+            return FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.LevelID).GetSmallAwardIcon();
         }
     }
 
@@ -351,27 +260,17 @@ public class patch_MapButton : MapButton
     [MonoModReplace]
     public static List<Image> InitDarkWorldGraphics(int levelID)
     {
-        // We don't have access to the MapScene from MapButton yet.
-        var scene = Engine.Instance.Scene as MapScene;
-        if (scene == null)
-        {
-            return [];
-        }
+        var tower = GameData.DarkWorldTowers[levelID];
 
-        string towerSet = scene.TowerSet;
-
-        TowerTheme theme;
+        TowerTheme theme = tower.Theme;
         DarkWorldTowerStats stats;
-        if (towerSet == "TowerFall")
+        if (tower.TowerSet == "TowerFall")
         {
-            theme = GameData.DarkWorldTowers[levelID].Theme;
             stats = SaveData.Instance.DarkWorld.Towers[levelID];
         }
         else
         {
-            DarkWorldTowerData worldData = TowerRegistry.DarkWorldTowerSets[towerSet][levelID];
-            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(worldData.GetLevelID());
-            theme = worldData.Theme;
+            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.LevelID);
         }
 
 
@@ -423,13 +322,5 @@ public class patch_MapButton : MapButton
             RemoveSelf();
         };
         Add(tween);
-    }
-}
-
-public static class MapButtonExt
-{
-    public static void SetTitle(this MapButton button, string title) 
-    {
-        ((patch_MapButton)button).Title = title;
     }
 }

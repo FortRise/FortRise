@@ -99,7 +99,7 @@ public class patch_TreasureSpawner : TreasureSpawner
                     continue;
                 }
 
-                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.GetLevelID()))
+                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
                 {
                     tower.Hook.VersusTowerTreasurePatch(patchContext);
                 }
@@ -117,7 +117,7 @@ public class patch_TreasureSpawner : TreasureSpawner
 
             foreach (var tower in TowerPatchRegistry.Hooks.Values)
             {
-                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.GetLevelID()))
+                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
                 {
                     tower.Hook.VersusTowerTreasurePatch(patchContext);
                 }

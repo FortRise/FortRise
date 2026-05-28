@@ -6,7 +6,6 @@ using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using TowerFall.Patching;
 
 namespace TowerFall 
 {
@@ -53,15 +52,15 @@ namespace TowerFall
         [MonoModReplace]
         private void RefreshLevelStats()
         {
-            var towerSet = map.TowerSet;
+            var tower = GameData.QuestLevels[statsID];
             QuestTowerStats questTowerStats;
-            if (towerSet == "TowerFall")
+            if (tower.TowerSet == "TowerFall")
             {
                 questTowerStats = SaveData.Instance.Quest.Towers[statsID];
             }
             else
             {
-                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(TowerRegistry.QuestGet(towerSet, statsID).GetLevelID());
+                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.LevelID);
             }
 
 

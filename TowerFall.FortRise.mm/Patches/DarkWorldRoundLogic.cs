@@ -25,10 +25,10 @@ public class patch_DarkWorldRoundLogic : DarkWorldRoundLogic
     {
         base_OnPlayerDeath(player, corpse, playerIndex, cause, position, killerIndex);
 
-        if ((Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData.GetLevelSet() != "TowerFall")
+        if ((Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData.TowerSet != "TowerFall")
         {
-            var tower = TowerRegistry.DarkWorldGet(Session.TowerSet, Session.MatchSettings.LevelSystem.ID.X);
-            FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.GetLevelID()).Deaths += 1;
+            var tower = GameData.DarkWorldTowers[Session.MatchSettings.LevelSystem.ID.X];
+            FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.LevelID).Deaths += 1;
         }
         else
         {

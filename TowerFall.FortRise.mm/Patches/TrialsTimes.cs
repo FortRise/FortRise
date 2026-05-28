@@ -27,7 +27,7 @@ public class patch_TrialsTimes : TrialsTimes
         TimeSpan[] goals;
         var tower = (Level.Session.MatchSettings.LevelSystem as TrialsLevelSystem).TrialsLevelData;
 
-        if (tower.GetLevelSet() == "TowerFall") 
+        if (tower.TowerSet == "TowerFall") 
         {
             TrialsLevelStats stats = SaveData.Instance.Trials.Levels[levelID.X][levelID.Y];
             unlockedGold = stats.UnlockedGold;
@@ -38,7 +38,7 @@ public class patch_TrialsTimes : TrialsTimes
         }
         else 
         {
-            var stats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.GetLevelID());
+            var stats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.LevelID);
             unlockedGold = stats.UnlockedGold;
             unlockedDiamond = stats.UnlockedDiamond;
             unlockedDevTime = stats.UnlockedDevTime;

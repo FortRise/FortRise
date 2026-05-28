@@ -57,8 +57,6 @@ public class patch_MapRenderer : MapRenderer
     {
     }
 
-    public extern void orig_OnStartSelection(string towerName);
-
     [MonoModReplace]
     public void OnSelectionChange(string towerName) 
     {
@@ -275,7 +273,7 @@ public class patch_MapRenderer : MapRenderer
             return;
         }
 
-        var entry = MapRendererRegistry.GetEntryFromLevelSet(levelSet);
+        var entry = MapRendererRegistry.GetEntryFromTowerSet(levelSet);
         if (entry is not null)
         {
             var mapRenderer = new MapRendererData(entry.Configuration);
