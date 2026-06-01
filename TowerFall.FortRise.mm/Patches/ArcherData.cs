@@ -45,7 +45,7 @@ public class patch_ArcherData : ArcherData
     [MonoModReplace]
     public void PlayVictoryMusic()
     {
-        if (patch_Audio.TrackMap.TryGetValue(VictoryMusic, out var info))
+        if (patch_Music.TrackMap.TryGetValue(VictoryMusic, out var info))
         {
             patch_Music.PlayImmediate(info.Name, false);
             patch_Music.PlayNext("TheArchives", true);

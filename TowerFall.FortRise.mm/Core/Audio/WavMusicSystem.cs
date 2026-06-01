@@ -32,7 +32,7 @@ public class WavMusicSystem : IMusicSystem
     {
         Stop(AudioStopOptions.Immediate);
 
-        if (patch_Audio.TryGetTrackMap(name, out var info)) 
+        if (patch_Music.TryGetTrackMap(name, out var info)) 
         {
             current = info.Create();
             current.Looping = looping;

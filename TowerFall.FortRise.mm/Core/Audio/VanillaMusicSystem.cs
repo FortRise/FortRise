@@ -13,7 +13,9 @@ public class VanillaMusicSystem : IMusicSystem
             {
                 return true;
             }
-            return soundBank.GetCue(current).IsStopped;
+
+            using var cue = soundBank.GetCue(current);
+            return cue.IsStopped;
         }
     }
 

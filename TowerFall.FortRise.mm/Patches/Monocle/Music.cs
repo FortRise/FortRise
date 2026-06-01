@@ -20,6 +20,16 @@ public static class patch_Music
     private static float masterVolume;
     private static bool fromCue;
 
+    public static Dictionary<string, IMusicSystem> AudioSystems = new Dictionary<string, IMusicSystem>()
+    {
+        {".wav", new WavMusicSystem()},
+        {".ogg", new OggMusicSystem()},
+        {".vanilla", new VanillaMusicSystem()}
+    };
+    public static Dictionary<string, TrackInfo> TrackMap = new();
+    private static IMusicSystem music1Slot;
+    private static IMusicSystem music2Slot;
+
     public static AudioCategory AudioCategory 
     {
         get => audioCategory;
@@ -84,17 +94,17 @@ public static class patch_Music
         //{
         //    Stop();
         //}
-        var audioSystem = patch_Audio.GetMusicSystemFromExtension(filepath);
+        var audioSystem = GetMusicSystemFromExtension(filepath);
         if (audioSystem != null) 
         {
             fromCue = audioSystem.GetType() == typeof(VanillaMusicSystem);
             if (immediate)
             {
-                patch_Audio.PlayMusicImmediate(audioSystem, filepath, looping);
+                PlayMusicImmediate(audioSystem, filepath, looping);
             }
             else 
             {
-                patch_Audio.PlayMusic(audioSystem, filepath, looping);
+                PlayMusic(audioSystem, filepath, looping);
             }
         }
         currentSong = filepath;
@@ -115,7 +125,7 @@ public static class patch_Music
         }
         
         audioCategory.Stop(AudioStopOptions.Immediate);
-        patch_Audio.StopMusic(AudioStopOptions.Immediate);
+        StopMusic(AudioStopOptions.Immediate);
         
         PlayInternal(filepath, looping, true);
     }
@@ -123,7 +133,7 @@ public static class patch_Music
     [MonoModReplace]
     public static void Stop() 
     {
-        patch_Audio.StopMusic(AudioStopOptions.AsAuthored);
+        StopMusic(AudioStopOptions.AsAuthored);
         currentSong = null;
     }
 
@@ -157,7 +167,8 @@ public static class patch_Music
 
         audioEngine.Update();
 
-        patch_Audio.Update();
+        music1Slot?.Update();
+        music2Slot?.Update();
 
         if (musicAwaiter.Count == 0 || currentSong == null)
         {
@@ -166,7 +177,7 @@ public static class patch_Music
 
         if (fromCue)
         {
-            var cue = soundBank.GetCue(currentSong);
+            using var cue = soundBank.GetCue(currentSong);
             if (cue.IsStopped)
             {
                 var newSong = musicAwaiter[0];
@@ -177,12 +188,103 @@ public static class patch_Music
             return;
         }
 
-        var currentSystem = patch_Audio.GetMusicSystemFromExtension(currentSong);
+        var currentSystem = GetMusicSystemFromExtension(currentSong);
         if (currentSystem.IsStopped)
         {
             var newSong = musicAwaiter[0];
             musicAwaiter.Remove(newSong);
             PlayImmediate(newSong.MusicPath, newSong.IsLooping);
+        }
+    }
+
+
+    public static bool TryGetTrackMap(string name, out TrackInfo info) 
+    {
+        if (TrackMap.TryGetValue(name, out info))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void PlayMusic(IMusicSystem system, string name, bool looping) 
+    {
+        system.Play(name, looping);
+        music2Slot = music1Slot;
+        music1Slot = system;
+
+        if (music2Slot is not null && !music2Slot.IsStopped)
+        {
+            CrossFadePlay(music2Slot, music1Slot);
+        }
+        else 
+        {
+            music1Slot.Timer = 1.0f;
+            music1Slot.StateEffect = StateEffect.Immediate;
+        }
+    }
+
+    public static void PlayMusicImmediate(IMusicSystem system, string name, bool looping) 
+    {
+        system.Play(name, looping);
+        music2Slot = music1Slot;
+        music1Slot = system;
+
+        if (music2Slot is not null && !music2Slot.IsStopped)
+        {
+            music1Slot.Timer = 1f;
+            music1Slot.StateEffect = StateEffect.FadeOut;
+        }
+
+        music1Slot.Timer = 0.1f;
+        music1Slot.StateEffect = StateEffect.Immediate;
+    }
+
+    public static IMusicSystem GetMusicSystemFromExtension(string trackInfoID) 
+    {
+        if (TryGetTrackMap(trackInfoID, out TrackInfo info))
+        {
+            return GetMusicSystemFromExtension(info.Resource);
+        }
+
+        return AudioSystems[".vanilla"];
+    }
+
+    public static IMusicSystem GetMusicSystemFromExtension(IResourceInfo info) 
+    {
+        if (info.ResourceType == typeof(RiseCore.ResourceTypeOggFile))
+        {
+            return AudioSystems[".ogg"];
+        }
+
+        if (info.ResourceType == typeof(RiseCore.ResourceTypeWavFile))
+        {
+            return AudioSystems[".wav"];
+        }
+
+        Logger.Warning($"There is no associated extension with this music path: '{info.Path}'. Can't find the AudioSystem.");
+        return AudioSystems[".vanilla"];
+    }
+
+    public static void StopMusic(AudioStopOptions options) 
+    {
+        music1Slot?.Stop(options);
+        music1Slot = null;
+    }
+
+    internal static void CrossFadePlay(IMusicSystem fadeOut, IMusicSystem fadeIn)
+    {
+        if (fadeOut is not null)
+        {
+            fadeOut.Timer = 1.0f;
+            fadeOut.StateEffect = StateEffect.FadeOut;
+        }
+
+        if (fadeIn is not null)
+        {
+            fadeIn.Timer = 1.0f;
+            fadeIn.StateEffect = StateEffect.FadeIn;
         }
     }
 }

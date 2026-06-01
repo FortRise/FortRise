@@ -37,6 +37,6 @@ internal sealed class ModMusics : IModMusics
     private void Invoke(IMusicEntry entry)
     {
         var trackInfo = new TrackInfo(entry.Name, entry.MusicPath);
-        patch_Audio.TrackMap[entry.Name] = trackInfo;
+        patch_Music.TrackMap[entry.Name] = trackInfo;
     }
 }

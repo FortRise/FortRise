@@ -48,8 +48,6 @@ namespace TowerFall
         }
 
 
-
-        private bool noIntro;
         private ErrorPanel panel;
         public patch_TFGame(bool noIntro) : base(noIntro)
         {
@@ -307,7 +305,6 @@ namespace TowerFall
                     lock (patch_Sounds.SoundLoadLock) 
                     {
                         patch_Music.Initialize();
-                        patch_Audio.InitMusicSystems();
                     }
 
                     Logger.Info($"[LOAD] -- MUSIC LOADING: {watch.ElapsedMilliseconds} ms --");
@@ -591,7 +588,7 @@ namespace TowerFall
         [MonoModIgnore]
         private static extern string GetCloudSavePath();
 
-        [PatchTFGameOnSceneTransition]
+        // [PatchTFGameOnSceneTransition]
         [MonoModIgnore]
         protected extern override void OnSceneTransition();
 
