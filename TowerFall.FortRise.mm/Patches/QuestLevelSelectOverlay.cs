@@ -37,7 +37,7 @@ namespace TowerFall
                 return true;
             }
 
-            drawStatsLerp = Calc.Approach(drawStatsLerp, 0f, 0.15f * Engine.TimeMult);
+            drawStatsLerp = Calc.Approach(drawStatsLerp, 1f, 0.15f * Engine.TimeMult);
             base_Update();
             return false;
         }

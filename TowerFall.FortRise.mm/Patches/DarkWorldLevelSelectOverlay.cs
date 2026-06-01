@@ -1,7 +1,6 @@
-using System;
 using FortRise;
+using Monocle;
 using MonoMod;
-using TowerFall.Patching;
 
 namespace TowerFall;
 
@@ -14,6 +13,7 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
     private string levelDeathsString;
     private string levelBestTimeString;
     private string levelCursesString;
+    private float drawStatsLerp;
 
     public patch_DarkWorldLevelSelectOverlay(MapScene map) : base(map)
     {
@@ -25,14 +25,17 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
     public extern void ctor(MapScene map);
     
 
-    public extern void orig_Update();
-
-    public override void Update()
+    [Prefix(nameof(Update))]
+    private bool Update_Prefix()
     {
         if (map.Selection is DarkWorldMapButton)
-            orig_Update();
-        else
-            base_Update();
+        {
+            return true;
+        }
+
+        drawStatsLerp = Calc.Approach(drawStatsLerp, 1f, 0.15f * Engine.TimeMult);
+        base_Update();
+        return false;
     }
 
     [MonoModLinkTo("Monocle.Entity", "System.Void Update()")]

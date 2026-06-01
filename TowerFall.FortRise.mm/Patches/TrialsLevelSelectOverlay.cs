@@ -38,7 +38,21 @@ namespace TowerFall
         [Prefix(nameof(Update))]
         private bool Update_Prefix()
         {
-            return map.Selection is TrialsMapButton;
+            if (map.Selection is TrialsMapButton)
+            {
+                return true;
+            }
+
+            drawStatsLerp = Calc.Approach(drawStatsLerp, 1f, 0.15f * Engine.TimeMult);
+            base_Update();
+            return false;
+        }
+
+        [MonoModLinkTo("Monocle.Entity", "System.Void Update()")]
+        [MonoModIgnore]
+        public void base_Update() 
+        {
+            base.Update();
         }
 
         private void RefreshLevelStats()
