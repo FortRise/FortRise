@@ -58,7 +58,21 @@ public static class patch_Sounds
             return;
         }
 
-        Logger.Error($"SFX '{sfxName}' cannot be played as it cannot be found.");
+        PlayFromVanilla(sfxName);
+    }
+
+    // TODO: optimize this method, probably using a generator?
+    private static void PlayFromVanilla(ReadOnlySpan<char> sfxName, float panX = 160f, float volume = 1f)
+    {
+        var sfxNameStr = sfxName.ToString();
+
+        var sfx = typeof(Sounds).GetField(sfxNameStr);
+        if (sfx is null)
+        {
+            Logger.Error($"SFX '{sfxName}' cannot be played as it cannot be found.");
+            return;
+        }
+        sfx.DeclaringType.GetMethod("Play").Invoke(sfx.GetValue(null), [panX, volume]);
     }
 
     public static void Pause(ReadOnlySpan<char> sfxName) 

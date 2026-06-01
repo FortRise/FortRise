@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Monocle;
 using TowerFall;
 
@@ -118,22 +119,62 @@ internal sealed class ModSFXs : IModSFXs
 
     public ISFXEntry? GetSFX(string id)
     {
-        return SFXRegistry.GetSFX<ISFXEntry>(id);
+        var sfx = SFXRegistry.GetSFX<ISFXEntry>(id);
+        if (sfx is null)
+        {
+            sfx = SFXRegistry.CreateVanillaEntry<ISFXEntry>(id);
+            if (Unsafe.IsNullRef(ref sfx))
+            {
+                return null;
+            }
+        }
+
+        return sfx;
     }
 
     public ISFXInstancedEntry? GetSFXInstanced(string id)
     {
-        return SFXRegistry.GetSFX<ISFXInstancedEntry>(id);
+        var sfx = SFXRegistry.GetSFX<ISFXInstancedEntry>(id);
+        if (sfx is null)
+        {
+            sfx = SFXRegistry.CreateVanillaEntry<ISFXInstancedEntry>(id);
+            if (Unsafe.IsNullRef(ref sfx))
+            {
+                return null;
+            }
+        }
+
+        return sfx;
     }
 
     public ISFXLoopedEntry? GetSFXLooped(string id)
     {
-        return SFXRegistry.GetSFX<ISFXLoopedEntry>(id);
+        var sfx = SFXRegistry.GetSFX<ISFXLoopedEntry>(id);
+        if (sfx is null)
+        {
+            sfx = SFXRegistry.CreateVanillaEntry<ISFXLoopedEntry>(id);
+            if (Unsafe.IsNullRef(ref sfx))
+            {
+                return null;
+            }
+        }
+
+        return sfx;
     }
 
     public ISFXVariedEntry? GetSFXVaried(string id)
     {
-        return SFXRegistry.GetSFX<ISFXVariedEntry>(id);
+        var sfx = SFXRegistry.GetSFX<ISFXVariedEntry>(id);
+        if (sfx is null)
+        {
+            sfx = SFXRegistry.CreateVanillaEntry<ISFXVariedEntry>(id);
+            if (Unsafe.IsNullRef(ref sfx))
+            {
+                return null;
+            }
+        }
+
+        return sfx;
     }
 
     private void Invoke(IBaseSFXEntry entry)
