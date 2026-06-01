@@ -20,12 +20,7 @@ public static class patch_Music
     private static float masterVolume;
     private static bool fromCue;
 
-    public static Dictionary<string, IMusicSystem> AudioSystems = new Dictionary<string, IMusicSystem>()
-    {
-        {".wav", new WavMusicSystem()},
-        {".ogg", new OggMusicSystem()},
-        {".vanilla", new VanillaMusicSystem()}
-    };
+    public static Dictionary<string, IMusicSystem> AudioSystems;
     public static Dictionary<string, TrackInfo> TrackMap = new();
     private static IMusicSystem music1Slot;
     private static IMusicSystem music2Slot;
@@ -56,6 +51,12 @@ public static class patch_Music
             waveBank = new WaveBank(audioEngine, Path.Combine(dirPath, "Content/Music/Win/MusicWaveBank.xwb"));
             audioCategory = audioEngine.GetCategory("Music");
             audioCategory.SetVolume(2f * masterVolume);
+            AudioSystems = new Dictionary<string, IMusicSystem>()
+            {
+                {".wav", new WavMusicSystem()},
+                {".ogg", new OggMusicSystem()},
+                {".vanilla", new VanillaMusicSystem()}
+            };
         }
         catch
         {
