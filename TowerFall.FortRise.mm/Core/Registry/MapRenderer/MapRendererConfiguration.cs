@@ -36,4 +36,6 @@ public readonly struct AnimatedTowerConfiguration
     public required string Selected { get; init; }
     public required string NotSelected { get; init; }
     public required IMenuSpriteContainerEntry Sprite { get; init; }
+    public ISFXEntry? SFXIn { get; init; }
+    public ISFXEntry? SFXOut { get; init; }
 }

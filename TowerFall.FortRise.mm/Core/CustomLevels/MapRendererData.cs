@@ -117,7 +117,9 @@ public class MapRendererData : CompositeComponent
                             outAnimation,
                             selected,
                             notSelected,
-                            sprite
+                            sprite,
+                            data.SFXIn?.SFX,
+                            data.SFXOut?.SFX
                         );
                     }
                 }
@@ -149,22 +151,26 @@ public class MapRendererData : CompositeComponent
         currentTower = null;
     }
 
-    private class AnimatedTower(string ins, string outs, string selected, string notSelected, Sprite<string> sprite)
+    private class AnimatedTower(string ins, string outs, string selected, string notSelected, Sprite<string> sprite, SFX? sfxIn, SFX? sfxOut)
     {
         public string In = ins;
         public string Out = outs;
         public string Selected = selected;
         public string NotSelected = notSelected;
         public Sprite<string> Sprite = sprite;
+        public SFX? SFXIn = sfxIn;
+        public SFX? SFXOut = sfxOut;
 
         public void Select() 
         {
             Sprite.Play(In);
+            SFXIn?.Play();
         }
 
         public void DeSelect() 
         {
             Sprite.Play(Out);
+            SFXOut?.Play();
         }
     }
 }

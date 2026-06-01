@@ -19,6 +19,14 @@ public static class EntryExtensions
         public ICorpseSpriteContainerEntry? GetCorpseSpriteEntryWithRelative<T>(string id) => sprite.GetCorpseSpriteEntry<T>(ResolveID(id))!;
     }
 
+    extension(IModSFXs sfx)
+    {
+        public ISFXEntry? GetSFXEntryWithRelative(string id) => sfx.GetSFX(ResolveID(id))!;
+        public ISFXInstancedEntry? GetSFXInstancedEntryWithRelative(string id) => sfx.GetSFXInstanced(ResolveID(id))!;
+        public ISFXLoopedEntry? GetSFXLoopedEntryWithRelative(string id) => sfx.GetSFXLooped(ResolveID(id))!;
+        public ISFXVariedEntry? GetSFXVariedEntryWithRelative(string id) => sfx.GetSFXVaried(ResolveID(id))!;
+    }
+
     extension(IModMusics music)
     {
         public IMusicEntry? GetMusicWithRelative(string id) => music.GetMusic(ResolveID(id));

@@ -41,7 +41,10 @@ internal static class MapRendererLoader
      *
      *          <Elements>
      *              <Static image="path/to/image.png" x="40" y="80"/>
-     *              <Animated sprite="ModName/SpriteName" x="90" y="120"/>
+     *              <Animated sprite="ModName/SpriteName" x="90" y="120">
+     *                  <SFXOut></SFXOut>
+     *                  <SFXIn></SFXIn>
+     *              </Animated>
      *          </Elements>
      *      </Map>
      * </MapData>
@@ -126,6 +129,22 @@ internal static class MapRendererLoader
 
                         string towerID = xml.ChildTextWithRelative("TowerID", null);
 
+                        ISFXEntry? sfxIn = null;
+                        ISFXEntry? sfxOut = null;
+
+                        if (xml.HasChild("SFXIn"))
+                        {
+                            string sfxInText = xml.ChildText("SFXIn").Trim();
+                            sfxIn = registry.SFXs.GetSFXEntryWithRelative(sfxInText);
+                        }
+
+                        if (xml.HasChild("SFXOut"))
+                        {
+                            string sfxOutText = xml.ChildText("SFXOut").Trim();
+                            sfxOut = registry.SFXs.GetSFXEntryWithRelative(sfxOutText);
+                        }
+
+
                         mapElements.Add(new() 
                         {
                             Sprite = new AnimatedTowerConfiguration() 
@@ -135,7 +154,9 @@ internal static class MapRendererLoader
                                 NotSelected = notSelectedAnimation,
                                 Selected = selectedAnimation,
                                 Sprite = menuSprite,
-                                TowerID = towerID
+                                TowerID = towerID,
+                                SFXIn = sfxIn,
+                                SFXOut = sfxOut
                             },
                             Position = new Vector2(x, y)
                         });
