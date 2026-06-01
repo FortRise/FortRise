@@ -14,7 +14,7 @@ public class patch_Entity : Entity
         }
         else 
         {
-            Logger.Error("Entity being removed without a scene.");
+            Logger.Error($"Entity: {GetType().FullName} being removed without a scene.");
         }
     }
 }
