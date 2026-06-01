@@ -35,6 +35,11 @@ internal class VariantEntry : IVariantEntry
 
     public bool IsActive()
     {
+        if (MainMenu.CurrentMatchSettings is null)
+        {
+            return false;
+        }
+
         var matchVariants = (MainMenu.CurrentMatchSettings.Variants as patch_MatchVariants)!;
         if (matchVariants.CustomVariants.TryGetValue(Name, out Variant? variant))
         {
@@ -45,6 +50,11 @@ internal class VariantEntry : IVariantEntry
 
     public bool IsActive(int playerIndex)
     {
+        if (MainMenu.CurrentMatchSettings is null)
+        {
+            return false;
+        }
+
         var matchVariants = (MainMenu.CurrentMatchSettings.Variants as patch_MatchVariants)!;
         if (matchVariants.CustomVariants.TryGetValue(Name, out Variant? variant))
         {
