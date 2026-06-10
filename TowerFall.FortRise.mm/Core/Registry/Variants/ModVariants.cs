@@ -9,6 +9,9 @@ namespace FortRise;
 
 public interface IModVariants
 {
+    IReadOnlyDictionary<string, IVariantEntry> RegisteredVariants { get; }
+    IReadOnlyDictionary<string, IVariantPresetEntry> RegisteredPresets { get; }
+
     IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration);
     IVariantPresetEntry RegisterPreset(string id, in PresetConfiguration configuration);
     IVariantEntry? GetVariant(string id);
@@ -22,6 +25,9 @@ internal sealed class ModVariants : IModVariants
     private readonly Dictionary<string, IVariantPresetEntry> presetEntries = new Dictionary<string, IVariantPresetEntry>();
     private readonly ModuleMetadata metadata;
     private static Dictionary<string, IVariantEntry> vanillaCache = new();
+
+    public IReadOnlyDictionary<string, IVariantEntry> RegisteredVariants => variantEntries;
+    public IReadOnlyDictionary<string, IVariantPresetEntry> RegisteredPresets => presetEntries;
 
     internal ModVariants(ModuleMetadata metadata)
     {

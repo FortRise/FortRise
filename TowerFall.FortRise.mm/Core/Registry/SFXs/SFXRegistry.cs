@@ -61,7 +61,7 @@ internal static class SFXRegistry
         return default;
     }
 
-    public static void AddSFX(ISFXEntry entry)
+    public static void AddSFX(IBaseSFXEntry entry)
     {
         sfxEntries[entry.Name] = entry;
     }

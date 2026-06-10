@@ -5,13 +5,13 @@ namespace FortRise;
 
 internal static class ArcherRegistry
 {
-    private static readonly Dictionary<string, IArcherEntry> archerEntries = [];
+    internal static readonly Dictionary<string, IArcherEntry> ArcherEntries = [];
     private static readonly Dictionary<int, IArcherEntry> indexToEntry = [];
     private static readonly List<IArcherEntry> moddedArchers = [];
 
     public static void AddArcher(IArcherEntry entry)
     {
-        archerEntries[entry.Name] = entry;
+        ArcherEntries[entry.Name] = entry;
         indexToEntry[entry.Index] = entry;
         moddedArchers.Add(entry);
     }
@@ -29,12 +29,12 @@ internal static class ArcherRegistry
 
     public static IArcherEntry? GetArcherEntry(string id)
     {
-        archerEntries.TryGetValue(id, out var entry);
+        ArcherEntries.TryGetValue(id, out var entry);
         return entry;
     }
 
     public static IReadOnlyDictionary<string, IArcherEntry> GetArcherEntries()
     {
-        return archerEntries;
+        return ArcherEntries;
     }
 }

@@ -7,6 +7,8 @@ namespace FortRise;
 
 public interface IModArchers
 {
+    IReadOnlyDictionary<string, IArcherEntry> RegisteredArchers { get; }
+
     IArcherEntry RegisterArcher(string id, ArcherConfiguration configuration);
     IArcherEntry? GetArcher(string id);
     IReadOnlyList<IArcherEntry>? GetAllArchers();
@@ -16,6 +18,8 @@ internal sealed class ModArchers : IModArchers
 {
     private readonly ModuleMetadata metadata;
     private readonly RegistryQueue<IArcherEntry> archerQueue;
+
+    public IReadOnlyDictionary<string, IArcherEntry> RegisteredArchers => ArcherRegistry.ArcherEntries;
 
     internal ModArchers(ModuleMetadata metadata, ModuleManager manager)
     {

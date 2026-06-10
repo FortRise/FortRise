@@ -9,6 +9,8 @@ namespace FortRise;
 
 public interface IModSFXs
 {
+    IReadOnlyDictionary<string, IBaseSFXEntry> RegisteredBaseSFXs { get; }
+
     ISFXEntry RegisterSFX(string id, IResourceInfo sfxPath, bool obeysMasterPitch = true);
     ISFXEntry RegisterSFX(string id, Func<SFX> callback, bool obeysMasterPitch = true);
 
@@ -33,6 +35,8 @@ internal sealed class ModSFXs : IModSFXs
     private readonly ModuleMetadata metadata;
     private readonly Dictionary<string, IBaseSFXEntry> sfxEntries = new Dictionary<string, IBaseSFXEntry>();
     private readonly RegistryQueue<IBaseSFXEntry> sfxQueue;
+
+    public IReadOnlyDictionary<string, IBaseSFXEntry> RegisteredBaseSFXs => sfxEntries;
 
     internal ModSFXs(ModuleMetadata metadata, ModuleManager manager)
     {
@@ -179,6 +183,7 @@ internal sealed class ModSFXs : IModSFXs
 
     private void Invoke(IBaseSFXEntry entry)
     {
+        SFXRegistry.AddSFX(entry);
         patch_Sounds.AddSFX(entry);
     }
 }
