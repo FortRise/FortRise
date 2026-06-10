@@ -13,8 +13,8 @@ public static class ColorExt
 {
     extension(Color color)
     {
-        public string ColorToRGBHex => $"{ToHexString(color.R)}{ToHexString(color.G)}{ToHexString(color.B)}";
-        public string ColorToRGBAHex => $"{ToHexString(color.R)}{ToHexString(color.G)}{ToHexString(color.B)}{ToHexString(color.A)}";
+        public string ColorToRGBHex => $"{ToHexString(color.R / 255f)}{ToHexString(color.G / 255f)}{ToHexString(color.B / 255f)}";
+        public string ColorToRGBAHex => $"{ToHexString(color.R / 255f)}{ToHexString(color.G / 255f)}{ToHexString(color.B / 255f)}{ToHexString(color.A / 255f)}";
     }
 
     public static string ToHexString(float f)

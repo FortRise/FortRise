@@ -1,8 +1,8 @@
-#pragma warning disable CS0618
 using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
@@ -67,9 +67,12 @@ public class patch_MatchVariants : MatchVariants
 
             var title = configuration.Title.ToUpperInvariant();
             var icon = configuration.Icon.Subtexture;
-            var variant = new Variant(icon, title, description, itemExclusions, perPlayer,
+            var variant = new Patching.Variant(icon, title, description, itemExclusions, perPlayer,
                 header, null, scrollEffect, hidden, flag, tournamentRule1v,
-                tournamentRule2v, unlisted, darkWorldDLC, coopValue);
+                tournamentRule2v, unlisted, darkWorldDLC, coopValue)
+            {
+                IsCustom = true
+            };
 
             if (flag)
             {
@@ -155,6 +158,7 @@ public class patch_MatchVariants : MatchVariants
         return list;
     }
 
+    [MonoModReplace]
     public List<VariantItem> BuildMenu(MainMenu menu, out MenuItem startSelected, out float maxUICameraY)
     {
         float yOffset = 50f;
@@ -200,6 +204,15 @@ public class patch_MatchVariants : MatchVariants
         grid[1].Add(new VariantPreset(2));
         grid[1].Add(new VariantPreset(3));
         grid[1].Add(new VariantPreset(4));
+
+        int id = 0;
+        foreach (var preset in FortRiseModule.SaveData.VariantPresets)
+        {
+            grid[1].Add(new VariantPresetCustom(FortRiseModule.PresetCustomIcon, preset, this, id));
+            id += 1;
+        }
+
+        grid[1].Add(new VariantPresetAdd(this));
 
         foreach (VariantItem variantItem in grid[0])
         {
@@ -391,5 +404,59 @@ public class patch_MatchVariants : MatchVariants
 
             InternalCustomVariants.Add(variantName, value);
         }
+    }
+
+    public void Recalculate(patch_MainMenu scene)
+    {
+        foreach (MenuItem item in scene.Layers[-1].GetList<MenuItem>())
+        {
+            if (item.CreatedState == MainMenu.MenuState.Variants)
+            {
+                scene.Remove(item);
+            }
+        }
+        scene.Add(BuildMenu(scene, out var menuItem, out var maxUICameraY));
+        scene.ToStartSelected = menuItem;
+        scene.MaxUICameraY = maxUICameraY;
+        Alarm.Set(menuItem, 10, () => menuItem.Selected = true);
+    }
+
+    [MonoModReplace]
+    public VariantPresetData GetPreset()
+    {
+        List<string> variantsSelected = [];
+        foreach ((string name, Variant variant) in CustomVariants)
+        {
+            if (variant.Value)
+            {
+                string id = !((Patching.Variant)variant).IsCustom ? variant.Title : name;
+                
+                variantsSelected.Add(id);
+            }
+        }
+        return new VariantPresetData
+        {
+            Variants = [.. variantsSelected]
+        };
+    }
+
+    [MonoModReplace]
+    public bool ApplyPreset(VariantPresetData data)
+    {
+        if (!GameData.DarkWorldDLC)
+        {
+            foreach ((string name, Variant variant) in CustomVariants)
+            {
+                if (data.Variants.Contains(name) || data.Variants.Contains(variant.Title) && variant.DarkWorldDLC)
+                {
+                    return false;
+                }
+            }
+        }
+        foreach ((string name, Variant variant) in CustomVariants)
+        {
+            variant.Value = data.Variants.Contains(name) || data.Variants.Contains(variant.Title);
+        }
+        return true;
     }
 }

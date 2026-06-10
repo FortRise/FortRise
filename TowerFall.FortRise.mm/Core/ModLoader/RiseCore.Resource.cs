@@ -125,17 +125,6 @@ public partial class RiseCore
             return TreeMap.ContainsKey((resource.Root + Modize(path)));
         }
 
-        // If you were expecting this feature, please use the RiseCore.Events.OnAfterModdedLoadContent event instead.
-        internal static void AfterModdedLoadContent()
-        {
-            foreach (var mod in ModResources)
-            {
-                if (mod.Content == null)
-                    continue;
-                // Events.Invoke_OnAfterModdedLoadContent(mod.Content);
-            }
-        }
-
         public static async Task DumpAll()
         {
             try

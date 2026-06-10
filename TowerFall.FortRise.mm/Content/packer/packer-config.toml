@@ -5,7 +5,8 @@ allow_normal_output = false
 template_path = ["template.xml"]
 folders = [
     "mmg",
-    "icon"
+    "icon",
+    "controls"
 ]
 
 [image_options]

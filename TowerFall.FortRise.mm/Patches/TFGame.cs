@@ -226,14 +226,17 @@ namespace TowerFall
         protected override void LoadContent()
         {
             orig_LoadContent();
+
             FortRiseMenuAtlas = AtlasExt.CreateAtlasFromEmbedded("Content.Atlas.menuatlas.xml", "Content.Atlas.menuatlas.png");
 
-            var assembly = Assembly.GetExecutingAssembly();
-            using Stream fortRisePng = assembly.GetManifestResourceStream("Content.Atlas.fortrise.png");
-
-            FortRiseModule.FortRiseIcon = new Subtexture(
-                new Monocle.Texture(Texture2D.FromStream(GraphicsDevice, fortRisePng))
-            );
+            FortRiseModule.FortRiseIcon = FortRiseMenuAtlas["icon/fortrise"];
+            FortRiseModule.PresetAddIcon = FortRiseMenuAtlas["icon/presetAdd"];
+            FortRiseModule.PresetCustomIcon = FortRiseMenuAtlas["icon/presetCustom"];
+            
+            foreach (var (k, v) in FortRiseMenuAtlas.SubTextures)
+            {
+                MenuAtlas.SubTextures[k] = v;
+            }
 
             RiseCore.ModuleManager.NameToIcon["FortRise"] = FortRiseModule.FortRiseIcon;
 
@@ -321,7 +324,6 @@ namespace TowerFall
                     Logger.Info($"[LOAD] -- SOUND LOADING: {watch.ElapsedMilliseconds} ms --");
                     watch.Stop();
 
-                    RiseCore.ResourceTree.AfterModdedLoadContent();
                     Loader.Message = "INITIALIZING INPUT";
                     Logger.Log("[LOAD] ...Input");
                     TFGame.WriteLineToLoadLog("Initializing Input...");

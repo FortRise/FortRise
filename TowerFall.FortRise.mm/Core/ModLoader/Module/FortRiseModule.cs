@@ -10,6 +10,8 @@ public sealed class FortRiseModule : Mod
     public static FortRiseModule Instance;
     public static FortRiseModuleSaveData SaveData => Instance.GetSaveData<FortRiseModuleSaveData>();
     public static Subtexture FortRiseIcon;
+    public static Subtexture PresetAddIcon;
+    public static Subtexture PresetCustomIcon;
     internal static FortRiseModuleSettings Settings => Instance.GetSettings<FortRiseModuleSettings>();
 
     public FortRiseModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
