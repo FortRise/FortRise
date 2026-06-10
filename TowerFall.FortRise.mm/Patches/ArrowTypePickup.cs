@@ -1,4 +1,3 @@
-using System;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -36,111 +35,136 @@ public class patch_ArrowTypePickup : ArrowTypePickup
 
         switch (arrowType)
         {
-        case ArrowTypes.Normal:
-            Name = "+2";
+            case ArrowTypes.Normal:
+                Name = "+2";
 
-            graphic = new Image(TFGame.Atlas["pickups/arrowPickup"], null);
-            graphic.CenterOrigin();
-            Add(this.graphic);
-            break;
-        case ArrowTypes.Bomb:
-        {
-            Name = "BOMB";
-            Color = Calc.HexToColor("F8B800");
-            ColorB = Calc.HexToColor("F7D883");
-            Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/bombArrows"], 12, 12, 0);
-            sprite.Add(0, 0.3f, new int[] { 0, 1 });
-            sprite.Play(0, false);
-            sprite.CenterOrigin();
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
-        case ArrowTypes.SuperBomb:
-        {
-            Name = "SUPER BOMB";
-            Color = Calc.HexToColor("F8B800");
-            ColorB = Calc.HexToColor("F7D883");
-            Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/superBombArrows"], 12, 12, 0);
-            sprite.Add(0, 0.3f, new int[] { 0, 1 });
-            sprite.Play(0, false);
-            sprite.CenterOrigin();
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
-        case ArrowTypes.Laser:
-        {
-            Name = "LASER";
-            Color = Calc.HexToColor("B8F818");
-            ColorB = Calc.HexToColor("D0F76C");
-            Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/laserArrows"], 12, 12, 0);
-            sprite.Add(0, 0.3f, new int[] { 0, 1 });
-            sprite.Play(0, false);
-            sprite.CenterOrigin();
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
-        case ArrowTypes.Bramble:
-            Name = "BRAMBLE";
-            Color = Calc.HexToColor("F87858");
-            ColorB = Calc.HexToColor("F7B09E");
-            graphic = new Image(TFGame.Atlas["pickups/brambleArrows"], null);
-            graphic.CenterOrigin();
-            Add(this.graphic);
-            break;
-        case ArrowTypes.Drill:
-            Name = "DRILL";
-            Color = Calc.HexToColor("8EE8FF");
-            ColorB = Calc.HexToColor("D8F7FF");
-            graphic = new Image(TFGame.Atlas["pickups/drillArrows"], null);
-            graphic.CenterOrigin();
-            Add(this.graphic);
-            break;
-        case ArrowTypes.Bolt:
-        {
-            Name = "BOLT";
-            Color = Calc.HexToColor("00FF4C");
-            ColorB = Calc.HexToColor("00D33B");
-            Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/boltArrows"], 12, 12, 0);
-            sprite.Add(0, 0.05f, new int[] { 0, 1, 2 });
-            sprite.Play(0, false);
-            sprite.CenterOrigin();
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
-        case ArrowTypes.Feather:
-            Name = "FEATHER";
-            Color = Calc.HexToColor("BC70FF");
-            ColorB = Calc.HexToColor("D5A5FF");
-            graphic = new Image(TFGame.Atlas["pickups/featherArrows"], null);
-            graphic.CenterOrigin();
-            Add(this.graphic);
-            break;
-        case ArrowTypes.Trigger:
-        {
-            Name = "TRIGGER";
-            Color = Calc.HexToColor("1BB7EE");
-            ColorB = Calc.HexToColor("56D4FF");
-            Sprite<int> sprite = TFGame.SpriteData.GetSpriteInt("TriggerArrowsPickup");
-            sprite.Play(0, false);
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
-        case ArrowTypes.Prism:
-        {
-            Name = "PRISM";
-            Color = Calc.HexToColor("DB4ADB");
-            ColorB = Calc.HexToColor("FF52FF");
-            Sprite<int> sprite = TFGame.SpriteData.GetSpriteInt("PrismArrowsPickup");
-            sprite.Play(0, false);
-            Add(sprite);
-            graphic = sprite;
-            break;
-        }
+                graphic = new Image(TFGame.Atlas["pickups/arrowPickup"], null);
+                graphic.CenterOrigin();
+                Add(this.graphic);
+                break;
+            case ArrowTypes.Bomb:
+            {
+                Name = "BOMB";
+                Color = Calc.HexToColor("F8B800");
+                ColorB = Calc.HexToColor("F7D883");
+                Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/bombArrows"], 12, 12, 0);
+                sprite.Add(0, 0.3f, new int[] { 0, 1 });
+                sprite.Play(0, false);
+                sprite.CenterOrigin();
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            case ArrowTypes.SuperBomb:
+            {
+                Name = "SUPER BOMB";
+                Color = Calc.HexToColor("F8B800");
+                ColorB = Calc.HexToColor("F7D883");
+                Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/superBombArrows"], 12, 12, 0);
+                sprite.Add(0, 0.3f, new int[] { 0, 1 });
+                sprite.Play(0, false);
+                sprite.CenterOrigin();
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            case ArrowTypes.Laser:
+            {
+                Name = "LASER";
+                Color = Calc.HexToColor("B8F818");
+                ColorB = Calc.HexToColor("D0F76C");
+                Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/laserArrows"], 12, 12, 0);
+                sprite.Add(0, 0.3f, new int[] { 0, 1 });
+                sprite.Play(0, false);
+                sprite.CenterOrigin();
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            case ArrowTypes.Bramble:
+                Name = "BRAMBLE";
+                Color = Calc.HexToColor("F87858");
+                ColorB = Calc.HexToColor("F7B09E");
+                graphic = new Image(TFGame.Atlas["pickups/brambleArrows"], null);
+                graphic.CenterOrigin();
+                Add(this.graphic);
+                break;
+            case ArrowTypes.Drill:
+                Name = "DRILL";
+                Color = Calc.HexToColor("8EE8FF");
+                ColorB = Calc.HexToColor("D8F7FF");
+                graphic = new Image(TFGame.Atlas["pickups/drillArrows"], null);
+                graphic.CenterOrigin();
+                Add(this.graphic);
+                break;
+            case ArrowTypes.Bolt:
+            {
+                Name = "BOLT";
+                Color = Calc.HexToColor("00FF4C");
+                ColorB = Calc.HexToColor("00D33B");
+                Sprite<int> sprite = new Sprite<int>(TFGame.Atlas["pickups/boltArrows"], 12, 12, 0);
+                sprite.Add(0, 0.05f, new int[] { 0, 1, 2 });
+                sprite.Play(0, false);
+                sprite.CenterOrigin();
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            case ArrowTypes.Feather:
+                Name = "FEATHER";
+                Color = Calc.HexToColor("BC70FF");
+                ColorB = Calc.HexToColor("D5A5FF");
+                graphic = new Image(TFGame.Atlas["pickups/featherArrows"], null);
+                graphic.CenterOrigin();
+                Add(this.graphic);
+                break;
+            case ArrowTypes.Trigger:
+            {
+                Name = "TRIGGER";
+                Color = Calc.HexToColor("1BB7EE");
+                ColorB = Calc.HexToColor("56D4FF");
+                Sprite<int> sprite = TFGame.SpriteData.GetSpriteInt("TriggerArrowsPickup");
+                sprite.Play(0, false);
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            case ArrowTypes.Prism:
+            {
+                Name = "PRISM";
+                Color = Calc.HexToColor("DB4ADB");
+                ColorB = Calc.HexToColor("FF52FF");
+                Sprite<int> sprite = TFGame.SpriteData.GetSpriteInt("PrismArrowsPickup");
+                sprite.Play(0, false);
+                Add(sprite);
+                graphic = sprite;
+                break;
+            }
+            default:
+            {
+                var arrow = ArrowsRegistry.GetArrow(type);
+
+                Name = (arrow.Configuration.ArrowPickupName ?? "UNKNOWN").ToUpperInvariant();
+                Color = arrow.Configuration.ArrowPickupColor;
+                ColorB = arrow.Configuration.ArrowPickupColorB;
+                if (arrow.Configuration.CreateArrowPickupSprite is not null)
+                {
+                    graphic = arrow.Configuration.CreateArrowPickupSprite(new ArrowConfiguration.SpritePickupArgs
+                    {
+                        Position = position,
+                        TargetPosition = targetPosition,
+                        ArrowTypes = type
+                    });
+                    Add(graphic);
+                }
+                else
+                {
+                    graphic = new Image(TFGame.Atlas["pickups/arrowPickup"], null);
+                    graphic.CenterOrigin();
+                    Add(graphic);
+                }
+                break;
+            }
         }
     }
 
@@ -152,9 +176,9 @@ public class patch_ArrowTypePickup : ArrowTypePickup
             base.DoCollectStats(player.PlayerIndex);
             RemoveSelf();
 
-            Level.Add<FloatText>(new FloatText(this.Position + new Vector2(0f, -10f), Name.ToUpperInvariant(), Color, ColorB, 1f, 1f, false));
-            Level.Add<FloatText>(new FloatText(this.Position + new Vector2(0f, -3f), "ARROWS", Color, ColorB, 1f, 1f, false));
-            Level.Add<LightFade>(Cache.Create<LightFade>().Init(this, null));
+            Level.Add(new FloatText(this.Position + new Vector2(0f, -10f), Name, Color, ColorB, 1f, 1f, false));
+            Level.Add(new FloatText(this.Position + new Vector2(0f, -3f), "ARROWS", Color, ColorB, 1f, 1f, false));
+            Level.Add(Cache.Create<LightFade>().Init(this, null));
 
             PlaySound();
         }
@@ -165,6 +189,9 @@ public class patch_ArrowTypePickup : ArrowTypePickup
     {
         switch (arrowType)
         {
+        case ArrowTypes.Normal:
+            Sounds.pu_plus2Arrows.Play(X, 1f);
+            return;
         case ArrowTypes.Bomb:
             Sounds.pu_bombArrow.Play(X, 1f);
             return;
@@ -193,7 +220,15 @@ public class patch_ArrowTypePickup : ArrowTypePickup
             Sounds.pu_prismArrow.Play(X, 1f);
             return;
         default:
-            Sounds.pu_plus2Arrows.Play(X, 1f);
+            var arrow = ArrowsRegistry.GetArrow(arrowType);
+            if (arrow.Configuration.ArrowPickupSFX is not null)
+            {
+                arrow.Configuration.ArrowPickupSFX.SFX.Play(X, 1f);   
+            }
+            else
+            {
+                Sounds.pu_plus2Arrows.Play(X, 1f);
+            }
             return;
         }
     }

@@ -51,22 +51,37 @@ public static class PickupsRegistry
             return null;
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         if (entry.Configuration.ArrowType.TryGetValue(out var type))
         {
-            ref var arrowCtor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType, out var exists);
+            patch_ArrowTypePickup arrowType;
 
-            if (!exists)
+            if (entry.Configuration.CreatePickup is not null)
             {
-                arrowCtor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(ArrowTypes)]);
+                arrowType = (patch_ArrowTypePickup)entry.Configuration.CreatePickup(new PickupConfiguration.CreatePickupArgs
+                {
+                    Position = pos,
+                    TargetPosition = targetPos,
+                    PlayerIndex = playerIndex
+                });
             }
-
-            if (arrowCtor is null)
+            else
             {
-                RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
-                return null;
-            }
+                ref var arrowCtor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType!, out var exists);
 
-            var arrowType = (patch_ArrowTypePickup)arrowCtor.Invoke([pos, targetPos, type]);
+                if (!exists)
+                {
+                    arrowCtor = entry.Configuration.PickupType!.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(ArrowTypes)]);
+                }
+
+                if (arrowCtor is null)
+                {
+                    RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType!.Name);
+                    return null;
+                }
+
+                arrowType = (patch_ArrowTypePickup)arrowCtor.Invoke([pos, targetPos, type]);
+            }
 
             arrowType.Name = entry.Configuration.Name;
 
@@ -84,38 +99,51 @@ public static class PickupsRegistry
         }
         else
         {
-            ref var ctor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType, out var didExistsAgain);
-
-            if (!didExistsAgain)
+            if (entry.Configuration.CreatePickup is not null)
             {
-                ctor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(int)]);
-            }
-
-            if (ctor is not null)
-            {
-                // FIXME: remove this try-catch non sense 
-                try
+                return (patch_Pickup)entry.Configuration.CreatePickup(new PickupConfiguration.CreatePickupArgs
                 {
-                    return (patch_Pickup)ctor.Invoke([pos, targetPos, playerIndex]);
-                }
-                catch (TargetParameterCountException)
-                {
-                    return (patch_Pickup)ctor.Invoke([pos, targetPos]);
-                }
+                    Position = pos,
+                    TargetPosition = targetPos,
+                    PlayerIndex = playerIndex
+                });
             }
             else
             {
-                ctor = entry.Configuration.PickupType.GetConstructor([typeof(Vector2), typeof(Vector2)]);
-            }
+                ref var ctor = ref CollectionsMarshal.GetValueRefOrAddDefault(constructors, entry.Configuration.PickupType!, out var didExistsAgain);
 
-            if (ctor is not null)
-            {
-                return (patch_Pickup)ctor.Invoke([pos, targetPos]);
+                if (!didExistsAgain)
+                {
+                    ctor = entry.Configuration.PickupType!.GetConstructor([typeof(Vector2), typeof(Vector2), typeof(int)]);
+                }
+
+                if (ctor is not null)
+                {
+                    // FIXME: remove this try-catch non sense 
+                    try
+                    {
+                        return (patch_Pickup)ctor.Invoke([pos, targetPos, playerIndex]);
+                    }
+                    catch (TargetParameterCountException)
+                    {
+                        return (patch_Pickup)ctor.Invoke([pos, targetPos]);
+                    }
+                }
+                else
+                {
+                    ctor = entry.Configuration.PickupType!.GetConstructor([typeof(Vector2), typeof(Vector2)]);
+                }
+
+                if (ctor is not null)
+                {
+                    return (patch_Pickup)ctor.Invoke([pos, targetPos]);
+                }
             }
 
             RiseCore.logger.LogError("Invalid pickup type: '{name}'", entry.Configuration.PickupType.Name);
             return null;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 #nullable disable
 

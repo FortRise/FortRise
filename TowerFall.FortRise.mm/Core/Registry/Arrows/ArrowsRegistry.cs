@@ -39,23 +39,37 @@ public static class ArrowsRegistry
 
     internal static patch_Arrow? CreateArrow(ArrowTypes types)
     {
-        var type = GetArrow(types)?.Configuration.ArrowType;
+        var arrowEntry = GetArrow(types);
 
-        if (type is null)
+        if (arrowEntry is null)
+        {
+            RiseCore.logger.LogError("ArrowType cannot be found: " + types);
+            return null;
+        }
+
+        if (arrowEntry.Configuration.CreateArrow is not null)
+        {
+            var arrow = arrowEntry.Configuration.CreateArrow();
+            arrow.ArrowType = types;
+            return arrow;
+        }
+
+        if (arrowEntry.Configuration.ArrowType is null)
         {
             RiseCore.logger.LogError("This type does not exists or it is only for vanilla.");
             return null;
         }
 
-        if (Activator.CreateInstance(type) is not patch_Arrow arrow)
+
+        if (Activator.CreateInstance(arrowEntry.Configuration.ArrowType) is not patch_Arrow arrowT)
         {
-            RiseCore.logger.LogError("Invalid arrow type: '{name}'", type.Name);
+            RiseCore.logger.LogError("Invalid arrow type: '{name}'", arrowEntry.Name);
             return null;
         }
 
-        arrow.ArrowType = types;
+        arrowT.ArrowType = types;
 
-        return arrow;
+        return arrowT;
     }
 #nullable disable
 
