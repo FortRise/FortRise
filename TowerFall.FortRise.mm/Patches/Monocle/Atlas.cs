@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml;
 using FortRise;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod;
@@ -50,7 +51,14 @@ public class patch_Atlas : Atlas
                 return texture;
             }
 
-            return SafeSubTextures.GetValueOrDefault(name);
+            var value = SafeSubTextures.GetValueOrDefault(name);
+            if (value is null)
+            {
+                RiseCore.logger.LogError("Atlas path: {name} not found!", name);
+                return null;
+            }
+
+            return value;
         }
         set
         {
