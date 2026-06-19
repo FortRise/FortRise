@@ -60,8 +60,8 @@ internal static class VersusLoader
                     treasures.Add(new Treasure()
                     {
                         Pickup = pickups,
-                        Rates = rate,
-                        Chance = (chance / 100.0f)
+                        Rates = rate != -1 ? rate : Option<int>.None(),
+                        Chance = chance != -1 ? chance / 100.0f : Option<float>.None()
                     });
                 }
             }
