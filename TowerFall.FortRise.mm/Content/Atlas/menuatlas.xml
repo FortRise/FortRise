@@ -1,9 +1,21 @@
 <TextureAtlas imagePath="../Atlas/menuatlas/png">
+  <SubTexture name="controls/dualshock/lb" x="244" y="32" width="12" height="12"/>
+  <SubTexture name="controls/dualshock/rb" x="232" y="32" width="12" height="12"/>
+  <SubTexture name="controls/generic/lb" x="134" y="46" width="12" height="12"/>
+  <SubTexture name="controls/generic/rb" x="134" y="34" width="12" height="12"/>
+  <SubTexture name="controls/ouya/lb" x="78" y="48" width="12" height="12"/>
+  <SubTexture name="controls/ouya/rb" x="90" y="48" width="12" height="12"/>
+  <SubTexture name="controls/snes/lb" x="244" y="44" width="12" height="12"/>
+  <SubTexture name="controls/snes/rb" x="232" y="44" width="12" height="12"/>
   <SubTexture name="controls/steam/a" x="162" y="32" width="14" height="14"/>
   <SubTexture name="controls/steam/b" x="176" y="32" width="14" height="14"/>
   <SubTexture name="controls/steam/dpad" x="234" y="16" width="16" height="16"/>
-  <SubTexture name="controls/steam/lb" x="78" y="48" width="12" height="12"/>
-  <SubTexture name="controls/steam/lt" x="114" y="48" width="12" height="12"/>
+  <SubTexture name="controls/steam/lb" x="102" y="72" width="12" height="12"/>
+  <SubTexture name="controls/steam/lt" x="182" y="58" width="12" height="12"/>
+  <SubTexture name="controls/steam/p1" x="78" y="72" width="12" height="12"/>
+  <SubTexture name="controls/steam/p2" x="126" y="70" width="12" height="12"/>
+  <SubTexture name="controls/steam/p3" x="138" y="60" width="12" height="12"/>
+  <SubTexture name="controls/steam/p4" x="158" y="58" width="12" height="12"/>
   <SubTexture name="controls/steam/player1" x="104" y="18" width="26" height="16"/>
   <SubTexture name="controls/steam/player2" x="78" y="18" width="26" height="16"/>
   <SubTexture name="controls/steam/player3" x="208" y="16" width="26" height="16"/>
@@ -12,15 +24,19 @@
   <SubTexture name="controls/steam/player6" x="208" y="0" width="26" height="16"/>
   <SubTexture name="controls/steam/player7" x="182" y="0" width="26" height="16"/>
   <SubTexture name="controls/steam/player8" x="156" y="0" width="26" height="16"/>
-  <SubTexture name="controls/steam/rb" x="244" y="44" width="12" height="12"/>
-  <SubTexture name="controls/steam/rt" x="102" y="48" width="12" height="12"/>
-  <SubTexture name="controls/steam/start" x="90" y="48" width="12" height="12"/>
+  <SubTexture name="controls/steam/rb" x="90" y="72" width="12" height="12"/>
+  <SubTexture name="controls/steam/rt" x="170" y="58" width="12" height="12"/>
+  <SubTexture name="controls/steam/start" x="114" y="72" width="12" height="12"/>
   <SubTexture name="controls/steam/x" x="204" y="32" width="14" height="14"/>
   <SubTexture name="controls/steam/y" x="190" y="32" width="14" height="14"/>
   <SubTexture name="controls/switch/a" x="120" y="34" width="14" height="14"/>
   <SubTexture name="controls/switch/b" x="106" y="34" width="14" height="14"/>
-  <SubTexture name="controls/switch/lb" x="232" y="44" width="12" height="12"/>
-  <SubTexture name="controls/switch/lt" x="244" y="32" width="12" height="12"/>
+  <SubTexture name="controls/switch/lb" x="234" y="56" width="12" height="12"/>
+  <SubTexture name="controls/switch/lt" x="222" y="56" width="12" height="12"/>
+  <SubTexture name="controls/switch/p1" x="174" y="46" width="12" height="12"/>
+  <SubTexture name="controls/switch/p2" x="114" y="60" width="12" height="12"/>
+  <SubTexture name="controls/switch/p3" x="102" y="60" width="12" height="12"/>
+  <SubTexture name="controls/switch/p4" x="90" y="60" width="12" height="12"/>
   <SubTexture name="controls/switch/player1" x="130" y="0" width="26" height="18"/>
   <SubTexture name="controls/switch/player2" x="104" y="0" width="26" height="18"/>
   <SubTexture name="controls/switch/player3" x="78" y="0" width="26" height="18"/>
@@ -29,9 +45,9 @@
   <SubTexture name="controls/switch/player6" x="52" y="72" width="26" height="18"/>
   <SubTexture name="controls/switch/player7" x="52" y="54" width="26" height="18"/>
   <SubTexture name="controls/switch/player8" x="52" y="36" width="26" height="18"/>
-  <SubTexture name="controls/switch/rb" x="232" y="32" width="12" height="12"/>
-  <SubTexture name="controls/switch/rt" x="134" y="46" width="12" height="12"/>
-  <SubTexture name="controls/switch/start" x="134" y="34" width="12" height="12"/>
+  <SubTexture name="controls/switch/rb" x="210" y="46" width="12" height="12"/>
+  <SubTexture name="controls/switch/rt" x="198" y="46" width="12" height="12"/>
+  <SubTexture name="controls/switch/start" x="186" y="46" width="12" height="12"/>
   <SubTexture name="controls/switch/stick" x="234" y="0" width="16" height="16"/>
   <SubTexture name="controls/switch/x" x="92" y="34" width="14" height="14"/>
   <SubTexture name="controls/switch/y" x="78" y="34" width="14" height="14"/>
@@ -51,13 +67,19 @@
   <SubTexture name="controls/switchpro/player6" x="26" y="54" width="26" height="18"/>
   <SubTexture name="controls/switchpro/player7" x="26" y="36" width="26" height="18"/>
   <SubTexture name="controls/switchpro/player8" x="26" y="18" width="26" height="18"/>
+  <SubTexture name="controls/xb360/lb" x="78" y="60" width="12" height="12"/>
+  <SubTexture name="controls/xb360/p1" x="146" y="48" width="12" height="12"/>
+  <SubTexture name="controls/xb360/p2" x="162" y="46" width="12" height="12"/>
+  <SubTexture name="controls/xb360/p3" x="114" y="48" width="12" height="12"/>
+  <SubTexture name="controls/xb360/p4" x="102" y="48" width="12" height="12"/>
+  <SubTexture name="controls/xb360/rb" x="126" y="58" width="12" height="12"/>
   <SubTexture name="icon/fortrise" x="218" y="32" width="14" height="14"/>
   <SubTexture name="icon/levelcategoryicon" x="146" y="32" width="16" height="16"/>
-  <SubTexture name="icon/presetAdd" x="146" y="48" width="12" height="12"/>
-  <SubTexture name="icon/presetCustom" x="162" y="46" width="12" height="12"/>
+  <SubTexture name="icon/presetAdd" x="206" y="58" width="12" height="12"/>
+  <SubTexture name="icon/presetCustom" x="194" y="58" width="12" height="12"/>
   <SubTexture name="icon/randomizedSets" x="130" y="18" width="16" height="16"/>
   <SubTexture name="mmg/0" x="126" y="48" width="8" height="7"/>
-  <SubTexture name="mmg/1" x="126" y="58" width="12" height="7"/>
-  <SubTexture name="mmg/2" x="146" y="25" width="6" height="7"/>
-  <SubTexture name="mmg/3" x="146" y="18" width="6" height="7"/>
+  <SubTexture name="mmg/1" x="218" y="68" width="12" height="7"/>
+  <SubTexture name="mmg/2" x="146" y="18" width="6" height="7"/>
+  <SubTexture name="mmg/3" x="222" y="46" width="6" height="7"/>
 </TextureAtlas>
