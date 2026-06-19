@@ -49,6 +49,8 @@ namespace TowerFall
         public MenuState OldState { get; set; }
 
         public MenuItem ToStartSelected { get; [MonoModPublic] set; }
+        public bool CannotBack { get; set; }
+        private List<ApplyData> applyAction = [];
 
 
         public static patch_MatchSettings VersusMatchSettings;
@@ -106,6 +108,199 @@ namespace TowerFall
             BackState = ModRegisters.MenuState<UIModMenu>();
             TweenBGCameraToY(1);
         }
+
+        [MonoModReplace]
+        public void CreateControlOptions()
+        {
+            List<OptionsButton> buttons = [];
+
+            OptionsButton holdToPause = new OptionsButton("HOLD TO PAUSE");
+            holdToPause.SetCallbacks(() => holdToPause.State = BoolToString(SaveData.Instance.Options.HoldToPause), null, null, () =>
+            {
+                SaveData.Instance.Options.HoldToPause = !SaveData.Instance.Options.HoldToPause;
+                return SaveData.Instance.Options.HoldToPause;
+            });
+
+            buttons.Add(holdToPause);
+
+            OptionsButton gamepadDiscovery = new OptionsButton("GAMEPAD DISCOVERY");
+            gamepadDiscovery.SetCallbacks(() => gamepadDiscovery.State = BoolToString(SaveData.Instance.Options.GamepadDiscovery), null, null, () =>
+            {
+                SaveData.Instance.Options.GamepadDiscovery = !SaveData.Instance.Options.GamepadDiscovery;
+                return SaveData.Instance.Options.GamepadDiscovery;
+            });
+            buttons.Add(gamepadDiscovery);
+
+            OptionsButton rumble = new OptionsButton("GAMEPAD RUMBLE");
+            rumble.SetCallbacks(() => rumble.State = BoolToString(SaveData.Instance.Options.GamepadVibration), null, null, () =>
+            {
+                SaveData.Instance.Options.GamepadVibration = !SaveData.Instance.Options.GamepadVibration;
+                MInput.GamepadVibration = SaveData.Instance.Options.GamepadVibration;
+                if (MInput.GamepadVibration)
+                {
+                    MenuInput.RumbleAll(0.5f, 30);
+                }
+
+                return SaveData.Instance.Options.GamepadVibration;
+            });
+            buttons.Add(rumble);
+
+            OptionsButton configureKeyboard = new OptionsButton("CONFIGURE KEYBOARD");
+            configureKeyboard.SetCallbacks(() => State = MenuState.KeyboardConfig);
+            buttons.Add(configureKeyboard);
+
+            for (int i = 0; i < TFGame.PlayerInputs.Length; i += 1)
+            {
+                var input = TFGame.PlayerInputs[i];
+                if (input is TowerFall.Patching.XGamepadInput xGamepadInput)
+                {
+                    OptionsButtonHeader header = new OptionsButtonHeader($"CONTROLLER P{xGamepadInput.XGamepadIndex + 1} ({xGamepadInput.Name.ToUpperInvariant()})");
+                    buttons.Add(header);
+
+                    OptionsButton buttonSetButton = new OptionsButton("BUTTON SET");
+                    buttonSetButton.SetCallbacks(() => buttonSetButton.State = xGamepadInput.Config.ButtonSet?.ToUpperInvariant() ?? "AUTOMATIC", null, null, () =>
+                    {
+                        var index = TowerFall.Patching.XGamepadInput.ButtonSets.IndexOf(xGamepadInput.Config.ButtonSet);
+                        if (index == -1)
+                        {
+                            xGamepadInput.ChangeButtonSet(Patching.XGamepadInput.ButtonSets[0]);
+                        }
+                        else if (index == Patching.XGamepadInput.ButtonSets.Length - 1)
+                        {
+                            xGamepadInput.ChangeButtonSet("Automatic");
+                        }
+                        else
+                        {
+                            xGamepadInput.ChangeButtonSet(Patching.XGamepadInput.ButtonSets[index + 1]);
+                        }
+
+                        MenuButtons.Update();
+                        return true;
+                    });
+                    buttons.Add(buttonSetButton);
+
+                    OptionsButton moveXDeadzone = new OptionsButton("MOVE X DEADZONE");
+                    moveXDeadzone.SetCallbacks(
+                        () =>
+                        {
+                            moveXDeadzone.State = $"{Math.Round(xGamepadInput.Config.MoveXDeadzone * 100)}";
+                            moveXDeadzone.CanLeft = xGamepadInput.Config.MoveXDeadzone > 0;
+                            moveXDeadzone.CanRight = xGamepadInput.Config.MoveXDeadzone < 1f;
+                        }, 
+                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) - 0.1M), 
+                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) + 0.1M), 
+                        () => false
+                    );
+                    buttons.Add(moveXDeadzone);
+
+                    OptionsButton moveYDeadzone = new OptionsButton("MOVE Y DEADZONE");
+                    moveYDeadzone.SetCallbacks(
+                        () =>
+                        {
+                            moveYDeadzone.State = $"{Math.Round(xGamepadInput.Config.MoveYDeadzone * 100)}";
+                            moveYDeadzone.CanLeft = xGamepadInput.Config.MoveYDeadzone > 0;
+                            moveYDeadzone.CanRight = xGamepadInput.Config.MoveYDeadzone < 1f;
+                        }, 
+                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) - 0.1M), 
+                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) + 0.1M), 
+                        () => false
+                    );
+                    buttons.Add(moveYDeadzone);
+
+                    InputOptionsButton jumpButton = new InputOptionsButton("JUMP", xGamepadInput, xGamepadInput.Config.Jump, (x) =>
+                    {
+                        xGamepadInput.Config.Jump = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(jumpButton);
+
+                    InputOptionsButton shootButton = new InputOptionsButton("SHOOT", xGamepadInput, xGamepadInput.Config.Shoot, (x) =>
+                    {
+                        xGamepadInput.Config.Shoot = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(shootButton);
+
+                    InputOptionsButton arrowsButton = new InputOptionsButton("ARROWS SWAP", xGamepadInput, xGamepadInput.Config.Arrows, (x) =>
+                    {
+                        xGamepadInput.Config.Arrows = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(arrowsButton);
+
+                    InputOptionsButton altShootButton = new InputOptionsButton("ALT SHOOT", xGamepadInput, xGamepadInput.Config.AltShoot, (x) =>
+                    {
+                        xGamepadInput.Config.AltShoot = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(altShootButton);
+
+                    InputOptionsButton dodgeButton = new InputOptionsButton("DODGE", xGamepadInput, xGamepadInput.Config.Dodge, (x) =>
+                    {
+                        xGamepadInput.Config.Dodge = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(dodgeButton);
+
+                    InputOptionsButton altDodgeButton = new InputOptionsButton("ALT DODGE", xGamepadInput, xGamepadInput.Config.MenuAlt, (x) =>
+                    {
+                        xGamepadInput.Config.MenuAlt = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(altDodgeButton);
+
+                    InputOptionsButton startButton = new InputOptionsButton("START", xGamepadInput, xGamepadInput.Config.Start, (x) =>
+                    {
+                        xGamepadInput.Config.Start = x;
+                        xGamepadInput.RefreshButton();
+                    });
+                    buttons.Add(startButton);
+
+
+                    OptionsButton resetButton = new OptionsButton("RESET ALL BUTTONS");
+                    resetButton.SetCallbacks(() => resetButton.State = string.Empty, null, null, () =>
+                    {
+                        xGamepadInput.Config = GamepadConfig.GetDefault();
+                        jumpButton.Buttons = xGamepadInput.Config.Jump;
+                        shootButton.Buttons = xGamepadInput.Config.Shoot;
+                        altShootButton.Buttons = xGamepadInput.Config.AltShoot;
+                        arrowsButton.Buttons = xGamepadInput.Config.Arrows;
+                        dodgeButton.Buttons = xGamepadInput.Config.Dodge;
+                        altDodgeButton.Buttons = xGamepadInput.Config.MenuAlt;
+                        startButton.Buttons = xGamepadInput.Config.Start;
+                        applyAction.Clear();
+                        ButtonGuideC.Clear();
+                        xGamepadInput.RefreshButton();
+                        return true;
+                    });
+                    buttons.Add(resetButton);
+                }
+            }
+
+            InitOptions(buttons);
+            if (OldState == MenuState.KeyboardConfig)
+            {
+                ToStartSelected = configureKeyboard;
+            }
+            else
+            {
+                ToStartSelected = holdToPause;
+            }
+            BackState = MenuState.Options;
+            TweenBGCameraToY(2);
+        }
+
+        public void QueueToApply(string name, Action action)
+        {
+            CannotBack = true;
+            applyAction ??= [];
+
+            var applyData = new ApplyData(name, action);
+            applyAction.Remove(applyData); // removes the data if it exists
+            applyAction.Add(applyData);
+            ButtonGuideC.SetDetails(MenuButtonGuide.ButtonModes.Back, "APPLY");
+        }
+
 
         public static void Internal_CreateOptions(List<OptionsButton> buttons)
         {
@@ -346,6 +541,10 @@ namespace TowerFall
             }
         }
 
+        [MonoModIgnore]
+        [PatchMainMenuUpdate]
+        public extern override void Update();
+
         public extern void orig_Render();
         public override void Render()
         {
@@ -431,6 +630,64 @@ namespace TowerFall
             TweenBGCameraToY(1);
         }
 
+        [Prefix(nameof(Update))]
+        public void CheckApply()
+        {
+            if (applyAction?.Count > 0 && CanAct && MenuInput.Back)
+            {
+                CanAct = false;
+                MenuItem itemSelected = null;
+                foreach (var entity in Layers[-1].Entities)
+                {
+                    if (entity is MenuItem item && item.Selected)
+                    {
+                        itemSelected = item;
+                        item.Selected = false;
+                    }
+                }
+
+                var modal = new UIModal(0);
+                modal.AddFiller("APPLY ALL THE CHANGES?");
+                modal.AddItem("YES", () =>
+                {
+                    foreach (var apply in applyAction)
+                    {
+                        apply.ApplyAction();
+                    }
+
+                    ButtonGuideC.Clear();
+                    CanAct = true;
+                    CannotBack = false;
+                    applyAction.Clear();
+                    switchTo = BackState;
+                });
+                modal.AddItem("NO", () =>
+                {
+                    ButtonGuideC.Clear();
+                    CanAct = true;
+                    CannotBack = false;
+                    applyAction.Clear();
+                    switchTo = BackState;
+                });
+
+                modal.AddItem("CANCEL", () =>
+                {
+                    CanAct = true;
+                    itemSelected.Selected = true;
+                });
+                modal.SetOnBackCallBack(() =>
+                {
+                    CanAct = true;
+                    itemSelected.Selected = true;
+                });
+
+                Add(modal);
+            }
+        }
+
+        [MonoModIgnore]
+        private extern string BoolToString(bool value);
+
         [MonoModReplace]
         public static void PlayMenuMusic(bool fromArchives = false, bool forceNormal = false)
         {
@@ -486,6 +743,17 @@ namespace TowerFall
                 Music.Play("Title");
             }
         }
+
+        public struct ApplyData(string name, Action applyAction)
+        {
+            public string Name = name;
+            public Action ApplyAction = applyAction;
+
+            public override readonly int GetHashCode()
+            {
+                return Name.GetHashCode();
+            }
+        }
     }
 }
 
@@ -497,8 +765,29 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCreateOptions))]
     public class PatchMainMenuCreateOptions : Attribute {}
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuUpdate))]
+    public class PatchMainMenuUpdate : Attribute {}
+
     internal static partial class MonoModRules 
     {
+        public static void PatchMainMenuUpdate(ILContext ctx, CustomAttribute attrib)
+        {
+            var mainMenu = ctx.Body.Method.DeclaringType.FindProperty("CannotBack").Resolve().GetMethod;
+
+            var cursor = new ILCursor(ctx);
+
+            ILLabel label = null;
+            cursor.GotoNext(MoveType.Before, 
+                (instr) => instr.MatchLdarg0(),
+                (instr) => instr.MatchLdfld("TowerFall.MainMenu", "CanAct"),
+                (instr) => instr.MatchBrfalse(out label)
+            );
+
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Callvirt, mainMenu);
+            cursor.Emit(OpCodes.Brtrue, label);
+        }
+
         public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib) 
         {
             var Internal_CreateOptions = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void Internal_CreateOptions(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");

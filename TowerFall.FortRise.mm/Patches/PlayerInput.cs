@@ -3,6 +3,15 @@ using MonoMod;
 
 namespace TowerFall;
 
+
+[MonoModPatch("TowerFall.PlayerInput")]
+public abstract class PlayerInputAbstract
+{
+    public abstract Subtexture ArrowsIcon { get; }
+    public abstract bool MenuArrows { get; }
+    public abstract bool MenuArrowsCheck { get; }
+}
+
 public class patch_PlayerInput : PlayerInput
 {
     [MonoModIgnore]    
@@ -77,6 +86,7 @@ public class patch_PlayerInput : PlayerInput
     public override string Name => throw new System.NotImplementedException();
     [MonoModIgnore]
     public override string ID => throw new System.NotImplementedException();
+
 
     [MonoModIgnore]
     public extern override InputState GetState();

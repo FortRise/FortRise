@@ -16,9 +16,11 @@ public class OptionsButtonHeader : OptionsButton
     }
 
     [MonoModLinkTo("TowerFall.MenuItem", "Update")]
+    [MonoModIgnore]
     public void base_Update() { }
 
-    [MonoModLinkTo("TowerFall.MenuItem", "Render")]
+    [MonoModLinkTo("Monocle.Entity", "Render")]
+    [MonoModIgnore]
     public void base_Render() { }
 
     public override void Update()

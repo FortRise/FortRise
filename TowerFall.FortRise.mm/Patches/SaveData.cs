@@ -1,10 +1,13 @@
 using FortRise;
+using Monocle;
 using MonoMod;
 
 namespace TowerFall;
 
 public class patch_SaveData : SaveData
 {
+    public GamepadConfig[] Gamepad;
+
     [PatchSDL2ToSDL3]
     public extern string orig_Save();
 
@@ -28,6 +31,11 @@ public class patch_SaveData : SaveData
     public static string Load() 
     {
         var error = orig_Load();
+        if (((patch_SaveData)Instance).Gamepad == null)
+        {
+            ((patch_SaveData)Instance).Gamepad = GamepadConfig.GetDefaults();
+        }
+
         foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             var saveData = module.CreateSaveData();
@@ -50,6 +58,9 @@ public class patch_SaveData : SaveData
     public void Verify() 
     {
         orig_Verify();
+        Gamepad = Gamepad.VerifyLength(4);
+
+        Verified = true;
         foreach (var module in RiseCore.ModuleManager.InternalFortModules) 
         {
             module.VerifySaveData();
