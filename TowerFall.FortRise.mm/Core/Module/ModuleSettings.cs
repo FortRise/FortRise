@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod.Utils;
 using TowerFall;
@@ -9,15 +10,13 @@ namespace FortRise;
 
 public interface ISettingsCreate
 {
-    [Obsolete("Container is not used anymore to create settings. This will be removed in FortRise >5.3")]
-    TextContainer Container { get; init; }
-
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed);
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired);
     void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect);
     void CreateButton(string name, Action onPressed);
     void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
     void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
+    void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput);
 
     void Refresh();
 }
@@ -226,72 +225,16 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
     {
         return value ? "ON" : "OFF";
     }
-}
 
-internal sealed class SettingsCreate : ISettingsCreate
-{
-    public TextContainer Container { get; init; }
-    private readonly Action onRefresh;
-
-    public SettingsCreate(TextContainer container, Action onRefresh)
+    public void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput)
     {
-        Container = container;
-        this.onRefresh = onRefresh;
-    }
-
-    public void Refresh()
-    {
-        onRefresh();
-    }
-
-    public void CreateButton(string name, Action onPressed)
-    {
-        string fullName = name.ToUpperInvariant();
-        var numberButton = new TextContainer.ButtonText(fullName);
-        numberButton.OnConfirm = onPressed;
-
-        Container.Add(numberButton);
-    }
-
-    public void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None)
-    {
-        string fullName = name.ToUpperInvariant();
-        var numberButton = new TextContainer.InputText(fullName, initialValue, inputBehavior);
-        numberButton.OnInputEntered = onInput;
-
-        Container.Add(numberButton);
-    }
-
-    public void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1)
-    {
-        string fullName = name.ToUpperInvariant();
-        var numberButton = new TextContainer.Number(fullName, initialValue, min, max, step);
-        numberButton.Change(onChanged);
-
-        Container.Add(numberButton);
-    }
-
-    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed)
-    {
-        string fullName = name.ToUpperInvariant();
-        var numberButton = new TextContainer.Toggleable(fullName, initialValue);
-        numberButton.Change(onPressed);
-
-        Container.Add(numberButton);
-    }
-
-    public void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect)
-    {
-        string fullName = name.ToUpperInvariant();
-        var selectionOption = new TextContainer.SelectionOption(
-            fullName, selections, Array.IndexOf(selections, initialValue));
-        selectionOption.Change(onSelect);
-        Container.Add(selectionOption);
-    }
-
-    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired)
-    {
-        throw new NotImplementedException();
+        var gamepad = TFGame.PlayerInputs[playerIndex];
+        if (gamepad is TowerFall.Patching.XGamepadInput xGamepadInput)
+        {
+            string title = name.ToUpperInvariant();
+            var optionButtons = new InputOptionsButton(title, xGamepadInput, buttons, onInput);
+            OptionsButton.Add(optionButtons);
+        }
     }
 }
 

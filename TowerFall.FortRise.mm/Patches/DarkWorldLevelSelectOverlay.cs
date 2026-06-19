@@ -48,16 +48,7 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
     [MonoModReplace]
     private void RefreshLevelStats() 
     {
-        var level = GameData.DarkWorldTowers[statsID];
-        DarkWorldTowerStats stats;
-        if (level.TowerSet == "TowerFall")
-        {
-            stats = SaveData.Instance.DarkWorld.Towers[statsID];
-        }
-        else
-        {
-            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(level.LevelID);
-        }
+        DarkWorldTowerStats stats = SaveData.Instance.DarkWorld.Towers[statsID];
 
         long bestTime;
         int mostCurses;
@@ -82,37 +73,37 @@ public class patch_DarkWorldLevelSelectOverlay : DarkWorldLevelSelectOverlay
         }
         if (bestTime <= 0L)
         {
-            this.levelBestTimeString = "";
+            levelBestTimeString = "";
         }
         else
         {
-            this.levelBestTimeString = TrialsResults.GetTimeString(bestTime);
+            levelBestTimeString = TrialsResults.GetTimeString(bestTime);
         }
         if (mostCurses <= 0)
         {
-            this.levelCursesString = "";
+            levelCursesString = "";
         }
         else if (mostCurses == 1)
         {
-            this.levelCursesString = "1 CURSE";
+            levelCursesString = "1 CURSE";
         }
         else
         {
-            this.levelCursesString = mostCurses.ToString() + " CURSES";
+            levelCursesString = mostCurses + " CURSES";
         }
         if (stats.Deaths == 0UL)
         {
-            this.levelDeathsString = "";
+            levelDeathsString = "";
         }
         else
         {
-            this.levelDeathsString = stats.Deaths.ToString();
+            levelDeathsString = stats.Deaths.ToString();
         }
         if (stats.Attempts == 0UL)
         {
-            this.levelAttemptsString = "";
+            levelAttemptsString = "";
             return;
         }
-        this.levelAttemptsString = stats.Attempts.ToString();
+        levelAttemptsString = stats.Attempts.ToString();
     }
 }

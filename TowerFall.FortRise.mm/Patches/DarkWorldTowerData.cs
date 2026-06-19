@@ -89,8 +89,67 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
         {
         }
 
+        public patch_LevelData(FortRise.DarkWorldLevelData data, Dictionary<string, List<EnemyData>> enemySets) : base(null, enemySets)
+        {
+        }
+
 
         public extern void orig_ctor(XmlElement xml, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets);
+
+        [MonoModConstructor]
+        public void ctor(FortRise.DarkWorldLevelData data, Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets)
+        {
+            File = data.LevelIndex; 
+            Difficulty = data.Difficulty;
+            Waves = data.Waves;
+            DelayMultiplier = data.DelayMultiplier;
+
+            if (!enemySets.TryGetValue(data.EnemySet, out EnemySet))
+            {
+                EnemySet = [];
+            }
+
+            var pickupList = new List<Pickups>[4];
+            Array.Fill(pickupList, []);
+
+            if (data.Treasures is {})
+            {
+                foreach (var treasure in data.Treasures)
+                {
+                    var minPlayer = 1;
+                    var maxPlayer = 4;
+
+                    if (treasure.MinPlayer.TryGetValue(out var min))
+                    {
+                        minPlayer = min;
+                    }
+
+                    if (treasure.MaxPlayer.TryGetValue(out var max))
+                    {
+                        maxPlayer = max;
+                    }
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (i >= minPlayer - 1 && i <= maxPlayer - 1)
+                        {
+                            pickupList[i].Add(treasure.Pickups);
+                        }
+                    }
+                }
+            }
+
+            TreasureData = pickupList;
+            if (data.BossID.TryGetValue(out int bossID))
+            {
+                LevelMode = BossModes.Boss;
+                BossID = bossID;
+            }
+            else
+            {
+                LevelMode = BossModes.Normal;
+            }
+        }
 
         [MonoModConstructor]
         public void ctor() {}
@@ -102,12 +161,12 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
             int dec = 0;
             while (treasureSpan[0] == '+') 
             {
-                treasureSpan = treasureSpan.Slice(1);
+                treasureSpan = treasureSpan[1..];
                 inc++;
             }
             while (treasureSpan[0] == '-') 
             {
-                treasureSpan = treasureSpan.Slice(1);
+                treasureSpan = treasureSpan[1..];
                 dec++;
             }
             
@@ -120,7 +179,7 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
             {
                 if (k >= inc - 1 && k <= dec - 1)
                 {
-                    this.TreasureData[k].Add(pickups);
+                    TreasureData[k].Add(pickups);
                 }
             }
         }

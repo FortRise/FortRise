@@ -6,6 +6,18 @@ namespace FortRise;
 
 internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents
 {
+    public event EventHandler<AfterSaveSaveDataEventArgs> OnAfterSaveSaveData
+    {
+        add => manager.OnAfterSaveSaveData.Add(metadata, value);
+        remove => manager.OnAfterSaveSaveData.Remove(metadata, value);
+    }
+
+    public event EventHandler<BeforeSaveSaveDataEventArgs> OnBeforeSaveSaveData
+    {
+        add => manager.OnBeforeSaveSaveData.Add(metadata, value);
+        remove => manager.OnBeforeSaveSaveData.Remove(metadata, value);
+    }
+
     public event EventHandler<ModuleMetadata> OnModInitialize
     {
         add => manager.OnModInitialize.Add(metadata, value);

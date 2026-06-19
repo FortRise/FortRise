@@ -10,12 +10,16 @@ public class patch_SaveData : SaveData
 
     public string Save() 
     {
+        ModEventsManager.Instance.OnBeforeSaveSaveData.Raise(this, new());
         foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             module.SaveSaveData();
             module.SaveSettings();
         }
-        return orig_Save();
+
+        string result = orig_Save();
+        ModEventsManager.Instance.OnAfterSaveSaveData.Raise(this, new(result));
+        return result;
     }
 
     [PatchSDL2ToSDL3]

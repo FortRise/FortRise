@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
@@ -126,17 +125,7 @@ public class MapButton : TowerFall.MapButton
     public static List<Image> InitQuestGraphics(int levelID)
     {
         QuestLevelData tower = GameData.QuestLevels[levelID];
-        QuestTowerStats stats;
-
-        if (tower.IsOfficialTowerSet)
-        {
-            stats = SaveData.Instance.Quest.Towers[levelID];
-        }
-        else
-        {
-            stats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.LevelID);
-        }
-
+        TowerFall.QuestTowerStats stats = SaveData.Instance.Quest.Towers[levelID];
 
         TowerTheme theme = tower.Theme;
         List<Image> list = new List<Image>();
@@ -199,14 +188,14 @@ public class MapButton : TowerFall.MapButton
                 image4.Origin.Y = image4.Origin.Y + 2f;
                 list.Add(image3);
             }
-            Sprite<int> smallAwardIcon = GetSmallAwardIcon();
+            Sprite<int> smallAwardIcon = SaveData.Instance.Trials.Levels[levelID.X][levelID.Y].GetSmallAwardIcon();
             if (smallAwardIcon != null)
             {
                 smallAwardIcon.Play(0, false);
                 smallAwardIcon.Origin += new Vector2(10f, 10f);
                 list.Add(smallAwardIcon);
             }
-            if (tower.IsOfficialTowerSet && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
+            if (SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
             {
                 Image image5 = new Image(TFGame.MenuAtlas["trials/yellowGem"], null);
                 image5.CenterOrigin();
@@ -228,14 +217,14 @@ public class MapButton : TowerFall.MapButton
                 image7.Color = MapButton.GetTint(theme.TowerType);
                 list.Add(image7);
             }
-            Sprite<int> smallAwardIcon2 = GetSmallAwardIcon();
+            Sprite<int> smallAwardIcon2 = SaveData.Instance.Trials.Levels[levelID.X][levelID.Y].GetSmallAwardIcon();
             if (smallAwardIcon2 != null)
             {
                 smallAwardIcon2.Play(0, false);
                 smallAwardIcon2.Origin += new Vector2(10f, 3f);
                 list.Add(smallAwardIcon2);
             }
-            if (tower.IsOfficialTowerSet && SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
+            if (SaveData.Instance.Unlocks.YellowGemsFound.Contains(levelID))
             {
                 Image image9 = new Image(TFGame.MenuAtlas["trials/yellowGem"], null);
                 image9.CenterOrigin();
@@ -244,16 +233,6 @@ public class MapButton : TowerFall.MapButton
             }
         }
         return list;
-
-        Sprite<int> GetSmallAwardIcon()
-        {
-            if (tower.IsOfficialTowerSet)
-            {
-                return SaveData.Instance.Trials.Levels[levelID.X][levelID.Y].GetSmallAwardIcon();
-            }
-
-            return FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.LevelID).GetSmallAwardIcon();
-        }
     }
 
 
@@ -263,25 +242,16 @@ public class MapButton : TowerFall.MapButton
         var tower = GameData.DarkWorldTowers[levelID];
 
         TowerTheme theme = tower.Theme;
-        DarkWorldTowerStats stats;
-        if (tower.TowerSet == "TowerFall")
-        {
-            stats = SaveData.Instance.DarkWorld.Towers[levelID];
-        }
-        else
-        {
-            stats = FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.LevelID);
-        }
-
+        TowerFall.DarkWorldTowerStats stats = SaveData.Instance.DarkWorld.Towers[levelID];
 
         List<Image> list = new List<Image>();
-        Image image = new Image(MapButton.GetBlockTexture(theme.TowerType));
+        Image image = new Image(GetBlockTexture(theme.TowerType));
         image.CenterOrigin();
         list.Add(image);
         Image image2 = new Image(theme.Icon);
         image2.CenterOrigin();
         list.Add(image2);
-        image2.Color = MapButton.GetTint(theme.TowerType);
+        image2.Color = GetTint(theme.TowerType);
 
         var path = stats switch 
         {

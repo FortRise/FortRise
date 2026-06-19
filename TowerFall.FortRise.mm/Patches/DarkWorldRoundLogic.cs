@@ -25,15 +25,7 @@ public class patch_DarkWorldRoundLogic : DarkWorldRoundLogic
     {
         base_OnPlayerDeath(player, corpse, playerIndex, cause, position, killerIndex);
 
-        if ((Session.MatchSettings.LevelSystem as DarkWorldLevelSystem).DarkWorldTowerData.TowerSet != "TowerFall")
-        {
-            var tower = GameData.DarkWorldTowers[Session.MatchSettings.LevelSystem.ID.X];
-            FortRiseModule.SaveData.AdventureWorld.AddOrGet(tower.LevelID).Deaths += 1;
-        }
-        else
-        {
-            SaveData.Instance.DarkWorld.Towers[base.Session.MatchSettings.LevelSystem.ID.X].Deaths += 1UL;
-        }
+        SaveData.Instance.DarkWorld.Towers[Session.MatchSettings.LevelSystem.ID.X].Deaths += 1UL;
         Session.DarkWorldState.OnPlayerDeath(player);
         if (!Control.PlayerEnteredPortal && !Session.CurrentLevel.Ending && CoOpCheckForAllDead())
         {
@@ -51,7 +43,7 @@ public class patch_DarkWorldRoundLogic : DarkWorldRoundLogic
                 FinalKillNoSpotlightOrMusicStop();
             }
             Session.CurrentLevel.Ending = true;
-            Session.CurrentLevel.Add<DarkWorldGameOver>(new DarkWorldGameOver(this));
+            Session.CurrentLevel.Add(new DarkWorldGameOver(this));
         }
     }
 }

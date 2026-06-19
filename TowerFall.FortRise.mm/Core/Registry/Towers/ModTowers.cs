@@ -227,6 +227,7 @@ internal sealed class ModTowers : IModTowers
             TowerRegistry.QuestLevelSets.Add(entry.TowerSet);
         }
 
+        entry.LevelIndex = levelData.ID;
         GameData.QuestLevels[totalQuestCount] = levelData;
         totalQuestCount += 1;
     }
@@ -265,61 +266,12 @@ internal sealed class ModTowers : IModTowers
 
         static List<DarkWorldTowerData.LevelData> CreateLevelData(
             DarkWorldLevelData[] data,
-            Dictionary<string, List<patch_DarkWorldTowerData.EnemyData>> enemySets)
+            Dictionary<string, List<DarkWorldTowerData.EnemyData>> enemySets)
         {
             var newData = new List<patch_DarkWorldTowerData.patch_LevelData>();
             foreach (var level in data)
             {
-                var pickupList = new List<Pickups>[4];
-                for (int i = 0; i < 4; i++)
-                {
-                    pickupList[i] = new List<Pickups>();
-                }
-
-                if (level.Treasures != null)
-                {
-                    foreach (var treasure in level.Treasures)
-                    {
-                        var minPlayer = 1;
-                        var maxPlayer = 4;
-
-                        if (treasure.MinPlayer.TryGetValue(out var min))
-                        {
-                            minPlayer = min;
-                        }
-
-                        if (treasure.MaxPlayer.TryGetValue(out var max))
-                        {
-                            maxPlayer = max;
-                        }
-
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (i >= minPlayer - 1 && i <= maxPlayer - 1)
-                            {
-                                pickupList[i].Add(treasure.Pickups);
-                            }
-                        }
-                    }
-                }
-
-                var levelMode = DarkWorldTowerData.LevelData.BossModes.Normal;
-                if (level.BossID.TryGetValue(out int val))
-                {
-                    levelMode = DarkWorldTowerData.LevelData.BossModes.Boss;
-                }
-                newData.Add(new()
-                {
-                    File = level.LevelIndex,
-                    BossID = val,
-                    EnemySet = level.EnemySet is not null ? enemySets[level.EnemySet] : [],
-                    DelayMultiplier = level.DelayMultiplier,
-                    Difficulty = level.Difficulty,
-                    Waves = level.Waves,
-                    TreasureData = pickupList,
-                    LevelMode = levelMode,
-                    Variants = level.Variants
-                });
+                newData.Add(new(level, enemySets));
             }
 
             newData[^1].FinalLevel = true;
@@ -392,6 +344,8 @@ internal sealed class ModTowers : IModTowers
         tier3.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier3.GoldTime);
         tier3.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DiamondTime);
         tier3.Goals[2] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DevTime);
+
+        entry.LevelIndex = new Point(totalTrialsCount, 0);
 
         GameData.TrialsLevels[totalTrialsCount, 0] = tier1;
         GameData.TrialsLevels[totalTrialsCount, 1] = tier2;

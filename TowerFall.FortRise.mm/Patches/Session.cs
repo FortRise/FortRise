@@ -135,19 +135,17 @@ namespace TowerFall
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
-                if (this.IsOfficialTowerSet)
-                {
-                    SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
-                }
-                else 
+                if (!this.IsOfficialTowerSet)
                 {
                     patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)GameData.DarkWorldTowers[MatchSettings.LevelSystem.ID.X];
-                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.LevelID).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
                     }
                 }
+
+
+                SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
 			Engine.Instance.Scene = new LevelLoaderXML(this);
@@ -177,19 +175,16 @@ namespace TowerFall
 			if (MatchSettings.Mode == patch_Modes.DarkWorld)
 			{
 				DarkWorldState = new patch_DarkWorldSessionState(this);
-                if (this.IsOfficialTowerSet)
-                {
-                    SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
-                }
-                else 
+                if (!this.IsOfficialTowerSet)
                 {
                     patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)GameData.DarkWorldTowers[MatchSettings.LevelSystem.ID.X];
-                    FortRiseModule.SaveData.AdventureWorld.AddOrGet(adventureTower.LevelID).Attempts += 1;
                     if (adventureTower.StartingLives >= 0)
                     {
                         DarkWorldState.ExtraLives = adventureTower.StartingLives;
                     }
                 }
+
+                SaveData.Instance.DarkWorld.Towers[MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
 			Engine.Instance.Scene = new LevelLoaderXML(this);

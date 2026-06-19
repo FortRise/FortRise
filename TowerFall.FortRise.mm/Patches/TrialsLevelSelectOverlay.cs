@@ -54,60 +54,6 @@ namespace TowerFall
         {
             base.Update();
         }
-
-        private void RefreshLevelStats()
-        {
-            var tower = GameData.TrialsLevels[statsID.X, statsID.Y];
-            long bestTime;
-            bool unlockedDevTime;
-            bool unlockedDiamond;
-            bool unlockedGold;
-            ulong attempts;
-            if (tower.TowerSet == "TowerFall")
-            {
-                var trialsLevelStats = SaveData.Instance.Trials.Levels[statsID.X][statsID.Y];
-                bestTime = trialsLevelStats.BestTime;
-                unlockedDevTime = trialsLevelStats.UnlockedDevTime;
-                unlockedDiamond = trialsLevelStats.UnlockedDiamond;
-                unlockedGold = trialsLevelStats.UnlockedGold;
-                attempts = trialsLevelStats.Attempts;
-            }
-            else
-            {
-                var trialsLevelStats = FortRiseModule.SaveData.AdventureTrials.AddOrGet(tower.LevelID);
-                bestTime = trialsLevelStats.BestTime;
-                unlockedDevTime = trialsLevelStats.UnlockedDevTime;
-                unlockedDiamond = trialsLevelStats.UnlockedDiamond;
-                unlockedGold = trialsLevelStats.UnlockedGold;
-                attempts = trialsLevelStats.Attempts;
-            }
-            if (bestTime == 0L)
-            {
-                levelBestTimeString = "";
-            }
-            else
-            {
-                levelBestTimeString = TrialsResults.GetTimeString(bestTime);
-                if (unlockedDevTime)
-                {
-                    levelMedalIcon = devIcon;
-                }
-                else if (unlockedDiamond)
-                {
-                    levelMedalIcon = diamondIcon;
-                }
-                else if (unlockedGold)
-                {
-                    levelMedalIcon = goldIcon;
-                }
-            }
-            if (attempts == 0UL)
-            {
-                levelAttemptsString = "";
-                return;
-            }
-            levelAttemptsString = attempts.ToString();
-        }
     }
 }
 

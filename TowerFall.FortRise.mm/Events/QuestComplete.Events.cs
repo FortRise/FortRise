@@ -14,18 +14,7 @@ public static partial class RiseCore
             var towerSet = quest.Session.TowerSet;
             var levelID = quest.Session.MatchSettings.LevelSystem.ID.X;
             var hardcoreMode = quest.Session.MatchSettings.QuestHardcoreMode;
-            if (towerSet != "TowerFall")
-            {
-                var customTower = GameData.QuestLevels[levelID];
-                var stats = FortRise.FortRiseModule.SaveData.AdventureQuest.AddOrGet(customTower.LevelID);
-                if (hardcoreMode)
-                    stats.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);
-                else
-                    stats.BeatNormal();
-
-                OnQuestComplete_Result?.Invoke(quest, playerAmount, time, noDeaths);
-                return;
-            }
+            
             var tower = SaveData.Instance.Quest.Towers[levelID];
             if (hardcoreMode)
                 tower.BeatHardcore(TFGame.PlayerAmount, time, noDeaths);

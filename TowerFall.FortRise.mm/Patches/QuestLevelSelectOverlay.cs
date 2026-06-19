@@ -52,17 +52,7 @@ namespace TowerFall
         [MonoModReplace]
         private void RefreshLevelStats()
         {
-            var tower = GameData.QuestLevels[statsID];
-            QuestTowerStats questTowerStats;
-            if (tower.TowerSet == "TowerFall")
-            {
-                questTowerStats = SaveData.Instance.Quest.Towers[statsID];
-            }
-            else
-            {
-                questTowerStats = FortRiseModule.SaveData.AdventureQuest.AddOrGet(tower.LevelID);
-            }
-
+            QuestTowerStats questTowerStats = SaveData.Instance.Quest.Towers[statsID];
 
             if (questTowerStats.TotalDeaths == 0UL)
             {

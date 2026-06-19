@@ -19,6 +19,8 @@ internal sealed class ModEventsManager
     public SafeModEventHandler<DataLoadEventArgs> OnAfterDataLoad;
     public SafeModEventHandler<SessionQuitEventArgs> OnSessionQuit;
     public SafeModEventHandler<LevelSetsCreatedEventArgs> OnLevelSetsCreated;
+    public SafeModEventHandler<BeforeSaveSaveDataEventArgs> OnBeforeSaveSaveData;
+    public SafeModEventHandler<AfterSaveSaveDataEventArgs> OnAfterSaveSaveData;
 
     public ModEventsManager()
     {
@@ -35,6 +37,8 @@ internal sealed class ModEventsManager
         OnAfterDataLoad = new();
         OnSessionQuit = new();
         OnLevelSetsCreated = new();
+        OnBeforeSaveSaveData = new();
+        OnAfterSaveSaveData = new();
     }
 
     public void RemoveByMod(Mod mod)
@@ -51,6 +55,8 @@ internal sealed class ModEventsManager
         OnAfterDataLoad.RemoveAllWithMetadata(mod.Meta);
         OnSessionQuit.RemoveAllWithMetadata(mod.Meta);
         OnLevelSetsCreated.RemoveAllWithMetadata(mod.Meta);
+        OnBeforeSaveSaveData.RemoveAllWithMetadata(mod.Meta);
+        OnAfterSaveSaveData.RemoveAllWithMetadata(mod.Meta);
     }
 
     public void Dispose() 
@@ -67,6 +73,8 @@ internal sealed class ModEventsManager
         OnAfterDataLoad.RemoveAll();
         OnSessionQuit.RemoveAll();
         OnLevelSetsCreated.RemoveAll();
+        OnBeforeSaveSaveData.RemoveAll();
+        OnAfterSaveSaveData.RemoveAll();
     }
 }
 
@@ -80,3 +88,6 @@ public record LevelSetsCreatedEventArgs(
     MainMenu.RollcallModes RollcallModes, 
     List<string> LevelSets
 );
+
+public record BeforeSaveSaveDataEventArgs();
+public record AfterSaveSaveDataEventArgs(string Result);

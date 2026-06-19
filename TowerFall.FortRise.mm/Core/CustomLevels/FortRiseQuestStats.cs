@@ -7,15 +7,17 @@ namespace FortRise;
 public sealed partial class FortRiseQuestStats 
 {
     [JsonInclude]
-    public Dictionary<string, FortRiseQuestTowerStats> Towers = new Dictionary<string, FortRiseQuestTowerStats>();
+    public Dictionary<string, TowerFall.Patching.QuestTowerStats> Towers = new Dictionary<string, TowerFall.Patching.QuestTowerStats>();
 
-    public FortRiseQuestTowerStats AddOrGet(string name) 
+    public TowerFall.Patching.QuestTowerStats AddOrGet(string name) 
     {
         ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
         if (!exists) 
         {
-            stats = new FortRiseQuestTowerStats();
+            stats = new TowerFall.Patching.QuestTowerStats();
         }
+
+        stats.LevelID ??= name;
         return stats;
     }
 }

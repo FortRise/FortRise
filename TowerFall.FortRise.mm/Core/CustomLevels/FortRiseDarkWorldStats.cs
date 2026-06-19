@@ -7,15 +7,18 @@ namespace FortRise;
 public sealed partial class FortRiseDarkWorldStats 
 {
     [JsonInclude]
-    public Dictionary<string, FortRiseDarkWorldTowerStats> Towers = new Dictionary<string, FortRiseDarkWorldTowerStats>();
+    public Dictionary<string, TowerFall.Patching.DarkWorldTowerStats> Towers = new Dictionary<string, TowerFall.Patching.DarkWorldTowerStats>();
 
-    public FortRiseDarkWorldTowerStats AddOrGet(string name) 
+    public TowerFall.DarkWorldTowerStats AddOrGet(string name) 
     {
         ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(Towers, name, out bool exists);
         if (!exists) 
         {
-            stats = new FortRiseDarkWorldTowerStats();
+            stats = new TowerFall.Patching.DarkWorldTowerStats();
         }
+
+        stats.LevelID ??= name;
+
         return stats;
     }
 }
