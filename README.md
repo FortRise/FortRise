@@ -12,7 +12,7 @@ The main purposes of FortRise:
 3. Contains most of a the features of TowerFall that you can load directly with a mod such as Levels, Archers, Arrows, etc.. This makes it easy to add new features to the game. 
 4. It has its own filesystem API for mods to interact with their own files. Mods should not write or read anything outside of its context, but this cannot be enforced directly.
 5. File logging across all mods and game logs to help figure out any specific issues to the mods installed.
-6. All mods have a separate save file to save its data instead of using the original saves.
+6. All mods have a separate save file to save its data instead of using the original saves. (However, FortRise does still stores the custom quest, dark world, and trial stats into the main save)
 7. Stable and powerful patching utility with [Harmony](https://harmony.pardeike.net/).
 > While FortRise tried to not touch the main game files, it still does modify your save file. Currently, no mods are touching the vanilla save
 > file yet.
