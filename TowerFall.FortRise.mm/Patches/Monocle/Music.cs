@@ -211,9 +211,16 @@ public static class patch_Music
 
     public static void PlayMusic(IMusicSystem system, string name, bool looping) 
     {
-        system.Play(name, looping);
         music2Slot = music1Slot;
         music1Slot = system;
+
+        system.Play(name, looping);
+
+        if (music2Slot == music1Slot && fromCue)
+        {
+            return;
+        }
+
 
         if (music2Slot is not null && !music2Slot.IsStopped)
         {
@@ -234,8 +241,8 @@ public static class patch_Music
 
         if (music2Slot is not null && !music2Slot.IsStopped)
         {
-            music1Slot.Timer = 1f;
-            music1Slot.StateEffect = StateEffect.FadeOut;
+            music2Slot.Timer = 1f;
+            music2Slot.StateEffect = StateEffect.FadeOut;
         }
 
         music1Slot.Timer = 0.1f;
