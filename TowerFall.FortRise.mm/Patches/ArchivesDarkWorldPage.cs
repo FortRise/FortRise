@@ -5,9 +5,9 @@ using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod;
-using TowerFall.Editor;
 
 namespace TowerFall.Patching;
+
 
 [MonoModPatch("TowerFall.ArchivesDarkWorldPage")]
 public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
@@ -15,6 +15,10 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
     private List<GraphicsComponent> graphics;
     private List<string> towerSets;
     private int currentIndex;
+    private OutlineText titleSet;
+    private Image upArrow;
+    private Image downArrow;
+    private SineWave arrowSine;
 
     [MonoModLinkTo("TowerFall.ArchivesPage", "System.Void .ctor(System.String)")]
     [MonoModIgnore]
@@ -29,6 +33,25 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
         towerSets = ["All", "TowerFall"];
         towerSets.AddRange(TowerRegistry.DarkWorldLevelSets);
 
+        titleSet = new OutlineText(TFGame.Font, "ALL", new Vector2(0, -10), Text.HorizontalAlign.Center, Text.VerticalAlign.Center);
+        Add(titleSet);
+
+        upArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
+        upArrow.CenterOrigin();
+        Add(upArrow);
+
+        downArrow = new Image(TFGame.MenuAtlas["portraits/arrow"]);
+        downArrow.CenterOrigin();
+        Add(downArrow);
+
+        var textWidth = TFGame.Font.MeasureString("ALL").X;
+
+        upArrow.Position = new Vector2(textWidth + 10, -10);
+        upArrow.Rotation = 90 * Calc.DEG_TO_RAD;
+        downArrow.Position = new Vector2(-textWidth - 10, -10);
+        downArrow.Rotation = 270 * Calc.DEG_TO_RAD;
+
+        Add(arrowSine = new SineWave(120));
 
         base_ctor("DARK WORLD");
 
@@ -38,6 +61,11 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
     public override void Update()
     {
         base.Update();
+        if (!IsOnscreen)
+        {
+            return;
+        }
+
         if (MenuInput.Down)
         {
             currentIndex += 1;
@@ -70,12 +98,25 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
         }
     }
 
+    public override void Render()
+    {
+        base.Render();
+
+        upArrow.Position.Y = -10 + arrowSine.Value * 2f;
+        downArrow.Position.Y = -10 - arrowSine.Value * 2f;
+
+        upArrow.Color = currentIndex == towerSets.Count - 1 ? Color.Transparent : Color.White;
+        downArrow.Color = currentIndex == 0 ? Color.Transparent : Color.White;
+    }
+
     private void Create(string set = null)
     {
         int darkWorldCount;
         TowerFall.Patching.DarkWorldTowerStats[] stats;
 
-        if (set is null || set == "All")
+        set ??= "All";
+
+        if (set == "All")
         {
             darkWorldCount = SaveData.Instance.DarkWorld.Towers.Length;
             stats = SaveData.Instance.DarkWorld.Towers as TowerFall.Patching.DarkWorldTowerStats[];
@@ -90,6 +131,18 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
             darkWorldCount = GameData.DarkWorldTowers.Count(x => x.TowerSet == set);
             stats = [.. TowerRegistry.DarkWorldTowers.Where(x => x.Value.TowerSet == set).Select(x => FortRiseModule.SaveData.AdventureWorld.Towers[x.Key])];
         }
+
+        int index = set.LastIndexOf('/');
+        if (index != -1)
+        {
+            set = set[(index + 1)..];
+        }
+
+        var textWidth = TFGame.Font.MeasureString(set).X;
+
+        titleSet.DrawText = set.ToUpperInvariant();
+        upArrow.Position = new Vector2(textWidth + 10, -10);
+        downArrow.Position = new Vector2(-textWidth - 10, -10);
 
         if (darkWorldCount <= 5)
         {
@@ -241,15 +294,17 @@ public class ArchivesDarkWorldPage : TowerFall.ArchivesDarkWorldPage
             goldEyeText.Position = new Vector2(posX / 2f - goldEyeText.Width / 2f * goldEyeText.Scale.X, 100f);
         }
 
+        ulong totalAttempts = (ulong)stats.Sum(x => (decimal)x.Attempts);
+        ulong totalDeaths = (ulong)stats.Sum(x => (decimal)x.Deaths);
 
         graphics.Add(new OutlineText(TFGame.Font, "TOTAL ATTEMPTS:", new Vector2(-60f, 130f), SubtitleColor, Text.HorizontalAlign.Center, Text.VerticalAlign.Center));
-        graphics.Add(new OutlineText(TFGame.Font, SaveData.Instance.DarkWorld.TotalAttempts.ToString(), new Vector2(-60f, 142f), Text.HorizontalAlign.Center, Text.VerticalAlign.Center)
+        graphics.Add(new OutlineText(TFGame.Font, $"{totalAttempts}", new Vector2(-60f, 142f), Text.HorizontalAlign.Center, Text.VerticalAlign.Center)
         {
             Scale = Vector2.One * 2f
         });
 
         graphics.Add(new OutlineText(TFGame.Font, "TOTAL DEATHS:", new Vector2(60f, 130f), SubtitleColor, Text.HorizontalAlign.Center, Text.VerticalAlign.Center));
-        graphics.Add(new OutlineText(TFGame.Font, SaveData.Instance.DarkWorld.TotalDeaths.ToString(), new Vector2(60f, 142f), Text.HorizontalAlign.Center, Text.VerticalAlign.Center)
+        graphics.Add(new OutlineText(TFGame.Font, $"{totalDeaths}", new Vector2(60f, 142f), Text.HorizontalAlign.Center, Text.VerticalAlign.Center)
         {
             Scale = Vector2.One * 2f
         });
