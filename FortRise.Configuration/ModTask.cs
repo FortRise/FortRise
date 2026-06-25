@@ -150,6 +150,7 @@ public sealed class ModTask : Task
 
     private void DeployMod(List<ReadEntry> files, string destination)
     {
+        bool rewriteMeta = false;
         foreach (var file in files)
         {
             if (file.Directory)
@@ -163,17 +164,23 @@ public sealed class ModTask : Task
 
             if (!TryMetadataRewrite(file, out string? meta))
             {
-                throw new Exception("Cannot proceed as 'meta.json' not found!");
+                throw new Exception("Cannot automatically deploy the mod!");
             }
 
             if (meta != null)
             {
                 File.WriteAllText(to, meta);
+                rewriteMeta = true;
             }
             else
             {
                 File.Copy(from.Absolute, to, true);
             }
+        }
+
+        if (!rewriteMeta)
+        {
+            throw new Exception("Cannot rewrite 'meta.json' as it was not found!");
         }
     }
 
