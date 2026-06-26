@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using FortRise.Entities;
 using Microsoft.Extensions.Logging;
@@ -35,13 +34,13 @@ public sealed class FortRiseModule : Mod
 
         Context.Registry.Enemies.RegisterEnemy("BlueSlimeS", new()
         {
-            Name = "Slime Shield",
+            Name = "Blue Slime Shield",
             Loader = ShieldSlime.BlueSlimeS
         });
 
         Context.Registry.Enemies.RegisterEnemy("RedSlimeS", new()
         {
-            Name = "Slime Shield",
+            Name = "Red Slime Shield",
             Loader = ShieldSlime.RedSlimeS
         });
 
