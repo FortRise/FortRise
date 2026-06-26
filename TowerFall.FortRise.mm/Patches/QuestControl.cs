@@ -41,23 +41,17 @@ namespace TowerFall
         {
             base_Added();
             LoadSpawns();
-            XmlDocument xmlDocument;
-            if (Level.Session.IsOfficialTowerSet) 
-            {
-                xmlDocument = Calc.LoadXML((base.Level.Session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.DataPath);
-            }
-            else 
-            {
-                var path = (base.Level.Session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.DataPath;
-                using var xmlStream = RiseCore.ResourceTree.TreeMap[path].Stream;
-                xmlDocument = patch_Calc.LoadXML(xmlStream);
-            }
+
+            XmlDocument xmlDocument = patch_Calc.LoadXML((Level.Session.MatchSettings.LevelSystem as QuestLevelSystem).QuestTowerData.DataPath);
+
             Gauntlet = xmlDocument["data"].AttrBool("gauntlet", false);
+
             if (Gauntlet)
             {
                 LoadGauntlet(xmlDocument);
                 return;
             }
+
             LoadWaves(xmlDocument);
         }
 
@@ -65,12 +59,12 @@ namespace TowerFall
         private void LoadWaves(XmlDocument doc) 
         {
             QuestRoundLogic questRoundLogic = Level.Session.RoundLogic as QuestRoundLogic;
-            waves = new List<IEnumerator>();
+            waves = [];
             int waveNum = 0;
             string difficultyName = Level.Session.MatchSettings.QuestHardcoreMode ? "hardcore" : "normal";
 
             XmlNodeList waveList = doc["data"][difficultyName].GetElementsByTagName("wave");
-            int finalWave = (questRoundLogic.TotalWaves = waveList.Count);
+            int finalWave = questRoundLogic.TotalWaves = waveList.Count;
 
             foreach (XmlElement wave in waveList)
             {
