@@ -22,6 +22,7 @@
 {
     "name": "$(MSBuildProjectName)",
     "version": "$(FortRiseVersion)",
+    "priority": "Highest",
     "dependencies": [
         {
             "name": "FortRise",

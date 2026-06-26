@@ -16,6 +16,24 @@ using Nanoray.Pintail;
 
 namespace FortRise;
 
+internal class ModOrder : IComparer<ModuleMetadata>
+{
+    public int Compare(ModuleMetadata x, ModuleMetadata y)
+    {
+        if (x.Priority > y.Priority)
+        {
+            return -1;
+        }
+
+        if (x.Priority < y.Priority)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+}
+
 // want to make it as a record class, but somehow we need to store a reference to it, so I can't
 internal class ModDelayed(int requiredCount, ModuleMetadata metadata) 
 {
@@ -104,6 +122,7 @@ internal class ModuleManager
 
     internal void LoadModsFromDirectory(string modPath)
     {
+        var mods = new List<ModuleMetadata>();
         var delayedMods = new List<ModDelayed>();
         var modDirectory = modPath;
         var directory = Directory.GetDirectories(modDirectory);
@@ -117,7 +136,7 @@ internal class ModuleManager
                 logger.LogDebug("Ignored '{dir}' as it is blacklisted.", dir);
                 continue;
             }
-            LoadDir(dir, delayedMods);
+            mods.Add(LoadDir(dir));
         }
 
         var files = Directory.GetFiles(modDirectory);
@@ -131,17 +150,31 @@ internal class ModuleManager
                 logger.LogDebug("Ignored '{file}' as it is blacklisted.", file);
                 continue;
             }
-            LoadZip(file, delayedMods);
+            mods.Add(LoadZip(file));
         }
+
+        mods.Sort(new ModOrder());
+
+        foreach (var mod in mods)
+        {
+            if (!LoadMod(mod, out int requiredDependencies).Check(out _, out LoadError err))
+            {
+                if (err == LoadError.Delayed)
+                {
+                    delayedMods.Add(new ModDelayed(requiredDependencies, mod));
+                }
+            }
+        }
+
         LoadDelayedMods(delayedMods);
     }
 
-    private void LoadDir(string dir, List<ModDelayed> delayedMods)
+    private ModuleMetadata LoadDir(string dir)
     {
         var metaPath = Path.Combine(dir, "meta.json");
         if (!File.Exists(metaPath))
         {
-            return;
+            return null;
         }
 
         var result = ModuleMetadata.ParseMetadata(dir, metaPath);
@@ -149,19 +182,13 @@ internal class ModuleManager
         {
             ErrorPanel.StoreError(error);
             Logger.Error(error);
-            return;
+            return null;
         }
 
-        if (!LoadMod(moduleMetadata, out int requiredDependencies).Check(out _, out LoadError err))
-        {
-            if (err == LoadError.Delayed)
-            {
-                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
-            }
-        }
+        return moduleMetadata;
     }
 
-    private void LoadZip(string file, List<ModDelayed> delayedMods)
+    private ModuleMetadata LoadZip(string file)
     {
         using var zipFile = ZipFile.OpenRead(file);
 
@@ -169,7 +196,7 @@ internal class ModuleManager
         var metaZip = zipFile.GetEntry(metaFile);
         if (metaZip == null)
         {
-            return;
+            return null;
         }
 
         using var memStream = metaZip.ExtractStream();
@@ -179,16 +206,10 @@ internal class ModuleManager
         {
             ErrorPanel.StoreError(error);
             Logger.Error(error);
-            return;
+            return null;
         }
 
-        if (!LoadMod(moduleMetadata, out int requiredDependencies).Check(out _, out LoadError err))
-        {
-            if (err == LoadError.Delayed)
-            {
-                delayedMods.Add(new ModDelayed(requiredDependencies, moduleMetadata));
-            }
-        }
+        return moduleMetadata;
     }
 
     public bool CheckDependencyMetadata(ModuleMetadata metadata, bool storeError)

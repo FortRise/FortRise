@@ -21,6 +21,14 @@ public class ModuleUpdater
     }
 }
 
+public enum ModulePriority
+{
+    Lowest,
+    Low,
+    Normal,
+    High,
+    Highest
+}
 
 public partial class ModuleMetadata : IEquatable<ModuleMetadata>
 {
@@ -31,6 +39,8 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public string Author { get; set; } = string.Empty;
     public string DLL { get; set; } = string.Empty;
     public string[]? Tags { get; set; } = null;
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ModulePriority Priority { get; set; } = ModulePriority.Normal;
     public ModuleMetadata[]? Dependencies { get; set; } = null;
     public ModuleMetadata[]? OptionalDependencies { get; set; } = null;
     public ModuleUpdater? Update { get; set; } = null;
