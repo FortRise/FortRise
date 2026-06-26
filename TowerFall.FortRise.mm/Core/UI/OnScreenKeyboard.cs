@@ -12,7 +12,7 @@ public class OnScreenKeyboard : Entity
         ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
         ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', (char)10],
         ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
-        [(char)32, (char)22]
+        [(char)22, (char)32]
     ];
 
     private int playerIndex;
