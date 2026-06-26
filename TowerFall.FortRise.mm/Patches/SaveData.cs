@@ -59,6 +59,14 @@ public class patch_SaveData : SaveData
     {
         orig_Verify();
         Gamepad = Gamepad.VerifyLength(4);
+        for (int i = 0; i < Gamepad.Length; i += 1)
+        {
+            if (Gamepad[i] is null)
+            {
+                Gamepad[i] = GamepadConfig.GetDefault();
+            }
+        }
+        
 
         Verified = true;
         foreach (var module in RiseCore.ModuleManager.InternalFortModules) 
