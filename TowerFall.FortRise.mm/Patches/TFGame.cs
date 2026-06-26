@@ -586,9 +586,26 @@ namespace TowerFall
             return Directory.GetCurrentDirectory();
         }
 
-        [PatchSDL2ToSDL3]
-        [MonoModIgnore]
-        private static extern string GetCloudSavePath();
+        [MonoModIfFlag("OS:NotWindows")]
+        [MonoModReplace]
+        private static string GetCloudSavePath()
+        {
+            string platform = SDL.SDL_GetPlatform();
+            string saveDirectory;
+            if (platform.Equals("macOS"))
+            {
+                saveDirectory = Path.Combine(Directory.GetCurrentDirectory(), "../../..");
+            }
+            else
+            {
+                if (!platform.Equals("Linux") && !platform.Equals("Windows"))
+                {
+                    throw new Exception("SDL3 platform not handled!");
+                }
+                saveDirectory = Directory.GetCurrentDirectory();
+            }
+            return saveDirectory;
+        }
 
         // [PatchTFGameOnSceneTransition]
         [MonoModIgnore]
