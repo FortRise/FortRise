@@ -12,7 +12,7 @@ public class OnScreenKeyboard : Entity
         ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
         ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', (char)10],
         ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
-        [(char)32]
+        [(char)32, (char)22]
     ];
 
     private int playerIndex;
@@ -39,7 +39,7 @@ public class OnScreenKeyboard : Entity
         {
             if (playerIndex == -1)
             {
-                return MenuInput.Left;
+                return MenuInput.Right;
             }
 
             var input = TFGame.PlayerInputs[playerIndex];
@@ -53,7 +53,7 @@ public class OnScreenKeyboard : Entity
         {
             if (playerIndex == -1)
             {
-                return MenuInput.Left;
+                return MenuInput.Up;
             }
 
             var input = TFGame.PlayerInputs[playerIndex];
@@ -67,7 +67,7 @@ public class OnScreenKeyboard : Entity
         {
             if (playerIndex == -1)
             {
-                return MenuInput.Left;
+                return MenuInput.Down;
             }
 
             var input = TFGame.PlayerInputs[playerIndex];
@@ -151,6 +151,10 @@ public class OnScreenKeyboard : Entity
                 else if (character == (char)32)
                 {
                     Draw.Text(TFGame.Font, "_________", new Vector2(position.X + offset + (8 * 6), position.Y), color);
+                }
+                else if (character == (char)22)
+                {
+                    Draw.Text(TFGame.Font, "PASTE", new Vector2(position.X + offset + 2, position.Y), color);
                 }
                 else
                 {
