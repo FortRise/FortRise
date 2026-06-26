@@ -15,7 +15,10 @@ public interface ISettingsCreate
     void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect);
     void CreateButton(string name, Action onPressed);
     void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
+    [Obsolete("Use 'CreateInput' without the TextContainer.InputText")]
     void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
+    void CreateInput(string name, string initialValue, Action<string> onInput, InputBehavior inputBehavior = InputBehavior.None);
+    void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None);
     void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput);
 
     void Refresh();
@@ -42,6 +45,16 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
 
     public void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None)
     {
+        CreateInput(name, initialValue, onInput, -1, (InputBehavior)inputBehavior);
+    }
+
+    public void CreateInput(string name, string initialValue, Action<string> onInput, InputBehavior inputBehavior = InputBehavior.None)
+    {
+        CreateInput(name, initialValue, onInput, -1, inputBehavior);
+    }
+    
+    public void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None)
+    {
         string title = name.ToUpperInvariant();
         var optionButtons = new OptionsButton(title);
 
@@ -52,7 +65,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         
         optionButtons.SetCallbacks(() =>
         {
-            if (inputBehavior == TextContainer.InputText.InputBehavior.Sensitive)
+            if (inputBehavior == InputBehavior.Sensitive)
             {
                 optionButtons.State = "***";
             }
@@ -72,7 +85,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
                 dynSelf.Set("value", x);
                 optionButtons.Selected = true;
                 optionButtons.State = x.ToUpperInvariant();
-            }, new Vector2(0, 240 * 0.5f), val);
+            }, new Vector2(0, 240 * 0.5f), playerIndex, val);
             uiInput.LayerIndex = 0;
 
             Menu.Add(uiInput);
@@ -248,6 +261,7 @@ public abstract class ModuleSettings
     public virtual void OnVerify() {}
 }
 
+public enum InputBehavior { None, Sensitive }
 /// <summary>
 /// An attribute marker to change the visual name of a field inside of an option.
 /// NOTE: This does not rename the field name when save.

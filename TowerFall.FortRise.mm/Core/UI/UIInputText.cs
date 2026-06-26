@@ -13,6 +13,8 @@ public class UIInputText : MenuItem
     private string value;
     private string renderValue;
     private Action<string> finished;
+    private int playerIndex = -1;
+    private OnScreenKeyboard keyboard;
 
     public UIInputText(MenuItem backItem, Action<string> finished, Vector2 position, string initialValue = null) : base(position)
     {
@@ -22,12 +24,50 @@ public class UIInputText : MenuItem
         renderValue = initialValue?.ToUpperInvariant() ?? "";
     }
 
+    public UIInputText(MenuItem backItem, Action<string> finished, Vector2 position, int playerIndex, string initialValue = null) : base(position)
+    {
+        this.backItem = backItem;
+        this.finished = finished;
+        value = initialValue;
+        renderValue = initialValue?.ToUpperInvariant() ?? "";
+        this.playerIndex = playerIndex;
+    }
+
     public override void Added()
     {
         base.Added();
         TextInputEXT.TextInput += HandleKey;
         TextInputEXT.StartTextInput();
         MainMenu.CanAct = false;
+        bool hasController = false;
+        if (playerIndex == -1)
+        {
+            foreach (var inp in MenuInput.MenuInputs)
+            {
+                if (inp is XGamepadInput)
+                {
+                    hasController = true;
+                }
+            }
+        }
+        else
+        {
+            var input = TFGame.PlayerInputs[playerIndex];
+            if (input is XGamepadInput)
+            {
+                hasController = true;
+            }
+        }
+
+        if (hasController)
+        {
+            Scene.Add(keyboard = new OnScreenKeyboard(new Vector2(320 * 0.2f, 160), playerIndex, OnScreenConfirmed, LayerIndex));
+        }
+    }
+
+    private void OnScreenConfirmed(char character)
+    {
+        HandleKey(character);
     }
 
     public override void Update()
@@ -62,6 +102,16 @@ public class UIInputText : MenuItem
             return;
         }
 
+        if (obj == 10)
+        {
+            Selected = false;
+            MainMenu.CanAct = true;
+            backItem.Selected = true;
+            RemoveSelf();
+            finished?.Invoke(value);
+            return;
+        }
+
         if (obj == 22)
         {
             var text = SDL.SDL_GetClipboardText();
@@ -87,6 +137,7 @@ public class UIInputText : MenuItem
     public override void Removed()
     {
         base.Removed();
+        keyboard?.RemoveSelf();
         TextInputEXT.TextInput -= HandleKey;
         TextInputEXT.StopTextInput();
     }
