@@ -94,7 +94,7 @@ public class ColorWheel
         }
 
         movement.Normalize();
-        cursorPos += movement * 5000 * dt;
+        cursorPos += movement * 500 * dt;
 
         float dist = cursorPos.Length();
 
