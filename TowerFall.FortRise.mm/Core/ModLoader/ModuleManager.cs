@@ -428,6 +428,7 @@ internal class ModuleManager
             new ModInterop(this, metadata, proxyManager),
             new ModEvents(metadata, EventsManager),
             flags,
+            new ModStorage(metadata),
             environment,
             logger,
             new LimitedHarmony(new Harmony(metadata.Name))

@@ -62,15 +62,10 @@ public abstract class Mod
 
         try 
         {
-            var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, $"{Meta.Name}.saveData.json");
-            string path = Path.GetDirectoryName(savePath)!;
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
+            var savePath = Path.Combine(Context.Storage.StoragePath, $"{Meta.Name}.saveData.json");
 
             var json = JsonSerializer.Serialize((ModuleSaveData)saveDataCache, saveDataCache.GetType());
-            File.WriteAllText(savePath, json);
+            Context.Storage.WriteAllText(savePath, json);
         }
         catch (Exception e)
         {
@@ -85,15 +80,10 @@ public abstract class Mod
             return;
         }
 
-        var savePath = Path.Combine(ModIO.GetRootPath(), "Saves", Meta.Name, Meta.Name + ".settings" + ".json");
-        string path = Path.GetDirectoryName(savePath)!;
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
+        var savePath = Path.Combine(Context.Storage.StoragePath, $"{Meta.Name}.settings.json");
 
         var json = JsonSerializer.Serialize((ModuleSettings)settingsCache, settingsCache.GetType());
-        File.WriteAllText(savePath, json);
+        Context.Storage.WriteAllText(savePath, json);
     }
 
     internal void VerifySaveData()

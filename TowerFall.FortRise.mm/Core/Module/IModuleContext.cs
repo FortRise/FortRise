@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace FortRise;
@@ -9,6 +10,8 @@ public interface IModuleContext
     public IModInterop Interop { get; init; }
     public IModEvents Events { get; init; }
     public IModFlags Flags { get; init; }
+    public IModStorage Storage { get; init; }
+    public IModEnvironment Environment { get; init; }
     public ILogger Logger { get; init; }
     public IHarmony Harmony { get; init; }
 }

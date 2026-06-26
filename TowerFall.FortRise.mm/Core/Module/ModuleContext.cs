@@ -3,24 +3,22 @@ using Microsoft.Extensions.Logging;
 
 namespace FortRise;
 
-internal sealed class ModuleContext : IModuleContext
+internal sealed class ModuleContext(
+    IModRegistry registry, 
+    IModInterop interop, 
+    IModEvents events, 
+    IModFlags flags, 
+    IModStorage storage, 
+    IModEnvironment environment, 
+    ILogger logger, 
+    IHarmony harmony) : IModuleContext
 {
-    public IModRegistry Registry { get; init; }
-    public IModInterop Interop { get; init; }
-    public IModEvents Events { get; init; }
-    public IModFlags Flags { get; init; }
-    public IModEnvironment Environment { get; init; }
-    public ILogger Logger { get; init; }
-    public IHarmony Harmony { get; init; }
-
-    public ModuleContext(IModRegistry registry, IModInterop interop, IModEvents events, IModFlags flags, IModEnvironment environment, ILogger logger, IHarmony harmony)
-    {
-        Registry = registry;
-        Interop = interop;
-        Events = events;
-        Flags = flags;
-        Environment = environment;
-        Logger = logger;
-        Harmony = harmony;
-    }
+    public IModRegistry Registry { get; init; } = registry;
+    public IModInterop Interop { get; init; } = interop;
+    public IModEvents Events { get; init; } = events;
+    public IModFlags Flags { get; init; } = flags;
+    public IModStorage Storage { get; init; } = storage;
+    public IModEnvironment Environment { get; init; } = environment;
+    public ILogger Logger { get; init; } = logger;
+    public IHarmony Harmony { get; init; } = harmony;
 }
