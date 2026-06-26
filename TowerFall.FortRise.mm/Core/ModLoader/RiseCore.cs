@@ -188,6 +188,8 @@ public static partial class RiseCore
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
         ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
 
+        SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_VIDEO_DOUBLE_BUFFER, FortRiseModule.GetSettings<FortRiseModuleSettings>().TripleBufferedVsync ? "0" : "1");
+
         SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_XINPUT_ENABLED, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowXInput ? "1" : "0");
         SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_JOYSTICK_DIRECTINPUT, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowDInput ? "1" : "0");
         SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_JOYSTICK_RAWINPUT, FortRiseModule.GetSettings<FortRiseModuleSettings>().AllowRawInput ? "1" : "0");

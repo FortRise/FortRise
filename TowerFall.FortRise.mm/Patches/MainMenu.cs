@@ -744,6 +744,125 @@ namespace TowerFall
             }
         }
 
+        // WINDOWS
+        [MonoModPatch("<>c__DisplayClass106_0")]
+        private class DisplayClass106_0
+        {
+            [MonoModLinkTo("TowerFall.MainMenu/<>c__DisplayClass35", "<>4__this")]
+            [MonoModIgnore]
+            public MainMenu fourThis;
+            public OptionsButton vsync;
+
+            [MonoModPatch("<CreateOptions>b__23")]
+            [MonoModReplace]
+            public void CreateOption_VerticalSync_State()
+            {
+                if (!SaveData.Instance.Options.VerticalSync)
+                {
+                    vsync.State = "OFF";
+                    return;
+                }
+
+                if (!FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    vsync.State = "2-BUFFERED";
+                    return;
+                }
+
+                vsync.State = "3-BUFFERED";
+            }
+
+            [MonoModPatch("<CreateOptions>b__24")]
+            [MonoModReplace]
+            public bool CreateOption_VerticalSync_Toggle()
+            {
+				fourThis.BackState = MenuState.Options;
+
+                if (SaveData.Instance.Options.VerticalSync && !FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    fourThis.Add(new UIAlert(vsync, [
+                        "TRIPLE BUFFERED VERTICAL SYNC WILL",
+                        "USE HALF OF VRAM USAGE ON YOUR GPU",
+                        "CHECK YOUR SPEC BEFORE RESTARTING"
+                    ]));
+                    FortRiseModule.Settings.TripleBufferedVsync = true;
+                }
+                else if (SaveData.Instance.Options.VerticalSync && FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    fourThis.Add(new VsyncAlert(vsync));
+                    SaveData.Instance.Options.VerticalSync = false;
+                    FortRiseModule.Settings.TripleBufferedVsync = false;
+                }
+                else
+                {
+                    fourThis.Add(new VsyncAlert(vsync));
+                    SaveData.Instance.Options.VerticalSync = true;
+                }
+
+				return SaveData.Instance.Options.VerticalSync;
+            }
+        }
+
+        // OSX/Linux
+        [MonoModPatch("<>c__DisplayClass35")]
+        private class DisplayClass35
+        {
+            [MonoModLinkTo("TowerFall.MainMenu/<>c__DisplayClass35", "<>4__this")]
+            [MonoModIgnore]
+            public MainMenu fourThis;
+            public OptionsButton vsync;
+
+            [MonoModPatch("<CreateOptions>b__23")]
+            [MonoModReplace]
+            public void CreateOption_VerticalSync_State()
+            {
+                if (!SaveData.Instance.Options.VerticalSync)
+                {
+                    vsync.State = "OFF";
+                    return;
+                }
+
+                if (!FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    vsync.State = "2-BUFFERED";
+                    return;
+                }
+
+                vsync.State = "3-BUFFERED";
+            }
+
+            [MonoModPatch("<CreateOptions>b__24")]
+            [MonoModReplace]
+            public bool CreateOption_VerticalSync_Toggle()
+            {
+				fourThis.BackState = MenuState.Options;
+
+                if (SaveData.Instance.Options.VerticalSync && !FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    fourThis.Add(new UIAlert(vsync, [
+                        "TRIPLE BUFFERED VERTICAL SYNC WILL",
+                        "USE HALF OF VRAM USAGE ON YOUR GPU",
+                        "CHECK YOUR SPEC BEFORE RESTARTING"
+                    ]));
+                    FortRiseModule.Settings.TripleBufferedVsync = true;
+                }
+                else if (SaveData.Instance.Options.VerticalSync && FortRiseModule.Settings.TripleBufferedVsync)
+                {
+                    fourThis.Add(new VsyncAlert(vsync));
+                    SaveData.Instance.Options.VerticalSync = false;
+                    FortRiseModule.Settings.TripleBufferedVsync = false;
+                }
+                else
+                {
+                    fourThis.Add(new VsyncAlert(vsync));
+                    SaveData.Instance.Options.VerticalSync = true;
+                }
+
+				return SaveData.Instance.Options.VerticalSync;
+            }
+        }
+
+
         public struct ApplyData(string name, Action applyAction)
         {
             public string Name = name;

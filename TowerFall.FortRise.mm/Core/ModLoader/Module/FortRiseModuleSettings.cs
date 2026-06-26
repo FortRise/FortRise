@@ -23,6 +23,7 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
     public bool AllowDInput { get; set; } = true;
     public bool AllowRawInput { get; set; } = false;
     public bool RawInputCorrelateXInput { get; set; } = true;
+    public bool TripleBufferedVsync { get; set; } = false;
 
 
     public override void Create(ISettingsCreate settings)
