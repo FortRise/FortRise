@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
@@ -12,6 +13,7 @@ public class UIInputText : MenuItem
     private MenuItem backItem;
     private string value;
     private string renderValue;
+    private string oldRenderValue;
     private Action<string> finished;
     private int playerIndex = -1;
     private OnScreenKeyboard keyboard;
@@ -114,7 +116,12 @@ public class UIInputText : MenuItem
 
         if (obj == 22)
         {
+            oldRenderValue = renderValue;
             var text = SDL.SDL_GetClipboardText();
+            if (text is null)
+            {
+                return;
+            }
             value += text;
             renderValue += text.ToUpperInvariant();
             return;
@@ -151,7 +158,15 @@ public class UIInputText : MenuItem
     {
         base.Render();
         Draw.Rect(0, 0, 320, 240, Color.Black * 0.7f);
-        Draw.TextCentered(TFGame.Font, renderValue + "_", new Vector2(320 * 0.5f, 240 * 0.5f), Color.White);
+        try
+        {
+            Draw.TextCentered(TFGame.Font, renderValue + "_", new Vector2(320 * 0.5f, 240 * 0.5f), Color.White);
+        }
+        catch (ArgumentException)
+        {
+            renderValue = oldRenderValue;
+            RiseCore.logger.LogError("An unsupported character tried to be drawn, but failed.");
+        }
     }
 
     public override void TweenIn() {}
