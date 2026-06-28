@@ -136,7 +136,12 @@ internal class ModuleManager
                 logger.LogDebug("Ignored '{dir}' as it is blacklisted.", dir);
                 continue;
             }
-            mods.Add(LoadDir(dir));
+
+            var meta = LoadDir(dir);
+            if (meta is not null)
+            {
+                mods.Add(meta);
+            }
         }
 
         var files = Directory.GetFiles(modDirectory);
@@ -150,7 +155,12 @@ internal class ModuleManager
                 logger.LogDebug("Ignored '{file}' as it is blacklisted.", file);
                 continue;
             }
-            mods.Add(LoadZip(file));
+
+            var meta = LoadZip(file);
+            if (meta is not null)
+            {
+                mods.Add(meta);
+            }
         }
 
         mods.Sort(new ModOrder());
