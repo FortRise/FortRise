@@ -14,6 +14,18 @@ public abstract class PlayerInputAbstract
 
 public class patch_PlayerInput : PlayerInput
 {
+    [MonoModLinkTo("TowerFall.PlayerInput", "Monocle.Subtexture get_ArrowsIcon()")]
+    [MonoModIgnore]
+    public Subtexture get_ArrowsIcon_base() => null;
+
+    [MonoModLinkTo("TowerFall.PlayerInput", "System.Boolean get_MenuArrows()")]
+    [MonoModIgnore]
+    public bool get_MenuArrows_base() => false;
+
+    [MonoModLinkTo("TowerFall.PlayerInput", "System.Boolean get_MenuArrowsCheck()")]
+    [MonoModIgnore]
+    public bool get_MenuArrowsCheck_base() => false;
+
     [MonoModIgnore]    
     public override bool MenuConfirm => throw new System.NotImplementedException();
     [MonoModIgnore]
