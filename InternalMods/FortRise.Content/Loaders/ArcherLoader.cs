@@ -325,8 +325,8 @@ internal static class ArcherLoader
 
             gemInfo = new()
             {
-                Menu = gemMenu!,
-                Gameplay = gemGameplay!
+                Menu = gemMenu ?? original.Gems.Menu,
+                Gameplay = gemGameplay ?? original.Gems.Gameplay
             };
         }
         else
