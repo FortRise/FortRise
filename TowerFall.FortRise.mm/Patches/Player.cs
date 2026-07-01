@@ -37,6 +37,23 @@ namespace TowerFall
             hair.DuckingOffset = hairData.DuckingOffset;
             hair.Offset = hairData.Offset;
             hair.OutlineColor = hairData.OutlineColor;
+            if (hairData.ShowOnHat)
+            {
+                if (HatState == HatStates.Normal)
+                {
+                    Hair.Visible = true;
+                }
+            }
+
+            if (hairData.AddLinks != 0)
+            {
+                hair.Links += hairData.AddLinks;
+            }
+
+            if (hairData.AddLinkDistance != 0)
+            {
+                hair.LinkDistance += hairData.AddLinkDistance;
+            }
 
             hair.ChangeHairTexture(hairData.Texture?.Subtexture, hairData.TextureEnd?.Subtexture);
         }

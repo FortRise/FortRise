@@ -88,22 +88,21 @@ internal static class ArcherLoader
 
     private static ArcherConfiguration CreateArcherConfigurationWithDefaults(string id, XmlElement element, IModRegistry registry, IModContent content, in ArcherConfiguration original)
     {
-        string name0 = element.ChildText("Name0", original.TopName).Trim();
-        string name1 = element.ChildText("Name1", original.BottomName).Trim();
+        string? name0 = (element.ChildText("Name0", original.TopName)?.Trim()) 
+            ?? throw new Exception($"Archer: '{id}' is missing <Name0> element.");
 
-        if (name0 == null)
-        {
-            throw new Exception($"Archer: '{id}' is missing <Name0> element.");
-        }
+        string? name1 = (element.ChildText("Name1", original.BottomName)?.Trim()) 
+            ?? throw new Exception($"Archer: '{id}' is missing <Name1> element.");
 
-        if (name1 == null)
-        {
-            throw new Exception($"Archer: '{id}' is missing <Name1> element.");
-        }
 
         Color colorA = element.ChildHexColor("ColorA", original.ColorA);
         Color colorB = element.ChildHexColor("ColorB", original.ColorB);
+
         Color lightBarColor = element.ChildHexColor("LightbarColor", original.LightbarColor);
+        if (lightBarColor == default)
+        {
+            lightBarColor = colorA;
+        }
 
         ISubtextureEntry aimer;
 
@@ -129,22 +128,14 @@ internal static class ArcherLoader
 
             if (corpse is null)
             {
-                corpse = registry.Sprites.GetSpriteEntry<string>(corpseID);
-
-                if (corpse == null)
-                {
-                    throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
-                }
+                corpse = registry.Sprites.GetSpriteEntry<string>(corpseID) 
+                    ?? throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
             }
         }
         else
         {
-            corpse = original.CorpseSprite;
-
-            if (corpse == null)
-            {
-                throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
-            }
+            corpse = original.CorpseSprite 
+                ?? throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
         }
 
 
@@ -188,6 +179,9 @@ internal static class ArcherLoader
                 TextureEnd = textureEnd,
                 Offset = offset,
                 DuckingOffset = duckingOffset,
+                ShowOnHat = hairElm.ChildBool("ShowOnHat", false),
+                AddLinks = hairElm.ChildInt("AddLinks", 0),
+                AddLinkDistance = hairElm.ChildFloat("AddLinkDistance", 0),
                 Color = hairElm.ChildHexColor("Color", Color.White),
                 OutlineColor = hairElm.ChildHexColor("OutlineColor", Color.Black),
             };
@@ -416,6 +410,16 @@ internal static class ArcherLoader
             victoryMusic = original.VictoryMusic ?? "Team";
         }
 
+        // validation
+        Check(id, spriteInfo.Body, "Body", "Sprites");
+        Check(id, spriteInfo.HeadCrown, "HeadCrown", "Sprites");
+        Check(id, spriteInfo.HeadNoHat, "HeadNoHat", "Sprites");
+        Check(id, spriteInfo.HeadNormal, "HeadNormal", "Sprites");
+        Check(id, spriteInfo.Bow, "Bow", "Sprites");
+
+        Check(id, gemInfo.Menu, "Menu", "Gems");
+        Check(id, gemInfo.Gameplay, "Gameplay", "Gems");
+
         return new()
         {
             TopName = name0,
@@ -498,5 +502,19 @@ internal static class ArcherLoader
         }
 
         return registry.SFXs.RegisterSFX(id + "_" + type + "_SFX", sfxFallback);
+    }
+
+    private static void Check<T>(string archerType, T obj, string field, string? fieldFrom = null)
+    where T : class
+    {
+        if (obj is null)
+        {
+            if (fieldFrom is not null)
+            {
+                throw new Exception($"{archerType}: <{field}> from <{fieldFrom}> are required for Archers.");
+            }
+
+            throw new Exception($"{archerType}: <{field}> are required for Archers.");
+        }
     }
 }

@@ -50,9 +50,40 @@ public class patch_PlayerHair : PlayerHair
 #nullable disable
 
     private int links;
+    private float linkDist;
     private Vector2[] offsets;
     private float scale;
     private Subtexture[] images;
+
+    public int Links
+    {
+        get => links;
+        set
+        {
+            var hair = images[0];
+            var hairEnd = images[links - 1];
+
+            links = value;
+            offsets = new Vector2[links];
+            for (int i = 0; i < links; i += 1)
+            {
+                offsets[i] = new Vector2(0f, 3f * i);
+            }
+
+            images = new Subtexture[links];
+			for (int i = 0; i < links - 1; i++)
+			{
+				images[i] = hair;
+			}
+			images[links - 1] = hairEnd;
+        }
+    }
+
+    public float LinkDistance
+    {
+        get => linkDist;
+        set => linkDist = value;
+    }
 
     public patch_PlayerHair(Entity follow, Vector2 position, float scale) : base(follow, position, scale)
     {
