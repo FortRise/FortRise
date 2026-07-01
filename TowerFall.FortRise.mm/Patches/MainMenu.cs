@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -28,7 +29,7 @@ namespace TowerFall
         public MenuState switchTo;
         public MenuState BackState;
 
-        public string FilterModOptions { get; set; } = string.Empty;
+        public ModuleMetadata FilterMod { get; set; }
 
 
 
@@ -96,7 +97,7 @@ namespace TowerFall
 
         public void CreateOptions()
         {
-            if (string.IsNullOrEmpty(FilterModOptions))
+            if (FilterMod == null)
             {
                 orig_CreateOptions();
                 return;
@@ -310,9 +311,9 @@ namespace TowerFall
         private void InitModOptions(List<OptionsButton> buttons)
         {
             IEnumerable<Mod> fortModules;
-            if (!string.IsNullOrEmpty(FilterModOptions))
+            if (FilterMod != null)
             {
-                fortModules = RiseCore.ModuleManager.InternalFortModules.Where(x => x.Meta.Name == FilterModOptions);
+                fortModules = RiseCore.ModuleManager.InternalFortModules.Where(x => x.Meta.Name == FilterMod.Name);
             }
             else
             {
@@ -343,6 +344,99 @@ namespace TowerFall
                 settings.Create(
                     new OptionsCreate(this, buttons)
                 );
+            }
+
+            var selectedMod = FilterMod;
+
+            if (selectedMod is not null)
+            {
+                List<OptionsButton> buttonLates = [];
+
+                if (RiseCore.UpdateChecks.HasUpdates.Contains(selectedMod))
+                {
+                    var updateButton = new OptionsButton("UPDATE MOD");
+                    updateButton.SetCallbacks(() =>
+                    {
+                        updateButton.Selected = false;
+                        CanAct = false;
+                        UILoader loader = new UILoader();
+                        loader.LayerIndex = 0;
+                        Add(loader);
+
+                        Task.Run(async () => {
+                            var res = await RiseCore.UpdateChecks.DownloadUpdate(selectedMod);
+                            loader.Finish();
+
+                            UIModal modal = new UIModal
+                            {
+                                AutoClose = true
+                            };
+                            modal.LayerIndex = 0;
+                            modal.SetTitle("Update Status");
+
+                            if (!res.Check(out _, out string err))
+                            {
+                                modal.AddFiller(err);
+                                modal.AddItem("Ok", () => Close());
+
+                                Add(modal);
+                                Logger.Error(err);
+                                return;
+                            }
+
+                            modal.AddFiller("Restart Required!");
+                            modal.AddItem("Ok", () => Close());
+                            Add(modal);
+                            RiseCore.UpdateChecks.HasUpdates.Remove(selectedMod);
+                        });
+
+                        void Close()
+                        {
+                            updateButton.Selected = true;
+                            CanAct = true;
+                        }
+                    });
+
+                    buttonLates.Add(updateButton);               
+                }
+
+                if (selectedMod.Update is {} update)
+                {
+                    if (update.GH is {} gh)
+                    {
+                        var repo = gh.Repository;
+
+                        var githubButton = new OptionsButton("VISIT GITHUB");
+                        githubButton.SetCallbacks(() =>
+                        {
+                            RiseCore.UpdateChecks.OpenGithubURL(repo);
+                        });
+
+                        buttonLates.Add(githubButton);
+                    }
+
+                    if (update.GB is {} gb)
+                    {
+                        var id = gb.ID;
+                        if (id is {} o)
+                        {
+                            var gameBanana = new OptionsButton("VISIT GAMEBANANA");
+                            gameBanana.SetCallbacks(() =>
+                            {
+                                RiseCore.UpdateChecks.OpenGamebananaURL(o);
+                            });
+
+                            buttonLates.Add(gameBanana);
+                        }
+                    }
+                }
+
+                if (buttonLates.Count > 0)
+                {
+                    OptionsButtonHeader buttonHeader = new OptionsButtonHeader("EXTRAS");
+                    buttons.Add(buttonHeader);
+                    buttons.AddRange(buttonLates);
+                }
             }
         }
 
@@ -393,15 +487,20 @@ namespace TowerFall
                                 break;
                             }
                             button = buttons[i + i2];
-                            extraSpacing += 6;
+                            extraSpacing += 3;
                         }
 
                         optionsButton.DownItem = button;
                     }
                 }
 
-                num += 9 + extraSpacing;
+                if (i <= buttons.Count - 8)
+                {
+                    num += 5 + extraSpacing;
+
+                }
             }
+
             Add(buttons);
             MaxUICameraY = num;
         }

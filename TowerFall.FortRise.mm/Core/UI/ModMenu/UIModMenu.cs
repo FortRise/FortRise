@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -14,7 +12,7 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
     public override void Create()
     {
-        ((patch_MainMenu)Main).FilterModOptions = null;
+        ((patch_MainMenu)Main).FilterMod = null;
 
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
@@ -129,110 +127,31 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
             panel.OnConfirmed = (item) =>
             {
-                Main.CanAct = false;
                 var fortModule = RiseCore.ModuleManager.InternalFortModules
                     .Where(x => x.Meta is not null)
                     .FirstOrDefault(x => x.Meta.ToString() == item.Metadata.ToString());
 
-
-                panel.Selected = false;
-                var modal = new UIModal
-                {
-                    LayerIndex = 0
-                };
-                modal.SetOnBackCallBack(Close);
-
                 if (fortModule is not null)
                 {
                     var settings = fortModule.CreateSettings();
-
                     if (settings is not null)
                     {
-                        modal.AddItem("SETTINGS", () =>
-                        {
-                            Main.CanAct = true;
-                            ((patch_MainMenu)Main).FilterModOptions = item.Metadata.Name;
-                            Main.State = MainMenu.MenuState.Options;
-                        });
+                        goto CAN_HAVE;
                     }
                 }
+                
+                bool cannotTransition = false;
+                cannotTransition = item.Metadata.Update is null && !RiseCore.UpdateChecks.HasUpdates.Contains(item.Metadata);
 
-                if (item.Metadata.Update is not null)
+                if (cannotTransition)
                 {
-                    if (RiseCore.UpdateChecks.HasUpdates.Contains(item.Metadata))
-                    {
-                        panel.HasUpdate = true;
-                        modal.AddItem("UPDATE", () =>
-                        {
-                            UILoader loader = new UILoader();
-                            loader.LayerIndex = 0;
-                            Main.Add(loader);
-
-                            Task.Run(async () => {
-                                var res = await RiseCore.UpdateChecks.DownloadUpdate(item.Metadata);
-                                loader.Finish();
-
-                                UIModal modal = new UIModal
-                                {
-                                    AutoClose = true
-                                };
-                                modal.LayerIndex = 0;
-                                modal.SetTitle("Update Status");
-
-                                if (!res.Check(out _, out string err))
-                                {
-                                    modal.AddFiller(err);
-                                    modal.AddItem("Ok", () => Close());
-
-                                    Main.Add(modal);
-                                    Logger.Error(err);
-                                    return;
-                                }
-
-                                modal.AddFiller("Restart Required!");
-                                modal.AddItem("Ok", () => Close());
-                                Main.Add(modal);
-                                RiseCore.UpdateChecks.HasUpdates.Remove(item.Metadata);
-                                panel.HasUpdate = false;
-                            });
-                        });
-                    }
-
-                    if (item.Metadata.Update.GH is not null)
-                    {
-                        modal.AddItem("VISIT GITHUB", () =>
-                        {
-                            var repo = item.Metadata.Update.GH.Repository;
-                            RiseCore.UpdateChecks.OpenGithubURL(repo);
-                            Close();
-                        });
-                    }
-
-                    if (item.Metadata.Update.GB is not null)
-                    {
-                        modal.AddItem("VISIT GAMEBANANA", () =>
-                        {
-                            var id = item.Metadata.Update.GB.ID;
-                            if (id is { } o)
-                            {
-                                RiseCore.UpdateChecks.OpenGamebananaURL(o);
-                            }
-                            Close();
-                        });
-                    }
+                    return;
                 }
 
-                modal.AddItem("CLOSE", () =>
-                {
-                    Close();
-                });
 
-                void Close()
-                {
-                    Alarm.Set(panel, 1, () => Main.CanAct = true);
-                    panel.Selected = true;
-                }
-                Main.Add(modal);
+                CAN_HAVE:
+                ((patch_MainMenu)Main).FilterMod = item.Metadata;
+                Main.State = MainMenu.MenuState.Options;
             };
 
             sum += 25;
