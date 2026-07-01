@@ -74,12 +74,16 @@ internal sealed class ModStorage : IModStorage
 
     private string GetValidPath(string filepath)
     {
-        var rootPath = Path.GetFullPath(StoragePath);
+        var rootPath = Path.GetFullPath(StoragePath).Replace('\\', '/');
         var file = Path.GetFullPath(Path.Combine(StoragePath, filepath)).Replace('\\', '/');
 
         if (!file.StartsWith(rootPath))
         {
-            throw new UnauthorizedAccessException($"[{modMeta.Name}] Cannot traverse path outside of the storage.");
+            throw new UnauthorizedAccessException($"""
+            [{modMeta.Name}] Cannot traverse path outside of the storage.
+            Requested Access: {file}
+            Allowed Root Access: {rootPath}
+            """);
         }
         return file;
     }
