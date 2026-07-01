@@ -847,7 +847,7 @@ namespace TowerFall
         [MonoModPatch("<>c__DisplayClass106_0")]
         private class DisplayClass106_0
         {
-            [MonoModLinkTo("TowerFall.MainMenu/<>c__DisplayClass35", "<>4__this")]
+            [MonoModLinkTo("TowerFall.MainMenu/<>c__DisplayClass106_0", "<>4__this")]
             [MonoModIgnore]
             public MainMenu fourThis;
             public OptionsButton vsync;
