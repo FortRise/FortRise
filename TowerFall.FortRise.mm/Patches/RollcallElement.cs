@@ -29,6 +29,7 @@ public class patch_RollcallElement : RollcallElement
     public patch_RollcallElement(int playerIndex) : base(playerIndex) { }
 
     [MonoModLinkTo("TowerFall.MenuItem", "System.Void .ctor(Microsoft.Xna.Framework.Vector2)")]
+    [MonoModIgnore]
     public void base_ctor(Vector2 position) {}
 
     [MonoModReplace]
