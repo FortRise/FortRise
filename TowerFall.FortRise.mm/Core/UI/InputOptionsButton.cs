@@ -39,6 +39,12 @@ public class InputOptionsButton : OptionsButton
         this.onInput = onInput;
     }
 
+    public InputOptionsButton(string title, Buttons[] buttons, Action<Buttons[]> onInput) : base(title)
+    {
+        this.buttons = buttons;
+        this.onInput = onInput;
+    }
+
     public override void Update()
     {
         base.Update();
@@ -130,7 +136,22 @@ public class InputOptionsButton : OptionsButton
         for (int i = 0; i < buttonLen; i += 1)
         {
             var pos = new Vector2(Position.X + gap + i * 4 + 9f * (i + 0.5f), Position.Y) + middle;
-            Draw.OutlineTextureCentered(GamepadConfig.GetIcon(input.AutoButtonSet, buttons[i]), pos, Color.White);
+            if (input is null)
+            {
+                for (int j = 0; j < TFGame.PlayerInputs.Length; j += 1)
+                {
+                    var input = TFGame.PlayerInputs[j];
+                    if (input is TowerFall.Patching.XGamepadInput xGamepad)
+                    {
+                        Draw.OutlineTextureCentered(GamepadConfig.GetIcon(xGamepad.AutoButtonSet, buttons[i]), pos, Color.White);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Draw.OutlineTextureCentered(GamepadConfig.GetIcon(input.AutoButtonSet, buttons[i]), pos, Color.White);
+            }
         }
     
         base_Render();

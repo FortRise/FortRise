@@ -19,11 +19,37 @@ public class GamepadInputListener : Entity
         this.onInput = onInput;
     }
 
+    public GamepadInputListener(MenuItem backItem, Action<Buttons[]> onInput)
+    {
+        this.backItem = backItem;
+        this.onInput = onInput;
+    }
+
     public override void Update()
     {
         base.Update();
 
-        var gamepad = MInput.XGamepads[input.XGamepadIndex];
+        MInput.XGamepadData gamepad = null;
+        if (input is not null)
+        {
+            gamepad = MInput.XGamepads[input.XGamepadIndex];
+        }
+        else
+        {
+            for (int i = 0; i < MInput.XGamepads.Count; i += 1)
+            {
+                gamepad = MInput.XGamepads[i];
+                if (gamepad is { Attached: true })
+                {
+                    break;
+                }
+            }
+
+            if (gamepad is null)
+            {
+                return;
+            }
+        }
 
         if (gamepad.Attached)
         {
