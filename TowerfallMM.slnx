@@ -7,6 +7,7 @@
   <Folder Name="/InternalMods/">
     <Project Path="InternalMods/FortRise.Content/FortRise.Content.csproj" />
     <Project Path="InternalMods/FortRise.ImGui/FortRise.ImGui.csproj" />
+    <Project Path="InternalMods/FortRise.WorkshopFixes/FortRise.WorkshopFixes.csproj" />
   </Folder>
   <Project Path="FortLauncher/FortLauncher.csproj" />
   <Project Path="FortRise.Configuration/FortRise.Configuration.csproj" />
