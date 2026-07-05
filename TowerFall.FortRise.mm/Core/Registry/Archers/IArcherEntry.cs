@@ -1,4 +1,6 @@
 #nullable enable
+using TowerFall;
+
 namespace FortRise;
 
 public interface IArcherEntry
@@ -7,6 +9,7 @@ public interface IArcherEntry
     public ArcherConfiguration Configuration { get; init; }
     public int Index { get; init; }
     public ArcherEntryType Type { get; init; }
+    public ArcherData? ArcherData { get; }
 }
 
 
