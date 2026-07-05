@@ -107,45 +107,64 @@ public class patch_PlayerInput : PlayerInput
     public static void AssignInputs()
     {
         TFGame.PlayerInputs = new PlayerInput[4];
-        int num = 0;
+        // resets everything
+        for (int i = 0; i < 4; i++) 
+        {
+            TFGame.PlayerInputs[i] = null;
+        }
+        int connectedInputs = 0;
         if (!MainMenu.NoGamepads) 
         {
             MInput.UpdateDirectInput = false;
             MInput.UpdateXInput = true;
-            for (int i = 0; i < 4; i++) 
+            foreach (var gamepad in patch_MInput.XGamepads)
             {
-                if (MInput.XGamepads.Count <= i) 
-                    break;
-                TFGame.PlayerInputs[num] = new XGamepadInput(i);
-                num++;
+                TFGame.PlayerInputs[(int)gamepad.PlayerIndex] = new XGamepadInput(patch_MInput.XGamepads.IndexOf(gamepad));
+                connectedInputs += 1;
             }
         }
 
-        if (num <= 3) 
+        if (connectedInputs <= 3) 
         {
             if (SaveData.Instance.Keyboard == null || SaveData.Instance.Keyboard.Length == 0) 
             {
-                TFGame.PlayerInputs[num] = new KeyboardInput();
-                num++;
+                for (int i = 0; i < TFGame.PlayerInputs.Length; i += 1)
+                {
+                    if (TFGame.PlayerInputs[i] is null)
+                    {
+                        TFGame.PlayerInputs[i] = new KeyboardInput();
+                        break;
+                    }
+                }
             }
             else 
             {
                 for (int i = 0; i < SaveData.Instance.Keyboard.Length; i++)
                 {
                     if (SaveData.Instance.Keyboard[i] == null)
+                    {
                         continue;
-                    
-                    TFGame.PlayerInputs[num] = new KeyboardInput(SaveData.Instance.Keyboard[i], i);
-                    num++;
-                    if (num > 3)
+                    }
+
+                    for (int j = 0; j < TFGame.PlayerInputs.Length; j += 1)
+                    {
+                        if (TFGame.PlayerInputs[j] is null)
+                        {
+                            TFGame.PlayerInputs[j] = new KeyboardInput(SaveData.Instance.Keyboard[i], i);
+                            connectedInputs++;
+                            break;
+                        }
+                    }
+
+                    if (connectedInputs > 3)
                         break;
                 }
             }
         }
-        for (int i = num; i < 4; i++) 
-        {
-            TFGame.PlayerInputs[i] = null;
-        }
+        // for (int i = num; i < 4; i++) 
+        // {
+        //     TFGame.PlayerInputs[i] = null;
+        // }
         MenuInput.UpdateInputs();
         MenuButtons.Update();
     }

@@ -202,7 +202,7 @@ public class XGamepadInput : TowerFall.XGamepadInput
 
         XGamepadIndex = xGamepadID;
         XGamepad = MInput.XGamepads[xGamepadID];
-        id = GamePad.GetGUIDEXT((PlayerIndex)xGamepadID);
+        id = GamePad.GetGUIDEXT(((patch_MInput.patch_XGamepadData)XGamepad).PlayerIndex);
 
         XmlElement controller = ControllerInfoMap.TryGetValue(id, out var val) ? val : ControllerInfoMap["null"];
         name = controller["name"].InnerText.ToUpperInvariant();
@@ -235,7 +235,9 @@ public class XGamepadInput : TowerFall.XGamepadInput
 
         if (File.Exists(versionConfig))
         {
-            using var txt = File.OpenText(versionConfig);
+            using var fs = File.Open(versionConfig, FileMode.Open, FileAccess.ReadWrite);
+            using var txt = new StreamReader(fs);
+
             if (SemanticVersion.TryParse(txt.ReadToEnd(), out var version))
             {
                 if (version < RiseCore.FortRiseVersion)

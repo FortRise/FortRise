@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoMod;
+using SDL3;
 
 namespace Monocle;
 
@@ -94,18 +96,38 @@ public static class patch_MInput
                 i--;
             }
         }
-        if (MInput.XGamepads.Count >= 4)
-            return;
-        
-        for (int i = MInput.XGamepads.Count; i < 4; i++)
+
+
+        if (MInput.XGamepads.Count < 4)
         {
-            var playerIndex = (PlayerIndex)i;
-            if (GamePad.GetState(playerIndex).IsConnected)
+            for (int i = 0; i < 4; i++)
             {
-                var gamepadData = new MInput.XGamepadData(playerIndex);
-                MInput.XGamepads.Add(gamepadData);
-                Logger.Info("Add XGamepad: " + gamepadData);
-                MInput.GamepadsChanged = true;
+                if (GamePad.GetState((PlayerIndex)i).IsConnected)
+                {
+                    var device = FrameworkPlatform.GetGamepadDevice(i);
+                    var id = SDL.SDL_GetGamepadID(device);
+
+                    foreach (var gamepad in XGamepads)
+                    {
+                        var instanceID = gamepad.InstanceID;
+                        if (id == instanceID)
+                        {
+                            goto SKIP;
+                        }
+                    }
+
+                    var gamepadData = new patch_XGamepadData((PlayerIndex)i, id);
+                    XGamepads.Add(gamepadData);
+                    Logger.Info("Add XGamepad: " + gamepadData);
+                    MInput.GamepadsChanged = true;
+
+                    SKIP: {}
+
+                    if (XGamepads.Count >= 4)
+                    {
+                        break;
+                    }
+                }
             }
         }
     }
@@ -120,8 +142,29 @@ public static class patch_MInput
         Keyboard.Dispose();
     }
 
-    public class patch_XGamepadData
+    public class patch_XGamepadData : MInput.XGamepadData
     {
+        [MonoModPublic]
+        public PlayerIndex PlayerIndex;
+        public uint InstanceID;
+        private Counter rumbleCounter;
+
+        public patch_XGamepadData(PlayerIndex playerIndex) : base(playerIndex)
+        {
+        }
+
+        public patch_XGamepadData(PlayerIndex playerIndex, uint id) : base(playerIndex)
+        {
+        }
+
+        [MonoModConstructor]
+        public void ctor(PlayerIndex playerIndex, uint id)
+        {
+            PlayerIndex = playerIndex;
+            InstanceID = id;
+            rumbleCounter = new Counter();
+        }
+
         public bool Attached
         {
             [MonoModIgnore]
@@ -156,5 +199,15 @@ public static class patch_MInput
 
         [MonoModIgnore]
         internal extern void Dispose();
+    }
+}
+
+internal static class FrameworkPlatform
+{
+    public static IntPtr GetGamepadDevice(int index)
+    {
+        var platform = typeof(Vector2).Assembly.GetType("Microsoft.Xna.Framework.SDL3_FNAPlatform");
+        var devices = platform.GetField("INTERNAL_devices", BindingFlags.Static | BindingFlags.NonPublic);
+        return ((IntPtr[])devices.GetValue(null))[index];
     }
 }
