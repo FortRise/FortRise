@@ -215,8 +215,8 @@ public class XGamepadInput : TowerFall.XGamepadInput
     {
         ButtonIconMap = new Dictionary<string, XmlElement>();
         ControllerInfoMap = new Dictionary<string, XmlElement>();
-        var iconConfig = Path.Combine(TFGame.OSSaveDir, "GamepadIcon_Config.xml");
-        var nameConfig = Path.Combine(TFGame.OSSaveDir, "GamepadName_Config.xml");
+        var iconConfig = Path.Combine(TFGame.OSSaveDir, "GamepadIcon_Config_FR.xml");
+        var nameConfig = Path.Combine(TFGame.OSSaveDir, "GamepadName_Config_FR.xml");
         var extraiconConfig = Path.Combine(TFGame.OSSaveDir, "ExtraGamepadIcon_Config.xml");
         var extranameConfig = Path.Combine(TFGame.OSSaveDir, "ExtraGamepadName_Config.xml");
 
