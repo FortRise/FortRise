@@ -220,7 +220,7 @@ public class XGamepadInput : TowerFall.XGamepadInput
         var extraiconConfig = Path.Combine(TFGame.OSSaveDir, "ExtraGamepadIcon_Config.xml");
         var extranameConfig = Path.Combine(TFGame.OSSaveDir, "ExtraGamepadName_Config.xml");
 
-        var versionConfig = Path.Combine(TFGame.OSSaveDir, "version.txt");
+        var versionConfig = Path.Combine(TFGame.OSSaveDir, "Gamepad_version.txt");
 
         if (!File.Exists(iconConfig)) 
         {
