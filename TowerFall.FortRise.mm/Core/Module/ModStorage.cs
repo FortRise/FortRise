@@ -22,7 +22,12 @@ internal sealed class ModStorage : IModStorage
     public void WriteAllText(string filepath, string text)
     {
         var file = OpenOrCreate(filepath);
-        using var stream = file.WriteStream;
+        WriteAllText(file, text);
+    }
+
+    public void WriteAllText(IStorageResourceInfo fileInfo, string text)
+    {
+        using var stream = fileInfo.WriteStream;
         
         using TextWriter writer = new StreamWriter(stream);
         writer.Write(text);
@@ -90,6 +95,6 @@ internal sealed class ModStorage : IModStorage
 
     public IStorageResourceInfo CreateDirectory(string filepath)
     {
-        return new DirectoryStorageResourceInfo(filepath, this);
+        return new DirectoryStorageResourceInfo(GetValidPath(filepath), this);
     }
 }

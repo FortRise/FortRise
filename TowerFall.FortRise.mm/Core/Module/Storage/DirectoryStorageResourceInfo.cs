@@ -58,7 +58,7 @@ internal sealed class DirectoryStorageResourceInfo : IStorageResourceInfo
 
     public IStorageResourceInfo AddFile(string filename)
     {
-        var file = new FileStorageResourceInfo(filename, storage);
+        var file = storage.OpenOrCreate(System.IO.Path.Combine(FullPath, filename));
         return file;
     }
 
@@ -81,7 +81,7 @@ internal sealed class DirectoryStorageResourceInfo : IStorageResourceInfo
     {
         if (ExistsRelativePath(path))
         {
-            resource = new FileStorageResourceInfo(System.IO.Path.Combine(FullPath, path), storage);
+            resource = storage.OpenOrCreate(System.IO.Path.Combine(FullPath, path));
             return true;
         }
 
