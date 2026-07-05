@@ -1,27 +1,53 @@
 using Microsoft.Xna.Framework.Input;
 using Monocle;
 using System;
+using System.Text.Json.Serialization;
 
 namespace TowerFall;
 
 [Serializable]
 public class GamepadConfig
 {
+    [JsonInclude]
     public string ButtonSet = "Automatic";
 
+    [JsonInclude]
     public Buttons[] Left = [Buttons.DPadLeft];
+
+    [JsonInclude]
     public Buttons[] Right = [Buttons.DPadRight];
+
+    [JsonInclude]
     public Buttons[] Up = [Buttons.DPadUp];
+
+    [JsonInclude]
     public Buttons[] Down = [Buttons.DPadDown];
+
+    [JsonInclude]
     public Buttons[] Jump = [Buttons.A];
+
+    [JsonInclude]
     public Buttons[] Shoot = [Buttons.X];
+
+    [JsonInclude]
     public Buttons[] AltShoot = [Buttons.B];
+
+    [JsonInclude]
     public Buttons[] Dodge = [Buttons.RightShoulder, Buttons.RightTrigger];
+
+    [JsonInclude]
     public Buttons[] Arrows = [Buttons.Y];
+
+    [JsonInclude]
     public Buttons[] MenuAlt = [Buttons.LeftShoulder, Buttons.LeftTrigger];
+
+    [JsonInclude]
     public Buttons[] Start = [Buttons.Start];
 
+    [JsonInclude]
     public float MoveXDeadzone = 0.5f;
+
+    [JsonInclude]
     public float MoveYDeadzone = 0.8f;
 
     public static GamepadConfig GetDefault()
