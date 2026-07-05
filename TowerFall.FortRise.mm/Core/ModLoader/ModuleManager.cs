@@ -16,6 +16,24 @@ using Nanoray.Pintail;
 
 namespace FortRise;
 
+internal class OptionalModDependencyOrder : IComparer<ModDelayed>
+{
+    public int Compare(ModDelayed x, ModDelayed y)
+    {
+        if (x.RequiredCount > y.RequiredCount)
+        {
+            return 1;
+        }
+
+        if (x.RequiredCount < y.RequiredCount)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+}
+
 internal class ModOrder : IComparer<ModuleMetadata>
 {
     public int Compare(ModuleMetadata x, ModuleMetadata y)
@@ -398,7 +416,9 @@ internal class ModuleManager
             return;
         }
 
-        foreach (var delayedMod in delayedMods)
+        delayedMods.Sort(new OptionalModDependencyOrder());
+
+        foreach (var delayedMod in delayedMods.ToList())
         {
             if (delayedMod.RequiredCount > 0)
             {
@@ -419,11 +439,19 @@ internal class ModuleManager
             {
                 // Hey, we can load this one, dependency is not required!
                 LoadModSkipDependecies(delayedMod.Metadata);
+                loadedAnother = true;
+                delayedMods.Remove(delayedMod);
+                break;
             }
+        }
+
+        if (loadedAnother)
+        {
+            LoadDelayedMods(delayedMods);
         }
     }
 
-    private void LoadAssembly(ModuleMetadata metadata, IModContent content, Assembly asm)
+    private Mod LoadAssembly(ModuleMetadata metadata, IModContent content, Assembly asm)
     {
         foreach (var t in asm.GetTypes())
         {
@@ -445,11 +473,39 @@ internal class ModuleManager
             mod.ParseArgs(RiseCore.ApplicationArgs);
             mod.OnLoad?.Invoke(mod.Context);
 
+            mod.SetupHotReload(() =>
+            {
+                logger.LogInformation("{modName} {modVersion} reloading.", metadata.Name, metadata.Version);
+
+                InternalFortModules.Remove(mod);
+                NameToFortModule.Remove(metadata.Name);
+
+                metadata.AssemblyLoadContext.Unload();
+                metadata.AssemblyLoadContext = new ModAssemblyLoadContext(metadata);
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                var fullDllPath = Path.Combine(metadata.PathDirectory, metadata.DLL);
+
+                if (File.Exists(fullDllPath))
+                {
+                    using var stream = File.OpenRead(fullDllPath);
+                    var asm = Relinker.LoadModAssembly(metadata, metadata.DLL, stream);
+
+                    LoadAssembly(metadata, content, asm);
+                }
+            });
+
             InternalFortModules.Add(mod);
             NameToFortModule.Add(metadata.Name, mod);
 
             logger.LogInformation("{modName} {modVersion} has been loaded.", mod.Meta.Name, mod.Meta.Version);
+
+            return mod;
         }
+
+        return null;
     }
 
     private ModuleContext GetModuleContext(ModuleMetadata metadata, ILogger logger)

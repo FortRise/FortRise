@@ -1,7 +1,9 @@
 #nullable enable
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace FortRise;
@@ -26,8 +28,14 @@ public abstract class Mod
     public Action<ModuleMetadata>? OnModRequestApi { get; set; }
     public Action<IModuleContext, IModContent>? OnLoadContent { get; set; }
 
+    [Experimental("FR001", Message = "This feature is experimental and may not work properly.")]
+    public bool HotReload { get; set; }
+
     private object? saveDataCache;
     private object? settingsCache;
+    private Action? onReload;
+    private FileSystemWatcher? fileSystemWatcher;
+    private static readonly Lock watcherRoot = new Lock();
 
     public Mod(IModContent content, IModuleContext context, ILogger logger)
     {
@@ -168,6 +176,37 @@ public abstract class Mod
 
         ModuleSettings? settings = (ModuleSettings?)settingsType.GetConstructor([])?.Invoke([]);
         settingsCache = settings;
+    }
+
+    internal void SetupHotReload(Action onReload)
+    {
+#pragma warning disable FR001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        if (!HotReload)
+        {
+            return;
+        }
+#pragma warning restore FR001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        if (string.IsNullOrEmpty(Meta.PathDirectory))
+        {
+            return;
+        }
+
+        var directoryDll = Path.GetDirectoryName(
+            Path.Combine(Meta.PathDirectory, Meta.DLL))!.Replace('\\', '/');
+
+        fileSystemWatcher = new FileSystemWatcher(directoryDll, "*.dll")
+        {
+            EnableRaisingEvents = true,
+        };
+
+        fileSystemWatcher.Changed += ReloadAssembly;
+        this.onReload = onReload;
+    }
+
+    private void ReloadAssembly(object sender, FileSystemEventArgs e)
+    {
+        Console.WriteLine("Hello?");
+        onReload?.Invoke();
     }
 }
 

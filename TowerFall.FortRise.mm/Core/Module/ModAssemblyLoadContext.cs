@@ -62,9 +62,10 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
     protected override Assembly Load(AssemblyName assemblyName)
     {
-        Assembly asm;
-        if ((asm = LoadModAssembly(
-                    Path.Combine(directoryDll, $"{assemblyName.Name}.dll"))) != null) 
+        var path = Path.Combine(directoryDll, $"{assemblyName.Name}.dll");
+
+        Assembly asm = LoadModAssembly(path);
+        if (asm != null) 
         {
             return asm;
         }
