@@ -478,7 +478,7 @@ public static class ILMatch
     public static InstructionMatcher CallOrCallvirt(string methodName) =>
         new InstructionMatcher(
             (instr) =>
-                (instr.opcode == OpCodes.Callvirt || instr.opcode == OpCodes.Callvirt)
+                (instr.opcode == OpCodes.Call || instr.opcode == OpCodes.Callvirt)
                 && (instr.operand as MethodBase)?.Name == methodName
         );
 
@@ -493,7 +493,7 @@ public static class ILMatch
                     return false;
                 }
 
-                return (instr.opcode == OpCodes.Callvirt || instr.opcode == OpCodes.Callvirt)
+                return (instr.opcode == OpCodes.Call || instr.opcode == OpCodes.Callvirt)
                     && operand.Name == methodName
                     && operand.DeclaringType?.Name == typeName;
             }
