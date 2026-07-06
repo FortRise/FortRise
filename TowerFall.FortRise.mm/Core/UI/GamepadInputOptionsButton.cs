@@ -8,7 +8,7 @@ using TowerFall;
 
 namespace FortRise;
 
-public class InputOptionsButton : OptionsButton
+public class GamepadInputOptionsButton : OptionsButton
 {
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "changedWiggler")]
     private static extern ref Wiggler changedWiggler(OptionsButton target);
@@ -32,14 +32,14 @@ public class InputOptionsButton : OptionsButton
         set => buttons = value;
     }
 
-    public InputOptionsButton(string title, TowerFall.Patching.XGamepadInput input, Buttons[] buttons, Action<Buttons[]> onInput) : base(title)
+    public GamepadInputOptionsButton(string title, TowerFall.Patching.XGamepadInput input, Buttons[] buttons, Action<Buttons[]> onInput) : base(title)
     {
         this.input = input;
         this.buttons = buttons;
         this.onInput = onInput;
     }
 
-    public InputOptionsButton(string title, Buttons[] buttons, Action<Buttons[]> onInput) : base(title)
+    public GamepadInputOptionsButton(string title, Buttons[] buttons, Action<Buttons[]> onInput) : base(title)
     {
         this.buttons = buttons;
         this.onInput = onInput;

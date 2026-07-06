@@ -20,6 +20,7 @@ public interface ISettingsCreate
     void CreateInput(string name, string initialValue, Action<string> onInput, InputBehavior inputBehavior = InputBehavior.None);
     void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None);
     void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput);
+    void CreateKeyboardInputOptions(string name, Keys[] buttons, Action<Keys[]> onInput);
 
     void Refresh();
 }
@@ -245,9 +246,16 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         if (gamepad is TowerFall.Patching.XGamepadInput xGamepadInput)
         {
             string title = name.ToUpperInvariant();
-            var optionButtons = new InputOptionsButton(title, xGamepadInput, buttons, onInput);
+            var optionButtons = new GamepadInputOptionsButton(title, xGamepadInput, buttons, onInput);
             OptionsButton.Add(optionButtons);
         }
+    }
+
+    public void CreateKeyboardInputOptions(string name, Keys[] buttons, Action<Keys[]> onInput)
+    {
+        string title = name.ToUpperInvariant();
+        var optionButtons = new KeyboardInputOptionsButton(title, buttons, onInput);
+        OptionsButton.Add(optionButtons);
     }
 }
 

@@ -208,49 +208,49 @@ namespace TowerFall
                     );
                     buttons.Add(moveYDeadzone);
 
-                    InputOptionsButton jumpButton = new InputOptionsButton("JUMP", xGamepadInput, xGamepadInput.Config.Jump, (x) =>
+                    GamepadInputOptionsButton jumpButton = new GamepadInputOptionsButton("JUMP", xGamepadInput, xGamepadInput.Config.Jump, (x) =>
                     {
                         xGamepadInput.Config.Jump = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(jumpButton);
 
-                    InputOptionsButton shootButton = new InputOptionsButton("SHOOT", xGamepadInput, xGamepadInput.Config.Shoot, (x) =>
+                    GamepadInputOptionsButton shootButton = new GamepadInputOptionsButton("SHOOT", xGamepadInput, xGamepadInput.Config.Shoot, (x) =>
                     {
                         xGamepadInput.Config.Shoot = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(shootButton);
 
-                    InputOptionsButton arrowsButton = new InputOptionsButton("ARROWS SWAP", xGamepadInput, xGamepadInput.Config.Arrows, (x) =>
+                    GamepadInputOptionsButton arrowsButton = new GamepadInputOptionsButton("ARROWS SWAP", xGamepadInput, xGamepadInput.Config.Arrows, (x) =>
                     {
                         xGamepadInput.Config.Arrows = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(arrowsButton);
 
-                    InputOptionsButton altShootButton = new InputOptionsButton("ALT SHOOT", xGamepadInput, xGamepadInput.Config.AltShoot, (x) =>
+                    GamepadInputOptionsButton altShootButton = new GamepadInputOptionsButton("ALT SHOOT", xGamepadInput, xGamepadInput.Config.AltShoot, (x) =>
                     {
                         xGamepadInput.Config.AltShoot = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(altShootButton);
 
-                    InputOptionsButton dodgeButton = new InputOptionsButton("DODGE", xGamepadInput, xGamepadInput.Config.Dodge, (x) =>
+                    GamepadInputOptionsButton dodgeButton = new GamepadInputOptionsButton("DODGE", xGamepadInput, xGamepadInput.Config.Dodge, (x) =>
                     {
                         xGamepadInput.Config.Dodge = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(dodgeButton);
 
-                    InputOptionsButton altDodgeButton = new InputOptionsButton("ALT DODGE", xGamepadInput, xGamepadInput.Config.MenuAlt, (x) =>
+                    GamepadInputOptionsButton altDodgeButton = new GamepadInputOptionsButton("ALT DODGE", xGamepadInput, xGamepadInput.Config.MenuAlt, (x) =>
                     {
                         xGamepadInput.Config.MenuAlt = x;
                         xGamepadInput.RefreshButton();
                     });
                     buttons.Add(altDodgeButton);
 
-                    InputOptionsButton startButton = new InputOptionsButton("START", xGamepadInput, xGamepadInput.Config.Start, (x) =>
+                    GamepadInputOptionsButton startButton = new GamepadInputOptionsButton("START", xGamepadInput, xGamepadInput.Config.Start, (x) =>
                     {
                         xGamepadInput.Config.Start = x;
                         xGamepadInput.RefreshButton();
