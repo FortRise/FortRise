@@ -14,12 +14,19 @@ namespace TowerFall.Patching;
 [MonoModPatch("TowerFall.XGamepadInput")]
 public class XGameInputExtends : PlayerInputAbstract
 {
+    public GamepadConfig Config;
     public MInput.XGamepadData XGamepad;
     private Subtexture iconArrows;
     public override Subtexture ArrowsIcon => iconArrows;
 
-    public override bool MenuArrows => XGamepad.Pressed(Buttons.Y);
-    public override bool MenuArrowsCheck => XGamepad.Check(Buttons.Y);
+    public override bool MenuArrows => PressedButton(Config.Arrows);
+    public override bool MenuArrowsCheck => CheckButtons(Config.Arrows);
+
+    [MonoModIgnore]
+    private extern bool PressedButton(Buttons[] buttons);
+
+    [MonoModIgnore]
+    private extern bool CheckButtons(Buttons[] buttons);
 }
 
 [MonoModPatch("TowerFall.XGamepadInput")]

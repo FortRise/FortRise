@@ -161,10 +161,7 @@ public class patch_PlayerInput : PlayerInput
                 }
             }
         }
-        // for (int i = num; i < 4; i++) 
-        // {
-        //     TFGame.PlayerInputs[i] = null;
-        // }
+
         MenuInput.UpdateInputs();
         MenuButtons.Update();
     }
