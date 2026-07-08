@@ -21,6 +21,8 @@ public interface ISettingsCreate
     void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None);
     void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput);
     void CreateKeyboardInputOptions(string name, Keys[] buttons, Action<Keys[]> onInput);
+    void CreateCustomOptions(Func<OptionsButton> onCreate);
+    void CreateHeader(string title);
 
     void Refresh();
 }
@@ -256,6 +258,16 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         string title = name.ToUpperInvariant();
         var optionButtons = new KeyboardInputOptionsButton(title, buttons, onInput);
         OptionsButton.Add(optionButtons);
+    }
+
+    public void CreateCustomOptions(Func<OptionsButton> onCreate)
+    {
+        OptionsButton.Add(onCreate());
+    }
+
+    public void CreateHeader(string title)
+    {
+        OptionsButton.Add(new OptionsButtonHeader(title));
     }
 }
 
