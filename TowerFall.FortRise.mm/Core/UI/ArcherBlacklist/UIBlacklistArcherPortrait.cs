@@ -34,8 +34,8 @@ internal sealed class UIBlacklistArcherPortrait : MenuItem
             portraitColor = Color.White;
         }
 
-        Draw.Texture(currentPortrait, Position, Color.White, 1f);
-        Draw.Texture(currentPortrait, Position, portraitColor, 1f);
+        Draw.Texture(currentPortrait, Position + new Vector2(25, 25), Color.White, new Vector2(currentPortrait.Width / 2, currentPortrait.Height / 2), 1f, 0f);
+        Draw.Texture(currentPortrait, Position + new Vector2(25, 25), portraitColor, new Vector2(currentPortrait.Width / 2, currentPortrait.Height / 2), 1f, 0f);
         Draw.HollowRect(
             new Rectangle((int)Position.X, (int)Position.Y,
             50, 50),
