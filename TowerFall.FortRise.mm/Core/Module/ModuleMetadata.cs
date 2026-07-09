@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -41,7 +42,9 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
     public string[]? Tags { get; set; } = null;
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ModulePriority Priority { get; set; } = ModulePriority.Normal;
+    [JsonConverter(typeof(JsonDependencyMetadataConverter))]
     public ModuleMetadata[]? Dependencies { get; set; } = null;
+    [JsonConverter(typeof(JsonDependencyMetadataConverter))]
     public ModuleMetadata[]? OptionalDependencies { get; set; } = null;
     public ModuleUpdater? Update { get; set; } = null;
 
@@ -190,4 +193,46 @@ public partial class ModuleMetadata : IEquatable<ModuleMetadata>
 
     [GeneratedRegex(@"^[\w\\s.]+$")]
     private static partial Regex GeneratedNameRegex();
+}
+
+internal sealed class JsonDependencyMetadataConverter : JsonConverter<ModuleMetadata[]>
+{
+    public override ModuleMetadata[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var list = new List<ModuleMetadata>();
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                var str = reader.GetString()!.Split(':');
+                var name = str[0];
+                var version = str[1];
+
+                var meta = new ModuleMetadata
+                {
+                    Name = name,
+                    Version = new SemanticVersion(version)
+                };
+                list.Add(meta);
+            }
+            else if (reader.TokenType == JsonTokenType.StartObject)
+            {
+                list.Add(JsonSerializer.Deserialize<ModuleMetadata>(ref reader, options)!);
+            }
+            else if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                break;
+            }
+        }
+
+        return [.. list];
+    }
+
+    public override void Write(Utf8JsonWriter writer, ModuleMetadata[] value, JsonSerializerOptions options)
+    {
+        for (int i = 0; i < value.Length; i += 1)
+        {
+            writer.WriteRawValue(JsonSerializer.Serialize(value[i], options));
+        }
+    }
 }
