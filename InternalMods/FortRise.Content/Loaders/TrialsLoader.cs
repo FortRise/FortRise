@@ -34,6 +34,8 @@ internal static class TrialsLoader
             using var xmlStream = towerResource.Stream;
             var xml = Calc.LoadXML(xmlStream)["tower"];
 
+            var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
+
             if (xml.HasChild("tier"))
             {
                 xml = xml!["tier"];
@@ -71,7 +73,7 @@ internal static class TrialsLoader
                 return;
             }
 
-            registry.Towers.RegisterTrialTower(Path.GetFileName(map.Path), new()
+            registry.Towers.RegisterTrialTower(Path.GetFileName(map.Path), towerSet, new()
             {
                 Author = xml.ChildText("author", string.Empty),
                 Tier1 = tiers[0],

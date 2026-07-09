@@ -66,9 +66,11 @@ internal static class VersusLoader
                 }
             }
 
+            var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
+
             var filename = Path.GetFileName(map.Path);
 
-            registry.Towers.RegisterVersusTower(filename, new()
+            registry.Towers.RegisterVersusTower(filename, towerSet, new()
             {
                 Levels = levels.ToArray(),
                 Theme = ThemeLoader.LoadInlineTheme(xml!, content, registry),

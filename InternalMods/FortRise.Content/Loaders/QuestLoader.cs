@@ -35,8 +35,9 @@ internal static class QuestLoader
 
             using var xmlStream = towerXmlResource.Stream;
             var xml = Calc.LoadXML(xmlStream)["tower"];
+            var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
 
-            registry.Towers.RegisterQuestTower(Path.GetFileName(map.Path), new()
+            registry.Towers.RegisterQuestTower(Path.GetFileName(map.Path), towerSet, new()
             {
                 Author = xml.ChildText("author", string.Empty),
                 Theme = ThemeLoader.LoadInlineTheme(xml!, content, registry),

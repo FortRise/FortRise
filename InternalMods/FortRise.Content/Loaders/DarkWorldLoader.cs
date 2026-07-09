@@ -45,6 +45,8 @@ internal static class DarkWorldLoader
             using var xmlStream = xmlResource.Stream;
             var xml = Calc.LoadXML(xmlStream)["tower"];
 
+            var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
+
 
             var enemySets = new Dictionary<string, List<DarkWorldTowerData.EnemyData>>();
             foreach (XmlElement xmlElement2 in xml!["enemies"]!.GetElementsByTagName("set"))
@@ -62,7 +64,7 @@ internal static class DarkWorldLoader
             var hardcoreLevels = GetLevelData(xml["hardcore"]!);
             var legendaryLevels = GetLevelData(xml["legendary"]!);
 
-            registry.Towers.RegisterDarkWorldTower(Path.GetFileName(map.Path), new()
+            registry.Towers.RegisterDarkWorldTower(Path.GetFileName(map.Path), towerSet, new()
             {
                 Levels = levels.ToArray(),
                 Normal = normalLevels.ToArray(),
