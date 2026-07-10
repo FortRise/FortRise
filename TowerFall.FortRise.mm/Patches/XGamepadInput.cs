@@ -242,10 +242,17 @@ public class XGamepadInput : TowerFall.XGamepadInput
 
         if (File.Exists(versionConfig))
         {
-            using var fs = File.Open(versionConfig, FileMode.Open, FileAccess.ReadWrite);
-            using var txt = new StreamReader(fs);
 
-            if (SemanticVersion.TryParse(txt.ReadToEnd(), out var version))
+            string versionText;
+            using (var fs = File.Open(versionConfig, FileMode.Open, FileAccess.ReadWrite))
+            {
+                using (var txt = new StreamReader(fs))
+                {
+                    versionText = txt.ReadToEnd();
+                }
+            }
+
+            if (SemanticVersion.TryParse(versionText, out var version))
             {
                 if (version < RiseCore.FortRiseVersion)
                 {
