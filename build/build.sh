@@ -17,6 +17,7 @@ echo "Cleaning all binaries of Internal mods"
 if [ -d "InternalMods/FortRise.Content/bin" ]; then
     rm -r InternalMods/FortRise.Content/bin
     rm -r InternalMods/FortRise.ImGui/bin
+    rm -r InternalMods/FortRise.WorkshopFixes/bin
 fi
 
 echo "Rebuilding all projects for Internals"
