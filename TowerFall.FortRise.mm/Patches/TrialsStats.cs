@@ -28,7 +28,7 @@ public class TrialsStats : TowerFall.TrialsStats
                     continue;
                 }
 
-                if (!GameData.TrialsLevels[i, j].LevelID.Contains('/')) // only selects the level with slash for backup
+                if (!stats.LevelID.Contains('/')) // only selects the level with slash for backup
                 {
                     continue;
             }
