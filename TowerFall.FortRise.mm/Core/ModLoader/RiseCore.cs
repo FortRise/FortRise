@@ -382,6 +382,10 @@ public static partial class RiseCore
 
     internal static ReadOnlySpan<byte> GetChecksum(ModuleMetadata meta)
     {
+        if (!string.IsNullOrEmpty(meta.PathZip))
+        {
+            return GetChecksum(meta.PathZip);
+        }
         return GetChecksum(meta.DLL);
     }
 

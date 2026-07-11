@@ -291,10 +291,17 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 Metadata.Name
             );
 
+            string filepath = Path.Combine(extractionPath, libName + ".sum");
+
+            if (!Directory.Exists(extractionPath))
+            {
+                Directory.CreateDirectory(extractionPath);
+            }
+
             ReadOnlySpan<char> metaHash = Metadata.Hash.ToHexadecimalString();
 
-            if (Directory.Exists(extractionPath) && !File.Exists(extractionPath + ".sum") 
-                    || !metaHash.SequenceEqual(File.ReadAllText(extractionPath + ".sum")))
+            if (Directory.Exists(extractionPath) && !File.Exists(filepath) 
+                    || !metaHash.SequenceEqual(File.ReadAllText(filepath)))
             {
                 Directory.Delete(extractionPath, true);
             }
@@ -327,7 +334,7 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                     }
                 }
 
-                File.WriteAllText(extractionPath + ".sum", metaHash);
+                File.WriteAllText(filepath, metaHash);
             }
 
             if (NativeLibrary.TryLoad(Path.Combine(extractionPath, libName), out IntPtr handle))
