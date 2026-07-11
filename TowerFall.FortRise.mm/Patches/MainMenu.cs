@@ -462,7 +462,8 @@ namespace TowerFall
                     if (i > 0)
                     {
                         var button = buttons[i - 1];
-                        while (button is OptionsButtonHeader)
+                        bool itIsOptionHeader;
+                        while (itIsOptionHeader = button is OptionsButtonHeader)
                         {
                             i2 += 1;
                             if (i - i2 < 0)
@@ -471,8 +472,10 @@ namespace TowerFall
                             }
                             button = buttons[i - i2];
                         }
-
-                        optionsButton.UpItem = button;
+                        if (!itIsOptionHeader)
+                        {
+                            optionsButton.UpItem = button;
+                        }
                     }
                     i2 = 1;
 
