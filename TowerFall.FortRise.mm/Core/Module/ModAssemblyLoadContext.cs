@@ -291,7 +291,8 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
                 Metadata.Name
             );
 
-            string filepath = Path.Combine(extractionPath, libName + ".sum");
+            string filepath = Path.Combine(extractionPath, libName);
+            string filepathSum = Path.Combine(extractionPath, libName + ".sum");
 
             if (!Directory.Exists(extractionPath))
             {
@@ -300,44 +301,39 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
 
             ReadOnlySpan<char> metaHash = Metadata.Hash.ToHexadecimalString();
 
-            if (Directory.Exists(extractionPath) && !File.Exists(filepath) 
-                    || !metaHash.SequenceEqual(File.ReadAllText(filepath)))
+            if (Directory.Exists(extractionPath) && File.Exists(filepath) && File.Exists(filepathSum))
             {
-                Directory.Delete(extractionPath, true);
-            }
-
-            if (!Directory.Exists(extractionPath))
-            {
-                string unmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders);
-                string secondUnmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders, "native");
-                using (ZipArchive zip = ZipFile.OpenRead(Metadata.PathZip))
+                if (metaHash.SequenceEqual(File.ReadAllText(filepathSum)) && 
+                    NativeLibrary.TryLoad(filepath, out IntPtr h))
                 {
-                    foreach (ZipArchiveEntry entry in zip.Entries)
-                    {
-                        if (!(entry.FullName.StartsWith(unmanagedPath) || 
-                            entry.FullName.StartsWith(secondUnmanagedPath)) || 
-                            entry.FullName.EndsWith('/'))
-                        {
-                            continue;
-                        }
-
-                        if (!Directory.Exists(extractionPath))
-                        {
-                            Directory.CreateDirectory(extractionPath);
-                        }
-
-                        using Stream input = entry.Open();
-                        using Stream output = File.Create(
-                            Path.Combine(extractionPath, entry.Name));
-
-                        input.CopyTo(output);
-                    }
+                    return h;
                 }
-
-                File.WriteAllText(filepath, metaHash);
             }
 
-            if (NativeLibrary.TryLoad(Path.Combine(extractionPath, libName), out IntPtr handle))
+            string unmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders).Replace('\\', '/');
+            string secondUnmanagedPath = Path.Combine(Unmanaged, UnmanagedFolders, "native"). Replace('\\', '/');
+            using (ZipArchive zip = ZipFile.OpenRead(Metadata.PathZip))
+            {
+                foreach (ZipArchiveEntry entry in zip.Entries)
+                {
+                    if (!(entry.FullName.StartsWith(unmanagedPath) || 
+                        entry.FullName.StartsWith(secondUnmanagedPath)) || 
+                        entry.FullName.EndsWith('/'))
+                    {
+                        continue;
+                    }
+
+                    using Stream input = entry.Open();
+                    using Stream output = File.Create(
+                        Path.Combine(extractionPath, entry.Name));
+
+                    input.CopyTo(output);
+                }
+            }
+
+            File.WriteAllText(filepathSum, metaHash);
+
+            if (NativeLibrary.TryLoad(filepath, out IntPtr handle))
             {
                 return handle;
             }
