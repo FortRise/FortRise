@@ -52,6 +52,7 @@ public class VariantPresetAdd : VariantButton
     protected override void OnSelect()
     {
         base.OnSelect();
+        MainMenu.ButtonGuideC.Clear();
         MainMenu.ButtonGuideD.Clear();
     }
 }
