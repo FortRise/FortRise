@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -50,6 +49,7 @@ public class VariantPresetCustom : VariantButton
             Saver saver = new Saver(true, () => saver = null);
             saver.CanHandleError = true;
             Scene.Add(saver);
+            MainMenu.ButtonGuideC.Clear();
         }
 
         base.Update();
@@ -72,5 +72,12 @@ public class VariantPresetCustom : VariantButton
 
         DrawSelection(NormalSelection);
         DrawBubble();
+    }
+
+    protected override void OnSelect()
+    {
+        base.OnSelect();
+        MainMenu.ButtonGuideC.SetDetails(MenuButtonGuide.ButtonModes.Alt, "CLEAR");
+        MainMenu.ButtonGuideD.Clear();
     }
 }

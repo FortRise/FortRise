@@ -48,4 +48,10 @@ public class VariantPresetAdd : VariantButton
         DrawSelection(NormalSelection);
         DrawBubble();
     }
+
+    protected override void OnSelect()
+    {
+        base.OnSelect();
+        MainMenu.ButtonGuideD.Clear();
+    }
 }
