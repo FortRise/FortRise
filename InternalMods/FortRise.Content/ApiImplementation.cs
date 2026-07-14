@@ -7,4 +7,6 @@ internal sealed partial class ApiImplementation : IFortRiseContentApi
     public IFortRiseContentApi.IArcherAPI Archers { get; } = new ArcherAPI();
     public IFortRiseContentApi.ITilesetsAPI Tilesets { get; } = new TilesetsAPI();
     public IFortRiseContentApi.ILoaderAPI LoaderApi { get; } = new LoaderAPI();
+    public IFortRiseContentApi.IThemeAPI Themes { get; } = new ThemeAPI();
+    public IFortRiseContentApi.IVersusLoaderAPI VersusLoaders { get; } = new VersusLoaderAPI();
 }

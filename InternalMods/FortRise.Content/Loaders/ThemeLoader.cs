@@ -67,7 +67,8 @@ internal static class ThemeLoader
             var xmlTheme = xml["theme"];
             if (xmlTheme.HasChild("Name"))
             {
-                return LoadTheme(Guid.CreateVersion7().ToString(), xmlTheme!, content, registry);
+                var theme = LoadTheme(Guid.CreateVersion7().ToString(), xmlTheme!, content, registry);
+                return theme.Name;
             }
             else
             {
@@ -78,7 +79,19 @@ internal static class ThemeLoader
         return "SacredGround";
     }
 
-    public static string LoadTheme(string id, XmlElement xmlTheme, IModContent content, IModRegistry registry)
+    public static List<IThemeEntry> LoadThemes(IModRegistry registry, IModContent content, XmlElement xml)
+    {
+        var list = new List<IThemeEntry>();
+
+        foreach (XmlElement x in xml)
+        {
+            list.Add(LoadTheme(x.Attr("id"), x, content, registry));
+        }
+
+        return list;
+    }
+
+    public static IThemeEntry LoadTheme(string id, XmlElement xmlTheme, IModContent content, IModRegistry registry)
     {
         // load inline themes
         var icon = xmlTheme.ChildText("Icon").Trim();
@@ -136,6 +149,6 @@ internal static class ThemeLoader
             Cataclysm = xmlTheme.ChildBool("Cataclysm", xmlTheme.ChildText("Tileset") == "Cataclysm")
         });
 
-        return themeLoaded.Name;
+        return themeLoaded;
     }
 }

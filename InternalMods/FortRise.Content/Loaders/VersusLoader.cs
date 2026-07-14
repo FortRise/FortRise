@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml;
 using Microsoft.Extensions.Logging;
 using Monocle;
 using TowerFall;
@@ -18,69 +19,84 @@ internal static class VersusLoader
 
         foreach (var map in versusLocation.Childrens)
         {
-            List<IResourceInfo> levels = new List<IResourceInfo>();
+            LoadTower(registry, content, logger, map);
+        }
+    }
 
-            IResourceInfo? xmlResource = null;
-            foreach (var child in map.Childrens)
+    internal static IVersusTowerEntry? LoadTower(IModRegistry registry, IModContent content, ILogger logger, IResourceInfo map)
+    {
+        List<IResourceInfo> levels = new List<IResourceInfo>();
+
+        IResourceInfo? xmlResource = null;
+        foreach (var child in map.Childrens)
+        {
+            if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) ||
+            child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
+            !child.Path.StartsWith("icon"))
             {
-                if ((child.ResourceType == typeof(RiseCore.ResourceTypeOel) ||
-                child.ResourceType == typeof(RiseCore.ResourceTypeJson)) &&
-                !child.Path.StartsWith("icon"))
-                {
-                    levels.Add(child);
-                    continue;
-                }
-
-                if (child.Path.Contains("tower.xml"))
-                {
-                    xmlResource = child;
-                }
-            }
-
-            if (xmlResource == null)
-            {
+                levels.Add(child);
                 continue;
             }
 
-            using var xmlStream = xmlResource.Stream;
-            var xml = Calc.LoadXML(xmlStream)["tower"];
-            List<Treasure> treasures = new List<Treasure>();
-            if (xml.HasChild("treasure"))
+            if (child.Path.Contains("tower.xml"))
             {
-                var array = xml.ChildText("treasure").Split(',');
-                for (int i = 0; i < array.Length; i++)
-                {
-                    var treasure = array[i];
-                    ParseTreasure(treasure.AsSpan().Trim(), out string resTreasure, out int chance, out int rate);
-                    if (!Calc.TryStringToEnum<Pickups>(resTreasure, out var pickups))
-                    {
-                        logger.LogError("The pickup name '{resTreasure}' cannot be found.", resTreasure);
-                        continue;
-                    }
-                    treasures.Add(new Treasure()
-                    {
-                        Pickup = pickups,
-                        Rates = rate != -1 ? rate : Option<int>.None(),
-                        Chance = chance != -1 ? chance / 100.0f : Option<float>.None()
-                    });
-                }
+                xmlResource = child;
             }
-
-            var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
-
-            var filename = Path.GetFileName(map.Path);
-
-            registry.Towers.RegisterVersusTower(filename, towerSet, new()
-            {
-                Levels = levels.ToArray(),
-                Theme = ThemeLoader.LoadInlineTheme(xml!, content, registry),
-                ArrowShuffle = xml!["treasure"].AttrBool("arrowShuffle", false),
-                SpecialArrowRate = xml!["treasure"].AttrFloat("arrows", 0.6f),
-                Author = xml.ChildText("author", string.Empty),
-                Treasure = treasures.ToArray()
-            });
         }
+
+        if (xmlResource == null)
+        {
+            return null;
+        }
+
+
+        using var xmlStream = xmlResource.Stream;
+        var xml = Calc.LoadXML(xmlStream)["tower"];
+
+        var towerSet = xml.Attr("towerSet", ContentModule.CurrentModMetadata.Name);
+        var levelID = Path.GetFileName(map.Path);
+
+        return LoadTowerXml(registry, content, xml!, levelID, towerSet, [.. levels]);
     }
+
+    internal static IVersusTowerEntry LoadTowerXml(
+            IModRegistry registry, IModContent content, XmlElement xml, string levelID, string towerSet, IResourceInfo[] levels)
+    {
+        List<Treasure> treasures = [];
+        if (xml.HasChild("treasure"))
+        {
+            var array = xml.ChildText("treasure").Split(',');
+            for (int i = 0; i < array.Length; i++)
+            {
+                var treasure = array[i];
+                ParseTreasure(treasure.AsSpan().Trim(), out string resTreasure, out int chance, out int rate);
+                if (!Calc.TryStringToEnum<Pickups>(resTreasure, out var pickups))
+                {
+                    ContentModule.Instance.Logger.LogError("The pickup name '{resTreasure}' cannot be found.", resTreasure);
+                    continue;
+                }
+                treasures.Add(new Treasure()
+                {
+                    Pickup = pickups,
+                    Rates = rate != -1 ? rate : Option<int>.None(),
+                    Chance = chance != -1 ? chance / 100.0f : Option<float>.None()
+                });
+            }
+        }
+
+
+
+        return registry.Towers.RegisterVersusTower(levelID, towerSet, new()
+        {
+            Levels = levels,
+            Theme = ThemeLoader.LoadInlineTheme(xml!, content, registry),
+            ArrowShuffle = xml!["treasure"].AttrBool("arrowShuffle", false),
+            SpecialArrowRate = xml!["treasure"].AttrFloat("arrows", 0.6f),
+            Author = xml.ChildText("author", string.Empty),
+            Treasure = [.. treasures]
+        });
+    }
+
 
     private static void ParseTreasure(ReadOnlySpan<char> treasure, out string resultTreasure, out int chance, out int rate)
     {
