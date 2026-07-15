@@ -60,10 +60,6 @@ namespace TowerFall.Patching
         [MonoModReplace]
         public override void Begin()
         {
-            if (!this.IsOfficialTowerSet)
-            {
-                WorkshopLevels = true;
-            }
             Entity entity = new Entity(-1);
             entity.Add(Renderer = new patch_MapRenderer(false));
             Add(entity);
@@ -220,7 +216,6 @@ namespace TowerFall.Patching
 
         internal void ChangeLevelSet()
         {
-            WorkshopLevels = true;
             TweenOutAllButtonsAndRemove();
             Buttons.Clear();
             Add(new CustomLevelListLoader(this, 0));
@@ -241,7 +236,6 @@ namespace TowerFall.Patching
 
         public void ExitCustomLevels(int id = 1)
         {
-            WorkshopLevels = false;
             TweenOutAllButtonsAndRemove();
             TowerSet = "TowerFall";
 
