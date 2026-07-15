@@ -34,12 +34,6 @@ public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
             textContainer.RemoveSelf();
         };
         textContainer.Add(new TextContainer.HeaderText("Select Category"));
-        var towerFallButton = new BowButton("TowerFall");
-        towerFallButton.Pressed(() => {
-            ChangeLevelSet(null);
-            textContainer.RemoveSelf();
-        });
-        textContainer.Add(towerFallButton);
 
         var sets = CreateLevelSets();
         ModEventsManager.Instance.OnLevelSetsCreated.Raise(this, new(Map, Mode, sets));
@@ -50,7 +44,7 @@ public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
             var item = sets[i];
             if (Map.TowerSet == item)
             {
-                startIndex = i + 2;
+                startIndex = i + 1;
             }
 
             string displaySet = item;
@@ -62,7 +56,14 @@ public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
 
             var modButton = new BowButton(displaySet);
             modButton.Pressed(() => {
-                ChangeLevelSet(item);
+                if (item == "TowerFall")
+                {
+                    ChangeLevelSet(null);
+                }
+                else 
+                {
+                    ChangeLevelSet(item);
+                }
                 textContainer.RemoveSelf();
             });
             textContainer.Add(modButton);
@@ -86,7 +87,7 @@ public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
         };
 
         // clone the list, so the original will not be modified
-        return [..sets];
+        return ["TowerFall", ..sets];
     }
 
     private void ChangeLevelSet(string levelSet) 
