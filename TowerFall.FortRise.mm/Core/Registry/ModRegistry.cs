@@ -1,5 +1,6 @@
 #nullable enable
 using Microsoft.Extensions.Logging;
+using TowerFall;
 
 namespace FortRise;
 

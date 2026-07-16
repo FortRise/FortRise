@@ -6,13 +6,19 @@ namespace FortRise;
 
 public static class GameModeRegistry 
 {
-    internal static int ModesCount = 10;
     public static Dictionary<string, Type> GameModesMap = new();
     public static Dictionary<Type, int> GameModeTypes = new();
     public static List<IVersusGameModeEntry> VersusGameModes = new();
     public static Dictionary<string, IVersusGameModeEntry> RegistryVersusGameModes = new();
     public static Dictionary<Modes, IVersusGameModeEntry> ModesToVersusGameMode = new();
     public static Dictionary<string, Modes> NameToModes = new();
+
+    public static Dictionary<string, ICoOpGameModeEntry> RegistryCoOpGameModes = new();
+
+    public static void AddCoOpGamemode(ICoOpGameModeEntry gameMode)
+    {
+        RegistryCoOpGameModes[gameMode.Name] = gameMode;
+    }
 
     public static Modes GetGameModeModes(string name) 
     {

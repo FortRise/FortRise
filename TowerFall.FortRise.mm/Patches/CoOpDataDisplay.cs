@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using FortRise;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -11,7 +13,7 @@ public class patch_CoOpDataDisplay : CoOpDataDisplay
     private QuestButton quest;
     private DarkWorldButton darkWorld;
     private SineWave alphaSine;
-    private Monolouge monolouge;
+    private CoOpButtonDisplay currentCoopButton;
     private CoOpModeButton coOpModeButton;
     private bool tweeningOut;
     private float drawQuest;
@@ -34,18 +36,19 @@ public class patch_CoOpDataDisplay : CoOpDataDisplay
         Add(alphaSine = new SineWave(120));
         this.coOpModeButton = coOpModeButton;
         this.coOpModeButton.ModeChanged += Changed;
-        monolouge = this.coOpModeButton.CurrentMonolouge;
+        currentCoopButton = this.coOpModeButton.CurrentButtonDisplay;
     }
 
-    private void Changed(Monolouge monolouge) 
+    private void Changed(CoOpButtonDisplay monolouge) 
     {
-        this.monolouge = monolouge;
+        currentCoopButton = monolouge;
     }
 
     [MonoModIgnore]
     [MonoModLinkTo("TowerFall.MenuItem", "System.Void Update()")]
     public void base_Update() {}
 
+    [MonoModReplace]
     public override void Update()
     {
         base_Update();
@@ -63,11 +66,12 @@ public class patch_CoOpDataDisplay : CoOpDataDisplay
     [MonoModLinkTo("Monocle.Entity", "System.Void Render()")]
     public void base_Render() {}
 
+    [MonoModReplace]
     public override void Render()
     {
         base_Render();
         Vector2 move = Vector2.Lerp(Vector2.UnitX * -160f, Vector2.UnitX * 160f, Ease.CubeInOut(drawQuest));
-        monolouge?.RenderBanner(this, move);
+        currentCoopButton?.RenderBanner(this, move);
     }
 
     public override void Removed()
@@ -78,7 +82,7 @@ public class patch_CoOpDataDisplay : CoOpDataDisplay
 
 }
 
-internal abstract class Monolouge 
+public abstract class CoOpButtonDisplay 
 {
     public abstract void AddElements(CoOpModeButton button);
     public abstract void RemoveElements(CoOpModeButton button);
@@ -88,9 +92,12 @@ internal abstract class Monolouge
     public abstract void RenderBanner(CoOpDataDisplay display, Vector2 offset);
 
     public abstract void OnAction(CoOpModeButton button);
+
+    public virtual void OnSelect() {}
+    public virtual void OnDeselect() {}
 }
 
-internal class DarkWorldMonolouge : Monolouge 
+internal class DarkWorldButtonDisplay : CoOpButtonDisplay 
 {
     private static Color DarkWorldText = Calc.HexToColor("95F94D");
     private Sprite<string> icon;
@@ -103,14 +110,16 @@ internal class DarkWorldMonolouge : Monolouge
     private Color darkRedColor;
     private Color darkGoldColor;
 
-    public DarkWorldMonolouge() 
+    public DarkWorldButtonDisplay() 
     {
         icon = TFGame.MenuSpriteData.GetSpriteString("DarkWorldIcon");
         icon.Play("selected");
         icon.Position = new Vector2(0, -10f);
 
-        glow = new Image(TFGame.MenuAtlas["darkWorldModeGlow"], null);
-        glow.Position = new Vector2(0, -10f);
+        glow = new Image(TFGame.MenuAtlas["darkWorldModeGlow"], null)
+        {
+            Position = new Vector2(0, -10f)
+        };
         glow.CenterOrigin();
 
         glowSine = new SineWave(300);
@@ -120,9 +129,9 @@ internal class DarkWorldMonolouge : Monolouge
         darkWhite = SaveData.Instance.DarkWorld.TotalWhiteSkulls.ToString();
         darkRed = SaveData.Instance.DarkWorld.TotalRedSkulls.ToString();
         darkGold = SaveData.Instance.DarkWorld.TotalGoldSkulls.ToString();
-        darkWhiteColor = ((SaveData.Instance.DarkWorld.TotalWhiteSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
-        darkRedColor = ((SaveData.Instance.DarkWorld.TotalRedSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
-        darkGoldColor = ((SaveData.Instance.DarkWorld.TotalGoldSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
+        darkWhiteColor = (SaveData.Instance.DarkWorld.TotalWhiteSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
+        darkRedColor = (SaveData.Instance.DarkWorld.TotalRedSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
+        darkGoldColor = (SaveData.Instance.DarkWorld.TotalGoldSkulls >= darkWorldLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
     }
 
     public override void AddElements(CoOpModeButton button)
@@ -180,7 +189,7 @@ internal class DarkWorldMonolouge : Monolouge
     }
 }
 
-internal class QuestMonolouge : Monolouge 
+internal class QuestButtonDisplay : CoOpButtonDisplay 
 {
     private Sprite<string> icon;
     private Image glow;
@@ -192,14 +201,16 @@ internal class QuestMonolouge : Monolouge
     private Color questRedColor;
     private Color questGoldColor;
 
-    public QuestMonolouge() 
+    public QuestButtonDisplay() 
     {
         icon = TFGame.MenuSpriteData.GetSpriteString("QuestIcon");
         icon.Play("selected");
         icon.Position = new Vector2(0, -10f);
 
-        glow = new Image(TFGame.MenuAtlas["questModeGlow"], null);
-        glow.Position = new Vector2(0, -10f);
+        glow = new Image(TFGame.MenuAtlas["questModeGlow"], null)
+        {
+            Position = new Vector2(0, -10f)
+        };
         glow.CenterOrigin();
 
         glowSine = new SineWave(300);
@@ -209,9 +220,9 @@ internal class QuestMonolouge : Monolouge
         questWhite = SaveData.Instance.Quest.TotalWhiteSkulls.ToString();
         questRed = SaveData.Instance.Quest.TotalRedSkulls.ToString();
         questGold = SaveData.Instance.Quest.TotalGoldSkulls.ToString();
-        questWhiteColor = ((SaveData.Instance.Quest.TotalWhiteSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
-        questRedColor = ((SaveData.Instance.Quest.TotalRedSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
-        questGoldColor = ((SaveData.Instance.Quest.TotalGoldSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White);
+        questWhiteColor = (SaveData.Instance.Quest.TotalWhiteSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
+        questRedColor = (SaveData.Instance.Quest.TotalRedSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
+        questGoldColor = (SaveData.Instance.Quest.TotalGoldSkulls >= questLength) ? QuestDifficultySelect.LegendaryColor : Color.White;
     }
 
     public override void AddElements(CoOpModeButton button)
@@ -246,11 +257,11 @@ internal class QuestMonolouge : Monolouge
         Draw.OutlineTextCentered(TFGame.Font, "FOR 1 OR 2 ARCHERS", offset + new Vector2(0, 160f), QuestDifficultySelect.LegendaryColor, Color.Black);
         Draw.OutlineTextCentered(TFGame.Font, "DEFEND TOWERFALL FROM INVADING MONSTERS!", offset + new Vector2(0, 168f), Color.White, Color.Black);
         Draw.TextureCentered(TFGame.MenuAtlas["questResults/bigWhiteSkull"], offset + new Vector2(-40f, 190f), Color.White);
-        Draw.OutlineTextCentered(TFGame.Font, this.questWhite, offset + new Vector2(-40f, 208f), this.questWhiteColor, 1f);
+        Draw.OutlineTextCentered(TFGame.Font, questWhite, offset + new Vector2(-40f, 208f), questWhiteColor, 1f);
         Draw.TextureCentered(TFGame.MenuAtlas["questResults/bigRedSkull"], offset + new Vector2(0, 190f), Color.White);
-        Draw.OutlineTextCentered(TFGame.Font, this.questRed, offset + new Vector2(0f, 208f), this.questRedColor, 1f);
+        Draw.OutlineTextCentered(TFGame.Font, questRed, offset + new Vector2(0f, 208f), questRedColor, 1f);
         Draw.TextureCentered(TFGame.MenuAtlas["questResults/bigGoldSkull"], offset + new Vector2(40f, 190f), Color.White);
-        Draw.OutlineTextCentered(TFGame.Font, this.questGold, offset + new Vector2(40f, 208f), this.questGoldColor, 1f);
+        Draw.OutlineTextCentered(TFGame.Font, questGold, offset + new Vector2(40f, 208f), questGoldColor, 1f);
     }
 
     public override void Update()
@@ -261,26 +272,42 @@ internal class QuestMonolouge : Monolouge
 
 public class CoOpModeButton : BorderButton
 {
-    private const int QuestMode = 0;
-    private const int DarkWorldMode = 1;
     private Wiggler iconWiggler;
-    private int[] modeID;
     private int currentMode;
-    private Monolouge[] monolouges = [new QuestMonolouge(), new DarkWorldMonolouge()];
-    private Monolouge monolouge;
+    private List<CoOpButtonDisplay> buttonDisplays = [
+        new QuestButtonDisplay(), 
+        new DarkWorldButtonDisplay()
+    ];
 
-    internal event Action<Monolouge> ModeChanged;
-    internal Monolouge CurrentMonolouge => monolouge;
+    private List<string> buttonNames = [
+        "QUEST",
+        "DARKWORLD"
+    ];
+
+    private CoOpButtonDisplay currentButtonDisplay;
+
+    internal event Action<CoOpButtonDisplay> ModeChanged;
+    internal CoOpButtonDisplay CurrentButtonDisplay => currentButtonDisplay;
 
 
     public CoOpModeButton(Vector2 position, Vector2 tweenFrom) : base(position, tweenFrom, 200, 30)
     {
-        // TODO: do not hardcode this
-        modeID = [QuestMode, DarkWorldMode];
+        foreach (var button in GameModeRegistry.RegistryCoOpGameModes.Values)
+        {
+            buttonDisplays.Add(button.GameMode.CreateButtonDisplay(MainMenu));
+            buttonNames.Add(button.GameMode.Name.ToUpperInvariant());
+        }
+
         UpdateSides();
         iconWiggler = Wiggler.Create(15, 6f);
         Add(iconWiggler);
-    
+    }
+
+    public override void Added()
+    {
+        base.Added();
+        currentMode = (MainMenu as patch_MainMenu).CoOpButtonDisplayIndex;
+        UpdateSides();
         UpdateMode();
     }
 
@@ -288,13 +315,13 @@ public class CoOpModeButton : BorderButton
     {
         base.Update();
 
-        monolouge.Update();
+        currentButtonDisplay.Update();
 
         if (Selected)
         {
             if (MenuInput.Right)
             {
-                if (currentMode != modeID.Length - 1)
+                if (currentMode != buttonDisplays.Count - 1)
                 {
                     currentMode++;
 
@@ -303,6 +330,9 @@ public class CoOpModeButton : BorderButton
                     UpdateSides();
                     OnConfirm();
                     UpdateMode();
+
+
+                    (MainMenu as patch_MainMenu).CoOpButtonDisplayIndex = currentMode;
                 }
             }
             else if (MenuInput.Left)
@@ -316,48 +346,53 @@ public class CoOpModeButton : BorderButton
                     UpdateSides();
                     OnConfirm();
                     UpdateMode();
+
+                    (MainMenu as patch_MainMenu).CoOpButtonDisplayIndex = currentMode;
                 }
             }
             else if (MenuInput.Confirm)
             {
-                monolouge.OnAction(this);
+                currentButtonDisplay.OnAction(this);
             }
         }
     }
 
     private void UpdateMode()
     {
-        monolouge?.RemoveElements(this);
-        monolouge = monolouges[currentMode];
-        monolouge.AddElements(this);
-        ModeChanged?.Invoke(monolouge);
+        if (currentButtonDisplay is not null)
+        {
+            currentButtonDisplay.OnDeselect();
+            currentButtonDisplay.RemoveElements(this);
+        }
+
+        currentButtonDisplay = buttonDisplays[currentMode];
+        currentButtonDisplay.AddElements(this);
+        ModeChanged?.Invoke(currentButtonDisplay);
+        currentButtonDisplay.OnSelect();
     }
 
     public override void Render()
     {
-        monolouge.Render();
+        currentButtonDisplay.Render();
         base.Render();
-        // Draw.OutlineTextureCentered(
-        //     GetModeIcon(), 
-        //     Position + new Vector2(0, -20f), 
-        //     Color.White, 
-        //     new Vector2(1f + iconWiggler.Value * 0.1f, 1f - iconWiggler.Value * 0.1f)
-        // );
-        Draw.OutlineTextCentered(TFGame.Font, GetModeName(), Position + new Vector2(0f, 14f), DrawColor, 2f);
+
+        Draw.OutlineTextCentered(
+            TFGame.Font, 
+            GetModeName(), 
+            Position + new Vector2(0f + iconWiggler.Value * 0.1f, 14f - iconWiggler.Value * 0.1f), 
+            DrawColor, 
+            2f
+        );
     }
 
     private string GetModeName() 
     {
-        return currentMode switch {
-            1 => "DARKWORLD",
-            0 => "QUEST",
-            _ => "UNKNOWN"
-        };
+        return buttonNames[currentMode];
     }
 
     private void UpdateSides() 
     {
         DrawLeft = currentMode > 0;
-        DrawRight = currentMode < modeID.Length - 1;
+        DrawRight = currentMode < buttonDisplays.Count - 1;
     }
 }

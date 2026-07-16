@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -11,8 +12,20 @@ public class patch_VersusModeButton : VersusModeButton
     public static event Action ModeSwitch;
     private Wiggler iconWiggler;
     internal static int currentIndex;
+    private List<Modes> modeSelect;
+
     public patch_VersusModeButton(Vector2 position, Vector2 tweenFrom) : base(position, tweenFrom)
     {
+    }
+
+    [Prefix("System.Void .ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)")]
+    public void Create()
+    {
+        modeSelect = [Modes.LastManStanding, Modes.HeadHunters, Modes.TeamDeathmatch];
+        foreach (var gamemode in GameModeRegistry.VersusGameModes)
+        {
+            modeSelect.Add(gamemode.Modes);
+        }
     }
 
     [MonoModLinkTo("TowerFall.BorderButton", "Update")]
@@ -34,24 +47,29 @@ public class patch_VersusModeButton : VersusModeButton
         base_Update();
 
         string currentModeName = patch_MainMenu.VersusMatchSettings.CustomVersusModeName;
-        if (!Selected)
-            return;
 
-        if (currentIndex < GameModeRegistry.VersusGameModes.Count + BuiltInModeCount - 1 && MenuInput.Right)
+        if (!Selected)
         {
-            currentIndex++;
-            if (currentIndex < 3)
+            return;
+        }
+
+        if (MenuInput.Right && currentIndex < modeSelect.Count - 1)
+        {
+            currentIndex += 1;
+            var mode = modeSelect[currentIndex];
+
+            if (mode is Modes.LastManStanding or Modes.TeamDeathmatch or Modes.HeadHunters)
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = false;
-                MainMenu.VersusMatchSettings.Mode = (Modes)currentIndex + BuiltInModeCount;
             }
             else
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
                 var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
-                MainMenu.VersusMatchSettings.Mode = GameModeRegistry.GetGameModeModes(entry.Name);
                 patch_MainMenu.VersusMatchSettings.CustomVersusModeName = entry.Name;
             }
+
+            MainMenu.VersusMatchSettings.Mode = mode;
 
             ModeSwitch?.Invoke();
             Sounds.ui_move2.Play(160f, 1f);
@@ -59,21 +77,23 @@ public class patch_VersusModeButton : VersusModeButton
             base_OnConfirm();
             UpdateSides();
         }
-        else if (currentIndex > 0 && MenuInput.Left)
+        else if (MenuInput.Left && currentIndex > 0)
         {
-            currentIndex--;
-            if (currentIndex < 3)
+            currentIndex -= 1;
+            var mode = modeSelect[currentIndex];
+
+            if (mode is Modes.LastManStanding or Modes.TeamDeathmatch or Modes.HeadHunters)
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = false;
-                MainMenu.VersusMatchSettings.Mode = (Modes)currentIndex + BuiltInModeCount;
             }
             else
             {
                 patch_MainMenu.VersusMatchSettings.IsCustom = true;
                 var entry = GameModeRegistry.VersusGameModes[currentIndex - BuiltInModeCount];
-                MainMenu.VersusMatchSettings.Mode = GameModeRegistry.GetGameModeModes(entry.Name);
                 patch_MainMenu.VersusMatchSettings.CustomVersusModeName = entry.Name;
             }
+
+            MainMenu.VersusMatchSettings.Mode = mode;
 
             ModeSwitch?.Invoke();
             Sounds.ui_move2.Play(160f, 1f);
@@ -86,7 +106,7 @@ public class patch_VersusModeButton : VersusModeButton
     [MonoModReplace]
     private void UpdateSides()
     {
-        DrawRight = currentIndex < GameModeRegistry.VersusGameModes.Count + 3 - 1;
+        DrawRight = currentIndex < modeSelect.Count - 1;
         DrawLeft = currentIndex != 0;
     }
 

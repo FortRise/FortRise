@@ -30,6 +30,7 @@ namespace TowerFall
         public MenuState BackState;
 
         public ModuleMetadata FilterMod { get; set; }
+        public int CoOpButtonDisplayIndex { get; set; }
 
 
 
@@ -88,6 +89,52 @@ namespace TowerFall
             if (method != null)
             {
                 method.Invoke(this, []);
+            }
+        }
+
+        [MonoModReplace]
+        public void CreateRollcall()
+        {
+            switch (RollcallMode)
+            {
+                case RollcallModes.Versus:
+                    ReadyBanner readyBanner = new ReadyBanner();
+                    Add(readyBanner);
+                    TweenBGCameraToY(1);
+                    break;
+                case RollcallModes.Quest:
+                case RollcallModes.DarkWorld:
+                    ReadyBanner coopReadyBanner = new ReadyBanner();
+                    Add(coopReadyBanner);
+                    TweenBGCameraToY(2);
+                    goto case RollcallModes.Trials;
+                case RollcallModes.Trials:
+                    for (int i = 0; i < 4; i += 1)
+                    {
+                        TFGame.Players[i] = false;
+                    }
+
+                    if (RollcallMode == RollcallModes.Trials)
+                    {
+                        TweenBGCameraToY(1);
+                    }
+                    break;
+                default:
+                    goto case RollcallModes.Quest;
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                RollcallElement rollcallElement = new RollcallElement(i);
+                Add(rollcallElement);
+            }
+
+            BackState = MenuState.Rollcall;
+            ToStartSelected = null;
+
+            for (int i = 0; i < 4; i++)
+            {
+                TFGame.CoOpCrowns[i] = false;
             }
         }
 
