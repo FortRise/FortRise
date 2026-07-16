@@ -59,6 +59,8 @@ public class patch_WorkshopListLoader : WorkshopListLoader
 
         Add(introTween);
 
+        //HACK: FNA team, why?
+        // for context, Update should wait for Task, but on Linux/OSX, it does not.
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             task = new Task(Load);

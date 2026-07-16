@@ -2,6 +2,7 @@ using System;
 using HarmonyLib;
 using Microsoft.Extensions.Logging;
 using TowerFall;
+using TowerFall.Editor;
 
 namespace FortRise.WorkshopFixes;
 
@@ -19,6 +20,11 @@ internal sealed class WorkshopFixesModule : Mod
                 AccessTools.DeclaredMethod(typeof(WorkshopDiscovery), "Load"),
                 finalizer: new HarmonyMethod(WorkshopDiscovery_Load_Finalizer)
             );
+
+            //context.Harmony.Patch(
+            //    AccessTools.DeclaredMethod(typeof(Submitter), "SetUpSubmission"),
+            //    finalizer: new HarmonyMethod(WorkshopDiscovery_Load_Finalizer)
+            //);
         }
     }
 

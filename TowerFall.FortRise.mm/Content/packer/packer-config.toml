@@ -6,7 +6,8 @@ template_path = ["template.xml"]
 folders = [
     "mmg",
     "icon",
-    "controls"
+    "controls",
+    "editor"
 ]
 
 [image_options]

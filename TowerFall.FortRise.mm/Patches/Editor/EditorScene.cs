@@ -1,17 +1,32 @@
-using System.Collections.Generic;
-using FortRise;
+using System;
+using FortRise.Forms;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Monocle;
+using MonoMod;
 
 namespace TowerFall.Editor;
 
 public class patch_EditorScene : EditorScene
 {
+    public Tower Tower
+    {
+        [MonoModIgnore]
+        get
+        {
+            throw new NotImplementedException();
+        }
+        [MonoModIgnore]
+        private set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private TowerOverlayButton overlayButton;
     private ActorSelector lanternSelector;
     private bool hasBegun;
     private bool refreshed;
-    public int onLayer;
+    public int OnActorLayer { get; set; }
     public patch_EditorScene(Tower tower) : base(tower)
     {
     }
@@ -20,50 +35,67 @@ public class patch_EditorScene : EditorScene
 
     public override void Begin()
     {
-        if (!hasBegun)
-        {
-            RegisterHotkey(() => {
-                if (onLayer <= 0)
-                    return;
-                Logger.Log("Back: " + onLayer);
-                onLayer--;
-                ActorData.Data = patch_ActorData.DataLayers[onLayer];
-                RebuildActorSelector();
-            }, Keys.OemOpenBrackets, true, false);
-            RegisterHotkey(() => {
-                Logger.Log(onLayer);
-                if (onLayer > ActorData.Data.Count - 1)
-                    return;
-                Logger.Log("Finalized: " + onLayer);
-                onLayer++;
-                ActorData.Data = patch_ActorData.DataLayers[onLayer];
-                RebuildActorSelector();
-            }, Keys.OemCloseBrackets, true, false);
-        }
+        bool hasBegunBefore = hasBegun;
         orig_Begin();
+        // we rebuild without refreshing the actor
+        if (ActorsLayerUI.Collidable || !hasBegunBefore)
+        {
+            RebuildActorSelector(false, hasBegunBefore);
+        }
     }
 
-    private void RebuildActorSelector() 
+
+    public void RebuildActorSelector(bool refresh, bool hasBegun = true) 
     {
         foreach (var actorLayer in Layers[0].Entities) 
         {
-            if (actorLayer is ActorSelector)
+            if (actorLayer is ActorSelector or ActorLeftButton or ActorRightButton)
             {
                 Remove(actorLayer);
             }
         }
-        var num13 = 0;
-        foreach (KeyValuePair<string, ActorData> keyValuePair in ActorData.Data)
+
+        int maxLength = Math.Min((OnActorLayer * 36) + 36, patch_ActorData.ActorDatas.Count);
+
+        var i = 0;
+        foreach (var value in patch_ActorData.ActorDatas[(OnActorLayer * 36)..maxLength])
         {
-            ActorSelector actorSelector = new ActorSelector(EditorScene.LevelUIPosition + new Vector2((float)(50 + num13 % 12 * 50), (float)(515 + num13 / 12 * 50)), keyValuePair.Value);
-            base.Add<ActorSelector>(actorSelector);
-            num13++;
-            if (keyValuePair.Key == "BGLantern")
+            ActorSelector actorSelector = new ActorSelector(
+                LevelUIPosition + new Vector2(50 + i % 12 * 50, 515 + i / 12 * 50), value)
             {
-                this.lanternSelector = actorSelector;
+                Visible = hasBegun,
+                Collidable = hasBegun 
+            };
+            Add(actorSelector);
+
+            i += 1;
+            if (value.Name == "BGLantern")
+            {
+                lanternSelector = actorSelector;
             }
         }
-        refreshed = true;
+
+        refreshed = refresh;
+
+        var actorLeftButton = new ActorLeftButton(
+            LevelUIPosition + new Vector2(10, 515 + 1 * 50),
+            this
+        )
+        {
+            Visible = hasBegun 
+        };
+
+        Add(actorLeftButton);
+
+        var actorRightButton = new ActorRightButton(
+            LevelUIPosition + new Vector2(45 + 12 * 50, 515 + 1 * 50),
+            this
+        )
+        {
+            Visible = hasBegun
+        };
+
+        Add(actorRightButton);
     }
 
     public extern void orig_Update();
@@ -76,5 +108,45 @@ public class patch_EditorScene : EditorScene
             SetActiveLayer(ActorsLayerUI);
         }
         orig_Update();
+    }
+
+    [MonoModReplace]
+    public void Open()
+    {
+        IgnoreHotkeysFrame = true;
+
+        var open = new OpenFileDialog() 
+        {
+            InitialDirectory = WorkshopDirectory,
+            Title = "Load a .tower file."
+        };
+
+        if (open.ShowDialog() == DialogResult.Success)
+        {
+            Tower = new Tower(Calc.LoadXML(open.FileName))
+            {
+                LastSavedFilename = open.FileName
+            };
+            SetLevel(Tower.Levels[0], false);
+            RefreshCustomAssets();
+            Background.Refresh();
+            SolidsLayerUI.RefreshTileset();
+            BGLayerUI.RefreshTileset();
+            TilesLayerUI.RefreshTileset();
+            TileSelector.RefreshTileset();
+            RefreshLanternGraphics();
+            overlayButton.Refresh();
+        }
+    }
+
+    [MonoModReplace]
+    public void RefreshLanternGraphics()
+    {
+        if (ActorData.Data.TryGetValue("BGLantern", out var value))
+        {
+            value.Subtexture = TFGame.EditorAtlas[$"actors/{Tower.Lanterns}"];
+        }
+
+        lanternSelector.RefreshImage();
     }
 }

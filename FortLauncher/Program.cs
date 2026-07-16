@@ -288,15 +288,6 @@ internal class Program
 
         if (!shouldSkip)
         {
-            // windows have a special Steamworks.NET.dll
-            if (isSteam && (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)))
-            {
-                using var steamAssemblyEditor = new AssemblyEditor(steamworksPath);
-                steamAssemblyEditor.Add(new Remove32BitFlagsPatcher(logger));
-                using var steamworksStream = steamAssemblyEditor.Write();
-                File.WriteAllBytes(Path.Combine(baseDirectory, "Steamworks.NET.dll"), steamworksStream.ToArray());
-            }
-
             using var towerFallAssemblyEditor = new AssemblyEditor(exePath);
             towerFallAssemblyEditor.Add(new Remove32BitFlagsPatcher(logger));
             using MemoryStream tfStream = towerFallAssemblyEditor.Write();

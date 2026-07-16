@@ -1,18 +1,23 @@
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.Xna.Framework.Graphics;
 using Monocle;
+using MonoMod;
 using SDL3;
 
+namespace FortRise.Forms;
 
-public static class XNAFileDialog
+[MonoModLinkFrom("System.Windows.Forms.OpenFileDialog")]
+public class OpenFileDialog : FileDialog
 {
-	// While this is unused, it is better to keep this as it somehow needs some compatibility
-	public static GraphicsDevice GraphicsDevice;
-	public static string Path;
-	public static string StartDirectory;
-	private static volatile bool isDialogOpened;
+    private static volatile bool isDialogOpened;
+    private static string Path;
+
+
+    public OpenFileDialog()
+    {
+    }
+
 
 	private static unsafe void OnOpenActionDialog(IntPtr userdata, IntPtr filelist, int filter) 
     {
@@ -22,7 +27,7 @@ public static class XNAFileDialog
             return;
         }
 
-        if ((IntPtr)(*(byte*)filelist) == IntPtr.Zero) 
+        if (*(byte*)filelist == IntPtr.Zero) 
         {
 			isDialogOpened = false;
             return;
@@ -46,24 +51,16 @@ public static class XNAFileDialog
 		Path = file;
     }
 
-	public static bool ShowDialogSynchronous(string title = null, string saveFile = null)
-	{
-		Path = null;
-		isDialogOpened = true;
-
+    public override DialogResult RunDialog()
+    {
+        Path = null;
+        isDialogOpened = true;
 		var propID = SDL.SDL_CreateProperties();
-		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
-		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_LOCATION_STRING, StartDirectory);
+		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_TITLE_STRING, Title);
+		SDL.SDL_SetStringProperty(propID, SDL.SDL_PROP_FILE_DIALOG_LOCATION_STRING, InitialDirectory);
 		SDL.SDL_SetPointerProperty(propID, SDL.SDL_PROP_FILE_DIALOG_WINDOW_POINTER, Engine.Instance.Window.Handle);
 
-		if (saveFile != null)
-		{
-			SDL.SDL_ShowFileDialogWithProperties(SDL.SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE, OnOpenActionDialog, IntPtr.Zero, propID);
-		}
-		else 
-		{
-			SDL.SDL_ShowFileDialogWithProperties(SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE, OnOpenActionDialog, IntPtr.Zero, propID);
-		}
+        SDL.SDL_ShowFileDialogWithProperties(SDL.SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE, OnOpenActionDialog, IntPtr.Zero, propID);
 
 		while (isDialogOpened && string.IsNullOrEmpty(Path))
 		{
@@ -72,9 +69,18 @@ public static class XNAFileDialog
 		}
 
         isDialogOpened = false;
+        FileName = Path;
+
+        Console.WriteLine(FileName);
 
 		SDL.SDL_DestroyProperties(propID);
 
-		return !string.IsNullOrEmpty(Path);
-	}
+        if (string.IsNullOrEmpty(Path))
+        {
+            return DialogResult.Cancelled;
+        }
+
+        return DialogResult.Success;
+    }
 }
+

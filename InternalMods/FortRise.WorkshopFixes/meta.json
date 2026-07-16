@@ -1,11 +1,11 @@
 {
     "name": "FortRise.WorkshopFixes",
-    "version": "5.3.5",
+    "version": "5.4.0-beta.1",
     "priority": "Highest",
     "dependencies": [
         {
             "name": "FortRise",
-            "version": "5.3.5"
+            "version": "5.4.0-beta.1"
         }
     ],
     "dll": "FortRise.WorkshopFixes.dll"

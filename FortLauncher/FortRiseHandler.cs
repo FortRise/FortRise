@@ -114,6 +114,10 @@ public class FortRiseHandler(
         // need to resolve native dlls that has a diffrent pathing
         AssemblyLoadContext.Default.ResolvingUnmanagedDll += (asm, name) => 
         {
+            if (name.EndsWith("dll"))
+            {
+                name = Path.ChangeExtension(name, null);
+            }
             string unmanagedFolders = string.Empty;
             string dllFormat = ".dll";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

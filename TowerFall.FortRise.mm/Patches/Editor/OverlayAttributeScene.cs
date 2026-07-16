@@ -1,87 +1,118 @@
-using System.Collections.Generic;
+using System;
 using Microsoft.Xna.Framework;
 using Monocle;
 
 namespace TowerFall.Editor;
 
-public class OverlayAttributeScene : EditorBase 
+public class OverlayAttributeScene : patch_OverlayScene
 {
-    public EditorScene Editor { get; private set; }
-    public string ModeName => "ENTITY DATA";
-    public List<Entity> ModeUI { get; private set; }
-
-    public OverlayAttributeScene(EditorScene editor, patch_ActorData data) 
+    public OverlayAttributeScene(EditorScene editor, patch_Actor data) : base(editor, false)
     {
-        Editor = editor;
-        SetLayer(0, new Monocle.Layer());
-        ModeUI = new List<Entity>();
         InitActorAttributes(data);
     }
 
-    public override void Begin()
+    private void InitActorAttributes(patch_Actor actor) 
     {
-        // base.Add<OverlayBG>(new OverlayBG(this));
-        base.Add<OverlayExit>(new OverlayExit(new Vector2(480, 620f)));
-        base.Begin();
-        Sounds.ed_overlayOn.Play(160f, 1f);
-    }
-
-    public override void End()
-    {
-        base.End();
-        Sounds.ed_overlayOff.Play(160f, 1f);
-    }
-
-    public override void Update()
-    {
-        if (this.FocusedTextBox == null && (MInput.Keyboard.Pressed(Microsoft.Xna.Framework.Input.Keys.Enter) || MInput.Keyboard.Pressed(Microsoft.Xna.Framework.Input.Keys.Space)))
+        ModeName = "ENTITY DATA";
+        Remove(ModeUI);
+        int yOffset = -60;
+        foreach (var customData in actor.Attributes) 
         {
-            Exit();
-        }
-        if (EditorBase.Ctrl && MInput.Keyboard.Pressed(Microsoft.Xna.Framework.Input.Keys.S))
-        {
-            Editor.Save();
-        }
-        Editor.UpdateAutosave();
-        base.Update();
-    }
-
-    public void Exit()
-    {
-        Engine.Instance.Scene = Editor;
-        Editor.ReturnFromOverlay();
-    }
-
-    public override void Render()
-    {
-        Editor.Render();
-        base.Render();
-    }
-
-    public override void HandleGraphicsReset()
-    {
-        base.HandleGraphicsReset();
-        Editor.HandleGraphicsReset();
-    }
-
-    public override void HandleGraphicsDispose()
-    {
-        base.HandleGraphicsDispose();
-        Editor.HandleGraphicsDispose();
-    }
-
-    private void InitActorAttributes(patch_ActorData data) 
-    {
-        foreach (var customData in data.CustomData) 
-        {
-            var key = customData.Key.ToUpperInvariant();
+            yOffset += 60;
+            if (actor.Data.AttributeSchemas is {}) 
+            {
+                if (actor.Data.AttributeSchemas.TryGetValue(customData.Key, out var v))
+                {
+                    var key = customData.Key.ToUpperInvariant();
+                    var dv = customData.Value;
+                    var cb = new OverlayComboBoxButton(
+                        new Vector2(480, 270f + yOffset), key, dv, v, (s) => {
+                        actor.Attributes[customData.Key] = s;
+                    });
+                    ModeUI.Add(cb);
+                    continue;
+                }
+            }
+            var titleKey = customData.Key.ToUpperInvariant();
             var defaultValue = customData.Value.ToUpperInvariant();
-            var textBox = new OverlayTextBox(new Vector2(480, 270f), key, defaultValue, 100, s => {
-                data.CustomData[key] = s;
+            var textBox = new OverlayTextBox(
+                new Vector2(480, 270f + yOffset), titleKey, defaultValue, 100, s => {
+                actor.Attributes[customData.Key] = s;
             });
             ModeUI.Add(textBox);
         }
 
         Add(ModeUI);
+    }
+}
+public class OverlayComboBoxButton : EditorUI
+{
+    private Wiggler rotateWiggler;
+    private Wiggler scaleWiggler;
+    private string[] items;
+    private string[] displayItems;
+    private int selectedItem;
+    private string key;
+
+    public Action<string> onItemSelect;
+
+    public OverlayComboBoxButton(
+        Vector2 position, string key, string defaultValue, string[] items, Action<string> onItemSelect)
+        : base(position, 300, 50, -150, -35)
+    {
+        this.onItemSelect = onItemSelect;
+        this.key = key.ToUpperInvariant();
+        this.items = items;
+        var idx = items.IndexOf(defaultValue);
+        if (idx != -1)
+        {
+            selectedItem = idx;
+        }
+        
+        displayItems = new string[items.Length];
+
+        for (int i = 0; i < items.Length; i += 1)
+        {
+            displayItems[i] = items[i].ToUpperInvariant();
+        }
+
+        rotateWiggler = Wiggler.Create(20, 4f, null, null, false, false);
+        Add(rotateWiggler);
+
+        scaleWiggler = Wiggler.Create(20, 4f, null, null, false, false);
+        Add(scaleWiggler);
+    }
+
+    public override void Render()
+    {
+        Draw.HollowRect(Left, Top, Width, Height, Hovered ? (Color.Yellow * 0.5f) : (Color.DarkGray * 0.5f));
+
+        Draw.TextCentered(TFGame.Font, key + ":", Position + new Vector2(0f, -22f), Color.White, 2f);
+        Draw.TextCentered(
+            TFGame.Font, 
+            displayItems[selectedItem], 
+            Position, 
+            Color.White, 
+            Vector2.One * (3f - 0.2f * scaleWiggler.Value), 
+            0.06981317f * rotateWiggler.Value
+        );
+    }
+
+    public override void OnMouseEnter()
+    {
+        base.OnMouseEnter();
+        Sounds.ed_buttonMouse.Play(160f, 1f);
+        rotateWiggler.Start();
+    }
+
+    public override void OnMouseClick(Vector2 localPosition)
+    {
+        base.OnMouseClick(localPosition);
+        selectedItem = (selectedItem + 1) % items.Length;
+
+        onItemSelect(items[selectedItem]);
+
+        Sounds.ed_buttonClick.Play(160f, 1f);
+        scaleWiggler.Start();
     }
 }

@@ -73,6 +73,7 @@
   <SubTexture name="controls/xb360/p3" x="114" y="48" width="12" height="12"/>
   <SubTexture name="controls/xb360/p4" x="102" y="48" width="12" height="12"/>
   <SubTexture name="controls/xb360/rb" x="126" y="58" width="12" height="12"/>
+  <SubTexture name="editor/attribute" x="222" y="46" width="7" height="7"/>
   <SubTexture name="icon/fortrise" x="218" y="32" width="14" height="14"/>
   <SubTexture name="icon/levelcategoryicon" x="146" y="32" width="16" height="16"/>
   <SubTexture name="icon/presetAdd" x="206" y="58" width="12" height="12"/>
@@ -80,6 +81,6 @@
   <SubTexture name="icon/randomizedSets" x="130" y="18" width="16" height="16"/>
   <SubTexture name="mmg/0" x="126" y="48" width="8" height="7"/>
   <SubTexture name="mmg/1" x="218" y="68" width="12" height="7"/>
-  <SubTexture name="mmg/2" x="146" y="18" width="6" height="7"/>
-  <SubTexture name="mmg/3" x="222" y="46" width="6" height="7"/>
+  <SubTexture name="mmg/2" x="146" y="25" width="6" height="7"/>
+  <SubTexture name="mmg/3" x="146" y="18" width="6" height="7"/>
 </TextureAtlas>

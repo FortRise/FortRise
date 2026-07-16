@@ -24,10 +24,6 @@ For installation refer to [Installation Guide](res/guide/Installation.md).
 ## Creating mods
 For creating mods, check out [Creating Mods in the wiki](https://github.com/Terria-K/FortRise/wiki/Creating-Mods), for more information.
 
-## Migrating your mod to v5.0
-See the [migration](./MIGRATION.md) guide here.
-
-
 ## FAQ (Frequently Ask Question)
 ### Can I use FortRise the game without the Dark World DLC?
 Yes, you can use FortRise without the Dark World DLC, but it is not recommended to do so. Most mods relies on Dark World for it to work and you might experience a constant crashes without the Dark World DLC.
