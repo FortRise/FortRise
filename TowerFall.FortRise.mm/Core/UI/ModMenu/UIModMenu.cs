@@ -12,8 +12,6 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
     public override void Create()
     {
-        ((patch_MainMenu)Main).FilterMod = null;
-
         Main.BackState = MainMenu.MenuState.Main;
         Main.TweenUICameraToY(1);
 
@@ -40,7 +38,7 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
             cachedPanels.Clear();
 
-            var panels = InitMods(x.ToLowerInvariant(), out int sum);
+            var panels = InitMods(x.ToLowerInvariant(), out _, out int sum);
 
             if (panels.Count > 0)
             {
@@ -76,7 +74,7 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
         searchPanel.UpItem = modListPanel;
         modListPanel.DownItem = searchPanel;
 
-        var panels = InitMods("", out int sum);
+        var panels = InitMods(string.Empty, out var firstSelected, out int sum);
 
         if (panels.Count > 0)
         {
@@ -107,11 +105,21 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
 
         cachedPanels = panels;
         ((patch_MainMenu)Main).TweenBGCameraToY(2);
-        ((patch_MainMenu)Main).ToStartSelected = modListPanel;
+        if (firstSelected is not null)
+        {
+            ((patch_MainMenu)Main).ToStartSelected = firstSelected;
+        }
+        else
+        {
+            ((patch_MainMenu)Main).ToStartSelected = modListPanel;
+        }
+
+        ((patch_MainMenu)Main).FilterMod = null;
     }
 
-    private List<UIModPanel> InitMods(string filter, out int sum)
+    private List<UIModPanel> InitMods(string filter, out UIModPanel firstSelected, out int sum)
     {
+        firstSelected = null;
         var mods = GetMods(filter);
 
         sum = 60;
@@ -153,6 +161,11 @@ public class UIModMenu(MainMenu main) : CustomMenuState(main)
                 ((patch_MainMenu)Main).FilterMod = item.Metadata;
                 Main.State = MainMenu.MenuState.Options;
             };
+
+            if (((patch_MainMenu)Main).FilterMod is {} m && m == mod)
+            {
+                firstSelected = panel;
+            }
 
             sum += 25;
 

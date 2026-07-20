@@ -359,8 +359,10 @@ namespace TowerFall
                     {
                         updateButton.Selected = false;
                         CanAct = false;
-                        UILoader loader = new UILoader();
-                        loader.LayerIndex = 0;
+                        UILoader loader = new UILoader
+                        {
+                            LayerIndex = 0
+                        };
                         Add(loader);
 
                         Task.Run(async () => {
@@ -369,9 +371,9 @@ namespace TowerFall
 
                             UIModal modal = new UIModal
                             {
-                                AutoClose = true
+                                AutoClose = true,
+                                LayerIndex = 0
                             };
-                            modal.LayerIndex = 0;
                             modal.SetTitle("Update Status");
 
                             if (!res.Check(out _, out string err))
