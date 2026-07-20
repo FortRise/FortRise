@@ -21,6 +21,7 @@ internal class UIModPanel : MenuItem
 
         this.tweenFrom = tweenFrom;
         tweenTo = Position;
+        HasUpdate = RiseCore.UpdateChecks.HasUpdates.Contains(modItem.Metadata);
     }
 
     [MonoModLinkTo("Monocle.Entity", "Update")]
