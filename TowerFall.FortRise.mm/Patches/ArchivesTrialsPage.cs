@@ -152,7 +152,7 @@ public class ArchivesTrialsPage : TowerFall.ArchivesTrialsPage
                     }
                     else
                     {
-                        bestTime = stat.BestTime;
+                        bestTime += stat.BestTime;
                     }
                 }
             }
@@ -187,7 +187,7 @@ public class ArchivesTrialsPage : TowerFall.ArchivesTrialsPage
                 }
                 else
                 {
-                    bestTime = stat.BestTime;
+                    bestTime += stat.BestTime;
                 }
             }
         }
