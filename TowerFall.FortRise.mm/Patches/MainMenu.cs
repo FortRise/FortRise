@@ -499,10 +499,9 @@ namespace TowerFall
                     }
                 }
 
-                if (i <= buttons.Count - 8)
+                if (i <= buttons.Count - 5)
                 {
                     num += 5 + extraSpacing;
-
                 }
             }
 
