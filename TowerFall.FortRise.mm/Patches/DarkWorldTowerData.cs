@@ -109,14 +109,17 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
                 EnemySet = [];
             }
 
-            var pickupList = new List<Pickups>[4];
-            Array.Fill(pickupList, []);
+            TreasureData = new List<Pickups>[4];
+            for (int i = 0; i < 4; i++)
+            {
+                TreasureData[i] = [];
+            }
 
             if (data.Treasures is {})
             {
                 foreach (var treasure in data.Treasures)
                 {
-                    var minPlayer = 1;
+                    var minPlayer = 0;
                     var maxPlayer = 4;
 
                     if (treasure.MinPlayer.TryGetValue(out var min))
@@ -133,13 +136,12 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
                     {
                         if (i >= minPlayer - 1 && i <= maxPlayer - 1)
                         {
-                            pickupList[i].Add(treasure.Pickups);
+                            TreasureData[i].Add(treasure.Pickups);
                         }
                     }
                 }
             }
 
-            TreasureData = pickupList;
             if (data.BossID.TryGetValue(out int bossID))
             {
                 LevelMode = BossModes.Boss;

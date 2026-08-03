@@ -234,18 +234,20 @@ internal sealed class ModTowers : IModTowers
 
     private void DarkWorldTowerInvoke(IDarkWorldTowerEntry entry)
     {
-        var towerData = new patch_DarkWorldTowerData();
-        towerData.LevelID = entry.ID;
-        towerData.TowerSet = entry.TowerSet;
-        towerData.Author = entry.Configuration.Author?.ToUpperInvariant().Trim();
-        towerData.TimeAdd = entry.Configuration.TimeAdd;
-        towerData.TimeBase = entry.Configuration.TimeBase;
-        towerData.Theme = GameData.Themes[entry.Configuration.Theme];
-        towerData.MaxContinues = entry.Configuration.MaxContinues;
-        towerData.StartingLives = entry.Configuration.StartingLives;
-        towerData.EnemySets = entry.Configuration.EnemySets;
-        towerData.Levels = [];
-        towerData.ID = new Point(GameData.DarkWorldTowers.Count, 0);
+        var towerData = new patch_DarkWorldTowerData
+        {
+            LevelID = entry.ID,
+            TowerSet = entry.TowerSet,
+            Author = entry.Configuration.Author?.ToUpperInvariant().Trim(),
+            TimeAdd = entry.Configuration.TimeAdd,
+            TimeBase = entry.Configuration.TimeBase,
+            Theme = GameData.Themes[entry.Configuration.Theme],
+            MaxContinues = entry.Configuration.MaxContinues,
+            StartingLives = entry.Configuration.StartingLives,
+            EnemySets = entry.Configuration.EnemySets,
+            Levels = [],
+            ID = new Point(GameData.DarkWorldTowers.Count, 0)
+        };
 
         foreach (var level in entry.Configuration.Levels)
         {
