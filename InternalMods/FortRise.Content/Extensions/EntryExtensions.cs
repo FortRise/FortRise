@@ -7,34 +7,96 @@ public static class EntryExtensions
 {
     extension(IModSubtextures subtextures)
     {
-        public ISubtextureEntry? GetTextureWithRelative(string id, SubtextureAtlasDestination dest) 
-            => subtextures.GetTexture(ResolveID(id), dest);
+        public ISubtextureEntry? GetTextureWithRelative(string id, SubtextureAtlasDestination dest)
+        {
+            var texture = subtextures.GetTexture(ResolveID(id), dest);
+            texture ??= subtextures.GetTexture(id, dest);
+            return texture;
+        }
     }
 
     extension(IModSprites sprite)
     {
-        public ISpriteContainerEntry? GetSpriteEntryWithRelative<T>(string id) => sprite.GetSpriteEntry<T>(ResolveID(id))!;
-        public IBGSpriteContainerEntry? GetBGSpriteEntryWithRelative<T>(string id) => sprite.GetBGSpriteEntry<T>(ResolveID(id))!;
-        public IMenuSpriteContainerEntry? GetMenuSpriteEntryWithRelative<T>(string id) => sprite.GetMenuSpriteEntry<T>(ResolveID(id))!;
-        public ICorpseSpriteContainerEntry? GetCorpseSpriteEntryWithRelative<T>(string id) => sprite.GetCorpseSpriteEntry<T>(ResolveID(id))!;
+        public ISpriteContainerEntry? GetSpriteEntryWithRelative<T>(string id)
+        {
+            var sp = sprite.GetSpriteEntry<T>(ResolveID(id));
+            sp ??= sprite.GetSpriteEntry<T>(id);
+            return sp;
+        }
+
+        public IBGSpriteContainerEntry? GetBGSpriteEntryWithRelative<T>(string id)
+        {
+            var sp = sprite.GetBGSpriteEntry<T>(ResolveID(id));
+            sp ??= sprite.GetBGSpriteEntry<T>(id);
+            return sp;
+        }
+
+        public IMenuSpriteContainerEntry? GetMenuSpriteEntryWithRelative<T>(string id)
+        {
+            var sp = sprite.GetMenuSpriteEntry<T>(ResolveID(id));
+            sp ??= sprite.GetMenuSpriteEntry<T>(id);
+            return sp;
+        }
+
+        public ICorpseSpriteContainerEntry? GetCorpseSpriteEntryWithRelative<T>(string id)
+        {
+            var sp = sprite.GetCorpseSpriteEntry<T>(ResolveID(id));
+            sp ??= sprite.GetCorpseSpriteEntry<T>(id);
+            return sp;
+        }
     }
 
     extension(IModSFXs sfx)
     {
-        public ISFXEntry? GetSFXEntryWithRelative(string id) => sfx.GetSFX(ResolveID(id))!;
-        public ISFXInstancedEntry? GetSFXInstancedEntryWithRelative(string id) => sfx.GetSFXInstanced(ResolveID(id))!;
-        public ISFXLoopedEntry? GetSFXLoopedEntryWithRelative(string id) => sfx.GetSFXLooped(ResolveID(id))!;
-        public ISFXVariedEntry? GetSFXVariedEntryWithRelative(string id) => sfx.GetSFXVaried(ResolveID(id))!;
+        public ISFXEntry? GetSFXEntryWithRelative(string id)
+        {
+            var s = sfx.GetSFX(ResolveID(id));
+            s ??= sfx.GetSFX(id);
+            return s;
+        }
+
+        public ISFXInstancedEntry? GetSFXInstancedEntryWithRelative(string id)
+        {
+            var s = sfx.GetSFXInstanced(ResolveID(id));
+            s ??= sfx.GetSFXInstanced(id);
+            return s;
+        }
+
+        public ISFXLoopedEntry? GetSFXLoopedEntryWithRelative(string id)
+        {
+            var s = sfx.GetSFXLooped(ResolveID(id));
+            s ??= sfx.GetSFXLooped(id);
+            return s;
+        }
+
+        public ISFXVariedEntry? GetSFXVariedEntryWithRelative(string id)
+        {
+            var s = sfx.GetSFXVaried(ResolveID(id));
+            s ??= sfx.GetSFXVaried(id);
+            return s;
+        }
     }
 
     extension(IModMusics music)
     {
-        public IMusicEntry? GetMusicWithRelative(string id) => music.GetMusic(ResolveID(id));
+        public IMusicEntry? GetMusicWithRelative(string id)
+        {
+            var m = music.GetMusic(ResolveID(id));
+            m ??= music.GetMusic(id);
+            return m;
+        }
     }
 
     extension(IModArchers archers)
     {
-        public IArcherEntry? GetArcherWithRelative(string id) => archers.GetArcher(ResolveID(id));
+        public IArcherEntry? GetArcherWithRelative(string id)
+        {
+            var archer = archers.GetArcher(ResolveID(id));
+
+            archer ??= archers.GetArcher(id);
+
+            return archer;
+        }
     }
 
     extension(XmlElement xml)
@@ -58,9 +120,14 @@ public static class EntryExtensions
 
     public static string ResolveID(string id)
     {
-        if (!string.IsNullOrEmpty(id) && id.StartsWith('@'))
+        if (!string.IsNullOrEmpty(id))
         {
-            return id.Replace("@", $"{ContentModule.CurrentModMetadata.Name}/");
+            if (id.StartsWith('@'))
+            {
+                return id.Replace("@", $"{ContentModule.CurrentModMetadata.Name}/");
+            }
+
+            return $"{ContentModule.CurrentModMetadata.Name}/{id}";
         }
         return id;
     }

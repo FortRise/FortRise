@@ -1,10 +1,26 @@
 using System;
+using System.Xml;
 using TowerFall;
 
 namespace FortRise.Content;
 
 internal static class TextureUtilities 
 {
+    public static ISubtextureEntry LoadTexture(this IModContent content, IModRegistry registry, XmlElement? xmlOrText, SubtextureAtlasDestination atlas)
+    {
+        switch (xmlOrText!.FirstChild)
+        {
+            case XmlElement elm:
+                var sub = SubtextureLoader.LoadSubtexture(content, registry, elm, atlas, null) 
+                    ?? throw new InvalidOperationException("Texture xml is invalid or file does not exists.");
+                return sub;
+            case XmlText text: 
+                return LoadTexture(content, registry, text.InnerText.Trim(), atlas); // legacy
+            default:
+                throw new InvalidOperationException("Texture xml is invalid.");
+        };
+    }
+
     public static ISubtextureEntry LoadTexture(this IModContent content, IModRegistry registry, string path, SubtextureAtlasDestination atlas)
     {
         if (content.Root.TryGetRelativePath(path, out var info))

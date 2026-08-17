@@ -35,7 +35,7 @@ internal static class ThemeLoader
 
             foreach (XmlElement xmlTheme in xml)
             {
-                var icon = xmlTheme.ChildText("Icon").Trim();
+                var icon = xmlTheme["Icon"];
                 ISubtextureEntry? subIcon = null;
 
                 try
@@ -44,14 +44,8 @@ internal static class ThemeLoader
                 }
                 catch (TextureNotFoundException)
                 {
-                    if (content.Root.TryGetRelativePath(icon, out var info))
-                    {
-                        subIcon = registry.Subtextures.RegisterTexture(info);
-                    }
-                    else
-                    {
-                        subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
-                    }
+                    string text = icon!.InnerText.Trim();
+                    subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + text]);
                 }
 
                 var themeID = xmlTheme.Attr("id", xmlTheme.Name);
@@ -94,7 +88,7 @@ internal static class ThemeLoader
     public static IThemeEntry LoadTheme(string id, XmlElement xmlTheme, IModContent content, IModRegistry registry)
     {
         // load inline themes
-        var icon = xmlTheme.ChildText("Icon").Trim();
+        var icon = xmlTheme["Icon"];
         ISubtextureEntry? subIcon = null;
 
         try
@@ -103,14 +97,8 @@ internal static class ThemeLoader
         }
         catch (TextureNotFoundException)
         {
-            if (content.Root.TryGetRelativePath(icon, out var info))
-            {
-                subIcon = registry.Subtextures.RegisterTexture(info);
-            }
-            else
-            {
-                subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + icon]);
-            }
+            var text = icon!.InnerText.Trim();
+            subIcon = registry.Subtextures.RegisterTexture(() => TFGame.MenuAtlas["towerIcons/" + text]);
         }
 
         string musicID = xmlTheme.ChildText("Music", string.Empty).Trim();

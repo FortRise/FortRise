@@ -54,6 +54,50 @@ internal static class SubtextureLoader
 
     private static readonly Dictionary<string, Monocle.Texture> textureCache = [];
 
+    public static ISubtextureEntry? LoadSubtexture(IModContent content, IModRegistry registry, XmlElement xmlElement, SubtextureAtlasDestination dest, IResourceInfo? res)
+    {
+        string name = xmlElement.Attr("name");
+        string? path = xmlElement.Attr("path", null);
+
+        if (path is null)
+        {
+            if (res is null)
+            {
+                throw new InvalidOperationException("Path-based subtexture requires a 'path' attribute.");
+            }
+
+            if (content.Root.TryGetRelativePath(Path.ChangeExtension(res.Path, "png"), out var r))
+            {
+                int x = xmlElement.AttrInt("x");
+                int y = xmlElement.AttrInt("y");
+                int width = xmlElement.AttrInt("width");
+                int height = xmlElement.AttrInt("height");
+
+                registry.Subtextures.RegisterTexture(name, () =>
+                {
+                    ref var texture = ref CollectionsMarshal.GetValueRefOrAddDefault(textureCache, res.RootPath, out bool exists);
+
+                    if (!exists)
+                    {
+                        using var texRes = r.Stream;
+                        var tex = Texture2D.FromStream(Engine.Instance.GraphicsDevice, texRes);
+                        texture = new Monocle.Texture(tex);
+                    }
+
+                    return new Subtexture(texture, new Rectangle(x, y, width, height));
+                }, dest);
+            }
+
+            return null;
+        }
+
+        return registry.Subtextures.RegisterTexture(
+            name, 
+            content.Root.GetRelativePath(path),
+            dest
+        );
+    }
+
     private static void LoadAll(IModContent content, IModRegistry registry, SubtextureAtlasDestination dest, IResourceInfo res)
     {
         var xml = res.Xml ?? 
@@ -64,41 +108,7 @@ internal static class SubtextureLoader
 
         foreach (XmlElement subtexture in textureAtlas.GetElementsByTagName("SubTexture"))
         {
-            string name = subtexture.Attr("name");
-            string? path = subtexture.Attr("path", null);
-
-            if (path is null)
-            {
-                if (content.Root.TryGetRelativePath(Path.ChangeExtension(res.Path, "png"), out var r))
-                {
-                    int x = subtexture.AttrInt("x");
-                    int y = subtexture.AttrInt("y");
-                    int width = subtexture.AttrInt("width");
-                    int height = subtexture.AttrInt("height");
-
-                    registry.Subtextures.RegisterTexture(name, () =>
-                    {
-                        ref var texture = ref CollectionsMarshal.GetValueRefOrAddDefault(textureCache, res.RootPath, out bool exists);
-
-                        if (!exists)
-                        {
-                            using var texRes = r.Stream;
-                            var tex = Texture2D.FromStream(Engine.Instance.GraphicsDevice, texRes);
-                            texture = new Monocle.Texture(tex);
-                        }
-
-                        return new Subtexture(texture, new Rectangle(x, y, width, height));
-                    }, dest);
-                }
-
-                continue;
-            }
-
-            registry.Subtextures.RegisterTexture(
-                name, 
-                content.Root.GetRelativePath(path),
-                dest
-            );
+            LoadSubtexture(content, registry, subtexture, dest, res);
         }
     }
 }

@@ -21,8 +21,8 @@ internal static class SpriteDataLoader
                 continue;
             }
 
-            HashSet<string> nonExtra = new HashSet<string>()
-            {
+            HashSet<string> nonExtra =
+            [
                 "Texture",
                 "FrameWidth",
                 "FrameHeight",
@@ -37,7 +37,7 @@ internal static class SpriteDataLoader
                 "RedTexture",
                 "BlueTexture",
                 "Flash"
-            };
+            ];
 
             var dest = spriteType switch
             {
@@ -49,30 +49,30 @@ internal static class SpriteDataLoader
 
             var id = element.Attr("id");
 
-            var texture = content.LoadTexture(registry, element.ChildText("Texture").Trim(), dest);
+            var texture = content.LoadTexture(registry, element["Texture"], dest);
 
             ISubtextureEntry? redTexture = element.HasChild("RedTexture") ? content.LoadTexture(registry, 
-                element.ChildText("RedTexture").Trim(),
+                element["RedTexture"],
                 dest
             ) : null;
 
             ISubtextureEntry? blueTexture = element.HasChild("BlueTexture") ? content.LoadTexture(registry, 
-                element.ChildText("BlueTexture").Trim(),
+                element["BlueTexture"],
                 dest
             ) : null;
 
             ISubtextureEntry? redTeam = element.HasChild("RedTeam") ? content.LoadTexture(registry, 
-                element.ChildText("RedTeam").Trim(),
+                element["RedTeam"],
                 dest
             ) : null;
 
             ISubtextureEntry? blueTeam = element.HasChild("BlueTeam") ? content.LoadTexture(registry, 
-                element.ChildText("BlueTeam").Trim(),
+                element["BlueTeam"],
                 dest
             ) : null;
 
             ISubtextureEntry? flash = element.HasChild("Flash") ? content.LoadTexture(registry, 
-                element.ChildText("Flash").Trim(),
+                element["Flash"],
                 dest
             ) : null;
 

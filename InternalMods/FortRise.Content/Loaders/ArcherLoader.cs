@@ -108,7 +108,7 @@ internal static class ArcherLoader
 
         if (element.HasChild("Aimer"))
         {
-            aimer = content.LoadTexture(registry, element.ChildText("Aimer").Trim(), SubtextureAtlasDestination.Atlas);
+            aimer = content.LoadTexture(registry, element["Aimer"], SubtextureAtlasDestination.Atlas);
         }
         else
         {
@@ -164,13 +164,13 @@ internal static class ArcherLoader
             ISubtextureEntry? texture = null;
             if (hairElm.HasChild("Texture"))
             {
-                texture = content.LoadTexture(registry, hairElm.ChildText("Texture").Trim(), SubtextureAtlasDestination.Atlas);
+                texture = content.LoadTexture(registry, hairElm["Texture"], SubtextureAtlasDestination.Atlas);
             }
 
             ISubtextureEntry? textureEnd = null;
             if (hairElm.HasChild("TextureEnd"))
             {
-                textureEnd = content.LoadTexture(registry, hairElm.ChildText("TextureEnd").Trim(), SubtextureAtlasDestination.Atlas);
+                textureEnd = content.LoadTexture(registry, hairElm["TextureEnd"], SubtextureAtlasDestination.Atlas);
             }
 
             hairInfo = new HairInfo()
@@ -242,11 +242,11 @@ internal static class ArcherLoader
         {
             var portraits = element["Portraits"];
 
-            var joined = content.LoadTexture(registry, portraits.ChildText("Joined").Trim(), SubtextureAtlasDestination.MenuAtlas);
-            var notJoined = content.LoadTexture(registry, portraits.ChildText("NotJoined").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var joined = content.LoadTexture(registry, portraits!["Joined"], SubtextureAtlasDestination.MenuAtlas);
+            var notJoined = content.LoadTexture(registry, portraits["NotJoined"], SubtextureAtlasDestination.MenuAtlas);
 
-            var win = content.LoadTexture(registry, portraits.ChildText("Win").Trim(), SubtextureAtlasDestination.MenuAtlas);
-            var lose = content.LoadTexture(registry, portraits.ChildText("Lose").Trim(), SubtextureAtlasDestination.MenuAtlas);
+            var win = content.LoadTexture(registry, portraits["Win"], SubtextureAtlasDestination.MenuAtlas);
+            var lose = content.LoadTexture(registry, portraits["Lose"], SubtextureAtlasDestination.MenuAtlas);
 
             portraitInfo = new()
             {
@@ -266,8 +266,8 @@ internal static class ArcherLoader
         if (element.HasChild("Statue"))
         {
             var statue = element["Statue"];
-            var statueImage = content.LoadTexture(registry, statue.ChildText("Image").Trim(), SubtextureAtlasDestination.Atlas);
-            var statueGlow = content.LoadTexture(registry, statue.ChildText("Glow").Trim(), SubtextureAtlasDestination.Atlas);
+            var statueImage = content.LoadTexture(registry, statue!["Image"], SubtextureAtlasDestination.Atlas);
+            var statueGlow = content.LoadTexture(registry, statue["Glow"], SubtextureAtlasDestination.Atlas);
 
             statueInfo = new()
             {
@@ -284,19 +284,19 @@ internal static class ArcherLoader
 
         if (element.HasChild("Hat"))
         {
-            var hat = element["Hat"];
+            var hat = element["Hat"]!;
             var material = hat.ChildEnum("Material", ArcherData.HatMaterials.Default);
 
-            var normalID = hat.ChildText("Normal");
-            var redID = hat.ChildText("Red", normalID);
-            var blueID = hat.ChildText("Blue", normalID);
+            var normalHat = hat["Normal"];
+            var redHat /* Linux */ = hat["Red"];
+            var blueHat = hat["Blue"];
 
             hatInfo = new HatInfo()
             {
                 Material = material,
-                Normal = content.LoadTexture(registry, normalID, SubtextureAtlasDestination.Atlas),
-                Red = content.LoadTexture(registry, redID, SubtextureAtlasDestination.Atlas),
-                Blue = content.LoadTexture(registry, blueID, SubtextureAtlasDestination.Atlas)
+                Normal = content.LoadTexture(registry, normalHat, SubtextureAtlasDestination.Atlas),
+                Red = content.LoadTexture(registry, redHat, SubtextureAtlasDestination.Atlas),
+                Blue = content.LoadTexture(registry, blueHat, SubtextureAtlasDestination.Atlas)
             };
         }
         else
