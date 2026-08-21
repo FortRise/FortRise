@@ -84,7 +84,6 @@ internal static partial class MonoModRules
     private static bool IsSteam;
     private static Version Version;
     private static bool IsMod;
-    private static bool IsFNA = true;
     public static ModuleDefinition RulesModule;
 
     static MonoModRules()

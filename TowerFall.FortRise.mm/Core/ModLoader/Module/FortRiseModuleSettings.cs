@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using Monocle;
 using TowerFall;
@@ -10,6 +11,8 @@ internal record struct BlacklistArcher(string ArcherID, bool IsVanilla);
 
 internal sealed class FortRiseModuleSettings : ModuleSettings
 {
+    public bool FixedTimeStep { get; set; }
+
 
     public bool OldIntroLogo { get; set; }
     public List<BlacklistArcher> BlacklistedArcher { get; set; } = [];
@@ -28,6 +31,12 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
 
     public override void Create(ISettingsCreate settings)
     {
+        settings.CreateOnOff("USE FIXED TIME STEP", FixedTimeStep, (x) =>
+        {
+            FixedTimeStep = x;
+            ((patch_Engine)Engine.Instance).EnableFixedTimeStep(FixedTimeStep);
+        });
+
         settings.CreateOnOff("Old Intro Logo", OldIntroLogo, (x) => OldIntroLogo = x);
         if (Engine.Instance.Scene is MainMenu menu)
         {

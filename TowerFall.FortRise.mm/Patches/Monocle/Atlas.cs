@@ -37,7 +37,6 @@ public class patch_Atlas : Atlas
 
     public Dictionary<string, Subtexture> SubTextures { get; private set; }
 
-    [Obsolete("Use SubTextures instead")]
     internal ConcurrentDictionary<string, Subtexture> SafeSubTextures { get; private set; }
 
     public Subtexture this[string name]

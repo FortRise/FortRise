@@ -39,4 +39,10 @@ public class patch_Commands : Commands
         }
         ExecuteCommand(array[0].ToLowerInvariant(), array2);
     }
+
+    [MonoModIgnore]
+    internal extern void UpdateClosed();
+
+    [MonoModIgnore]
+    internal extern void UpdateOpen();
 }

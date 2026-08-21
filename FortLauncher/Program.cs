@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Runtime.CompilerServices;
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -11,6 +12,10 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using System.Runtime.InteropServices;
 using FortRise.GameBanana;
+
+#pragma warning disable CS0436 // Type conflicts with imported type
+[assembly: IgnoresAccessChecksTo("FNA")]
+#pragma warning restore CS0436 // Type conflicts with imported type
 
 namespace FortLauncher;
 

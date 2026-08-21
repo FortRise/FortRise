@@ -12,7 +12,7 @@ public unsafe ref struct RawString : IDisposable
 
     public RawString(ReadOnlySpan<char> utf16String)
     {
-        byte *data = (byte*)NativeMemory.Alloc((nuint)(utf16String.Length));
+        byte *data = (byte*)NativeMemory.Alloc((nuint)utf16String.Length);
 
         var size = (utf16String.Length * 4) + 1;
         int len;
@@ -25,12 +25,12 @@ public unsafe ref struct RawString : IDisposable
         this.len = len;
     }
 
-    public IntPtr ToPointer()
+    public readonly IntPtr ToPointer()
     {
         return (IntPtr)data;
     }
 
-    public void Dispose()
+    public readonly void Dispose()
     {
         NativeMemory.Free(data);
     }
@@ -50,3 +50,4 @@ public unsafe ref struct RawString : IDisposable
         return new RawString(str);
     }
 }
+

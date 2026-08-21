@@ -1,6 +1,5 @@
 using System;
-using System.Linq;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Utils;
@@ -75,8 +74,10 @@ internal static partial class MonoModRules
 
         Console.WriteLine($"[FortRise] Platform Found: {PlatformDetection.OS}");
 
-        if (IsFNA && RelinkAgainstFNA(modder))
-            Console.WriteLine("[FortRise] Relinking to FNA");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RelinkAgainstFNA(modder))
+        {
+            Console.WriteLine("[FortRise] Successfully replaced XNA framework to FNA.");
+        }
 
         static void VisitType(TypeDefinition type) {
             // Remove readonly attribute from all static fields
