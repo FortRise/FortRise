@@ -10,17 +10,7 @@ using MonoMod.Utils;
 
 namespace MonoMod;
 
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGlobalPostfix))]
-internal class GlobalPostFixAttribute : Attribute
-{
-    public string TypeName;
-    public string MethodName;
-    public GlobalPostFixAttribute(string typeName, string methodName, bool isStatic = false)
-    {
-        TypeName = typeName;
-        MethodName = methodName;
-    }
-}
+
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGlobalPreFix))]
 internal class GlobalPreFixAttribute : Attribute
 {
@@ -286,21 +276,6 @@ internal static partial class MonoModRules
         ctx.Method.CustomAttributes.Add(obsolete);
     }
 
-    public static void PatchGlobalPostfix(ILContext ctx, CustomAttribute attrib)
-    {
-        string typeName = (string)attrib.ConstructorArguments[0].Value;
-        string methodName = (string)attrib.ConstructorArguments[1].Value;
-        bool isStatic = (bool)attrib.ConstructorArguments[2].Value;
-
-        var method = ctx.Module.GetType(typeName).FindMethod(methodName);
-
-        var cursor = new ILCursor(ctx);
-        while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchRet())) { }
-        if (!isStatic)
-            cursor.Emit(OpCodes.Ldarg_0);
-        cursor.Emit(OpCodes.Call, method);
-    }
-
     public static void PatchGlobalPreFix(ILContext ctx, CustomAttribute attrib)
     {
         string typeName = (string)attrib.ConstructorArguments[0].Value;
@@ -432,7 +407,7 @@ internal static partial class MonoModRules
     public static void PatchSDL2ToSDL3(ILContext ctx, CustomAttribute attrib)
     {
         var cursor = new ILCursor(ctx);
-        // screw it, just read the module.
+        // HACK: screw it, just read the module.
         var fna = ModuleDefinition.ReadModule("FNA.dll");
 
         var sdlRef = fna.GetType("SDL3.SDL");

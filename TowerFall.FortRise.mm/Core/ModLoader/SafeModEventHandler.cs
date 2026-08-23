@@ -12,8 +12,8 @@ public sealed class SafeModEventHandler<TEventArgs>
         Remove
     }
 
-    private List<SafeEventHandler> safeHandlers = new();
-    private List<(DelayType type, SafeEventHandler handler)> delayedHandlers = new();
+    private readonly List<SafeEventHandler> safeHandlers = [];
+    private readonly List<(DelayType type, SafeEventHandler handler)> delayedHandlers = [];
     private bool isRaising;
 
     public void Add(ModuleMetadata metadata, EventHandler<TEventArgs> handler)
