@@ -18,7 +18,7 @@ public class patch_ArrowHUD : ArrowHUD
         foreach (var arrowObj in ArrowsRegistry.GetArrowEntries().Values) 
         {
             var arrow = arrowObj.ArrowTypes;
-            var value = arrowObj.Configuration.HUD.Subtexture;
+            var value = arrowObj.Configuration.HUD?.Subtexture;
             images[(int)arrow] = value ?? TFGame.Atlas["player/arrowHUD/arrow"];
         }
     }
