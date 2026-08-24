@@ -21,15 +21,6 @@ public static partial class RiseCore
             bool dark, bool slow, bool scroll);
 
         /// <summary>
-        /// Called when entered a level.
-        /// </summary>
-        public static event Action OnLevelEntered;
-        internal static void Invoke_OnLevelEntered()
-        {
-            OnLevelEntered?.Invoke();
-        }
-
-        /// <summary>
         /// Called before the game initialization state.
         /// </summary>
         public static event Action OnPreInitialize;

@@ -185,7 +185,7 @@ public static partial class RiseCore
         // load the internals first
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));
-        ModuleManager.EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Load);
+        ModuleManager.EventsManager.ModLoadStateFinished.Raise(null, LoadState.Load);
 
         SDL3.SDL.SDL_SetHint(SDL3.SDL.SDL_HINT_VIDEO_DOUBLE_BUFFER, FortRiseModule.GetSettings<FortRiseModuleSettings>().TripleBufferedVsync ? "0" : "1");
 

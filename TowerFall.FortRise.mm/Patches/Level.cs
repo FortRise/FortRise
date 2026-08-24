@@ -70,8 +70,11 @@ namespace TowerFall
                     return;
                 }
 
-                levelWatcher = new FileSystemWatcher(fullPath, "*.oel");
-                levelWatcher.EnableRaisingEvents = true;
+                levelWatcher = new FileSystemWatcher(fullPath, "*.oel")
+                {
+                    EnableRaisingEvents = true
+                };
+
                 levelWatcher.Changed += OnFileChanged;
             }
         }
@@ -81,7 +84,7 @@ namespace TowerFall
         public void LoadEntity(XmlElement e) 
         {
             var name = e.Name;
-            if (FortRise.RiseCore.LevelEntityLoader.TryGetValue(name, out var val)) 
+            if (RiseCore.LevelEntityLoader.TryGetValue(name, out var val))
             {
                 Add(val(e, e.Position(), e.Nodes()));
                 return;
@@ -154,14 +157,16 @@ namespace TowerFall
             Draw.SpriteBatch.End();
         }
 
-        [MonoModIgnore]
-        [GlobalPreFix("FortRise.RiseCore/Events", "System.Void Invoke_OnLevelEntered()", true)]
-        public extern override void Begin();
+        [Prefix(nameof(Begin))]
+        public void PreBegin()
+        {
+            ModEventsManager.Instance.LevelEntered.Raise(this, this);
+        }
 
         [Postfix(nameof(End))]
         private void PostEnd() 
         {
-            ModEventsManager.Instance.OnLevelExited.Raise(this, this);
+            ModEventsManager.Instance.LevelExited.Raise(this, this);
             if (levelWatcher != null) 
             {
                 levelWatcher.Changed -= OnFileChanged;

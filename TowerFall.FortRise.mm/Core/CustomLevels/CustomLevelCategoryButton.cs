@@ -36,7 +36,7 @@ public sealed class CustomLevelCategoryButton : TowerFall.Patching.MapButton
         textContainer.Add(new TextContainer.HeaderText("Select Category"));
 
         var sets = CreateLevelSets();
-        ModEventsManager.Instance.OnLevelSetsCreated.Raise(this, new(Map, Mode, sets));
+        ModEventsManager.Instance.MapSceneLevelSetsCreated.Raise(this, new(Map, Mode, sets));
 
         int startIndex = 0;
         for (int i = 0; i < sets.Count; i++) 

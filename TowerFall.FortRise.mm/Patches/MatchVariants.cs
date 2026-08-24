@@ -317,7 +317,7 @@ public class patch_MatchVariants : MatchVariants
             }
         }
 
-        ModEventsManager.Instance.OnSlotVariantCreated.Raise(this, new(this, grid));
+        ModEventsManager.Instance.MatchVariantsSlotVariantCreated.Raise(this, new(this, grid));
 
         // this one sets all of the key inputs for variants
         for (int y = 0; y < grid.Count; y++)

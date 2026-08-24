@@ -13,7 +13,7 @@ internal sealed class ContentModule : Mod
     public ContentModule(IModContent content, IModuleContext context, ILogger logger) : base(content, context, logger)
     {
         Instance = this;
-        context.Events.OnBeforeModInstantiation += OnBeforeModInstantiation;
+        context.Events.Mods.BeforeInstantiation += OnBeforeModInstantiation;
     }
 
     public override object GetApi() => new ApiImplementation();

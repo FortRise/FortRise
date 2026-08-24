@@ -26,10 +26,10 @@ internal sealed class DebugTab : IFortRiseImGuiAPI.ITabItem
             var levelSystem = level.Session.MatchSettings.LevelSystem;
             string levelID = levelSystem switch
             {
-                DarkWorldLevelSystem dwSystem => dwSystem.DarkWorldTowerData.GetLevelID(),
-                TrialsLevelSystem lSystem => lSystem.TrialsLevelData.GetLevelID(),
-                QuestLevelSystem qSystem => qSystem.QuestTowerData.GetLevelID(),
-                VersusLevelSystem vSystem => vSystem.VersusTowerData.GetLevelID(),
+                DarkWorldLevelSystem dwSystem => dwSystem.DarkWorldTowerData.LevelID,
+                TrialsLevelSystem lSystem => lSystem.TrialsLevelData.LevelID,
+                QuestLevelSystem qSystem => qSystem.QuestTowerData.LevelID,
+                VersusLevelSystem vSystem => vSystem.VersusTowerData.LevelID,
                 _ => "Unidentified level system"
             };
 

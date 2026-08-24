@@ -4,60 +4,96 @@ using TowerFall;
 
 namespace FortRise;
 
-public interface IModEvents
+public partial interface IModEvents
 {
-    event EventHandler<ModuleMetadata> OnModInitialize;
+    public interface IFortRiseModEvents 
+    {
+        event EventHandler<ModuleMetadata> Initialize;
+        event EventHandler<BeforeModInstantiationEventArgs> BeforeInstantiation;
+        event EventHandler<LoadState> LoadStateFinished;
+    }
 
-    event EventHandler<BeforeModInstantiationEventArgs> OnBeforeModInstantiation;
+    public interface IMatchVariantsEvents 
+    {
+        /// <summary>
+        /// Called after all presets and variants are created but not yet placed for modification.
+        /// </summary>
+        event EventHandler<SlotVariantCreatedEventArgs> SlotVariantCreated;
+    }
 
-    event EventHandler<LoadState> OnModLoadStateFinished;
+    public interface IRoundLogicEvents 
+    {
+        event EventHandler<RoundLogic> LevelLoadFinish;
+    }
 
-    event EventHandler<RoundLogic> OnLevelLoaded;
+    public interface ILevelEvents 
+    {
+        event EventHandler<Level> LevelEntered;
+        event EventHandler<Level> LevelExited;
+    }
 
-    /// <summary>
-    /// Called after all presets and variants are created but not yet placed for modification.
-    /// </summary>
-    event EventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated;
+    public interface IGameEvents
+    {
+        /// <summary>
+        /// Called when the game is initialized. This is different from mod initialization and it is run before that happens.
+        /// </summary>
+        event EventHandler<TFGame> GameInitialized;
 
-    /// <summary>
-    /// Called after the game initialization state.
-    /// </summary>
-    event EventHandler<MenuLoadedEventArgs> OnMenuLoaded;
+        /// <summary>
+        /// Called after the game menu load is finished.
+        /// </summary>
+        event EventHandler<MenuLoadedEventArgs> GameLoaded;
+    }
 
-    event EventHandler<Level> OnLevelExited;
+    public interface IMapSceneEvents 
+    {
+        /// <summary>
+        /// Called after creating level sets before it being rendered. Usually used for modifying and filtering level sets.
+        /// </summary>
+        event EventHandler<LevelSetsCreatedEventArgs> LevelSetsCreated;
+    }
 
-    /// <summary>
-    /// Called when the game is initialized. This is different from mod initialization and it is run before that happens.
-    /// </summary>
-    event EventHandler<TFGame> OnGameInitialized;
+    public interface ISaveDataEvents 
+    {
+        /// <summary>
+        /// Called before saving a save data.
+        /// </summary>
+        event EventHandler<BeforeSaveSaveDataEventArgs> BeforeSave;
 
-    /// <summary>
-    /// Called before the game data is loaded, such as xml assets.
-    /// </summary>
-    event EventHandler<DataLoadEventArgs> OnBeforeDataLoad;
+        /// <summary>
+        /// Called after saving a save data.
+        /// </summary>
+        event EventHandler<AfterSaveSaveDataEventArgs> AfterSave;
+    }
 
-    /// <summary>
-    /// Called after the game data is loaded, such as xml assets.
-    /// </summary>
-    event EventHandler<DataLoadEventArgs> OnAfterDataLoad;
+    public interface ISessionEvents 
+    {
+        /// <summary>
+        /// Called after quiting a level within a session.
+        /// </summary>
+        event EventHandler<SessionQuitEventArgs> Quit;
+    }
 
-    /// <summary>
-    /// Called after quiting a level within a session.
-    /// </summary>
-    event EventHandler<SessionQuitEventArgs> OnSessionQuit;
+    public interface IGameDataEvents 
+    {
+        /// <summary>
+        /// Called before the game data is loaded.
+        /// </summary>
+        event EventHandler<DataLoadEventArgs> BeforeLoad;
 
-    /// <summary>
-    /// Called after creating level sets before it being rendered. Usually used for modifying and filtering level sets.
-    /// </summary>
-    event EventHandler<LevelSetsCreatedEventArgs> OnLevelSetsCreated;
+        /// <summary>
+        /// Called after the game data is loaded, such as xml assets.
+        /// </summary>
+        event EventHandler<DataLoadEventArgs> AfterLoad;
+    }
 
-    /// <summary>
-    /// Called before saving a save data.
-    /// </summary>
-    event EventHandler<BeforeSaveSaveDataEventArgs> OnBeforeSaveSaveData;
-
-    /// <summary>
-    /// Called after saving a save data.
-    /// </summary>
-    event EventHandler<AfterSaveSaveDataEventArgs> OnAfterSaveSaveData;
+    IFortRiseModEvents Mods { get; }
+    IMatchVariantsEvents MatchVariants { get; }
+    IRoundLogicEvents RoundLogic { get; }
+    ILevelEvents Level { get; }
+    IGameEvents Game { get; }
+    IMapSceneEvents MapScene { get; }
+    ISaveDataEvents SaveData { get; }
+    ISessionEvents Session { get; }
+    IGameDataEvents GameData { get; }
 }

@@ -7,74 +7,78 @@ namespace FortRise;
 internal sealed class ModEventsManager
 {
     internal static ModEventsManager Instance { get; private set; } = null!;
-    public SafeModEventHandler<ModuleMetadata> OnModInitialize;
-    public SafeModEventHandler<BeforeModInstantiationEventArgs> OnBeforeModInstantiation;
-    public SafeModEventHandler<LoadState> OnModLoadStateFinished;
-    public SafeModEventHandler<RoundLogic> OnLevelLoaded;
-    public SafeModEventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated;
-    public SafeModEventHandler<MenuLoadedEventArgs> OnMenuLoaded;
-    public SafeModEventHandler<Level> OnLevelExited;
-    public SafeModEventHandler<TFGame> OnGameInitialized;
+    public SafeModEventHandler<ModuleMetadata> ModInitialize;
+    public SafeModEventHandler<BeforeModInstantiationEventArgs> ModBeforeInstantiation;
+    public SafeModEventHandler<LoadState> ModLoadStateFinished;
+    public SafeModEventHandler<RoundLogic> RoundLogicLevelLoadFinish;
+    public SafeModEventHandler<SlotVariantCreatedEventArgs> MatchVariantsSlotVariantCreated;
+    public SafeModEventHandler<MenuLoadedEventArgs> GameLoaded;
+    public SafeModEventHandler<Level> LevelEntered;
+    public SafeModEventHandler<Level> LevelExited;
+    public SafeModEventHandler<TFGame> GameInitialized;
     public SafeModEventHandler<DataLoadEventArgs> OnBeforeDataLoad;
     public SafeModEventHandler<DataLoadEventArgs> OnAfterDataLoad;
-    public SafeModEventHandler<SessionQuitEventArgs> OnSessionQuit;
-    public SafeModEventHandler<LevelSetsCreatedEventArgs> OnLevelSetsCreated;
-    public SafeModEventHandler<BeforeSaveSaveDataEventArgs> OnBeforeSaveSaveData;
-    public SafeModEventHandler<AfterSaveSaveDataEventArgs> OnAfterSaveSaveData;
+    public SafeModEventHandler<SessionQuitEventArgs> SessionQuit;
+    public SafeModEventHandler<LevelSetsCreatedEventArgs> MapSceneLevelSetsCreated;
+    public SafeModEventHandler<BeforeSaveSaveDataEventArgs> BeforeSaveData;
+    public SafeModEventHandler<AfterSaveSaveDataEventArgs> AfterSaveData;
 
     public ModEventsManager()
     {
         Instance = this;
-        OnModInitialize = new();
-        OnBeforeModInstantiation = new();
-        OnModLoadStateFinished = new();
-        OnLevelLoaded = new();
-        OnSlotVariantCreated = new();
-        OnMenuLoaded = new();
-        OnLevelExited = new();
-        OnGameInitialized = new();
+        ModInitialize = new();
+        ModBeforeInstantiation = new();
+        ModLoadStateFinished = new();
+        RoundLogicLevelLoadFinish = new();
+        MatchVariantsSlotVariantCreated = new();
+        GameLoaded = new();
+        LevelEntered = new();
+        LevelExited = new();
+        GameInitialized = new();
         OnBeforeDataLoad = new();
         OnAfterDataLoad = new();
-        OnSessionQuit = new();
-        OnLevelSetsCreated = new();
-        OnBeforeSaveSaveData = new();
-        OnAfterSaveSaveData = new();
+        SessionQuit = new();
+        MapSceneLevelSetsCreated = new();
+        BeforeSaveData = new();
+        AfterSaveData = new();
     }
 
     public void RemoveByMod(Mod mod)
     {
-        OnModInitialize.RemoveAllWithMetadata(mod.Meta);
-        OnBeforeModInstantiation.RemoveAllWithMetadata(mod.Meta);
-        OnModLoadStateFinished.RemoveAllWithMetadata(mod.Meta);
-        OnLevelLoaded.RemoveAllWithMetadata(mod.Meta);
-        OnSlotVariantCreated.RemoveAllWithMetadata(mod.Meta);
-        OnMenuLoaded.RemoveAllWithMetadata(mod.Meta);
-        OnLevelExited.RemoveAllWithMetadata(mod.Meta);
-        OnGameInitialized.RemoveAllWithMetadata(mod.Meta);     
+        ModInitialize.RemoveAllWithMetadata(mod.Meta);
+        ModBeforeInstantiation.RemoveAllWithMetadata(mod.Meta);
+        ModLoadStateFinished.RemoveAllWithMetadata(mod.Meta);
+        RoundLogicLevelLoadFinish.RemoveAllWithMetadata(mod.Meta);
+        MatchVariantsSlotVariantCreated.RemoveAllWithMetadata(mod.Meta);
+        GameLoaded.RemoveAllWithMetadata(mod.Meta);
+        LevelEntered.RemoveAllWithMetadata(mod.Meta);
+        LevelExited.RemoveAllWithMetadata(mod.Meta);
+        GameInitialized.RemoveAllWithMetadata(mod.Meta);     
         OnBeforeDataLoad.RemoveAllWithMetadata(mod.Meta);
         OnAfterDataLoad.RemoveAllWithMetadata(mod.Meta);
-        OnSessionQuit.RemoveAllWithMetadata(mod.Meta);
-        OnLevelSetsCreated.RemoveAllWithMetadata(mod.Meta);
-        OnBeforeSaveSaveData.RemoveAllWithMetadata(mod.Meta);
-        OnAfterSaveSaveData.RemoveAllWithMetadata(mod.Meta);
+        SessionQuit.RemoveAllWithMetadata(mod.Meta);
+        MapSceneLevelSetsCreated.RemoveAllWithMetadata(mod.Meta);
+        BeforeSaveData.RemoveAllWithMetadata(mod.Meta);
+        AfterSaveData.RemoveAllWithMetadata(mod.Meta);
     }
 
     public void Dispose() 
     {
-        OnModInitialize.RemoveAll();
-        OnBeforeModInstantiation.RemoveAll();
-        OnModLoadStateFinished.RemoveAll();
-        OnLevelLoaded.RemoveAll();
-        OnSlotVariantCreated.RemoveAll();
-        OnMenuLoaded.RemoveAll();
-        OnLevelExited.RemoveAll();
-        OnGameInitialized.RemoveAll();
+        ModInitialize.RemoveAll();
+        ModBeforeInstantiation.RemoveAll();
+        ModLoadStateFinished.RemoveAll();
+        RoundLogicLevelLoadFinish.RemoveAll();
+        MatchVariantsSlotVariantCreated.RemoveAll();
+        GameLoaded.RemoveAll();
+        LevelEntered.RemoveAll();
+        LevelExited.RemoveAll();
+        GameInitialized.RemoveAll();
         OnBeforeDataLoad.RemoveAll();
         OnAfterDataLoad.RemoveAll();
-        OnSessionQuit.RemoveAll();
-        OnLevelSetsCreated.RemoveAll();
-        OnBeforeSaveSaveData.RemoveAll();
-        OnAfterSaveSaveData.RemoveAll();
+        SessionQuit.RemoveAll();
+        MapSceneLevelSetsCreated.RemoveAll();
+        BeforeSaveData.RemoveAll();
+        AfterSaveData.RemoveAll();
     }
 }
 

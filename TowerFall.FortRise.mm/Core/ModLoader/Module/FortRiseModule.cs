@@ -62,7 +62,7 @@ public sealed class FortRiseModule : Mod
             Disappear = (level) => level.Layers[0].GetFirst<BottomMiasma>()?.Dissipate()
         });
 
-        Context.Events.OnBeforeSaveSaveData += OnSave;
+        Context.Events.SaveData.BeforeSave += OnSave;
     }
 
     public override ModuleSaveData CreateSaveData()

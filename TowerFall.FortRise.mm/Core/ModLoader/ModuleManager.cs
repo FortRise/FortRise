@@ -368,7 +368,7 @@ internal class ModuleManager
             // for content mods that does not have C# Mod class
             var logger = loggerFactory.CreateLogger(metadata.Name);
             var context = GetModuleContext(metadata, logger);
-            EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
+            EventsManager.ModBeforeInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
 
             logger.LogInformation("{modName} {modVersion} has been loaded.", metadata.Name, metadata.Version);
         }
@@ -460,7 +460,7 @@ internal class ModuleManager
             {
                 var logger = loggerFactory.CreateLogger(metadata.Name);
                 var context = GetModuleContext(metadata, logger);
-                EventsManager.OnBeforeModInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
+                EventsManager.ModBeforeInstantiation.Raise(null, new BeforeModInstantiationEventArgs(content, context));
                 mod = Activator.CreateInstance(t, [content, context, logger]) as Mod;
             }
             else
@@ -534,10 +534,10 @@ internal class ModuleManager
         foreach (var fortModule in InternalFortModules)
         {
             fortModule.OnInitialize?.Invoke(fortModule.Context);
-            EventsManager.OnModInitialize.Raise(fortModule, fortModule.Meta);
+            EventsManager.ModInitialize.Raise(fortModule, fortModule.Meta);
         }
 
-        EventsManager.OnModLoadStateFinished.Raise(null, LoadState.Initialize);
+        EventsManager.ModLoadStateFinished.Raise(null, LoadState.Initialize);
 
         LogPatches();
     }

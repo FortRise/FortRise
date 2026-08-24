@@ -13,7 +13,7 @@ public class patch_SaveData : SaveData
 
     public string Save() 
     {
-        ModEventsManager.Instance.OnBeforeSaveSaveData.Raise(this, new());
+        ModEventsManager.Instance.BeforeSaveData.Raise(this, new());
         foreach (var module in RiseCore.ModuleManager.InternalFortModules)
         {
             module.SaveSaveData();
@@ -21,7 +21,7 @@ public class patch_SaveData : SaveData
         }
 
         string result = orig_Save();
-        ModEventsManager.Instance.OnAfterSaveSaveData.Raise(this, new(result));
+        ModEventsManager.Instance.AfterSaveData.Raise(this, new(result));
         return result;
     }
 

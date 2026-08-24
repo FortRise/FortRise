@@ -62,7 +62,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
             Engine.Instance.Scene = mapScene;
             this.level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -74,7 +74,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
             Engine.Instance.Scene = mapScene;
             this.level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -95,7 +95,7 @@ namespace TowerFall
             Engine.Instance.Scene = mapScene;
             mapScene.TowerSet = level.Session.TowerSet;
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -109,7 +109,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
 
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -121,7 +121,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
 
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         
@@ -135,7 +135,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
 
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -150,7 +150,7 @@ namespace TowerFall
 
             Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.Main);
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -167,7 +167,7 @@ namespace TowerFall
             mainMenu.SaveOnTransition = true;
             Engine.Instance.Scene = mainMenu;
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
 
@@ -180,7 +180,7 @@ namespace TowerFall
             mapScene.TowerSet = level.Session.TowerSet;
 
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -193,7 +193,7 @@ namespace TowerFall
             }
             Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.Rollcall);
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -202,7 +202,7 @@ namespace TowerFall
             Sounds.ui_clickBack.Play(160f, 1f);
             Engine.Instance.Scene = new MainMenu(MainMenu.MenuState.VersusOptions);
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         [MonoModReplace]
@@ -213,7 +213,7 @@ namespace TowerFall
             mainMenu.SaveOnTransition = true;
             Engine.Instance.Scene = mainMenu;
             level.Session.MatchSettings.LevelSystem.Dispose();
-            ModEventsManager.Instance.OnSessionQuit.Raise(this, new(level.Session, menuType));
+            ModEventsManager.Instance.SessionQuit.Raise(this, new(level.Session, menuType));
         }
 
         private void Settings() 

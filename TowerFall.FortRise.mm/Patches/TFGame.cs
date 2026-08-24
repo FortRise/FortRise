@@ -253,7 +253,7 @@ namespace TowerFall
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
             orig_Initialize();
             FortRise.RiseCore.LogTotalModsLoaded();
-            ModEventsManager.Instance.OnGameInitialized.Raise(this, this);
+            ModEventsManager.Instance.GameInitialized.Raise(this, this);
         }
 
         protected extern void orig_UnloadContent();
@@ -539,7 +539,7 @@ namespace TowerFall
                 (Instance.Scene as MainMenu).Background.AscensionTransition();
             }
             Loaded = true;
-            ModEventsManager.Instance.OnMenuLoaded.Raise(null, new(Instance.Scene as MainMenu, SaveData.NewDataCreated));
+            ModEventsManager.Instance.GameLoaded.Raise(null, new(Instance.Scene as MainMenu, SaveData.NewDataCreated));
             yield break;
         }
 

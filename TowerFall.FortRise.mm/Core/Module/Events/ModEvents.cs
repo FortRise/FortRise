@@ -4,88 +4,132 @@ using TowerFall;
 
 namespace FortRise;
 
-internal class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents
+internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents
 {
-    public event EventHandler<AfterSaveSaveDataEventArgs> OnAfterSaveSaveData
+    public sealed class FortRiseModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IFortRiseModEvents
     {
-        add => manager.OnAfterSaveSaveData.Add(metadata, value);
-        remove => manager.OnAfterSaveSaveData.Remove(metadata, value);
+        public event EventHandler<ModuleMetadata> Initialize 
+        {
+            add => manager.ModInitialize.Add(metadata, value);
+            remove => manager.ModInitialize.Remove(metadata, value);
+        }
+
+        public event EventHandler<BeforeModInstantiationEventArgs> BeforeInstantiation 
+        {
+            add => manager.ModBeforeInstantiation.Add(metadata, value);
+            remove => manager.ModBeforeInstantiation.Remove(metadata, value);
+        }
+        public event EventHandler<LoadState> LoadStateFinished 
+        {
+            add => manager.ModLoadStateFinished.Add(metadata, value);
+            remove => manager.ModLoadStateFinished.Remove(metadata, value);
+        }
     }
 
-    public event EventHandler<BeforeSaveSaveDataEventArgs> OnBeforeSaveSaveData
+    public sealed class MatchVariantEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IMatchVariantsEvents
     {
-        add => manager.OnBeforeSaveSaveData.Add(metadata, value);
-        remove => manager.OnBeforeSaveSaveData.Remove(metadata, value);
+        public event EventHandler<SlotVariantCreatedEventArgs> SlotVariantCreated 
+        {
+            add => manager.MatchVariantsSlotVariantCreated.Add(metadata, value);
+            remove => manager.MatchVariantsSlotVariantCreated.Remove(metadata, value);
+        }
     }
 
-    public event EventHandler<ModuleMetadata> OnModInitialize
+    public sealed class RoundLogicEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IRoundLogicEvents
     {
-        add => manager.OnModInitialize.Add(metadata, value);
-        remove => manager.OnModInitialize.Remove(metadata, value);
+        public event EventHandler<RoundLogic> LevelLoadFinish 
+        {
+            add => manager.RoundLogicLevelLoadFinish.Add(metadata, value);
+            remove => manager.RoundLogicLevelLoadFinish.Remove(metadata, value);           
+        }
     }
 
-    public event EventHandler<BeforeModInstantiationEventArgs> OnBeforeModInstantiation
+    public sealed class LevelEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.ILevelEvents
     {
-        add => manager.OnBeforeModInstantiation.Add(metadata, value);
-        remove => manager.OnBeforeModInstantiation.Remove(metadata, value);
+        public event EventHandler<Level> LevelEntered
+        {
+            add => manager.LevelEntered.Add(metadata, value);
+            remove => manager.LevelEntered.Remove(metadata, value);           
+        }
+
+        public event EventHandler<Level> LevelExited
+        {
+            add => manager.LevelExited.Add(metadata, value);
+            remove => manager.LevelExited.Remove(metadata, value);           
+        }
     }
 
-    public event EventHandler<LoadState> OnModLoadStateFinished
+    public sealed class GameEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IGameEvents
     {
-        add => manager.OnModLoadStateFinished.Add(metadata, value);
-        remove => manager.OnModLoadStateFinished.Remove(metadata, value);
+        public event EventHandler<TFGame> GameInitialized
+        {
+            add => manager.GameInitialized.Add(metadata, value);
+            remove => manager.GameInitialized.Remove(metadata, value);           
+        }
+
+        public event EventHandler<MenuLoadedEventArgs> GameLoaded
+        {
+            add => manager.GameLoaded.Add(metadata, value);
+            remove => manager.GameLoaded.Remove(metadata, value);           
+        }
     }
 
-    public event EventHandler<RoundLogic> OnLevelLoaded
+    public sealed class MapSceneEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IMapSceneEvents
     {
-        add => manager.OnLevelLoaded.Add(metadata, value);
-        remove => manager.OnLevelLoaded.Remove(metadata, value);
+        public event EventHandler<LevelSetsCreatedEventArgs> LevelSetsCreated
+        {
+            add => manager.MapSceneLevelSetsCreated.Add(metadata, value);
+            remove => manager.MapSceneLevelSetsCreated.Remove(metadata, value);           
+        }
     }
 
-    public event EventHandler<SlotVariantCreatedEventArgs> OnSlotVariantCreated
+    public sealed class SaveDataEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.ISaveDataEvents
     {
-        add => manager.OnSlotVariantCreated.Add(metadata, value);
-        remove => manager.OnSlotVariantCreated.Remove(metadata, value);
+        public event EventHandler<BeforeSaveSaveDataEventArgs> BeforeSave
+        {
+            add => manager.BeforeSaveData.Add(metadata, value);
+            remove => manager.BeforeSaveData.Remove(metadata, value);
+        }
+
+        public event EventHandler<AfterSaveSaveDataEventArgs> AfterSave
+        {
+            add => manager.AfterSaveData.Add(metadata, value);
+            remove => manager.AfterSaveData.Remove(metadata, value);
+        }
     }
 
-    public event EventHandler<MenuLoadedEventArgs> OnMenuLoaded
+    public sealed class SessionEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.ISessionEvents
     {
-        add => manager.OnMenuLoaded.Add(metadata, value);
-        remove => manager.OnMenuLoaded.Remove(metadata, value);
+        public event EventHandler<SessionQuitEventArgs> Quit
+        {
+            add => manager.SessionQuit.Add(metadata, value);
+            remove => manager.SessionQuit.Remove(metadata, value);
+        }
+
     }
 
-    public event EventHandler<Level> OnLevelExited 
+    public sealed class GameDataEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IGameDataEvents
     {
-        add => manager.OnLevelExited.Add(metadata, value);
-        remove => manager.OnLevelExited.Remove(metadata, value);
+        public event EventHandler<DataLoadEventArgs> BeforeLoad
+        {
+            add => manager.OnBeforeDataLoad.Add(metadata, value);
+            remove => manager.OnBeforeDataLoad.Remove(metadata, value);
+        }
+
+        public event EventHandler<DataLoadEventArgs> AfterLoad
+        {
+            add => manager.OnAfterDataLoad.Add(metadata, value);
+            remove => manager.OnAfterDataLoad.Remove(metadata, value);
+        }
     }
 
-    public event EventHandler<TFGame> OnGameInitialized
-    {
-        add => manager.OnGameInitialized.Add(metadata, value);
-        remove => manager.OnGameInitialized.Remove(metadata, value);
-    }
-
-    public event EventHandler<DataLoadEventArgs> OnBeforeDataLoad
-    {
-        add => manager.OnBeforeDataLoad.Add(metadata, value);
-        remove => manager.OnBeforeDataLoad.Remove(metadata, value);
-    }
-
-    public event EventHandler<DataLoadEventArgs> OnAfterDataLoad
-    {
-        add => manager.OnAfterDataLoad.Add(metadata, value);
-        remove => manager.OnAfterDataLoad.Remove(metadata, value);
-    }
-
-    public event EventHandler<SessionQuitEventArgs> OnSessionQuit
-    {
-        add => manager.OnSessionQuit.Add(metadata, value);
-        remove => manager.OnSessionQuit.Remove(metadata, value);
-    }
-    public event EventHandler<LevelSetsCreatedEventArgs> OnLevelSetsCreated
-    {
-        add => manager.OnLevelSetsCreated.Add(metadata, value);
-        remove => manager.OnLevelSetsCreated.Remove(metadata, value);
-    }
+    public IModEvents.IFortRiseModEvents Mods { get; } = new FortRiseModEvents(metadata, manager);
+    public IModEvents.IMatchVariantsEvents MatchVariants { get; } = new MatchVariantEvents(metadata, manager);
+    public IModEvents.IRoundLogicEvents RoundLogic { get; } = new RoundLogicEvents(metadata, manager);
+    public IModEvents.ILevelEvents Level { get; } = new LevelEvents(metadata, manager);
+    public IModEvents.IGameEvents Game { get; } = new GameEvents(metadata, manager);
+    public IModEvents.IMapSceneEvents MapScene { get; } = new MapSceneEvents(metadata, manager);
+    public IModEvents.ISaveDataEvents SaveData { get; } = new SaveDataEvents(metadata, manager);
+    public IModEvents.ISessionEvents Session { get; } = new SessionEvents(metadata, manager);
+    public IModEvents.IGameDataEvents GameData { get; } = new GameDataEvents(metadata, manager);
 }

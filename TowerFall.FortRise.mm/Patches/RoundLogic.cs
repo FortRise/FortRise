@@ -35,7 +35,7 @@ namespace TowerFall
                 SessionStats.RoundsPlayed++;
             }
 
-            ModEventsManager.Instance.OnLevelLoaded.Raise(this, this);
+            ModEventsManager.Instance.RoundLogicLevelLoadFinish.Raise(this, this);
         }
 
         [MonoModReplace]
@@ -48,7 +48,7 @@ namespace TowerFall
                 SessionStats.RoundsPlayed++;
             }
 
-            ModEventsManager.Instance.OnLevelLoaded.Raise(this, this);
+            ModEventsManager.Instance.RoundLogicLevelLoadFinish.Raise(this, this);
         }
     }
 }
