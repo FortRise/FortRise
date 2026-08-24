@@ -83,12 +83,17 @@ namespace TowerFall
 
         public void LoadEntity(XmlElement e) 
         {
-            var name = e.Name;
-            if (RiseCore.LevelEntityLoader.TryGetValue(name, out var val))
+            if (EntityRegistry.EntityEntries.TryGetValue(e.Name, out var entity))
             {
-                Add(val(e, e.Position(), e.Nodes()));
+                if (entity.Configuration.IsHazard && Session.MatchSettings.Variants.NoHazards)
+                {
+                    return;
+                }
+
+                Add(entity.Configuration.Loader(e, e.Position(), e.Nodes()));
                 return;
             }
+
             orig_LoadEntity(e);
         }
 
