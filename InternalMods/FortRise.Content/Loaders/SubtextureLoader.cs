@@ -56,8 +56,9 @@ internal static class SubtextureLoader
 
     public static ISubtextureEntry? LoadSubtexture(IModContent content, IModRegistry registry, XmlElement xmlElement, SubtextureAtlasDestination dest, IResourceInfo? res)
     {
-        string name = xmlElement.Attr("name");
         string? path = xmlElement.Attr("path", null);
+        string name = xmlElement.Attr("name", null)
+            ?? Guid.CreateVersion7().ToString() + "__" + path;
 
         if (path is null)
         {

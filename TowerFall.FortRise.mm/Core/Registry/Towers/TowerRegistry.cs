@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using TowerFall;
 
 namespace FortRise;
@@ -11,91 +12,55 @@ public static class TowerRegistry
     public static Dictionary<string, ITrialsTowerEntry> TrialTowers = [];
     public static Dictionary<string, IVersusTowerEntry> VersusTowers = [];
 
+    public static Dictionary<string, ITowerTypeEntry> TowerTypes = [];
+    public static Dictionary<MapButton.TowerType, ITowerTypeEntry> IDToTowerTypes = [];
+    private static Dictionary<string, ITowerTypeEntry> vanillaCache = new();
 
     public static List<string> DarkWorldLevelSets = new();
     public static List<string> QuestLevelSets = new();
     public static List<string> VersusLevelSets = new();
     public static List<string> TrialsLevelSet = new();
 
-
-    [Obsolete("Use GameData.DarkWorldTowers")]
-    public static DarkWorldTowerData DarkWorldGet(string levelSet, int levelID) 
+    public static void AddTowerType(string id, ITowerTypeEntry entry)
     {
-        return GameData.DarkWorldTowers[levelID];
+        TowerTypes[id] = entry;
+        IDToTowerTypes[entry.TowerType] = entry;
     }
 
-    [Obsolete("Use GameData.DarkWorldTowers")]
-    public static bool TryDarkWorldGet(string levelSet, int levelID, out DarkWorldTowerData data)
+    public static ITowerTypeEntry GetTowerType(string name)
     {
-        data = null;
-        try
+        if (TowerTypes.TryGetValue(name, out ITowerTypeEntry entry))
         {
-            data = GameData.DarkWorldTowers[levelID];
-            return true;
-        }
-        catch (IndexOutOfRangeException)
-        {
-            return false;
-        }
-    }
-
-    [Obsolete("Use GameData.DarkWorldTowers")]
-    public static bool TryDarkWorldGet(string levelSet, string levelID, out DarkWorldTowerData data) 
-    {
-        if (DarkWorldTowers.TryGetValue(levelID, out var arr)) 
-        {
-            data = arr.DarkWorldTowerData;
-            return true;
+            return entry;
         }
 
-        data = null;
-        return false;
+        return CreateVanillaEntry(name);
     }
 
-    [Obsolete("Use GameData.DarkWorldTowers")]
-    public static DarkWorldTowerData DarkWorldGet(string levelSet, string levelID) 
+    private static ITowerTypeEntry CreateVanillaEntry(string id)
     {
-        if (DarkWorldTowers.TryGetValue(levelID, out var arr)) 
+        ref var cache = ref CollectionsMarshal.GetValueRefOrAddDefault(vanillaCache, id, out bool exists);
+        if (exists)
         {
-            return arr.DarkWorldTowerData;
+            return cache!;
         }
 
-        return null;
-    }
+        if (!Enum.IsDefined(typeof(MapButton.TowerType), id))
+        {
+            return null;
+        }
 
-    [Obsolete("Use GameData.QuestLevels")]
-    public static QuestLevelData QuestGet(string levelSet, int levelID) 
-    {
-        return GameData.QuestLevels[levelID];
-    }
 
-    [Obsolete("Use GameData.QuestLevels")]
-    public static QuestLevelData QuestGet(string levelSet, string levelID)
-    {
-        return QuestTowers[levelID].QuestLevelData;
-    }
+        var parsed = Enum.Parse<MapButton.TowerType>(id);
 
-    [Obsolete("Use GameData.VersusTowers")]
-    public static VersusTowerData VersusGet(string levelSet, int levelID) => GameData.VersusTowers[levelID];
 
-    [Obsolete("Use GameData.VersusTowers")]
-    public static VersusTowerData VersusGet(string levelSet, string levelID) => VersusTowers[levelID].VersusTowerData;
+        cache = new TowerTypeEntry(id, parsed, new() 
+        {
+            BlockTexture = null,
+            SmallBlockTexture = null,
+            TowerSound = null
+        });
 
-    [Obsolete("Use GameData.TrialsLevels")]
-    public static TrialsLevelData TrialsGet(string levelSet, int x, string levelID)
-    {
-        return TrialTowers[levelID].TrialsLevelData;
-    }
-
-    [Obsolete("Use GameData.TrialsLevels")]
-    public static TrialsLevelData[] TrialsGet(string levelSet, int levelID)
-    {
-        throw new NotSupportedException("Getting the TrialsLevelData with only a levelID is not supported anymore.");
-    }
-
-    [Obsolete("Use GameData.TrialsLevels")]
-    public static TrialsLevelData TrialsGet(string levelSet, int x, int y) 
-    {
-        return GameData.TrialsLevels[x, y];
+        return cache;
     }
 }

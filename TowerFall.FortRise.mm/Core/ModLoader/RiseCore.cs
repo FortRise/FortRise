@@ -182,7 +182,6 @@ public static partial class RiseCore
 
         CustomMenuStateRegistry.LoadAllBuiltinMenuState();
 
-        AtlasReader.Initialize();
         // load the internals first
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Internals"));
         ModuleManager.LoadModsFromDirectory(Path.Combine(GameRootPath, "Mods"));

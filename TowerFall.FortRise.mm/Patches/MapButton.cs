@@ -293,4 +293,134 @@ public class MapButton : TowerFall.MapButton
         };
         Add(tween);
     }
+
+    [MonoModReplace]
+    public static Color GetTint(TowerType type)
+    {
+        switch (type)
+        {
+            case TowerType.Secret:
+                return SpecialTint;
+            case TowerType.Ascension:
+                return SuperSpecialTint;
+            case TowerType.Dark:
+                return DarkTint;
+            case TowerType.Cataclysm:
+                return Color.White;
+            default:
+                if (TowerRegistry.IDToTowerTypes.TryGetValue(type, out var v))
+                {
+                    return v.Configuration.Tint;
+                }
+                return Color.White;
+        }
+    }
+
+    [MonoModReplace]
+    public static void PlayTowerSound(TowerType type)
+    {
+        switch (type)
+        {
+            case TowerType.Secret:
+                Sounds.ui_clickSpecial.Play(160f, 1f);
+                break;
+            case TowerType.Ascension:
+                Sounds.ui_clickSpecialAsc.Play(160f, 1f);
+                break;
+            case TowerType.Dark:
+                Sounds.ui_mapDark.Play(160f, 1f);
+                break;
+            case TowerType.Cataclysm:
+                Sounds.ui_mapCataclysm.Play(160f, 1f);
+                break;
+            case TowerType.Random:
+                Sounds.ui_moveRandMap.Play(160f, 1f);
+                break;
+            default:
+                if (TowerRegistry.IDToTowerTypes.TryGetValue(type, out var v))
+                {
+                    v.Configuration.TowerSound.BaseSFX.Play(160f, 1f);
+                    break;
+                }
+                Sounds.ui_move2.Play(160f, 1f);
+                break;
+        }
+    }
+    
+    [MonoModReplace]
+    public static Subtexture GetBlockTexture(TowerType type)
+    {
+        switch (type)
+        {
+            case TowerType.Secret:
+                return TFGame.MenuAtlas["specialLevelBlock"];
+            case TowerType.Ascension:
+                return TFGame.MenuAtlas["superSpecialLevelBlock"];
+            case TowerType.Dark:
+                return TFGame.MenuAtlas["darkLevelBlock"];
+            case TowerType.Cataclysm:
+                return TFGame.MenuAtlas["vortexLevelBlock"];
+            case TowerType.Random:
+                return TFGame.MenuAtlas["randomLevelBlock"];
+            default:
+                if (TowerRegistry.IDToTowerTypes.TryGetValue(type, out var v))
+                {
+                    return v.Configuration.BlockTexture.Subtexture;
+                }
+                return TFGame.MenuAtlas["levelBlock"];
+        }
+    }
+
+    [MonoModReplace]
+    public static Subtexture GetSmallBlockTexture(TowerType type)
+    {
+        switch (type)
+        {
+            case TowerType.Secret:
+                return TFGame.MenuAtlas["smallSpecialLevelBlock"];
+            case TowerType.Ascension:
+                return TFGame.MenuAtlas["smallSuperSpecialLevelBlock"];
+            case TowerType.Dark:
+                return TFGame.MenuAtlas["smallDarkLevelBlock"];
+            case TowerType.Cataclysm:
+                return TFGame.MenuAtlas["smallVortexLevelBlock"];
+            default:
+                if (TowerRegistry.IDToTowerTypes.TryGetValue(type, out var v))
+                {
+                    return v.Configuration.SmallBlockTexture.Subtexture;
+                }
+
+                return TFGame.MenuAtlas["smallLevelBlock"];
+        }
+    }
+
+
+    [MonoModReplace]
+    public static Subtexture GetNumeralTexture(TowerType type, int numeral)
+    {
+        var t = TowerRegistry.IDToTowerTypes[type];
+        if (t.Configuration.NumeralTexture is not null)
+        {
+            return t.Configuration.NumeralTexture(numeral);
+        }
+
+        switch (numeral)
+        {
+            case 1:
+                if (type == TowerType.Cataclysm)
+                {
+                    return TFGame.MenuAtlas["towerIcons/numerals/2inverted"];
+                }
+
+                return TFGame.MenuAtlas["towerIcons/numerals/2"];
+            case 2:
+                if (type == TowerType.Cataclysm)
+                {
+                    return TFGame.MenuAtlas["towerIcons/numerals/3inverted"];
+                }
+                return TFGame.MenuAtlas["towerIcons/numerals/3"];
+            default:
+                return null;
+        }
+    }
 }

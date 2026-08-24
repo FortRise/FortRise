@@ -115,11 +115,15 @@ internal static class ThemeLoader
             musicName = music.Name;
         }
 
+        var towerTypeID = xmlTheme.ChildText("TowerType", "Normal").Trim();
+        var towerType = registry.Towers.GetTowerTypeWithRelative(towerTypeID)
+            ?? throw new Exception($"Cannot find TowerType: {towerTypeID}");
+
         var themeLoaded = registry.Themes.RegisterTheme(id, new()
         {
             Name = xmlTheme.ChildText("Name").Trim().ToUpperInvariant(),
             Icon = subIcon,
-            TowerType = xmlTheme.ChildEnum("TowerType", MapButton.TowerType.Normal),
+            TowerType = towerType.TowerType,
             MapPosition = xmlTheme!["MapPosition"].Position(),
             Music = musicName,
             DarknessColor = xmlTheme.ChildHexColor("DarknessColor", Color.Black),

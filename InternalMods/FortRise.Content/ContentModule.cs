@@ -62,6 +62,7 @@ internal sealed class ContentModule : Mod
         MusicLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("music"));
         ArcherLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("archerData"));
         TilesetLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("tilesetData"));
+        TowerTypeLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("towerTypeData"));
         ThemeLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("themeData"));
         MapRendererLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("mapData"));
         BackgroundLoader.Load(registry, content, contentConfiguration.Loaders.GetOrNull("bgData"));
@@ -120,6 +121,10 @@ internal sealed class ContentModule : Mod
             ["tilesetData"] = new Loader() 
             {
                 Path = ["Content/Atlas/GameData/tilesetData.xml"]
+            },
+            ["towerTypeData"] = new Loader() 
+            {
+                Path = ["Content/Atlas/GameData/towerTypeData.xml"]
             },
             ["themeData"] = new Loader() 
             {

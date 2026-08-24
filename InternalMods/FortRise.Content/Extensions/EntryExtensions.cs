@@ -1,3 +1,4 @@
+using System;
 using System.Xml;
 using Monocle;
 
@@ -83,6 +84,16 @@ public static class EntryExtensions
         {
             var m = music.GetMusic(ResolveID(id));
             m ??= music.GetMusic(id);
+            return m;
+        }
+    }
+
+    extension(IModTowers towers)
+    {
+        public ITowerTypeEntry? GetTowerTypeWithRelative(string id)
+        {
+            var m = towers.GetTowerType(ResolveID(id));
+            m ??= towers.GetTowerType(id);
             return m;
         }
     }

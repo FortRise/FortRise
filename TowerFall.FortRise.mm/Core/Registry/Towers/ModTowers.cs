@@ -8,6 +8,19 @@ namespace FortRise;
 
 public interface IModTowers
 {
+    IReadOnlyDictionary<string, IDarkWorldTowerEntry> RegisteredDarkWorldTowers { get; }
+    IReadOnlyDictionary<string, IQuestTowerEntry> RegisteredQuestTowers { get; }
+    IReadOnlyDictionary<string, ITrialsTowerEntry> RegisteredTrialTowers  { get; }
+    IReadOnlyDictionary<string, IVersusTowerEntry> RegisteredVersusTowers { get; }
+    IReadOnlyDictionary<string, ITowerTypeEntry> RegisteredTowerTypes { get; }
+
+    IReadOnlyCollection<string> RegisteredDarkWorldTowerSets { get; }
+    IReadOnlyCollection<string> RegisteredQuestTowerSets { get; }
+    IReadOnlyCollection<string> RegisteredVersusTowerSets { get; }
+    IReadOnlyCollection<string> RegisteredTrialsTowerSets { get; }
+
+    ITowerTypeEntry RegisterTowerType(string id, in TowerTypeConfiguration configuration);
+
     IVersusTowerEntry RegisterVersusTower(string id, in VersusTowerConfiguration configuration);
 
     IVersusTowerEntry RegisterVersusTower(string id, string levelSet, in VersusTowerConfiguration configuration);
@@ -24,6 +37,7 @@ public interface IModTowers
 
     ITrialsTowerEntry RegisterTrialTower(string id, string levelSet, in TrialsTowerConfiguration configuration);
 
+    ITowerTypeEntry? GetTowerType(string name);
     IVersusTowerEntry? GetVersusTower(string id);
     IQuestTowerEntry? GetQuestTower(string id);
     IDarkWorldTowerEntry? GetDarkWorldTower(string id);
@@ -38,6 +52,18 @@ internal sealed class ModTowers : IModTowers
     private readonly RegistryQueue<IDarkWorldTowerEntry> darkWorldTowerQueue;
     private readonly PreparedRegistryQueue<ITrialsTowerEntry> trialTowerQueue;
 
+    public IReadOnlyDictionary<string, IDarkWorldTowerEntry> RegisteredDarkWorldTowers => TowerRegistry.DarkWorldTowers;
+    public IReadOnlyDictionary<string, IQuestTowerEntry> RegisteredQuestTowers => TowerRegistry.QuestTowers;
+    public IReadOnlyDictionary<string, ITrialsTowerEntry> RegisteredTrialTowers => TowerRegistry.TrialTowers;
+    public IReadOnlyDictionary<string, IVersusTowerEntry> RegisteredVersusTowers => TowerRegistry.VersusTowers;
+
+    public IReadOnlyCollection<string> RegisteredDarkWorldTowerSets => TowerRegistry.DarkWorldLevelSets;
+    public IReadOnlyCollection<string> RegisteredQuestTowerSets => TowerRegistry.QuestLevelSets;
+    public IReadOnlyCollection<string> RegisteredVersusTowerSets => TowerRegistry.VersusLevelSets;
+    public IReadOnlyCollection<string> RegisteredTrialsTowerSets => TowerRegistry.TrialsLevelSet;
+
+    public IReadOnlyDictionary<string, ITowerTypeEntry> RegisteredTowerTypes => TowerRegistry.TowerTypes;
+
     internal ModTowers(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
@@ -45,6 +71,16 @@ internal sealed class ModTowers : IModTowers
         questTowerQueue = manager.CreatePrepareQueue<IQuestTowerEntry>(QuestTowerPrepare, QuestTowerInvoke);
         darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(DarkWorldTowerInvoke);
         trialTowerQueue = manager.CreatePrepareQueue<ITrialsTowerEntry>(TrialTowerPrepare, TrialTowerInvoke);
+    }
+
+
+    public ITowerTypeEntry RegisterTowerType(string id, in TowerTypeConfiguration configuration)
+    {
+        string name = $"{metadata.Name}/{id}";
+
+        ITowerTypeEntry entry = new TowerTypeEntry(name, EnumPool.Obtain<MapButton.TowerType>(), configuration);
+        TowerRegistry.AddTowerType(name, entry);
+        return entry;
     }
 
     public IVersusTowerEntry RegisterVersusTower(string id, in VersusTowerConfiguration configuration)
@@ -382,5 +418,10 @@ internal sealed class ModTowers : IModTowers
     {
         TowerRegistry.TrialTowers.TryGetValue(id, out ITrialsTowerEntry? entry);
         return entry;
+    }
+
+    public ITowerTypeEntry? GetTowerType(string name)
+    {
+        return TowerRegistry.GetTowerType(name);
     }
 }
