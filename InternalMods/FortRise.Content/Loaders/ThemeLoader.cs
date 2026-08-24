@@ -66,7 +66,7 @@ internal static class ThemeLoader
             }
             else
             {
-                return xml.ChildText("theme").Trim();
+                return xml.ChildTextWithRelative("theme", "SacredGround").Trim();
             }
         }
         

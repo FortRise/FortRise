@@ -126,8 +126,6 @@ public static class EntryExtensions
             {
                 return id.Replace("@", $"{ContentModule.CurrentModMetadata.Name}/");
             }
-
-            return $"{ContentModule.CurrentModMetadata.Name}/{id}";
         }
         return id;
     }
