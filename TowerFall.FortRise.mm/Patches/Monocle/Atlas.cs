@@ -145,34 +145,6 @@ public static class AtlasExt
         return atlas;
     }
 
-    public static patch_Atlas CreateAtlas(string xmlPath, string imagePath)
-    {
-        using var rootXmlStream = ModIO.OpenRead(xmlPath);
-        using var rootImageStream = ModIO.OpenRead(imagePath);
-        return AtlasExt.CreateAtlas(rootXmlStream, rootImageStream);
-    }
-
-    public static patch_Atlas CreateAtlas(Stream xmlStream, Stream imageStream)
-    {
-        patch_Atlas atlas = AtlasReader.Read(xmlStream, ".xml");
-        atlas.LoadStream(imageStream);
-        return atlas;
-    }
-
-    public static patch_Atlas CreateAtlas(Stream xmlStream, Stream imageStream, string ext)
-    {
-        patch_Atlas atlas = AtlasReader.Read(xmlStream, ext);
-        atlas.LoadStream(imageStream);
-        return atlas;
-    }
-
-    public static patch_Atlas CreateAtlasJson(Stream jsonStream, Stream imageStream)
-    {
-        patch_Atlas atlas = AtlasReader.Read(jsonStream, ".json");
-        atlas.LoadStream(imageStream);
-        return atlas;
-    }
-
     internal static HashSet<string> GetAllInjectedAtlas(this Atlas atlas)
     {
         return ((patch_Atlas)atlas).injectedAtlas;
