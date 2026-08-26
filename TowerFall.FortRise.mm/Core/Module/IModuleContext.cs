@@ -13,5 +13,6 @@ public interface IModuleContext
     public IModStorage Storage { get; init; }
     public IModEnvironment Environment { get; init; }
     public ILogger Logger { get; init; }
+    public INotification Notification { get; init; }
     public IHarmony Harmony { get; init; }
 }

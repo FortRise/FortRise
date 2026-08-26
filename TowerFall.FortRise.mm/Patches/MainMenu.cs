@@ -18,7 +18,7 @@ namespace TowerFall
     {
         private FortRise.Mod currentModule;
 
-        public FortRise.Mod CurrentModule 
+        public FortRise.Mod CurrentModule
         {
             get => currentModule;
             set => currentModule = value;
@@ -234,9 +234,9 @@ namespace TowerFall
                             moveXDeadzone.State = $"{Math.Round(xGamepadInput.Config.MoveXDeadzone * 100)}";
                             moveXDeadzone.CanLeft = xGamepadInput.Config.MoveXDeadzone > 0;
                             moveXDeadzone.CanRight = xGamepadInput.Config.MoveXDeadzone < 1f;
-                        }, 
-                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) - 0.1M), 
-                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) + 0.1M), 
+                        },
+                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) - 0.1M),
+                        () => xGamepadInput.Config.MoveXDeadzone = (float)(((decimal)xGamepadInput.Config.MoveXDeadzone) + 0.1M),
                         () => false
                     );
                     buttons.Add(moveXDeadzone);
@@ -248,9 +248,9 @@ namespace TowerFall
                             moveYDeadzone.State = $"{Math.Round(xGamepadInput.Config.MoveYDeadzone * 100)}";
                             moveYDeadzone.CanLeft = xGamepadInput.Config.MoveYDeadzone > 0;
                             moveYDeadzone.CanRight = xGamepadInput.Config.MoveYDeadzone < 1f;
-                        }, 
-                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) - 0.1M), 
-                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) + 0.1M), 
+                        },
+                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) - 0.1M),
+                        () => xGamepadInput.Config.MoveYDeadzone = (float)(((decimal)xGamepadInput.Config.MoveYDeadzone) + 0.1M),
                         () => false
                     );
                     buttons.Add(moveYDeadzone);
@@ -447,7 +447,7 @@ namespace TowerFall
                         }
                     });
 
-                    buttonLates.Add(updateButton);               
+                    buttonLates.Add(updateButton);
                 }
 
                 if (selectedMod.Update is {} update)
@@ -554,7 +554,7 @@ namespace TowerFall
             }
 
             Add(buttons);
-            
+
             float lastY = buttons.Count > 0 ? buttons.Max(b => b.TweenTo.Y) : 0f;
             MaxUICameraY = Math.Max(num, Math.Max(0f, lastY - 120f));
 
@@ -657,7 +657,7 @@ namespace TowerFall
                 workshopButton.LeftItem = archivesButton;
                 workshopButton.UpItem = coOpButton;
             }
-            ToStartSelected = OldState switch 
+            ToStartSelected = OldState switch
             {
                 MenuState.Options => optionsButton,
                 MenuState.Archives => archivesButton,
@@ -711,25 +711,7 @@ namespace TowerFall
         public override void Render()
         {
             orig_Render();
-            if (State == MenuState.PressStart)
-            {
-                if (!string.IsNullOrEmpty(RiseCore.UpdateChecks.UpdateMessage))
-                {
-                    Draw.SpriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.AlphaBlend,
-                        SamplerState.PointClamp,
-                        DepthStencilState.None,
-                        RasterizerState.CullNone
-                    );
-
-                    Draw.OutlineTextJustify(TFGame.Font, RiseCore.UpdateChecks.UpdateMessage, new Vector2(4, 225), Color.Gray, Color.Black, 
-                        new Vector2(0, 0.5f));
-
-                    Draw.SpriteBatch.End();
-                }
-            }
-            else if (State == MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
+            if (State == MenuState.Main && (RiseCore.UpdateChecks.HasUpdates.Count > 0 || RiseCore.UpdateChecks.FortRiseUpdateAvailable))
             {
                 Draw.SpriteBatch.Begin(
                     SpriteSortMode.Deferred,
@@ -761,13 +743,13 @@ namespace TowerFall
             var archivesGlobalStatsPage = new ArchivesGlobalStatsPage();
 
             archivesController.SetPages([
-                archivesStatsPage, archivesSessionPage, archivesDeathsPage, archivesAwardsPage, 
-                archivesQuestPage, archivesDarkWorldPage, archivesTrialsPage, archivesGlobalStatsPage, 
+                archivesStatsPage, archivesSessionPage, archivesDeathsPage, archivesAwardsPage,
+                archivesQuestPage, archivesDarkWorldPage, archivesTrialsPage, archivesGlobalStatsPage,
                 archivesTipsPage, archivesAscensionPage]);
 
             MenuItem[] items = [
-                archivesController, archivesStatsPage, archivesSessionPage, archivesDeathsPage, 
-                archivesAwardsPage, archivesGlobalStatsPage, archivesQuestPage, archivesDarkWorldPage, 
+                archivesController, archivesStatsPage, archivesSessionPage, archivesDeathsPage,
+                archivesAwardsPage, archivesGlobalStatsPage, archivesQuestPage, archivesDarkWorldPage,
                 archivesTrialsPage, archivesTipsPage,
                 archivesAscensionPage
             ];
@@ -860,7 +842,7 @@ namespace TowerFall
                     Music.Play(FortRiseModule.Settings.MusicEnableMainMenu);
                     return;
                 }
-                catch 
+                catch
                 {
                     // No-op
                 }
@@ -1030,7 +1012,7 @@ namespace TowerFall
     }
 }
 
-namespace MonoMod 
+namespace MonoMod
 {
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuCtor))]
     public class PatchMainMenuCtor : Attribute {}
@@ -1041,7 +1023,7 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchMainMenuUpdate))]
     public class PatchMainMenuUpdate : Attribute {}
 
-    internal static partial class MonoModRules 
+    internal static partial class MonoModRules
     {
         public static void PatchMainMenuUpdate(ILContext ctx, CustomAttribute attrib)
         {
@@ -1050,7 +1032,7 @@ namespace MonoMod
             var cursor = new ILCursor(ctx);
 
             ILLabel label = null;
-            cursor.GotoNext(MoveType.Before, 
+            cursor.GotoNext(MoveType.Before,
                 (instr) => instr.MatchLdarg0(),
                 (instr) => instr.MatchLdfld("TowerFall.MainMenu", "CanAct"),
                 (instr) => instr.MatchBrfalse(out label)
@@ -1061,18 +1043,18 @@ namespace MonoMod
             cursor.Emit(OpCodes.Brtrue, label);
         }
 
-        public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib) 
+        public static void PatchMainMenuCreateOptions(ILContext ctx, CustomAttribute attrib)
         {
             var Internal_CreateOptions = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void Internal_CreateOptions(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
             var InterceptOptionsStart = ctx.Module.GetType("TowerFall.MainMenu").FindMethod("System.Void ChangeOptionsStart(System.Collections.Generic.List`1<TowerFall.OptionsButton>)");
             var cursor = new ILCursor(ctx);
 
-            cursor.GotoNext(MoveType.After, 
+            cursor.GotoNext(MoveType.After,
                 instr => instr.MatchCallOrCallvirt("System.Collections.Generic.List`1<TowerFall.OptionsButton>", "Add"));
 
             if (IsWindows)
             {
-                cursor.Emit(OpCodes.Ldloc_1);               
+                cursor.Emit(OpCodes.Ldloc_1);
             }
             else
             {
@@ -1081,7 +1063,7 @@ namespace MonoMod
             cursor.Emit(OpCodes.Call, Internal_CreateOptions);
         }
 
-        public static void PatchMainMenuCtor(ILContext ctx, CustomAttribute attrib) 
+        public static void PatchMainMenuCtor(ILContext ctx, CustomAttribute attrib)
         {
             var cursor = new ILCursor(ctx);
 

@@ -42,6 +42,7 @@ public static partial class RiseCore
 
     internal static Mod FortRiseModule;
     internal static ModuleManager ModuleManager;
+    internal static NotificationManager NotificationManager;
     internal static readonly HashAlgorithm ChecksumHasher = XXHash64.Create();
 
     /// <summary>
@@ -166,6 +167,7 @@ public static partial class RiseCore
         }
 
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
+        NotificationManager = new();
 
         ModuleManager.DisabledModsPath = Path.Combine(modDirectory, "disabledMods.json");
         ModuleManager.DisabledMods = ReadBlacklistedMods(ModuleManager.DisabledModsPath);

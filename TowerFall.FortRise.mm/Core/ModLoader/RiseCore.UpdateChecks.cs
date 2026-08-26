@@ -17,7 +17,6 @@ public partial class RiseCore
         internal static JsonSerializerOptions UpdaterInfoOptions = new();
         private const string API_REPO_REF_LINK = "https://api.github.com/repos/FortRise/FortRise/git/refs/tags";
         private static string version;
-        internal static string UpdateMessage = "CHECKING FOR AN UPDATE...";
         public static bool FortRiseUpdateAvailable;
         public static HashSet<ModuleMetadata> HasUpdates = new HashSet<ModuleMetadata>();
 
@@ -76,7 +75,7 @@ public partial class RiseCore
             {
                 updaterInfo = [];
             }
-            else 
+            else
             {
                 string jsonInput = File.ReadAllText(updaterListFile);
                 updaterInfo = JsonSerializer.Deserialize<List<UpdaterInfo>>(jsonInput, UpdaterInfoOptions);
@@ -88,7 +87,7 @@ public partial class RiseCore
             {
                 path = metadata.PathZip;
             }
-            else 
+            else
             {
                 path = metadata.PathDirectory;
             }
@@ -118,7 +117,7 @@ public partial class RiseCore
 
         internal static bool ValidateReleaseByte(byte[] data, out SemanticVersion version)
         {
-            try 
+            try
             {
                 using var ms = new MemoryStream(data);
                 using var zip = new ZipArchive(ms);
@@ -151,7 +150,7 @@ public partial class RiseCore
 
         internal static async Task<Result<Github.UpdateRef, string>> CheckFortRiseUpdate()
         {
-            try 
+            try
             {
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
@@ -185,7 +184,7 @@ public partial class RiseCore
             {
                 url = $"https://github.com/Terria-K/FortRise/releases";
             }
-            else 
+            else
             {
                 url = $"https://github.com/Terria-K/FortRise/releases/tag/{version}";
             }
@@ -227,12 +226,12 @@ public partial class RiseCore
         }
 
         public struct UpdaterInfo(
-            string modName, 
-            SemanticVersion version, 
-            SemanticVersion updateVersion, 
+            string modName,
+            SemanticVersion version,
+            SemanticVersion updateVersion,
             SemanticVersion fortriseVersion,
-            string modPath, 
-            string updateModPath, 
+            string modPath,
+            string updateModPath,
             bool isZipped
         )
         {

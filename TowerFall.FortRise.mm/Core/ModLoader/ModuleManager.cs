@@ -653,8 +653,9 @@ internal class ModuleManager
             new ModStorage(metadata),
             environment,
             logger,
-            new LimitedHarmony(new Harmony(metadata.Name))
-        );
+            new NotificationHandler(metadata),
+            new LimitedHarmony(new Harmony(metadata.Name)
+        ));
     }
 
     internal void Initialize()

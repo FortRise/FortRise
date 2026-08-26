@@ -11,6 +11,7 @@ internal sealed class ModuleContext(
     IModStorage storage, 
     IModEnvironment environment, 
     ILogger logger, 
+    INotification notification,
     IHarmony harmony) : IModuleContext
 {
     public IModRegistry Registry { get; init; } = registry;
@@ -21,4 +22,5 @@ internal sealed class ModuleContext(
     public IModEnvironment Environment { get; init; } = environment;
     public ILogger Logger { get; init; } = logger;
     public IHarmony Harmony { get; init; } = harmony;
+    public INotification Notification { get; init; } = notification;
 }

@@ -23,7 +23,7 @@ using SDL3;
 
 namespace TowerFall
 {
-    internal static class NativeMethods 
+    internal static class NativeMethods
     {
         [DllImport("libc", SetLastError = true)]
         public static extern int mprotect(IntPtr ptr, nuint len, int prot);
@@ -55,7 +55,7 @@ namespace TowerFall
         public extern void orig_ctor(bool noIntro);
 
         [MonoModConstructor]
-        public void ctor(bool noIntro) 
+        public void ctor(bool noIntro)
         {
             panel = new ErrorPanel();
             orig_ctor(noIntro || RiseCore.NoIntro);
@@ -63,14 +63,14 @@ namespace TowerFall
 
         [MonoModReplace]
         [STAThread]
-        public static void Main(string[] args) 
+        public static void Main(string[] args)
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
             bool parseVersion = false;
-            foreach (var arg in args) 
+            foreach (var arg in args)
             {
                 if (parseVersion)
                 {
@@ -88,10 +88,10 @@ namespace TowerFall
                     parseVersion = true;
                 }
             }
-            
+
             RiseCore.Start();
             RiseCore.ParseArgs(args);
-            
+
             WriteLineToLoadLog("Initializing Steam...");
             if (!TryInit())
             {
@@ -99,7 +99,7 @@ namespace TowerFall
             }
 
             // execheap
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 const int PROT_READ = 1, PROT_WRITE = 2, PROT_EXEC = 4;
 
@@ -120,11 +120,11 @@ namespace TowerFall
                 Marshal.FreeHGlobal(heapAlloc);
             }
 
-            try 
+            try
             {
                 InnerMain(args);
 
-                if (RiseCore.WillRestart) 
+                if (RiseCore.WillRestart)
                 {
                     string fortRisePath = Path.Combine(AppContext.BaseDirectory, "FortRise");
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -134,7 +134,7 @@ namespace TowerFall
                     RiseCore.RunProcess(fortRisePath, args);
                 }
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 Logger.Error(e.ToString());
                 Logger.Error(e.StackTrace);
@@ -144,7 +144,7 @@ namespace TowerFall
         [MonoModIfFlag("Steamworks")]
         [MonoModPatch("TryInit")]
         [MonoModOriginalName("TryInit")]
-        public static bool TryInit_Steam() 
+        public static bool TryInit_Steam()
         {
             return SteamClient.Init();
         }
@@ -152,7 +152,7 @@ namespace TowerFall
         [MonoModIfFlag("NoLauncher")]
         [MonoModPatch("TryInit")]
         [MonoModOriginalName("TryInit")]
-        public static bool TryInit_NoLauncher() 
+        public static bool TryInit_NoLauncher()
         {
             return true;
         }
@@ -160,7 +160,7 @@ namespace TowerFall
         [MonoModIgnore]
         public static extern bool TryInit();
 
-        public static void InnerMain(string[] args) 
+        public static void InnerMain(string[] args)
         {
             bool noIntro = false;
             bool loadLog = false;
@@ -231,7 +231,7 @@ namespace TowerFall
             FortRiseModule.FortRiseIcon = FortRiseMenuAtlas["icon/fortrise"];
             FortRiseModule.PresetAddIcon = FortRiseMenuAtlas["icon/presetAdd"];
             FortRiseModule.PresetCustomIcon = FortRiseMenuAtlas["icon/presetCustom"];
-            
+
             foreach (var (k, v) in FortRiseMenuAtlas.SubTextures)
             {
                 MenuAtlas.SubTextures[k] = v;
@@ -252,7 +252,7 @@ namespace TowerFall
 
         protected extern void orig_Initialize();
 
-        protected override void Initialize() 
+        protected override void Initialize()
         {
             Content = new ModContentManager(Services, Directory.GetCurrentDirectory());
             FortRise.RiseCore.Events.Invoke_OnPreInitialize();
@@ -310,7 +310,7 @@ namespace TowerFall
                     Stopwatch watch = Stopwatch.StartNew();
                     Logger.Log("[LOAD] ...Music");
                     TFGame.WriteLineToLoadLog("Loading Music...");
-                    lock (patch_Sounds.SoundLoadLock) 
+                    lock (patch_Sounds.SoundLoadLock)
                     {
                         patch_Music.Initialize();
                     }
@@ -413,7 +413,7 @@ namespace TowerFall
 
 
                     TFGame.GameLoaded = true;
-                    if (TaskHelper.WaitForAll()) 
+                    if (TaskHelper.WaitForAll())
                     {
                         Loader.Message = "WAITING FOR OTHER TASK TO COMPLETE";
                     }
@@ -437,7 +437,7 @@ namespace TowerFall
 
         private static async Task CheckModUpdate()
         {
-            try 
+            try
             {
                 var tasks = new List<Task<Result<bool, string>>>();
                 foreach (var metadata in RiseCore.ModuleManager.InternalModuleMetadatas)
@@ -471,13 +471,13 @@ namespace TowerFall
 
         private static async Task CheckUpdate()
         {
-            try 
+            try
             {
                 var result = await RiseCore.UpdateChecks.CheckFortRiseUpdate();
                 if (!result.Check(out var res, out string err))
                 {
-                    RiseCore.UpdateChecks.UpdateMessage = err.ToUpperInvariant();
                     RiseCore.logger.LogError("Update Error: {error}", err);
+                    NotificationManager.Instance.Send(err, NotificationType.Error, null);
                     return;
                 }
 
@@ -485,7 +485,7 @@ namespace TowerFall
                 int index = url.LastIndexOf('/');
                 if (!SemanticVersion.TryParse(url.AsSpan(index + 1), out SemanticVersion version))
                 {
-                    RiseCore.UpdateChecks.UpdateMessage = "ERROR PARSING THE VERSION NUMBER.";
+                    NotificationManager.Instance.Send("Error while checking for an update.", NotificationType.Error, null);
                     return;
                 }
 
@@ -493,16 +493,14 @@ namespace TowerFall
 
                 if (RiseCore.UpdateChecks.FortRiseUpdateAvailable)
                 {
-                    RiseCore.UpdateChecks.UpdateMessage = "FORTRISE UPDATE IS AVAILABLE!";
+                    NotificationManager.Instance.Send("A new FortRise update is available!", NotificationType.Warning, null);
                     return;
                 }
-
-                RiseCore.UpdateChecks.UpdateMessage = string.Empty;
             }
             catch (Exception e)
             {
                 RiseCore.logger.LogError("Exception: {error}", e);
-                RiseCore.UpdateChecks.UpdateMessage = "FAILED TO CHECK UPDATE.";
+                NotificationManager.Instance.Send("Failed to check an update.", NotificationType.Error, null);
             }
         }
 
@@ -551,6 +549,9 @@ namespace TowerFall
             }
             Loaded = true;
             ModEventsManager.Instance.GameLoaded.Raise(null, new(Instance.Scene as MainMenu, SaveData.NewDataCreated));
+            if (RiseCore.UpdateChecks.FortRiseUpdateAvailable)
+            {
+            }
             yield break;
         }
 
@@ -561,7 +562,7 @@ namespace TowerFall
             {
                 var process = new Process();
                 string os = SDL.SDL_GetPlatform();
-                
+
                 // is this safe?
                 process.StartInfo.UseShellExecute = true;
                 if (os.Equals("Linux"))
@@ -574,7 +575,7 @@ namespace TowerFall
                     process.StartInfo.FileName = "open";
                     process.StartInfo.Arguments = $"-a TextEdit \"{FILENAME}\"";
                 }
-                else 
+                else
                 {
                     process.StartInfo.FileName = "\"" + FILENAME + "\"";
                 }
@@ -644,9 +645,9 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchTFGameOnSceneTransition))]
     internal class PatchTFGameOnSceneTransition : Attribute {}
 
-    internal static partial class MonoModRules 
+    internal static partial class MonoModRules
     {
-        public static void PatchTFGameOnSceneTransition(ILContext ctx, CustomAttribute attrib) 
+        public static void PatchTFGameOnSceneTransition(ILContext ctx, CustomAttribute attrib)
         {
             var cursor = new ILCursor(ctx);
             // this useless method call is causing issues for us, we need to remove it
