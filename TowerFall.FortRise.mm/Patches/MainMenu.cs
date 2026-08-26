@@ -553,7 +553,9 @@ namespace TowerFall
             }
 
             Add(buttons);
-            MaxUICameraY = num;
+            
+            float lastY = buttons.Count > 0 ? buttons.Max(b => b.TweenTo.Y) : 0f;
+            MaxUICameraY = Math.Max(num, Math.Max(0f, lastY - 120f));
 
             foreach (var button in buttons)
             {
