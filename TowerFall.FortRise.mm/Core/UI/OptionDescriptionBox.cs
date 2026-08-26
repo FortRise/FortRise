@@ -65,8 +65,7 @@ public sealed class OptionDescriptionBox : MenuItem
         float top = cameraY + ScreenHeight - BottomMargin - panelHeight;
         float left = CenterX - panelWidth / 2f;
 
-        Draw.Rect(left - 1f, top - 1f, panelWidth + 2f, panelHeight + 2f, Color.White * 0.5f);
-        Draw.Rect(left, top, panelWidth, panelHeight, Color.Black * 0.9f);
+        MenuPanel.DrawPanel(left, top - 3f, panelWidth + 5, panelHeight);
 
         for (int i = 0; i < lines.Length; i++)
         {

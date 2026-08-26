@@ -35,7 +35,7 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
         {
             FixedTimeStep = x;
             ((patch_Engine)Engine.Instance).EnableFixedTimeStep(FixedTimeStep);
-        }, "GAME RUNS PRECISELY AT ITS TARGET FPS. MAKING THE PHYSICS AND PLAYER MOVEMENT ACCURATE");
+        }, "MAKE THE GAME RUNS PRECISELY AT ITS TARGET FPS. MAKING THE PHYSICS AND PLAYER MOVEMENT ACCURATE");
 
         settings.CreateOnOff("Old Intro Logo", OldIntroLogo, (x) => OldIntroLogo = x, 
             "WILL USE VANILLA INTRO SPLASH SCENE");
