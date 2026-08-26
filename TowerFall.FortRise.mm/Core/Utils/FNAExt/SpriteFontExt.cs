@@ -142,7 +142,7 @@ public static class SpriteFontExt
                     if (current.Length > 0 && sprite.MeasureString(wordCandidate).X > maxWidth)
                     {
                         result.Add(current.ToString());
-                        current = word.ToString();
+                        current = word;
                     }
                     else
                     {
