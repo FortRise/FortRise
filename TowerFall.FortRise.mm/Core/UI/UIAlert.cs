@@ -5,17 +5,17 @@ using TowerFall;
 
 namespace FortRise;
 
-internal class UIAlert : Entity
+public class UIAlert : Entity
 {
     private OptionsButton sourceButton;
     private string[] alerts;
 
-    public UIAlert(OptionsButton sourceButton, string[] alerts)
+    public UIAlert(OptionsButton sourceButton, string alerts)
     {
         Depth = -10000;
         this.sourceButton = sourceButton;
         this.sourceButton.Selected = false;
-        this.alerts = alerts;
+        this.alerts = TFGame.Font.WrapText(alerts, 180);
         Add(new Coroutine(Sequence()));
     }
 

@@ -939,11 +939,7 @@ namespace TowerFall
 
                 if (SaveData.Instance.Options.VerticalSync && !FortRiseModule.Settings.TripleBufferedVsync)
                 {
-                    fourThis.Add(new UIAlert(vsync, [
-                        "TRIPLE BUFFERED VERTICAL SYNC WILL",
-                        "USE HALF OF VRAM USAGE ON YOUR GPU",
-                        "CHECK YOUR SPEC BEFORE RESTARTING"
-                    ]));
+                    fourThis.Add(new UIAlert(vsync, "TRIPLE BUFFERED VERTICAL SYNC WILL USE HALF OF VRAM USAGE ON YOUR GPU, CHECK YOUR SPEC BEFORE RESTARTING"));
                     FortRiseModule.Settings.TripleBufferedVsync = true;
                 }
                 else if (SaveData.Instance.Options.VerticalSync && FortRiseModule.Settings.TripleBufferedVsync)
@@ -998,11 +994,7 @@ namespace TowerFall
 
                 if (SaveData.Instance.Options.VerticalSync && !FortRiseModule.Settings.TripleBufferedVsync)
                 {
-                    fourThis.Add(new UIAlert(vsync, [
-                        "TRIPLE BUFFERED VERTICAL SYNC WILL",
-                        "USE HALF OF VRAM USAGE ON YOUR GPU",
-                        "CHECK YOUR SPEC BEFORE RESTARTING"
-                    ]));
+                    fourThis.Add(new UIAlert(vsync, "TRIPLE BUFFERED VERTICAL SYNC WILL USE HALF OF VRAM USAGE ON YOUR GPU, CHECK YOUR SPEC BEFORE RESTARTING"));
                     FortRiseModule.Settings.TripleBufferedVsync = true;
                 }
                 else if (SaveData.Instance.Options.VerticalSync && FortRiseModule.Settings.TripleBufferedVsync)
