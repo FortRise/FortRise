@@ -35,9 +35,10 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
         {
             FixedTimeStep = x;
             ((patch_Engine)Engine.Instance).EnableFixedTimeStep(FixedTimeStep);
-        });
+        }, "GAME RUNS PRECISELY AT ITS TARGET FPS. MAKING THE PHYSICS AND PLAYER MOVEMENT ACCURATE");
 
-        settings.CreateOnOff("Old Intro Logo", OldIntroLogo, (x) => OldIntroLogo = x);
+        settings.CreateOnOff("Old Intro Logo", OldIntroLogo, (x) => OldIntroLogo = x, 
+            "WILL USE VANILLA INTRO SPLASH SCENE");
         if (Engine.Instance.Scene is MainMenu menu)
         {
             settings.CreateButton("TOGGLE ARCHERS", () =>
@@ -54,22 +55,22 @@ internal sealed class FortRiseModuleSettings : ModuleSettings
         settings.CreateOnOff("ALLOW XINPUT CONTROLLER", AllowXInput, (x) =>
         {
             AllowXInput = x;
-        }, true);
+        }, true, "ALLOWS THE GAME TO DETECT XINPUT CONTROLLERS LIKE XBOX CONTROLLERS");
 
         settings.CreateOnOff("ALLOW DINPUT CONTROLLER", AllowDInput, (x) =>
         {
             AllowDInput = x;
-        }, true);
+        }, true, "ALLOWS THE GAME TO DETECT DINPUT CONTROLLERS. DISABLING THIS WILL FORCE AN ALTERNATIVE TO BE USED LIKE XINPUT");
 
         settings.CreateOnOff("ALLOW RAW INPUT CONTROLLER", AllowRawInput, (x) =>
         {
             AllowRawInput = x;
-        }, true);
+        }, true, "ALLOWS RAW INPUT TO HANDLE XINPUT DEVICES FOR BETTER COMPATIBILITY");
 
         settings.CreateOnOff("RAW INPUT CORRELATE XINPUT", RawInputCorrelateXInput, (x) =>
         {
             RawInputCorrelateXInput = x;
-        }, true);
+        }, true, "RAW INPUT CAN STILL USE XINPUT API TO HANDLE EXTRA FEATURES LIKE RUMBLE AND BETTER TRIGGER AXES");
     }
 
     public override void OnVerify()

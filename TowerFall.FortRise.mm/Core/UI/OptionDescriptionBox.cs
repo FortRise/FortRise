@@ -46,7 +46,7 @@ public sealed class OptionDescriptionBox : MenuItem
         if (description != currentText)
         {
             currentText = description;
-            lines = WrapText(description.ToUpperInvariant(), MaxTextWidth);
+            lines = TFGame.Font.WrapText(description, MaxTextWidth);
             panelWidth = 0f;
             foreach (var line in lines)
             {
@@ -90,34 +90,5 @@ public sealed class OptionDescriptionBox : MenuItem
         }
 
         return null;
-    }
-
-    private static string[] WrapText(string text, float maxWidth)
-    {
-        var result = new List<string>();
-        foreach (var paragraph in text.Split('\n'))
-        {
-            var current = "";
-            foreach (var word in paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            {
-                var wordCandidate = current.Length == 0 ? word : current + " " + word;
-                if (current.Length > 0 && TFGame.Font.MeasureString(wordCandidate).X > maxWidth)
-                {
-                    result.Add(current);
-                    current = word;
-                }
-                else
-                {
-                    current = wordCandidate;
-                }
-            }
-
-            if (current.Length > 0)
-            {
-                result.Add(current);
-            }
-        }
-
-        return result.ToArray();
     }
 }
