@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod.Utils;
+using System;
+using System.Collections.Generic;
 using TowerFall;
 
 namespace FortRise;
@@ -12,13 +12,20 @@ public interface ISettingsCreate
 {
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed);
     void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired);
+    void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, string description = "");
+    void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired, string description = "");
     void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect);
+    void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect, string description = "");
     void CreateButton(string name, Action onPressed);
+    void CreateButton(string name, Action onPressed, string description = "");
     void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1);
+    void CreateNumber(string name, int initialValue, Action<int> onChanged, string description, int min = 0, int max = 10, int step = 1);
     [Obsolete("Use 'CreateInput' without the TextContainer.InputText")]
     void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None);
     void CreateInput(string name, string initialValue, Action<string> onInput, InputBehavior inputBehavior = InputBehavior.None);
     void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None);
+    void CreateInput(string name, string initialValue, Action<string> onInput, string description = "", InputBehavior inputBehavior = InputBehavior.None);
+    void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, string description = "", InputBehavior inputBehavior = InputBehavior.None);
     void CreateGamepadInputOptions(string name, int playerIndex, Buttons[] buttons, Action<Buttons[]> onInput);
     void CreateKeyboardInputOptions(string name, Keys[] buttons, Action<Keys[]> onInput);
     void CreateCustomOptions(Func<OptionsButton> onCreate);
@@ -46,6 +53,12 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         OptionsButton.Add(optionButtons);
     }
 
+    public void CreateButton(string name, Action onPressed, string description = "")
+    {
+        CreateButton(name, onPressed);
+        DescribeLastEntry(description);
+    }
+
     public void CreateInput(string name, string initialValue, Action<string> onInput, TextContainer.InputText.InputBehavior inputBehavior = TextContainer.InputText.InputBehavior.None)
     {
         CreateInput(name, initialValue, onInput, -1, (InputBehavior)inputBehavior);
@@ -55,7 +68,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
     {
         CreateInput(name, initialValue, onInput, -1, inputBehavior);
     }
-    
+
     public void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, InputBehavior inputBehavior = InputBehavior.None)
     {
         string title = name.ToUpperInvariant();
@@ -65,7 +78,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         var dynSelf = DynamicData.For(optionButtons);
         initialValue ??= "";
         dynSelf.Set("value", initialValue); 
-        
+
         optionButtons.SetCallbacks(() =>
         {
             if (inputBehavior == InputBehavior.Sensitive)
@@ -98,6 +111,18 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         OptionsButton.Add(optionButtons);
     }
 
+    public void CreateInput(string name, string initialValue, Action<string> onInput, string description = "", InputBehavior inputBehavior = InputBehavior.None)
+    {
+        CreateInput(name, initialValue, onInput, -1, inputBehavior);
+        DescribeLastEntry(description);
+    }
+
+    public void CreateInput(string name, string initialValue, Action<string> onInput, int playerIndex, string description = "", InputBehavior inputBehavior = InputBehavior.None)
+    {
+        CreateInput(name, initialValue, onInput, playerIndex, inputBehavior);
+        DescribeLastEntry(description);
+    }
+
     public void CreateNumber(string name, int initialValue, Action<int> onChanged, int min = 0, int max = 10, int step = 1)
     {
         string title = name.ToUpperInvariant();
@@ -106,7 +131,6 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         // HACK: Option button does not have a value.
         var dynSelf = DynamicData.For(optionButtons);
         dynSelf.Set("value", initialValue); 
-        
         optionButtons.SetCallbacks(() =>
         {
             int value = dynSelf.Get<int>("value");
@@ -131,9 +155,27 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         OptionsButton.Add(optionButtons);
     }
 
+    public void CreateNumber(string name, int initialValue, Action<int> onChanged, string description, int min = 0, int max = 10, int step = 1)
+    {
+        CreateNumber(name, initialValue, onChanged, min, max, step);
+        DescribeLastEntry(description);
+    }
+
     public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed)
     {
         CreateOnOff(name, initialValue, onPressed, false);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, string description = "")
+    {
+        CreateOnOff(name, initialValue, onPressed, false);
+        DescribeLastEntry(description);
+    }
+
+    public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired, string description = "")
+    {
+        CreateOnOff(name, initialValue, onPressed, restartRequired);
+        DescribeLastEntry(description);
     }
 
     public void CreateOnOff(string name, bool initialValue, Action<bool> onPressed, bool restartRequired)
@@ -144,7 +186,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         // HACK: Option button does not have a value.
         var dynSelf = DynamicData.For(optionButtons);
         dynSelf.Set("value", initialValue); 
-        
+
         optionButtons.SetCallbacks(() => optionButtons.State = BoolToString(dynSelf.Get<bool>("value")), null, null, onConfirm: () =>
         {
             var value = dynSelf.Get<bool>("value");
@@ -235,7 +277,21 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
         OptionsButton.Add(optionButtons);
     }
 
+    public void CreateOptions(string name, string initialValue, string[] selections, Action<(string, int)> onSelect, string description = "")
+    {
+        CreateOptions(name, initialValue, selections, onSelect);
+        DescribeLastEntry(description);
+    }
+
     public void Refresh() { }
+
+    private void DescribeLastEntry(string description)
+    {
+        if (!string.IsNullOrWhiteSpace(description) && OptionsButton.Count > 0)
+        {
+            OptionsButton[OptionsButton.Count - 1].SetDescription(description);
+        }
+    }
 
     private static string BoolToString(bool value)
     {

@@ -554,6 +554,15 @@ namespace TowerFall
 
             Add(buttons);
             MaxUICameraY = num;
+
+            foreach (var button in buttons)
+            {
+                if (!string.IsNullOrEmpty(button.GetDescription()))
+                {
+                    Add(new OptionDescriptionBox(buttons));
+                    break;
+                }
+            }
         }
 
         [MonoModIgnore]
