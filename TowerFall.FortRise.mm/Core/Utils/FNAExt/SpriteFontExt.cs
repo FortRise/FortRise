@@ -123,36 +123,50 @@ public static class SpriteFontExt
 
             text.ToUpperInvariant(t);
 
-            foreach (var range in text.Split('\n'))
+            foreach (var range in t.Split('\n'))
             {
                 var paragraph = text[range.Start..range.End];
-                ReadOnlySpan<char> current = "";
+
+                int currentStart = 0;
+                int currentLength = 0;
+
                 foreach (var paragraphRange in paragraph.Split((char)32))
                 {
                     var word = paragraph[paragraphRange.Start..paragraphRange.End];
-                    if (word == " ")
+                    if (paragraphRange.Start.Value == paragraphRange.End.Value)
                     {
                         continue; // skip empty entries
                     }
 
-                    ReadOnlySpan<char> wordCandidate = current.Length == 0 
-                        ? word
-                        : $"{current} {word}";
+                    int wordStart = paragraphRange.Start.Value;
+                    int wordLength = paragraphRange.End.Value - wordStart;
 
-                    if (current.Length > 0 && sprite.MeasureString(wordCandidate).X > maxWidth)
+                    if (currentLength == 0)
                     {
-                        result.Add(current.ToString());
-                        current = word;
+                        currentStart = wordStart;
+                        currentLength = wordLength;
+                        continue;
+                    }
+
+                    int candidateLength = wordStart + wordLength - currentStart;
+                    ReadOnlySpan<char> wordCandidate 
+                        = paragraph.Slice(currentStart, candidateLength);
+
+                    if (sprite.MeasureString(wordCandidate).X > maxWidth)
+                    {
+                        result.Add(paragraph.Slice(currentStart, currentLength).ToString());
+                        currentStart = wordStart;
+                        currentLength = wordLength;
                     }
                     else
                     {
-                        current = wordCandidate;
+                        currentLength = candidateLength;
                     }
                 }
 
-                if (current.Length > 0)
+                if (currentLength > 0)
                 {
-                    result.Add(current.ToString());
+                    result.Add(paragraph.Slice(currentStart, currentLength).ToString());
                 }
             }
 
