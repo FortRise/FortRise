@@ -398,11 +398,12 @@ public class MapButton : TowerFall.MapButton
     [MonoModReplace]
     public static Subtexture GetNumeralTexture(TowerType type, int numeral)
     {
-        var t = TowerRegistry.IDToTowerTypes[type];
-        if (t.Configuration.NumeralTexture is not null)
+        if (TowerRegistry.IDToTowerTypes.TryGetValue(type, out var t) 
+            && t.Configuration.NumeralTexture is not null)
         {
             return t.Configuration.NumeralTexture(numeral);
         }
+
 
         switch (numeral)
         {
