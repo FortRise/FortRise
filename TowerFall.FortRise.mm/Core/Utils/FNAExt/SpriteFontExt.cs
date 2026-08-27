@@ -132,7 +132,6 @@ public static class SpriteFontExt
 
                 foreach (var paragraphRange in paragraph.Split((char)32))
                 {
-                    var word = paragraph[paragraphRange.Start..paragraphRange.End];
                     if (paragraphRange.Start.Value == paragraphRange.End.Value)
                     {
                         continue; // skip empty entries
