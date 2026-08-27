@@ -559,7 +559,7 @@ namespace TowerFall
 
             foreach (var button in buttons)
             {
-                if (!string.IsNullOrEmpty(button.GetDescription()))
+                if (!string.IsNullOrEmpty(button.Description))
                 {
                     Add(new OptionDescriptionBox(buttons));
                     break;

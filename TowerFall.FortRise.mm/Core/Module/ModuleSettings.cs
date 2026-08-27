@@ -289,7 +289,7 @@ internal sealed class OptionsCreate(MainMenu menu, List<OptionsButton> buttons) 
     {
         if (!string.IsNullOrWhiteSpace(description) && OptionsButton.Count > 0)
         {
-            OptionsButton[OptionsButton.Count - 1].SetDescription(description);
+            OptionsButton[^1].Description = description;
         }
     }
 

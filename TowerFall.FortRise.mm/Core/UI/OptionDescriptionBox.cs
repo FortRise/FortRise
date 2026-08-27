@@ -84,7 +84,7 @@ public sealed class OptionDescriptionBox : MenuItem
         {
             if (button.Selected)
             {
-                return button.GetDescription();
+                return button.Description;
             }
         }
 
