@@ -61,6 +61,11 @@ internal static partial class MonoModRules
         {
             throw new Exception($"Unsupported version of TowerFall: {version}, currently supported: {minimumVersion}");
         }
+
+        if (version.Revision == minimumVersion.Revision)
+        {
+            isV1331 = true;
+        }
         Version = version;
         Console.WriteLine("[FortRise] TowerFall Version is: " + Version);
 

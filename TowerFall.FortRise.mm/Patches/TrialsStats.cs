@@ -16,7 +16,7 @@ public class TrialsStats : TowerFall.TrialsStats
     {
         // Backup the data from savedata to mod if possible
         // this should only be possible if the mod data exists on the TowerFall savedata side
-        for (int i = 0; i < Levels.Length; i += 1)
+        for (int i = 0; i < Levels?.Length; i += 1)
         {
             var level = Levels[i];
 

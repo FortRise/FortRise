@@ -31,7 +31,7 @@ public class DarkWorldStats : TowerFall.DarkWorldStats
     {
         // Backup the data from savedata to mod if possible
         // this should only be possible if the mod data exists on the TowerFall savedata side
-        for (int i = 0; i < Towers.Length; i += 1)
+        for (int i = 0; i < Towers?.Length; i += 1)
         {
             if (Towers[i] is not TowerFall.Patching.DarkWorldTowerStats tower || tower.LevelID is null)
             {

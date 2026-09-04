@@ -9,6 +9,7 @@ public class patch_SaveData : SaveData
     public GamepadConfig[] Gamepad;
 
     [PatchSDL2ToSDL3]
+    [FixGameStatsTimesLaunched]
     public extern string orig_Save();
 
     public string Save() 
@@ -26,6 +27,7 @@ public class patch_SaveData : SaveData
     }
 
     [PatchSDL2ToSDL3]
+    [FixGameStatsTimesLaunched]
     public static extern string orig_Load();
 
     public static string Load() 
@@ -75,4 +77,8 @@ public class patch_SaveData : SaveData
             module.VerifySettings();
         }
     }
+    [MonoModIgnore]
+    [MonoModIfFlag("NoLauncher")]
+    [FixGameStatsTimesLaunched]
+    public extern void Clear();
 }

@@ -10,19 +10,6 @@ using MonoMod.Utils;
 
 namespace MonoMod;
 
-
-[MonoModCustomMethodAttribute(nameof(MonoModRules.PatchGlobalPreFix))]
-internal class GlobalPreFixAttribute : Attribute
-{
-    public string TypeName;
-    public string MethodName;
-    public GlobalPreFixAttribute(string typeName, string methodName, bool isStatic = false)
-    {
-        TypeName = typeName;
-        MethodName = methodName;
-    }
-}
-
 [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPrefix))]
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 internal class PrefixAttribute : Attribute
@@ -72,6 +59,7 @@ internal static partial class MonoModRules
     private static bool IsTowerFall;
     private static bool IsWindows;
     private static bool IsSteam;
+    private static bool isV1331;
     private static Version Version;
     private static bool IsMod;
     public static ModuleDefinition RulesModule;
@@ -276,20 +264,6 @@ internal static partial class MonoModRules
         ctx.Method.CustomAttributes.Add(obsolete);
     }
 
-    public static void PatchGlobalPreFix(ILContext ctx, CustomAttribute attrib)
-    {
-        string typeName = (string)attrib.ConstructorArguments[0].Value;
-        string methodName = (string)attrib.ConstructorArguments[1].Value;
-        bool isStatic = (bool)attrib.ConstructorArguments[2].Value;
-
-        var method = ctx.Module.GetType(typeName).FindMethod(methodName);
-
-        var cursor = new ILCursor(ctx);
-        if (!isStatic)
-            cursor.Emit(OpCodes.Ldarg_0);
-        cursor.Emit(OpCodes.Call, method);
-    }
-
     public static void PatchFlags(ILContext ctx, CustomAttribute attrib)
     {
         var IsWindows = ctx.Module.GetType("FortRise.RiseCore").FindProperty("IsWindows").SetMethod;
@@ -380,6 +354,30 @@ internal static partial class MonoModRules
         foreach (var type in modder.Module.Types)
         {
             PostProcessType(modder, type);
+
+            // remove the GameStats selected fields for compatibility purposes.
+            if (isV1331 && type.FullName == "TowerFall.GameStats")
+            {
+                string[] fields = [
+                    "ArrowsShot",
+                    "TimesLaunched",
+                    "TotalVersusKills",
+                    "MatchesPlayed",
+                    "RoundsPlayed",
+                    "ArrowsCollected",
+                    "ArrowsCaught",
+                    "TreasuresTaken",
+                    "Dodges",
+                    "Jumps",
+                    "VersusRandomPlays"
+                ];
+
+                for (int i = 0; i < fields.Length; i += 1)
+                {
+                    var field = type.FindField(fields[i]);
+                    type.Fields.Remove(field);
+                }
+            }
         }
     }
 

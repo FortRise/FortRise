@@ -61,4 +61,9 @@ public class patch_Pickup : Pickup
 
         return PickupsRegistry.CreatePickup(data.Pickups, position, target, playerIndex);
     }
+
+    [MonoModIgnore]
+    [MonoModIfFlag("NoLauncher")]
+    [FixGameStatsTreasuresTaken]
+    protected extern void DoCollectStats(int playerIndex);
 }

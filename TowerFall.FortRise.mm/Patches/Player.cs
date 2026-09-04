@@ -71,6 +71,41 @@ namespace TowerFall
             Collider = shieldHitbox;
             shieldHitbox.Render(Color.Purple);
         }
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsArrowsShot]
+        private extern void ShootArrow();
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsArrowsCaught]
+        private extern void CatchArrow(Arrow arrow);
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsArrowsCollected]
+        public extern bool CollectArrows(params ArrowTypes[] arrows);
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsDodges]
+        private extern void EnterDodge();
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsJumps]
+        public extern void WallJump(int dir);
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsJumps]
+        public extern bool DodgeWallJump(int dir);
+
+        [MonoModIgnore]
+        [MonoModIfFlag("NoLauncher")]
+        [FixGameStatsJumps]
+        public extern void Jump(bool particles, bool canSuper, bool forceSuper, int ledgeDir, bool doubleJump);
     }
 }
 

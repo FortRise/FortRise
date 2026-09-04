@@ -1,4 +1,5 @@
 using FortRise;
+using Microsoft.Xna.Framework;
 using MonoMod;
 
 namespace TowerFall 
@@ -25,9 +26,7 @@ namespace TowerFall
         }
 
         [MonoModReplace]
-        [MonoModPatch("OnLevelLoadFinish")]
-        [MonoModIfFlag("Steamworks")]
-        public virtual void OnLevelLoadFinish_Steamworks()
+        public override void OnLevelLoadFinish()
         {
             if (!Session.MatchSettings.SoloMode)
             {
@@ -38,17 +37,9 @@ namespace TowerFall
             ModEventsManager.Instance.RoundLogicLevelLoadFinish.Raise(this, this);
         }
 
-        [MonoModReplace]
-        [MonoModPatch("OnLevelLoadFinish")]
+        [MonoModIgnore]
         [MonoModIfFlag("NoLauncher")]
-        public virtual void OnLevelLoadFinish_NoLauncher()
-        {
-            if (!Session.MatchSettings.SoloMode)
-            {
-                SessionStats.RoundsPlayed++;
-            }
-
-            ModEventsManager.Instance.RoundLogicLevelLoadFinish.Raise(this, this);
-        }
+        [FixGameStatsTotalVersusKills]
+		public extern override void OnPlayerDeath(Player player, PlayerCorpse corpse, int playerIndex, DeathCause cause, Vector2 position, int killerIndex);
     }
 }

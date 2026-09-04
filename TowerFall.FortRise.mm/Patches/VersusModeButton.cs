@@ -29,12 +29,14 @@ public class patch_VersusModeButton : VersusModeButton
     }
 
     [MonoModLinkTo("TowerFall.BorderButton", "Update")]
+    [MonoModIgnore]
     public void base_Update()
     {
         base.Update();
     }
 
     [MonoModLinkTo("TowerFall.BorderButton", "OnConfirm")]
+    [MonoModIgnore]
     protected void base_OnConfirm()
     {
         base.OnConfirm();

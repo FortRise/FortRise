@@ -101,10 +101,8 @@ namespace TowerFall
             }
         }
 
-
-        [MonoModPatch("StartGame")]
-        [MonoModIfFlag("Steamworks")]
-        public void StartGame_Steam() 
+        [MonoModReplace]
+        public void StartGame() 
         {
 			if (!MatchSettings.SoloMode)
 			{
@@ -146,45 +144,6 @@ namespace TowerFall
 
 
                 SaveData.Instance.DarkWorld.Towers[this.MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
-			}
-			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
-			Engine.Instance.Scene = new LevelLoaderXML(this);
-        }
-
-        [MonoModPatch("StartGame")]
-        [MonoModIfFlag("NoLauncher")]
-        public void StartGame_NoLauncher() 
-        {
-			if (!MatchSettings.SoloMode)
-			{
-                if (this.IsOfficialTowerSet) 
-                {
-                    GameStats stats = SaveData.Instance.Stats;
-                    stats.VersusTowerPlays[MatchSettings.LevelSystem.ID.X] += 1UL;
-                }
-				SessionStats.MatchesPlayed++;
-                if (MatchSettings.IsCustom) 
-                {
-                    var gamemode = MatchSettings.CustomVersusGameMode;
-                    if (gamemode != null)
-                    {
-                        gamemode.OnStartGame(this);
-                    }
-                }
-			}
-			if (MatchSettings.Mode == patch_Modes.DarkWorld)
-			{
-				DarkWorldState = new patch_DarkWorldSessionState(this);
-                if (!this.IsOfficialTowerSet)
-                {
-                    patch_DarkWorldTowerData adventureTower = (patch_DarkWorldTowerData)GameData.DarkWorldTowers[MatchSettings.LevelSystem.ID.X];
-                    if (adventureTower.StartingLives >= 0)
-                    {
-                        DarkWorldState.ExtraLives = adventureTower.StartingLives;
-                    }
-                }
-
-                SaveData.Instance.DarkWorld.Towers[MatchSettings.LevelSystem.ID.X].Attempts += 1UL;
 			}
 			TreasureSpawner = this.MatchSettings.LevelSystem.GetTreasureSpawner(this);
 			Engine.Instance.Scene = new LevelLoaderXML(this);
