@@ -85,23 +85,28 @@ public class patch_TreasureSpawner : TreasureSpawner
                 }
             }
         }
+
         if (Session.MatchSettings.Variants.IgnoreTowerItemSet)
         {
             TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
             var clonedMask = new int[mask.Length];
             Array.Fill(clonedMask, 1);
-            var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(clonedMask);
-            
-            foreach (var tower in TowerPatchRegistry.Hooks.Values)
-            {
-                if (tower.Hook.AffectedByIgnoreTowerItemSetVariant)
-                {
-                    continue;
-                }
 
-                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
+            if (levelSystem is not null)
+            {
+                var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(clonedMask);
+                
+                foreach (var tower in TowerPatchRegistry.Hooks.Values)
                 {
-                    tower.Hook.VersusTowerTreasurePatch(patchContext);
+                    if (tower.Hook.AffectedByIgnoreTowerItemSetVariant)
+                    {
+                        continue;
+                    }
+
+                    if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
+                    {
+                        tower.Hook.VersusTowerTreasurePatch(patchContext);
+                    }
                 }
             }
 
@@ -113,13 +118,17 @@ public class patch_TreasureSpawner : TreasureSpawner
         else
         {
             TreasureRates = new float[TreasureSpawner.DefaultTreasureChances.Length];
-            var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(mask);
 
-            foreach (var tower in TowerPatchRegistry.Hooks.Values)
+            if (levelSystem is not null)
             {
-                if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
+                var patchContext = VersusTowerTreasurePatchContext.CreateVersusTowerTreasurePatchContext(mask);
+
+                foreach (var tower in TowerPatchRegistry.Hooks.Values)
                 {
-                    tower.Hook.VersusTowerTreasurePatch(patchContext);
+                    if (tower.Hook.TargetTowers.Contains(levelSystem.VersusTowerData.LevelID))
+                    {
+                        tower.Hook.VersusTowerTreasurePatch(patchContext);
+                    }
                 }
             }
 
