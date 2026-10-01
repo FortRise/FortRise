@@ -37,13 +37,26 @@ namespace TowerFall
 
             var hair = (patch_PlayerHair)Hair;
 
-            hair.Color = hairData.Color;
+            hair.Color = TeamColor switch {
+                Allegiance.Blue => hairData.BlueColor.HasValue ? hairData.BlueColor.Value : hairData.Color,
+                Allegiance.Red => hairData.RedColor.HasValue ? hairData.RedColor.Value : hairData.Color,
+                _ => hairData.Color
+            };
+
             hair.DuckingOffset = hairData.DuckingOffset;
             hair.Offset = hairData.Offset;
             hair.OutlineColor = hairData.OutlineColor;
             if (hairData.ShowOnHat)
             {
                 if (HatState == HatStates.Normal)
+                {
+                    Hair.Visible = true;
+                }
+            }
+
+            if (hairData.ShowOnCrown)
+            {
+                if (HatState == HatStates.Crown)
                 {
                     Hair.Visible = true;
                 }

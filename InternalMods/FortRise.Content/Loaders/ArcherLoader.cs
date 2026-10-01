@@ -189,9 +189,12 @@ internal static class ArcherLoader
                     Offset = offset,
                     DuckingOffset = duckingOffset,
                     ShowOnHat = hairElm.ChildBool("ShowOnHat", false),
+                    ShowOnCrown = hairElm.ChildBool("ShowOnCrown", false),
                     AddLinks = hairElm.ChildInt("AddLinks", 0),
                     AddLinkDistance = hairElm.ChildFloat("AddLinkDistance", 0),
                     Color = hairElm.ChildHexColor("Color", Color.White),
+                    BlueColor = hairElm.HasChild("BlueColor") ? hairElm.ChildHexColor("BlueColor") : Option<Color>.None(),
+                    RedColor = hairElm.HasChild("RedColor") ? hairElm.ChildHexColor("RedColor") : Option<Color>.None(),
                     OutlineColor = hairElm.ChildHexColor("OutlineColor", Color.Black),
                 };
             }
