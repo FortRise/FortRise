@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -461,8 +462,12 @@ internal class ModuleManager
 
         if (toLoadAfter.TryGetValue(metadata.Name, out var toLoad))
         {
-            foreach (var mod in toLoad)
+            // HACK: using for loop instead of foreach to prevent crashes
+            // probably, might investigate why? :/
+            for (int i = 0; i < toLoad.Count; i += 1)
             {
+                var mod = toLoad[i];
+
                 if (!LoadMod(mod, mods, dependencyGraph, toLoadAfter, false).Check(out _, out _))
                 {
                     continue;

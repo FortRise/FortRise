@@ -1,5 +1,14 @@
+# 5.5.0-beta.3
+
 # 5.5.0-beta.2
-+ Added 
++ Added version ranging for dependencies.
++ Added Interop.AwaitAPI().
++ Added 16x16 Mod Icons.
++ Simplified ToString for ModuleMetadata.
++ RiseCore.ResourceTree is now just ResourceTree.
++ Fixed workshop crashes on mods with TowerHooks enabled.
++ Fixed ArchivesStatsPage crash.
+
 
 # 5.5.0-beta.1
 + Added an ability to load multiple mods inside of a zip file.
