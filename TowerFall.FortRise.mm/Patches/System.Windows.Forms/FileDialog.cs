@@ -22,6 +22,30 @@ public abstract class FileDialog : CommonDialog
         set; 
     }
 
+    public bool AddExtension
+    { 
+        [MonoModLinkFrom("System.String System.Windows.Forms.FileDialog::get_AddExtension()")]
+        get; 
+        [MonoModLinkFrom("System.Void System.Windows.Forms.FileDialog::set_AddExtension(System.Boolean)")]
+        set; 
+    }
+
+    public bool CheckPathExists
+    { 
+        [MonoModLinkFrom("System.String System.Windows.Forms.FileDialog::get_CheckPathExists()")]
+        get; 
+        [MonoModLinkFrom("System.Void System.Windows.Forms.FileDialog::set_CheckPathExists(System.Boolean)")]
+        set; 
+    }
+
+    public bool RestoreDirectory
+    { 
+        [MonoModLinkFrom("System.String System.Windows.Forms.FileDialog::get_RestoreDirectory()")]
+        get; 
+        [MonoModLinkFrom("System.Void System.Windows.Forms.FileDialog::set_RestoreDirectory(System.Boolean)")]
+        set; 
+    }
+
     public string Filter
     { 
         [MonoModLinkFrom("System.String System.Windows.Forms.FileDialog::get_Filter()")]
