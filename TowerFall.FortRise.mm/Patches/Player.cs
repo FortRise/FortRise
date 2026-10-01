@@ -1,8 +1,10 @@
 using System;
+using System.Xml;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
@@ -12,6 +14,8 @@ namespace TowerFall
     public class patch_Player : Player
     {
         private WrapHitbox shieldHitbox;
+        private Sprite<string> headSprite;
+        private Sprite<string> headBackSprite;
 
         public patch_Player(int playerIndex, Vector2 position, Allegiance allegiance, Allegiance teamColor, PlayerInventory inventory, HatStates hatState, bool frozen, bool flash, bool indicator) : base(playerIndex, position, allegiance, teamColor, inventory, hatState, frozen, flash, indicator)
         {
@@ -57,6 +61,48 @@ namespace TowerFall
 
             hair.ChangeHairTexture(hairData.Texture?.Subtexture, hairData.TextureEnd?.Subtexture);
         }
+
+        [MonoModReplace]
+        private void InitHead()
+        {
+            string hat = ArcherData.Sprites[HatState];
+            XmlElement xml = TFGame.SpriteData.GetXML(hat);
+
+            string startAnimID = "idle";
+            int startFrame = 0;
+
+            if (headSprite != null)
+            {
+                startAnimID = headSprite.CurrentAnimID;
+                startFrame = headSprite.AnimationFrame;
+                Remove(headSprite);
+            }
+
+            headSprite = TFGame.SpriteData.GetSpriteString(hat);
+            headSprite.Play(startAnimID, startFrame, false);
+            Add(headSprite);
+
+            if (TeamColor == Allegiance.Blue)
+            {
+                if (xml.HasChild("BlueTexture"))
+                {
+                    headSprite.SwapSubtexture(TFGame.Atlas[xml.ChildText("BlueTexture")], null);
+                }
+            }
+            else if (TeamColor == Allegiance.Red)
+            {
+                if (xml.HasChild("RedTexture"))
+                {
+                    headSprite.SwapSubtexture(TFGame.Atlas[xml.ChildText("RedTexture")], null);
+                }
+            }
+
+            if (headBackSprite != null)
+            {
+                headBackSprite.Play(startAnimID, false);
+            }
+        }
+
 
         [MonoModIgnore]
         [PatchPlayerDebugRender]
