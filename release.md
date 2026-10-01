@@ -1,4 +1,9 @@
 # 5.5.0-beta.3
++ Added <ShowOnHat>, <BlueColor>, and <RedColor> on Hair data.
++ NoHat and Crowns can now have BlueTexture and RedTexture.
++ Update FNA to 26.10.
++ Fixed custom level saving crashes.
++ Fixed dependency resolution crash.
 
 # 5.5.0-beta.2
 + Added version ranging for dependencies.
