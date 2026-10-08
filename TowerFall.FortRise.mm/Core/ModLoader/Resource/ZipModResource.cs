@@ -24,7 +24,8 @@ public class ZipModResource : ModResource
 
     internal override void DisposeInternal()
     {
-        Zip.Dispose();
+        Zip?.Dispose();
+        Zip = null;
     }
 
 

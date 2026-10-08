@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Reflection;
 using HarmonyLib;
 using System.Linq;
+using System.Buffers;
 
 namespace FortRise;
 
@@ -70,19 +71,32 @@ public static class ZipExt
 
         public MemoryStream ExtractStream()
         {
-            var memStream = new MemoryStream();
-            // ZipArchive must only open one entry at a time, 
-            // we had 2 separate threads that uses this 
-            lock (entry.Archive)
+            int fileLength = (int)entry.Length;
+
+            // where is my money?
+            byte[] bufferRented = ArrayPool<byte>.Shared.Rent(fileLength);
+
+            try 
             {
-                using var stream = entry.Open();
+                using (var entryStream = entry.Open())
+                {
+                    int totalRead = 0;
+                    int read;
 
-                // Perhaps, it is safe to do this?
-                stream.CopyTo(memStream);
+                    while ((read = entryStream.Read(bufferRented, totalRead, fileLength - totalRead)) > 0)
+                    {
+                        totalRead += read;
+                    }
+                }
+
+                var ms = new PooledMemoryStream(bufferRented, 0, fileLength);
+                return ms;
             }
-
-            memStream.Seek(0, SeekOrigin.Begin);
-            return memStream;
+            catch
+            {
+                ArrayPool<byte>.Shared.Return(bufferRented);
+                throw;
+            }
         }
     }
 }

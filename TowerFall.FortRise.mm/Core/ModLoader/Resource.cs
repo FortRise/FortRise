@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using Monocle;
@@ -40,7 +41,7 @@ public static class ResourceTree
 
     public static void AddMod(ModuleMetadata metadata, IModResource resource)
     {
-        var name = (metadata is not null ? metadata.Name : "::global::");
+        var name = metadata is not null ? metadata.Name : "::global::";
         var prefixPath = $"mod:{name}/";
 
         if (TreeMap.ContainsKey(prefixPath))
@@ -48,11 +49,29 @@ public static class ResourceTree
             Logger.Warning($"[RESOURCE] Conflicting mod asset name found: {prefixPath}");
             return;
         }
+
         resource.Lookup(prefixPath);
 
         Logger.Info($"[RESOURCE] Initializing {resource.Metadata} resources...");
         Initialize(resource);
         ModResources.Add(resource);
+    }
+
+    public static void RemoveMod(ModuleMetadata metadata, IModResource resource)
+    {
+        var name = metadata is not null ? metadata.Name : "::global::";
+        var prefixPath = $"mod:{name}/";
+
+        TreeMap.Remove(prefixPath);
+
+        // leave no trace, no witnesses
+        var toRemove = TreeMap.Keys.Where(x => x.StartsWith(prefixPath)).ToArray();
+        foreach (var key in toRemove)
+        {
+            TreeMap.Remove(key);
+        }
+
+        ModResources.Remove(resource);
     }
 
     internal static void Initialize(IModResource resource)

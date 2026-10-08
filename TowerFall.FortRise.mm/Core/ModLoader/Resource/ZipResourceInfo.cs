@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
@@ -22,14 +21,8 @@ public class ZipResourceInfo : ResourceInfo
             {
                 throw new InvalidOperationException($"Mod root directory is not streamable. '{RootPath}'");
             }
-            ZipModResource modSource = (ZipModResource)Source;
-            var entry = modSource.Zip.GetEntry(
-                System.IO.Path.Combine(modSource.Root, Path).Replace('\\', '/'));
-            if (entry == null) 
-            {
-                throw new KeyNotFoundException($"File {Path} not found in archive {modSource.Metadata.PathZip}");
-            }
-            return entry.ExtractStream();
+
+            return Entry.ExtractStream();
         } 
     }
 }
