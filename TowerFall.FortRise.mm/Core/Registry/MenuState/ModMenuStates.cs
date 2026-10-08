@@ -24,7 +24,7 @@ internal sealed class ModMenuStates : IModMenuStates
     internal ModMenuStates(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IMenuStateEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IMenuStateEntry>(metadata, Invoke, Detach);
     }
 
     public IMenuStateEntry RegisterMenuState(string id, in MenuStateConfiguration configuration)
@@ -44,5 +44,11 @@ internal sealed class ModMenuStates : IModMenuStates
     internal void Invoke(IMenuStateEntry entry)
     {
         CustomMenuStateRegistry.Register(entry.Name, entry.MenuState, entry.Configuration);
+    }
+
+    internal void Detach(IMenuStateEntry entry)
+    {
+        CustomMenuStateRegistry.Unregister(entry);
+        EnumPool.Free(entry.MenuState);
     }
 }

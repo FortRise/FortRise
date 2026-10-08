@@ -14,20 +14,14 @@ internal abstract class RegistryQueue
     internal abstract void Invoke();
 }
 
-internal sealed class PreparedRegistryQueue<T> : RegistryQueue
+internal sealed class PreparedRegistryQueue<T>(
+    ModuleManager manager, Action<List<T>> prepare, Action<T> invoker) : RegistryQueue
 where T : class
 {
-    private List<T> queues = new List<T>();
-    private LoadState loadState;
-    private Action<T> invoker;
-    private Action<List<T>> prepare;
-
-    public PreparedRegistryQueue(ModuleManager manager, Action<List<T>> prepare, Action<T> invoker)
-    {
-        this.loadState = manager.State;
-        this.invoker = invoker;
-        this.prepare = prepare;
-    }
+    private readonly List<T> queues = [];
+    private LoadState loadState = manager.State;
+    private readonly Action<T> invoker = invoker;
+    private readonly Action<List<T>> prepare = prepare;
 
     internal override void Invoke()
     {
@@ -54,18 +48,14 @@ where T : class
     }
 }
 
-internal class RegistryQueue<T> : RegistryQueue
+internal class RegistryQueue<T>(ModuleManager manager, Action<T> invoker) : RegistryQueue
 where T : class
 {
-    private List<T> queues = new List<T>();
-    private LoadState loadState;
-    private Action<T> invoker;
+    private readonly List<T> queues = [];
+    private LoadState loadState = manager.State;
+    private readonly Action<T> invoker = invoker;
 
-    public RegistryQueue(ModuleManager manager, Action<T> invoker)
-    {
-        this.loadState = manager.State;
-        this.invoker = invoker;
-    }
+    public IList<T> ContentQueues => queues;
 
     internal override void Invoke()
     {
@@ -73,18 +63,16 @@ where T : class
         {
             invoker(queue);
         }
-        queues.Clear();
         loadState = LoadState.Ready;
     }
 
     internal void AddOrInvoke(T entry)
     {
+        queues.Add(entry);
+
         if (loadState == LoadState.Ready)
         {
             invoker(entry);
-            return;
         }
-
-        queues.Add(entry);
     }
 }

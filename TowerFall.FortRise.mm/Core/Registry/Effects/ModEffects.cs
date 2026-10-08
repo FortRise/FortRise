@@ -22,7 +22,7 @@ internal sealed class ModEffects : IModEffects
     internal ModEffects(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        queue = manager.CreateQueue<IEffectEntry>(Invoke);
+        queue = manager.CreateQueue<IEffectEntry>(metadata, Invoke, Detach);
     }
 
     public IEffectEntry? GetEffect(string id)
@@ -55,5 +55,10 @@ internal sealed class ModEffects : IModEffects
         var shaderResource = (EffectResource)Activator.CreateInstance(entry.Configuration.EffectResourceType)!;
         shaderResource.Init(effect, entry.Configuration.PassName);
         EffectManager.Shaders.Add(entry.ID, shaderResource);
+    }
+
+    private void Detach(IEffectEntry entry)
+    {
+        EffectManager.RemoveEffect(entry);
     }
 }

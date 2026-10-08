@@ -17,6 +17,12 @@ public static class BGElementsRegistry
         backdropEntries[backdropEntry.Name] = backdropEntry;
     }
 
+    internal static void Unregister(IBGElementEntry backdropEntry)
+    {
+        backdropEntries.Remove(backdropEntry.Name);
+        BGElements.Remove(backdropEntry.Name);
+    }
+
 #nullable enable
     public static IBGElementEntry? GetBGElement(string id)
     {

@@ -38,6 +38,25 @@ internal static class SubtextureRegistry
         }
     }
 
+    public static void RemoveSubtexture(ISubtextureEntry entry, SubtextureAtlasDestination destination)
+    {
+        switch (destination)
+        {
+            case SubtextureAtlasDestination.Atlas:
+                subtextureEntries.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.BGAtlas:
+                bgSubtextureEntries.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.MenuAtlas:
+                menuSubtextureEntries.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.BossAtlas:
+                bossSubtextureEntries.Remove(entry.ID);
+                break;
+        }
+    }
+
     public static IReadOnlyList<ISubtextureEntry> GetAllSubtextures(SubtextureAtlasDestination destination) 
     {
         var list = new List<ISubtextureEntry>();

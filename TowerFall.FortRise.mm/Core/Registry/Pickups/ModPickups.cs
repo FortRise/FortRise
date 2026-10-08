@@ -19,12 +19,20 @@ public interface IModPickups
 internal sealed class ModPickups : IModPickups
 {
     private readonly ModuleMetadata metadata;
+    private readonly RegistryQueue<IPickupEntry> registryQueue;
 
     public IReadOnlyDictionary<string, IPickupEntry> RegisteredPickups => PickupsRegistry.GetAllPickups();
 
-    internal ModPickups(ModuleMetadata metadata)
+    internal ModPickups(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
+        registryQueue = manager.CreateQueue<IPickupEntry>(metadata, static _ => {}, Detach);
+    }
+
+    private void Detach(IPickupEntry entry)
+    {
+        PickupsRegistry.RemovePickup(entry);
+        EnumPool.Free(entry.Pickups);
     }
 
     public IPickupEntry RegisterPickup(string id, in PickupConfiguration configuration)
@@ -32,6 +40,7 @@ internal sealed class ModPickups : IModPickups
         string name = $"{metadata.Name}/{id}";
         IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), configuration);
         PickupsRegistry.AddPickup(pickup);
+        registryQueue.AddOrInvoke(pickup);
         return pickup;
     }
 
@@ -52,6 +61,7 @@ internal sealed class ModPickups : IModPickups
         string name = $"{metadata.Name}/{id}";
         IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), realConf);
         PickupsRegistry.AddPickup(pickup);
+        registryQueue.AddOrInvoke(pickup);
 
         return pickup;
     }
@@ -66,6 +76,7 @@ internal sealed class ModPickups : IModPickups
             Chance = 1f
         });
         PickupsRegistry.AddPickup(pickup);
+        registryQueue.AddOrInvoke(pickup);
 
         return pickup;
     }

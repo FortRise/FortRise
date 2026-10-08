@@ -12,6 +12,11 @@ internal static class TowerThemeRegistry
         themeEntries[entry.Name] = entry;
     }
 
+    public static void RemoveTheme(IThemeEntry entry)
+    {
+        themeEntries.Remove(entry.Name);
+    }
+
     public static IThemeEntry? GetTheme(string id)
     {
         themeEntries.TryGetValue(id, out var entry);

@@ -14,6 +14,11 @@ internal static class SpriteRegistry
         spriteEntries[entry.Entry.ID] = entry;
     }
 
+    public static void RemoveSprite(IBaseSpriteContainerEntry entry)
+    {
+        spriteEntries.Remove(entry.Entry.ID);
+    }
+
     public static ISpriteContainerEntry? GetSpriteEntry<T>(string id)
     {
         if (spriteEntries.TryGetValue(id, out IBaseSpriteContainerEntry? value))

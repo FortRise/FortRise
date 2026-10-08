@@ -15,6 +15,13 @@ public static class DarkWorldBossRegistry
         darkWorldBossEntries[entry.Name] = entry;
     }
 
+    public static void RemoveDarkWorldBoss(IDarkWorldBossEntry entry)
+    {
+        darkWorldBossEntries.Remove(entry.Name);
+        DarkWorldBosses.Remove(entry.Name);
+        DarkWorldBossLoader.Remove(entry.BossID);
+    }
+
     public static IDarkWorldBossEntry? GetDarkWorldBoss(string id)
     {
         darkWorldBossEntries.TryGetValue(id, out var entry);

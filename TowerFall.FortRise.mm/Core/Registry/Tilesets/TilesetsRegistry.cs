@@ -12,6 +12,11 @@ internal static class TilesetsRegistry
         tilesetEntries[entry.Name] = entry;
     }
 
+    public static void RemoveTileset(ITilesetEntry entry)
+    {
+        tilesetEntries.Remove(entry.Name);
+    }
+
     public static ITilesetEntry? GetTileset(string id)
     {
         tilesetEntries.TryGetValue(id, out var entry);

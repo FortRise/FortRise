@@ -46,4 +46,16 @@ public static class EntityRegistry
     {
         LevelEntityLoader[id] = configuration.Loader;
     }
+
+    public static void RemoveEnemy(IEnemyEntry enemyEntry)
+    {
+        EnemyEntries.Remove(enemyEntry.ID);
+        EnemyLoader.Remove(enemyEntry.ID);
+    }
+
+    public static void RemoveLevelEntity(ILevelEntityEntry entityEntry)
+    {
+        EntityEntries.Remove(entityEntry.ID);
+        LevelEntityLoader.Remove(entityEntry.ID);
+    }
 }

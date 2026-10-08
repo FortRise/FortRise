@@ -19,6 +19,14 @@ public static class ArrowsRegistry
         typesToArrowEntries[entry.ArrowTypes] = entry;
     }
 
+    internal static void Unregister(IArrowEntry entry)
+    {
+        arrowEntries.Remove(entry.Name);
+        typesToArrowEntries.Remove(entry.ArrowTypes);
+        StringToTypes.Remove(entry.Name);
+        LowPriorityTypes.Remove(entry.ArrowTypes);
+    }
+
 #nullable enable
     public static IArrowEntry? GetArrow(string id)
     {

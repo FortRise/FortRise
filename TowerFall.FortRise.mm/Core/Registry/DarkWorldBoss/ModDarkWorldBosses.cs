@@ -20,7 +20,7 @@ internal class ModDarkWorldBosses : IModDarkWorldBosses
     internal ModDarkWorldBosses(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IDarkWorldBossEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IDarkWorldBossEntry>(metadata, Invoke, Detach);
     }
 
     public IDarkWorldBossEntry RegisterDarkWorldBoss(string id, in DarkWorldBossConfiguration configuration)
@@ -58,5 +58,11 @@ internal class ModDarkWorldBosses : IModDarkWorldBosses
     Loaded:
         DarkWorldBossRegistry.DarkWorldBosses[bossName] = entry.BossID;
         DarkWorldBossRegistry.DarkWorldBossLoader[entry.BossID] = loader;
+    }
+
+    internal void Detach(IDarkWorldBossEntry entry)
+    {
+        DarkWorldBossRegistry.RemoveDarkWorldBoss(entry);
+        IDPool.Free("boss", entry.BossID);
     }
 }

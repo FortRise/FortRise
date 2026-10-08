@@ -30,7 +30,7 @@ internal sealed class ModParticles : IModParticles
     internal ModParticles(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IParticleEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IParticleEntry>(metadata, Invoke, Detach);
     }
 
     public IParticleEntry RegisterParticle(string id, in ParticleConfiguration configuration)
@@ -88,5 +88,11 @@ internal sealed class ModParticles : IModParticles
     private void Invoke(IParticleEntry entry)
     {
         TowerFall.Patching.Particles.ParticleList[entry.Name] = entry.ParticleType;
+    }
+
+    private void Detach(IParticleEntry entry)
+    {
+        TowerFall.Patching.Particles.ParticleList.Remove(entry.Name);
+        particleEntries.Remove(entry.Name);
     }
 }

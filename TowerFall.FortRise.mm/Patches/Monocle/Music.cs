@@ -24,6 +24,8 @@ public static class patch_Music
     public static Dictionary<string, TrackInfo> TrackMap = new();
     private static IMusicSystem music1Slot;
     private static IMusicSystem music2Slot;
+    private static string music1Name;
+    private static string music2Name;
 
     public static AudioCategory AudioCategory 
     {
@@ -140,6 +142,31 @@ public static class patch_Music
         currentSong = null;
     }
 
+    internal static bool StopTrack(string name)
+    {
+        musicAwaiter?.RemoveAll(x => x.MusicPath == name);
+
+        if (music2Name == name)
+        {
+            if (music2Slot is not null && music2Slot != music1Slot)
+            {
+                music2Slot.Stop(AudioStopOptions.Immediate);
+                music2Slot = null;
+            }
+
+            music2Name = null;
+        }
+
+        if (currentSong != name && music1Name != name)
+        {
+            return false;
+        }
+
+        StopMusic(AudioStopOptions.Immediate);
+        currentSong = null;
+        return true;
+    }
+
     public static void PlayNext(string filepath, bool looping)
     {
         musicAwaiter.Add(new Queue(filepath, looping));
@@ -215,6 +242,8 @@ public static class patch_Music
     {
         music2Slot = music1Slot;
         music1Slot = system;
+        music2Name = music1Name;
+        music1Name = name;
 
         system.Play(name, looping);
 
@@ -240,6 +269,8 @@ public static class patch_Music
         system.Play(name, looping);
         music2Slot = music1Slot;
         music1Slot = system;
+        music2Name = music1Name;
+        music1Name = name;
 
         if (music2Slot is not null && !music2Slot.IsStopped)
         {
@@ -281,6 +312,7 @@ public static class patch_Music
     {
         music1Slot?.Stop(options);
         music1Slot = null;
+        music1Name = null;
     }
 
     internal static void CrossFadePlay(IMusicSystem fadeOut, IMusicSystem fadeIn)

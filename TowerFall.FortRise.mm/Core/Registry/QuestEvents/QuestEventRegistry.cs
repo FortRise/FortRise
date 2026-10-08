@@ -43,6 +43,12 @@ public static class QuestEventRegistry
         events[eventName] = new Event(appear, dieOut);
     }
 
+    public static void Unregister(IQuestEventEntry entry)
+    {
+        eventEntries.Remove(entry.Name);
+        events.Remove(entry.Name);
+    }
+
     /// <summary>
     /// A struct containing the callbacks to the quest events.
     /// </summary>

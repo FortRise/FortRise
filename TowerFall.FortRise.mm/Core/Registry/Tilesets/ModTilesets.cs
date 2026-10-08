@@ -19,7 +19,7 @@ internal sealed class ModTilesets : IModTilesets
     internal ModTilesets(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<ITilesetEntry>(Invoke);
+        registryQueue = manager.CreateQueue<ITilesetEntry>(metadata, Invoke, Detach);
     }
 
     public ITilesetEntry RegisterTileset(string id, TilesetConfiguration configuration)
@@ -42,5 +42,11 @@ internal sealed class ModTilesets : IModTilesets
         tileset.AutotileData = entry.Configuration.AutotileData;
 
         GameData.Tilesets[entry.Name] = tileset;
+    }
+
+    private void Detach(ITilesetEntry entry)
+    {
+        GameData.Tilesets.Remove(entry.Name);
+        TilesetsRegistry.RemoveTileset(entry);
     }
 }

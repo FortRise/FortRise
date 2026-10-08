@@ -83,7 +83,7 @@ internal class ModInterop : IModInterop
 
         mod.OnModRequestApi?.Invoke(metadata);
 
-        return ProxyManager.ObtainProxy<string, T>(apiObject, modName, mod.Meta.Name);
+        return ProxyManager.ObtainProxy<string, T>(apiObject, modName, metadata.Name);
     }
 
     public void AwaitApi<T>(string name, AwaitApiCallback<T> callback, Option<SemanticVersion> minimumVersion) where T : class

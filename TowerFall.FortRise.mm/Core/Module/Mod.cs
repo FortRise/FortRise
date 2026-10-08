@@ -203,24 +203,22 @@ public abstract class Mod
         this.onReload = onReload;
     }
 
+    internal void DisposeHotReload()
+    {
+        if (fileSystemWatcher is null)
+        {
+            return;
+        }
+
+        fileSystemWatcher.Changed -= ReloadAssembly;
+        fileSystemWatcher.Dispose();
+        fileSystemWatcher = null;
+        onReload = null;
+    }
+
     private void ReloadAssembly(object sender, FileSystemEventArgs e)
     {
         Console.WriteLine("Hello?");
         onReload?.Invoke();
     }
-}
-
-public interface IModFlags
-{
-    bool IsWindows { get; init; }
-    bool IsSteam { get; init; }
-}
-
-internal sealed class ModFlags(
-    bool isWindows,
-    bool isSteam
-) : IModFlags
-{
-    public bool IsWindows { get; init; } = isWindows;
-    public bool IsSteam { get; init; } = isSteam;
 }

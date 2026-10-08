@@ -20,6 +20,18 @@ public class FortRiseModuleSaveData : ModuleSaveData
     [JsonInclude]
     public FortRiseTrialsStats AdventureTrials = new FortRiseTrialsStats();
 
+    [JsonPropertyName("VersusPlays")]
+    [JsonInclude]
+    public Dictionary<string, ulong> VersusTowerPlays = [];
+
+    [JsonPropertyName("ArcherWins")]
+    [JsonInclude]
+    public Dictionary<string, ulong> ArcherWins = [];
+
+    [JsonPropertyName("ArcherAwardTotals")]
+    [JsonInclude]
+    public Dictionary<string, ulong[]> ArcherAwards = [];
+
     [JsonPropertyName("Locations")]
     [JsonInclude]
     public List<string> LevelLocations = new List<string>();
@@ -30,6 +42,19 @@ public class FortRiseModuleSaveData : ModuleSaveData
 
     public override void OnVerify()
     {
+        ArcherStatsSync.Restore();
+
+        // vanilla stores versus plays by tower index, put the modded ones back where their tower is now
+        var versusPlays = TowerFall.SaveData.Instance.Stats.VersusTowerPlays;
+        for (int i = 0; i < GameData.VersusTowers.Count && i < versusPlays?.Length; i += 1)
+        {
+            var levelID = GameData.VersusTowers[i].LevelID;
+            if (levelID is not null && VersusTowerPlays.TryGetValue(levelID, out ulong plays))
+            {
+                versusPlays[i] = plays;
+            }
+        }
+
         foreach (var (_, v) in TowerRegistry.QuestTowers)
         {
             ref var stats = ref CollectionsMarshal.GetValueRefOrAddDefault(AdventureQuest.Towers, v.ID, out bool exists);

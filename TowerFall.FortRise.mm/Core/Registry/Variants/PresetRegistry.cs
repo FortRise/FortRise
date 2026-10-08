@@ -10,4 +10,9 @@ internal static class PresetRegistry
     {
         Presets.Add(presetEntry);
     }
+
+    public static void Unregister(IVariantPresetEntry presetEntry)
+    {
+        Presets.Remove(presetEntry);
+    }
 }

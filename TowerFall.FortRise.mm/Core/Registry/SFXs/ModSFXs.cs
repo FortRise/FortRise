@@ -41,7 +41,7 @@ internal sealed class ModSFXs : IModSFXs
     internal ModSFXs(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        sfxQueue = manager.CreateQueue<IBaseSFXEntry>(Invoke);
+        sfxQueue = manager.CreateQueue<IBaseSFXEntry>(metadata, Invoke, Detach);
     }
 
     public ISFXEntry RegisterSFX(string id, IResourceInfo sfxPath, bool obeysMasterPitch = true)
@@ -184,6 +184,13 @@ internal sealed class ModSFXs : IModSFXs
     private void Invoke(IBaseSFXEntry entry)
     {
         SFXRegistry.AddSFX(entry);
+        patch_Sounds.AddSFX(entry);
+    }
+
+    private void Detach(IBaseSFXEntry entry)
+    {
+        sfxEntries.Remove(entry.Name);
+        SFXRegistry.Remove(entry);
         patch_Sounds.AddSFX(entry);
     }
 }

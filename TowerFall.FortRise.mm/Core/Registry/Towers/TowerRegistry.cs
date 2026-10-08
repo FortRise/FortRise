@@ -27,6 +27,12 @@ public static class TowerRegistry
         IDToTowerTypes[entry.TowerType] = entry;
     }
 
+    public static void RemoveTowerType(ITowerTypeEntry entry)
+    {
+        TowerTypes.Remove(entry.Name);
+        IDToTowerTypes.Remove(entry.TowerType);
+    }
+
     public static ITowerTypeEntry GetTowerType(string name)
     {
         if (TowerTypes.TryGetValue(name, out ITowerTypeEntry entry))

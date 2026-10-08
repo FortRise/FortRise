@@ -18,7 +18,7 @@ internal sealed class ModQuestEvents : IModQuestEvents
     internal ModQuestEvents(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IQuestEventEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IQuestEventEntry>(metadata, Invoke, Detach);
     }
 
     public IQuestEventEntry RegisterQuestEvent(string id, in QuestEventConfiguration configuration)
@@ -38,5 +38,10 @@ internal sealed class ModQuestEvents : IModQuestEvents
     internal void Invoke(IQuestEventEntry entry)
     {
         QuestEventRegistry.Register(entry.Name, entry.Configuration.Appear, entry.Configuration.Disappear);
+    }
+
+    internal void Detach(IQuestEventEntry entry)
+    {
+        QuestEventRegistry.Unregister(entry);
     }
 }

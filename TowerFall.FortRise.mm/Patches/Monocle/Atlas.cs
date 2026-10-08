@@ -70,6 +70,14 @@ public class patch_Atlas : Atlas
         SafeSubTextures[name] = texture;
     }
 
+    public void Remove(string name)
+    {
+        if (!SafeSubTextures.Remove(name, out _))
+        {
+            SubTextures.Remove(name);
+        }
+    }
+
     internal void ConvertToFastLookup()
     {
         foreach (var concurrent in SafeSubTextures)
@@ -117,6 +125,11 @@ public static class AtlasExt
     internal static void SafeAdd(this Atlas atlas, string id, Subtexture tex)
     {
         ((patch_Atlas)atlas).SafeAdd(id, tex);
+    }
+
+    internal static void Remove(this Atlas atlas, string id)
+    {
+        ((patch_Atlas)atlas).Remove(id);
     }
 
     internal static patch_Atlas CreateAtlasFromEmbedded(string xmlPath, string imagePath)

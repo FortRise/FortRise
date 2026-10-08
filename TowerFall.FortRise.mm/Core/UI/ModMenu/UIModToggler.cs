@@ -44,7 +44,7 @@ public class UIModToggler : CustomMenuState
         oldBlacklistedMods = RiseCore.ModuleManager.BlacklistedMods;
         blacklistedMods = [.. oldBlacklistedMods];
 
-        var loadedMetadata = RiseCore.ModuleManager.InternalMods.Select(x => x.Metadata);
+        var loadedMetadata = RiseCore.ModuleManager.Mods.Select(x => x.Metadata);
         var enableAll = new OptionsButton("ENABLE ALL");
         enableAll.SetCallbacks(
             () => enableAll.State = string.Empty,

@@ -50,6 +50,13 @@ public static class CustomMenuStateRegistry
         MenuLoaders[state] = loader;
     }
 
+    public static void Unregister(IMenuStateEntry entry)
+    {
+        MenuStateEntries.Remove(entry.Name);
+        MenuLoaders.Remove(entry.MenuState);
+        DestroyTypeCache(entry.Configuration.MenuStateType);
+    }
+
     public static void DestroyTypeCache(Type type) 
     {
         typeCache.Remove(type);

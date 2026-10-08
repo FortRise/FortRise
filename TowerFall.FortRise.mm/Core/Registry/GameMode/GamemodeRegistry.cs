@@ -45,4 +45,11 @@ public static class GameModeRegistry
         ModesToVersusGameMode.Add(mode, gameMode);
         NameToModes.Add(gameMode.Name, mode);
     }
+
+    public static void Unregister(IVersusGameModeEntry gameMode)
+    {
+        VersusGameModes.Remove(gameMode);
+        ModesToVersusGameMode.Remove(gameMode.Modes);
+        NameToModes.Remove(gameMode.Name);
+    }
 }

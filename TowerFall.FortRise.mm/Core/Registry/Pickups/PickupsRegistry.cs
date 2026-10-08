@@ -21,6 +21,20 @@ public static class PickupsRegistry
         StringToTypes[entry.Name] = entry.Pickups;
     }
 
+    public static void RemovePickup(IPickupEntry entry)
+    {
+        pickupEntries.Remove(entry.Name);
+        typeToEntries.Remove(entry.Pickups);
+        StringToTypes.Remove(entry.Name);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (entry.Configuration.PickupType is { } type)
+        {
+            constructors.Remove(type);
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
 #nullable enable
     public static IPickupEntry? GetPickup(string id)
     {

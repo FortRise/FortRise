@@ -16,7 +16,7 @@ internal sealed class ModEnemies : IModEnemies
     internal ModEnemies(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IEnemyEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IEnemyEntry>(metadata, Invoke, Detach);
     }
 
     public IEnemyEntry RegisterEnemy(string id, in EnemyConfiguration configuration)
@@ -37,5 +37,10 @@ internal sealed class ModEnemies : IModEnemies
     internal void Invoke(IEnemyEntry entry)
     {
         EntityRegistry.AddEnemy(entry.ID, entry.Configuration);
+    }
+
+    internal void Detach(IEnemyEntry entry)
+    {
+        EntityRegistry.RemoveEnemy(entry);
     }
 }

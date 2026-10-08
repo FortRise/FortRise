@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using Monocle;
 
@@ -18,7 +19,7 @@ internal sealed class ModCommands : IModCommands
     internal ModCommands(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<ICommandEntry>(Invoke);
+        registryQueue = manager.CreateQueue<ICommandEntry>(metadata, Invoke, Detach);
     }
 
     public ICommandEntry RegisterCommands(string id, CommandConfiguration configuration)
@@ -33,5 +34,12 @@ internal sealed class ModCommands : IModCommands
     {
         var commands = Engine.Instance.Commands;
         commands.RegisterCommand(entry.Name, entry.Configuration.Callback);
+    }
+
+    private void Detach(ICommandEntry entry)
+    {
+        var commands = (patch_Commands)Engine.Instance.Commands;
+        commands.UnregisterCommand(entry.Name);
+        entries.Remove(entry.Name);
     }
 }

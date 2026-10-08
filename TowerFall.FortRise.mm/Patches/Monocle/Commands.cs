@@ -11,6 +11,7 @@ public class patch_Commands : Commands
     private string currentText;
     private int seekIndex;
     private readonly char[] commandSplit = new char[2] { ' ', ','};
+    private Dictionary<string, Action<string[]>> commands;
 
     public extern void orig_ctor();
 
@@ -19,6 +20,11 @@ public class patch_Commands : Commands
     {
         orig_ctor();
         drawCommands = new List<string>(5); // let's have a capacity here so we don't crash
+    }
+
+    public void UnregisterCommand(string command)
+    {
+        commands.Remove(command);
     }
 
     [MonoModReplace]

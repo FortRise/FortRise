@@ -241,15 +241,7 @@ namespace TowerFall
 
             foreach (var mod in ModuleManager.Instance.Mods)
             {
-                if (mod.OwnedResources.TryGetValue("icon.png", out var img))
-                {
-                    using var png = img.Stream;
-                    var texture = new Monocle.Texture(
-                        Texture2D.FromStream(Instance.GraphicsDevice, png));
-
-                    ModuleManager.Instance.NameToIcon[mod.Metadata.Name] =
-                        new Subtexture(texture);
-                }
+                ModuleManager.Instance.LoadIcon(mod);
             }
 
             foreach (var batch in ModuleManager.Instance.RegistryBatches[RegistryBatchType.PreloadedContent])
@@ -547,6 +539,7 @@ namespace TowerFall
             }
 
 
+            ModuleManager.Instance.State = LoadState.Ready;
             ModEventsManager.Instance.ModLoadStateFinished.Raise(null, LoadState.Ready);
             MainMenu.PlayMenuMusic();
             ConsoleEnabled = SaveData.Instance.Options.DevConsole;

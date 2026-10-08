@@ -66,6 +66,11 @@ internal static class SFXRegistry
         sfxEntries[entry.Name] = entry;
     }
 
+    public static void Remove(IBaseSFXEntry entry)
+    {
+        sfxEntries.Remove(entry.Name);
+    }
+
     public static T? GetSFX<T>(string id)
     where T : IBaseSFXEntry
     {

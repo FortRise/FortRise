@@ -1,6 +1,5 @@
 #nullable enable
 using Microsoft.Extensions.Logging;
-using TowerFall;
 
 namespace FortRise;
 
@@ -49,8 +48,8 @@ internal class ModRegistry : IModRegistry
         CharacterSounds = new ModCharacterSounds(metadata, manager);
         Archers = new ModArchers(metadata, manager);
         Arrows = new ModArrows(metadata, manager);
-        Pickups = new ModPickups(metadata);
-        Variants = new ModVariants(metadata);
+        Pickups = new ModPickups(metadata, manager);
+        Variants = new ModVariants(metadata, manager);
         Effects = new ModEffects(metadata, manager);
         Enemies = new ModEnemies(metadata, manager);
         LevelEntities = new ModLevelEntities(metadata, manager);
@@ -66,7 +65,7 @@ internal class ModRegistry : IModRegistry
         Towers = new ModTowers(metadata, manager);
         MapRenderers = new ModMapRenderers(metadata, manager);
 
-        TowerHooks = new ModTowerHooks(metadata);
+        TowerHooks = new ModTowerHooks(metadata, manager);
         QuestEvents = new ModQuestEvents(metadata, manager);
         Commands = new ModCommands(metadata, manager);
     }

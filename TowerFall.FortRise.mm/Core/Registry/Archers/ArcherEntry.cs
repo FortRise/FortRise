@@ -8,7 +8,8 @@ internal sealed class ArcherEntry : IArcherEntry
 {
     public string Name { get; init; }
     public ArcherConfiguration Configuration { get; init; }
-    public int Index { get; init; }
+    private int index;
+    public int Index { get => index; init => index = value; }
     public ArcherEntryType Type { get; init; }
     public ArcherData? ArcherData
     {
@@ -34,6 +35,9 @@ internal sealed class ArcherEntry : IArcherEntry
             }
         }
     }
+
+    // archers after a removed one move down a slot
+    internal void SetIndex(int newIndex) => index = newIndex;
 
     public ArcherEntry(string name, ArcherConfiguration configuration, int index, ArcherEntryType entryType)
     {

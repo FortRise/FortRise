@@ -15,6 +15,16 @@ internal static class MapRendererRegistry
         towerSetToMapEntries[entry.Configuration.TowerSet] = entry;
     }
 
+    public static void RemoveEntry(IMapRendererEntry entry)
+    {
+        mapEntries.Remove(entry.Name);
+
+        if (towerSetToMapEntries.TryGetValue(entry.Configuration.TowerSet, out var current) && current == entry)
+        {
+            towerSetToMapEntries.Remove(entry.Configuration.TowerSet);
+        }
+    }
+
     public static IMapRendererEntry? GetEntry(string name)
     {
         mapEntries.TryGetValue(name, out var map);

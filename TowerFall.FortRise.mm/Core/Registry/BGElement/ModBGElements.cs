@@ -17,7 +17,7 @@ internal sealed class ModBGElements : IModBGElements
     internal ModBGElements(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IBGElementEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IBGElementEntry>(metadata, Invoke, Detach);
     }
 
     public IBGElementEntry RegisterBGElement(string id, in BGElementConfiguration configuration)
@@ -37,5 +37,10 @@ internal sealed class ModBGElements : IModBGElements
     internal void Invoke(IBGElementEntry entry)
     {
         BGElementsRegistry.Register(entry.Name, entry.Configuration);
+    }
+
+    internal void Detach(IBGElementEntry entry)
+    {
+        BGElementsRegistry.Unregister(entry);
     }
 }

@@ -15,30 +15,54 @@ public static class patch_Sounds
 
     public static void LoadModdedCharacterSounds()
     {
+        foreach (var (sfxID, sounds) in CharacterSoundsRegistry.ModdedSounds)
+        {
+            SetCharacterSounds(sfxID, sounds);
+        }
+
+        CharacterSoundsRegistry.Injected = true;
+
+        //foreach (var queue in queuedModdedSFXs)
+        //{
+        //    ReadOnlySpan<char> name = queue.Name;
+        //
+        //    var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
+        //    lookup[name] = queue.BaseSFX;
+        //}
+    }
+
+    internal static void SetCharacterSounds(int sfxID, CharacterSounds sounds)
+    {
         var characters = Sounds.Characters;
-        int initialIndex = characters.Length;
-        Array.Resize(ref characters, CharacterSoundsRegistry.ModdedSounds.Count + characters.Length);
-
-        for (int i = 0; i < CharacterSoundsRegistry.ModdedSounds.Count; i++)
+        if (sfxID >= characters.Length)
         {
-            characters[initialIndex] = CharacterSoundsRegistry.ModdedSounds[i];
-            initialIndex += 1;
+            int oldLength = characters.Length;
+            Array.Resize(ref characters, sfxID + 1);
+
+            for (int i = oldLength; i < characters.Length; i++)
+            {
+                characters[i] ??= characters[0];
+            }
+
+            Sounds.Characters = characters;
         }
 
-        Sounds.Characters = characters;
-
-        foreach (var queue in queuedModdedSFXs)
-        {
-            ReadOnlySpan<char> name = queue.Name;
-
-            var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
-            lookup[name] = queue.BaseSFX;
-        }
+        characters[sfxID] = sounds;
     }
 
     internal static void AddSFX(IBaseSFXEntry entry) 
     {
-        queuedModdedSFXs.Add(entry);
+        //queuedModdedSFXs.Add(entry);
+
+        ReadOnlySpan<char> name = entry.Name;
+
+        var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
+        lookup[name] = entry.BaseSFX;
+    }
+
+    internal static void RemoveSFX(IBaseSFXEntry entry)
+    {
+        SoundsLoaded.Remove(entry.Name);
     }
 
     public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx) 

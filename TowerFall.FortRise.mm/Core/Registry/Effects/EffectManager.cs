@@ -13,6 +13,16 @@ public static class EffectManager
         effectEntries[entry.ID] = entry;
     }
 
+    public static void RemoveEffect(IEffectEntry entry)
+    {
+        effectEntries.Remove(entry.ID);
+
+        if (Shaders.Remove(entry.ID, out var resource))
+        {
+            resource.Shader?.Dispose();
+        }
+    }
+
     public static IEffectEntry? GetEffect(string id)
     {
         effectEntries.TryGetValue(id, out var entry);

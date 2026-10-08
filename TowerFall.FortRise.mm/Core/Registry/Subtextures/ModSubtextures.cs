@@ -59,7 +59,7 @@ internal sealed class ModSubtextures : IModSubtextures
     internal ModSubtextures(ModuleMetadata metadata, ModuleManager manager, ILogger logger)
     {
         this.metadata = metadata;
-        subtexturesQueue = manager.CreateQueue<ISubtextureEntry>(Invoke, RegistryBatchType.PreloadedContent);
+        subtexturesQueue = manager.CreateQueue<ISubtextureEntry>(metadata, Invoke, Detach, RegistryBatchType.PreloadedContent);
         this.logger = logger;
     }
 
@@ -157,6 +157,32 @@ internal sealed class ModSubtextures : IModSubtextures
             case SubtextureAtlasDestination.BossAtlas:
                 TFGame.BossAtlas.SafeAdd(entry.ID, entry.Subtexture);
                 break;
+        }
+    }
+
+    private void Detach(ISubtextureEntry entry)
+    {
+        switch (entry.AtlasDestination)
+        {
+            case SubtextureAtlasDestination.Atlas:
+                TFGame.Atlas.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.MenuAtlas:
+                TFGame.MenuAtlas.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.BGAtlas:
+                TFGame.BGAtlas.Remove(entry.ID);
+                break;
+            case SubtextureAtlasDestination.BossAtlas:
+                TFGame.BossAtlas.Remove(entry.ID);
+                break;
+        }
+
+        SubtextureRegistry.RemoveSubtexture(entry, entry.AtlasDestination);
+
+        if (entry is SubtextureEntry owned)
+        {
+            owned.DisposeOwnedTexture();
         }
     }
 

@@ -12,6 +12,11 @@ internal static class BackgroundRegistry
         backgroundEntries[entry.Name] = entry;
     }
 
+    public static void RemoveBackground(IBackgroundEntry entry)
+    {
+        backgroundEntries.Remove(entry.Name);
+    }
+
     public static IBackgroundEntry? GetBackground(string id)
     {
         backgroundEntries.TryGetValue(id, out var entry);

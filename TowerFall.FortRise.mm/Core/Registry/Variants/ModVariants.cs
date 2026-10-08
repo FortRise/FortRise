@@ -26,13 +26,41 @@ internal sealed class ModVariants : IModVariants
     private readonly ModuleMetadata metadata;
     private static Dictionary<string, IVariantEntry> vanillaCache = new();
 
+    private readonly RegistryQueue<IVariantEntry> variantRegistryQueue; 
+    private readonly RegistryQueue<IVariantPresetEntry> variantPresetRegistryQueue;
+
     public IReadOnlyDictionary<string, IVariantEntry> RegisteredVariants => variantEntries;
     public IReadOnlyDictionary<string, IVariantPresetEntry> RegisteredPresets => presetEntries;
 
-    internal ModVariants(ModuleMetadata metadata)
+    internal ModVariants(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
+        variantRegistryQueue = manager.CreateQueue<IVariantEntry>(metadata, VariantInvoke, VariantDetach);
+        variantPresetRegistryQueue = manager.CreateQueue<IVariantPresetEntry>(metadata, PresetInvoke, PresetDetach);
     }
+
+    private void PresetInvoke(IVariantPresetEntry entry)
+    {
+        PresetRegistry.Register(entry);
+    }
+
+    private void PresetDetach(IVariantPresetEntry entry)
+    {
+        PresetRegistry.Unregister(entry);
+        presetEntries.Remove(entry.Name);
+    }
+
+    private void VariantInvoke(IVariantEntry entry)
+    {
+        VariantRegistry.Register(entry);
+    }
+
+    private void VariantDetach(IVariantEntry entry)
+    {
+        VariantRegistry.Unregister(entry);
+        variantEntries.Remove(entry.Name);
+    }
+
 
     public IVariantEntry RegisterVariant(string id, in VariantConfiguration configuration)
     {
@@ -44,7 +72,7 @@ internal sealed class ModVariants : IModVariants
 
         IVariantEntry variant = new VariantEntry(name, configuration with { Header = header });
         variantEntries.Add(name, variant);
-        VariantRegistry.Register(variant);
+        variantRegistryQueue.AddOrInvoke(variant);
         return variant;
     }
 
@@ -54,7 +82,7 @@ internal sealed class ModVariants : IModVariants
 
         IVariantPresetEntry preset = new VariantPresetEntry(name, configuration);
         presetEntries.Add(name, preset);
-        PresetRegistry.Register(preset);
+        variantPresetRegistryQueue.AddOrInvoke(preset);
         return preset;
     }
 

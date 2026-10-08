@@ -14,6 +14,11 @@ internal static class MusicRegistry
         musicEntries[entry.Name] = entry;
     }
 
+    public static void RemoveMusic(IMusicEntry entry)
+    {
+        musicEntries.Remove(entry.Name);
+    }
+
     public static IMusicEntry? GetMusic(string id)
     {
         musicEntries.TryGetValue(id, out var entry);

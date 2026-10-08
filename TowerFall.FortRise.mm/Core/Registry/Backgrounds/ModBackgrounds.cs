@@ -17,7 +17,7 @@ internal sealed class ModBackgrounds : IModBackgrounds
     internal ModBackgrounds(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IBackgroundEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IBackgroundEntry>(metadata, Invoke, Detach);
     }
 
     public IBackgroundEntry RegisterBackground(string id, in BackgroundConfiguration configuration)
@@ -37,5 +37,11 @@ internal sealed class ModBackgrounds : IModBackgrounds
     internal void Invoke(IBackgroundEntry entry)
     {
         GameData.BGs[entry.Name] = entry.Xml;
+    }
+
+    internal void Detach(IBackgroundEntry entry)
+    {
+        GameData.BGs.Remove(entry.Name);
+        BackgroundRegistry.RemoveBackground(entry);
     }
 }

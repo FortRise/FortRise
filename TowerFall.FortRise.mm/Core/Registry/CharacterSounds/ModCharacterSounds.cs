@@ -19,7 +19,7 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
     internal ModCharacterSounds(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        characterSoundQueue = manager.CreateQueue<ICharacterSoundEntry>(Invoke);
+        characterSoundQueue = manager.CreateQueue<ICharacterSoundEntry>(metadata, Invoke, Detach);
     }
 
     public ICharacterSoundEntry RegisterCharacterSounds(string id, CharacterSoundConfiguration configuration)
@@ -38,7 +38,7 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
 
     private void Invoke(ICharacterSoundEntry entry)
     {
-        CharacterSoundsRegistry.ModdedSounds.Add(new patch_CharacterSounds()
+        CharacterSoundsRegistry.SetModdedSound(entry.SFXID, new patch_CharacterSounds()
         {
             Ready = (SFXVaried)(object)entry.Configuration.Ready.SFXVaried!,
             Deselect = entry.Configuration.Deselect.BaseSFX,
@@ -64,16 +64,44 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
             Revive = entry.Configuration.Revive.BaseSFX,
         });
     }
+
+    private void Detach(ICharacterSoundEntry entry)
+    {
+        CharacterSoundsRegistry.RemoveCharacterSound(entry);
+        IDPool.Free("characterSounds", entry.SFXID);
+    }
 }
 
 internal static class CharacterSoundsRegistry
 {
     public static Dictionary<string, ICharacterSoundEntry> characterSounds = [];
-    public static List<CharacterSounds> ModdedSounds = new List<CharacterSounds>();
+    public static Dictionary<int, CharacterSounds> ModdedSounds = [];
+    internal static bool Injected;
 
     public static void AddCharacterSound(ICharacterSoundEntry characterSound)
     {
         characterSounds[characterSound.Name] = characterSound;
+    }
+
+    public static void SetModdedSound(int sfxID, CharacterSounds sounds)
+    {
+        ModdedSounds[sfxID] = sounds;
+
+        if (Injected)
+        {
+            patch_Sounds.SetCharacterSounds(sfxID, sounds);
+        }
+    }
+
+    public static void RemoveCharacterSound(ICharacterSoundEntry characterSound)
+    {
+        characterSounds.Remove(characterSound.Name);
+        ModdedSounds.Remove(characterSound.SFXID);
+
+        if (Injected && characterSound.SFXID < Sounds.Characters.Length)
+        {
+            Sounds.Characters[characterSound.SFXID] = Sounds.Characters[0];
+        }
     }
 
     public static ICharacterSoundEntry? GetCharacterSound(string id)

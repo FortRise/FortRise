@@ -22,7 +22,7 @@ internal sealed class ModArrows : IModArrows
     internal ModArrows(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IArrowEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IArrowEntry>(metadata, Invoke, Detach);
     }
 
     public IArrowEntry RegisterArrows(string id, in ArrowConfiguration configuration)
@@ -43,5 +43,11 @@ internal sealed class ModArrows : IModArrows
     internal void Invoke(IArrowEntry entry)
     {
         ArrowsRegistry.Register(entry.Name, entry.ArrowTypes, entry.Configuration);
+    }
+
+    internal void Detach(IArrowEntry entry)
+    {
+        ArrowsRegistry.Unregister(entry);
+        EnumPool.Free(entry.ArrowTypes);
     }
 }

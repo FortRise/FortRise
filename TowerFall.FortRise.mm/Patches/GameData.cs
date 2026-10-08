@@ -17,8 +17,6 @@ public static class patch_GameData
     [MonoModReplace]
     public static void Load() 
     {
-        // Should be safe to restart here
-        RiseCore.CantRestart = false;
         ModEventsManager.Instance.OnBeforeDataLoad.Raise(null, new DataLoadEventArgs(RiseCore.WillRestart));
         TFGame.WriteToLoadLog("Loading Background Data...");
 

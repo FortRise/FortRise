@@ -104,6 +104,22 @@ public sealed class FortRiseModule : Mod
 
     public static void OnSave(object sender, BeforeSaveSaveDataEventArgs e)
     {
+        BackupTowerStats();
+        ArcherStatsSync.Backup();
+    }
+
+    internal static void BackupTowerStats()
+    {
+        var versusPlays = TowerFall.SaveData.Instance.Stats.VersusTowerPlays;
+        for (int i = 0; i < GameData.VersusTowers.Count && i < versusPlays?.Length; i += 1)
+        {
+            var levelID = GameData.VersusTowers[i].LevelID;
+            if (levelID is not null && levelID.Contains('/'))
+            {
+                SaveData.VersusTowerPlays[levelID] = versusPlays[i];
+            }
+        }
+
         // Backup the data from savedata to mod if possible
         // this should only be possible if the mod data exists on the TowerFall savedata side
         for (int i = 0; i < TowerFall.SaveData.Instance.Quest.Towers.Length; i += 1)

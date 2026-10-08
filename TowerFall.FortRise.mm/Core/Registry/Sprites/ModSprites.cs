@@ -29,7 +29,7 @@ internal sealed class ModSprites : IModSprites
     internal ModSprites(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        spriteQueue = manager.CreateQueue<IBaseSpriteContainerEntry>(Invoke);
+        spriteQueue = manager.CreateQueue<IBaseSpriteContainerEntry>(metadata, Invoke, Detach);
     }
 
     public ISpriteContainerEntry RegisterSprite<T>(string id, SpriteConfiguration<T> configuration)
@@ -119,5 +119,20 @@ internal sealed class ModSprites : IModSprites
         };
 
         xmlElements[entry.Entry.ID] = entry.Entry.Xml;
+    }
+
+    private void Detach(IBaseSpriteContainerEntry entry)
+    {
+        Dictionary<string, XmlElement> xmlElements = entry.Type switch
+        {
+            ContainerSpriteType.Menu => TFGame.MenuSpriteData.GetSprites(),
+            ContainerSpriteType.Boss => TFGame.BossSpriteData.GetSprites(),
+            ContainerSpriteType.BG => TFGame.BGSpriteData.GetSprites(),
+            ContainerSpriteType.Corpse => TFGame.CorpseSpriteData.GetSprites(),
+            _ => TFGame.SpriteData.GetSprites()
+        };
+
+        xmlElements.Remove(entry.Entry.ID);
+        SpriteRegistry.RemoveSprite(entry);
     }
 }

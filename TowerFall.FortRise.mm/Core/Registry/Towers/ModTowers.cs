@@ -51,6 +51,10 @@ internal sealed class ModTowers : IModTowers
     private readonly PreparedRegistryQueue<IQuestTowerEntry> questTowerQueue;
     private readonly RegistryQueue<IDarkWorldTowerEntry> darkWorldTowerQueue;
     private readonly PreparedRegistryQueue<ITrialsTowerEntry> trialTowerQueue;
+    private readonly RegistryQueue<ITowerTypeEntry> towerTypeQueue;
+    // prepared queues drop their entries after invoking, so these only keep them for detaching
+    private readonly RegistryQueue<IQuestTowerEntry> questTowerDetachQueue;
+    private readonly RegistryQueue<ITrialsTowerEntry> trialTowerDetachQueue;
 
     public IReadOnlyDictionary<string, IDarkWorldTowerEntry> RegisteredDarkWorldTowers => TowerRegistry.DarkWorldTowers;
     public IReadOnlyDictionary<string, IQuestTowerEntry> RegisteredQuestTowers => TowerRegistry.QuestTowers;
@@ -67,10 +71,13 @@ internal sealed class ModTowers : IModTowers
     internal ModTowers(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        versusTowerQueue = manager.CreateQueue<IVersusTowerEntry>(VersusTowerInvoke);
+        versusTowerQueue = manager.CreateQueue<IVersusTowerEntry>(metadata, VersusTowerInvoke, TowerDataSync.RemoveVersusTower);
         questTowerQueue = manager.CreatePrepareQueue<IQuestTowerEntry>(QuestTowerPrepare, QuestTowerInvoke);
-        darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(DarkWorldTowerInvoke);
+        questTowerDetachQueue = manager.CreateQueue<IQuestTowerEntry>(metadata, static _ => {}, TowerDataSync.RemoveQuestTower);
+        darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(metadata, DarkWorldTowerInvoke, TowerDataSync.RemoveDarkWorldTower);
         trialTowerQueue = manager.CreatePrepareQueue<ITrialsTowerEntry>(TrialTowerPrepare, TrialTowerInvoke);
+        trialTowerDetachQueue = manager.CreateQueue<ITrialsTowerEntry>(metadata, static _ => {}, TowerDataSync.RemoveTrialTower);
+        towerTypeQueue = manager.CreateQueue<ITowerTypeEntry>(metadata, static _ => {}, TowerTypeDetach);
     }
 
 
@@ -80,6 +87,7 @@ internal sealed class ModTowers : IModTowers
 
         ITowerTypeEntry entry = new TowerTypeEntry(name, EnumPool.Obtain<MapButton.TowerType>(), configuration);
         TowerRegistry.AddTowerType(name, entry);
+        towerTypeQueue.AddOrInvoke(entry);
         return entry;
     }
 
@@ -109,6 +117,7 @@ internal sealed class ModTowers : IModTowers
         string set = $"{metadata.Name}/{towerSet}";
         IQuestTowerEntry entry = new QuestTowerEntry(name, set, configuration);
         questTowerQueue.AddOrInvoke(entry);
+        questTowerDetachQueue.AddOrInvoke(entry);
         TowerRegistry.QuestTowers.Add(name, entry);
         return entry;
     }
@@ -139,12 +148,20 @@ internal sealed class ModTowers : IModTowers
         string set = $"{metadata.Name}/{towerSet}";
         ITrialsTowerEntry entry = new TrialsTowerEntry(name, set, configuration);
         trialTowerQueue.AddOrInvoke(entry);
+        trialTowerDetachQueue.AddOrInvoke(entry);
         TowerRegistry.TrialTowers.Add(name, entry);
         return entry;
     }
 
+    private void TowerTypeDetach(ITowerTypeEntry entry)
+    {
+        TowerRegistry.RemoveTowerType(entry);
+        EnumPool.Free(entry.TowerType);
+    }
+
     private void VersusTowerInvoke(IVersusTowerEntry entry)
     {
+        TowerDataSync.Backup();
         var levelData = new patch_VersusTowerData
         {
             LevelID = entry.ID,
@@ -234,12 +251,14 @@ internal sealed class ModTowers : IModTowers
             TowerRegistry.VersusLevelSets.Add(entry.TowerSet);
         }
         GameData.VersusTowers.Add(levelData);
+        TowerDataSync.Rebuild();
     }
 
     private int totalQuestCount;
 
     private void QuestTowerPrepare(List<IQuestTowerEntry> entries)
     {
+        TowerDataSync.Backup();
         totalQuestCount = GameData.QuestLevels.Length;
         Array.Resize(ref GameData.QuestLevels, GameData.QuestLevels.Length + entries.Count);
     }
@@ -266,10 +285,12 @@ internal sealed class ModTowers : IModTowers
         entry.LevelIndex = levelData.ID;
         GameData.QuestLevels[totalQuestCount] = levelData;
         totalQuestCount += 1;
+        TowerDataSync.Rebuild();
     }
 
     private void DarkWorldTowerInvoke(IDarkWorldTowerEntry entry)
     {
+        TowerDataSync.Backup();
         var towerData = new patch_DarkWorldTowerData
         {
             LevelID = entry.ID,
@@ -300,6 +321,7 @@ internal sealed class ModTowers : IModTowers
             TowerRegistry.DarkWorldLevelSets.Add(entry.TowerSet);
         }
         GameData.DarkWorldTowers.Add(towerData);
+        TowerDataSync.Rebuild();
 
 
         static List<DarkWorldTowerData.LevelData> CreateLevelData(
@@ -322,6 +344,7 @@ internal sealed class ModTowers : IModTowers
 
     private void TrialTowerPrepare(List<ITrialsTowerEntry> entries)
     {
+        TowerDataSync.Backup();
         int origXLength = totalTrialsCount = GameData.TrialsLevels.GetLength(0);
         int origYLength = GameData.TrialsLevels.GetLength(1);
         int newRowXLength = origXLength + entries.Count;
@@ -394,6 +417,8 @@ internal sealed class ModTowers : IModTowers
         {
             TowerRegistry.TrialsLevelSet.Add(entry.TowerSet);
         }
+
+        TowerDataSync.Rebuild();
     }
 
     public IVersusTowerEntry? GetVersusTower(string id)

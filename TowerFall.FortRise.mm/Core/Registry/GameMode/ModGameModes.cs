@@ -26,6 +26,7 @@ internal sealed class ModGameModes : IModGameModes
 {
     private readonly RegistryQueue<IVersusGameModeEntry> versusRegistryQueue;
     private readonly RegistryQueue<ICoOpGameModeEntry> coopRegistryQueue;
+    private readonly RegistryQueue<IRollcallModesEntry> rollcallRegistryQueue;
     private readonly ModuleMetadata metadata;
 
     private readonly Dictionary<string, IRollcallModesEntry> registeredRollcallModes = [];
@@ -42,8 +43,9 @@ internal sealed class ModGameModes : IModGameModes
     internal ModGameModes(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        versusRegistryQueue = manager.CreateQueue<IVersusGameModeEntry>(VersusInvoke);
-        coopRegistryQueue = manager.CreateQueue<ICoOpGameModeEntry>(CoOpInvoke);
+        versusRegistryQueue = manager.CreateQueue<IVersusGameModeEntry>(metadata, VersusInvoke, VersusDetach);
+        coopRegistryQueue = manager.CreateQueue<ICoOpGameModeEntry>(metadata, CoOpInvoke, CoOpDetach);
+        rollcallRegistryQueue = manager.CreateQueue<IRollcallModesEntry>(metadata, static _ => {}, RollcallDetach);
     }
 
     public IVersusGameModeEntry RegisterVersusGameMode(IVersusGameMode gameMode)
@@ -90,6 +92,7 @@ internal sealed class ModGameModes : IModGameModes
         );
 
         registeredRollcallModes[name] = rollCallEntry;
+        rollcallRegistryQueue.AddOrInvoke(rollCallEntry);
         return rollCallEntry;
     }
 
@@ -114,5 +117,29 @@ internal sealed class ModGameModes : IModGameModes
     internal void VersusInvoke(IVersusGameModeEntry entry)
     {
         GameModeRegistry.Register(entry);
+    }
+
+    internal void VersusDetach(IVersusGameModeEntry entry)
+    {
+        GameModeRegistry.Unregister(entry);
+        GameModeRegistry.RegistryVersusGameModes.Remove(entry.Name);
+        EnumPool.Free(entry.Modes);
+    }
+
+    internal void CoOpDetach(ICoOpGameModeEntry entry)
+    {
+        GameModeRegistry.RegistryCoOpGameModes.Remove(entry.Name);
+        EnumPool.Free(entry.Modes);
+    }
+
+    internal void RollcallDetach(IRollcallModesEntry entry)
+    {
+        string prefix = $"{metadata.Name}/";
+        if (entry.Name.StartsWith(prefix))
+        {
+            registeredRollcallModes.Remove(entry.Name[prefix.Length..]);
+        }
+
+        EnumPool.Free(entry.RollcallMode);
     }
 }

@@ -67,8 +67,6 @@ public static partial class RiseCore
     public static bool DumpResources { get; private set; }
     internal static string[] ApplicationArgs;
 
-    internal static bool CantRestart = true;
-
     /// <summary>
     /// Check if the game is about to restart.
     /// </summary>
@@ -167,6 +165,9 @@ public static partial class RiseCore
         }
 
         ModuleManager.BlacklistedMods = ReadBlacklistedMods(Path.Combine(modDirectory, "blacklist.txt"));
+
+        ModuleManager.DisabledModsPath = Path.Combine(modDirectory, "disabledMods.json");
+        ModuleManager.DisabledMods = ReadBlacklistedMods(ModuleManager.DisabledModsPath);
 
         // warm up
         // TODO: make archers follows the vanilla archerData xml count
@@ -407,7 +408,7 @@ public static partial class RiseCore
     {
         logger.LogInformation(
             "{modsCount} total of mods loaded.", 
-            ModuleManager.InternalMods.Count
+            ModuleManager.Mods.Count
         );
     }
 
@@ -418,21 +419,12 @@ public static partial class RiseCore
 
     internal static void ModuleEnd()
     {
-        foreach (var mod in ModuleManager.InternalFortModules)
-        {
-            UnloadMod(mod);
-        }
+        ModuleManager.UnloadAll();
     }
 
     internal static void UnloadMod(Mod mod)
     {
-        // first, call the unload first
-        mod.OnUnload?.Invoke(mod.Context);
-
-        // then unload all FortRise managed objects
-        // TODO: unload all mod's features, useful for hot reload
-        mod.Context.Harmony.UnpatchAll();
-        ModEventsManager.Instance.RemoveByMod(mod);
+        ModuleManager.UnloadMod(mod.Meta);
     }
 
     internal static void WriteBlacklist(List<string> ctx, string path)

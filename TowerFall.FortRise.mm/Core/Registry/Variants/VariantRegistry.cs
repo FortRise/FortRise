@@ -10,4 +10,9 @@ internal static class VariantRegistry
     {
         Variants.Add(variant.Name, variant);
     }
+
+    public static void Unregister(IVariantEntry variant)
+    {
+        Variants.Remove(variant.Name);
+    }
 }

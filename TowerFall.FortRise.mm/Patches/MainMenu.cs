@@ -399,6 +399,7 @@ namespace TowerFall
             {
                 List<OptionsButton> buttonLates = [];
 
+
                 if (RiseCore.UpdateChecks.HasUpdates.Contains(selectedMod))
                 {
                     var updateButton = new OptionsButton("UPDATE MOD");

@@ -18,7 +18,7 @@ internal sealed class ModThemes : IModThemes
     internal ModThemes(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<IThemeEntry>(Invoke);
+        registryQueue = manager.CreateQueue<IThemeEntry>(metadata, Invoke, Detach);
     }
 
     public IThemeEntry RegisterTheme(string id, ThemeConfiguration configuration)
@@ -90,5 +90,11 @@ internal sealed class ModThemes : IModThemes
         }
 
         GameData.Themes[entry.Name] = towerTheme;
+    }
+
+    private void Detach(IThemeEntry entry)
+    {
+        GameData.Themes.Remove(entry.Name);
+        TowerThemeRegistry.RemoveTheme(entry);
     }
 }

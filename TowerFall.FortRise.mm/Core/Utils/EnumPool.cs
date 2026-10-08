@@ -19,7 +19,7 @@ public static class EnumPool
         where TEnum : struct, Enum
         {
             Type type = typeof(TEnum);
-            if (freed.Count != 0 && freed.TryGetValue(type, out var set))
+            if (freed.TryGetValue(type, out var set) && set.Count != 0)
             {
                 var first = set.First();
                 set.Remove(first);

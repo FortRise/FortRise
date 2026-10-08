@@ -15,10 +15,17 @@ public interface IModMapRenderers
 internal sealed class ModMapRenderers : IModMapRenderers
 {
     private readonly ModuleMetadata metadata;
+    private readonly RegistryQueue<IMapRendererEntry> registryQueue;
 
     internal ModMapRenderers(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
+        registryQueue = manager.CreateQueue<IMapRendererEntry>(metadata, static _ => {}, Detach);
+    }
+
+    private void Detach(IMapRendererEntry entry)
+    {
+        MapRendererRegistry.RemoveEntry(entry);
     }
 
     public IMapRendererEntry RegisterMapRenderer(string id, MapRendererConfiguration configuration)
@@ -27,6 +34,7 @@ internal sealed class ModMapRenderers : IModMapRenderers
         IMapRendererEntry entry = new MapRendererEntry(name, configuration);
 
         MapRendererRegistry.AddEntry(entry);
+        registryQueue.AddOrInvoke(entry);
         return entry;
     }
 

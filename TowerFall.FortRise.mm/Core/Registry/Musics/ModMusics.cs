@@ -1,5 +1,6 @@
 #nullable enable
 using Monocle;
+using TowerFall;
 
 namespace FortRise;
 
@@ -17,7 +18,7 @@ internal sealed class ModMusics : IModMusics
     internal ModMusics(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        queue = manager.CreateQueue<IMusicEntry>(Invoke);
+        queue = manager.CreateQueue<IMusicEntry>(metadata, Invoke, Detach);
     }
 
     public IMusicEntry RegisterMusic(string id, IResourceInfo filePath)
@@ -38,5 +39,18 @@ internal sealed class ModMusics : IModMusics
     {
         var trackInfo = new TrackInfo(entry.Name, entry.MusicPath);
         patch_Music.TrackMap[entry.Name] = trackInfo;
+    }
+
+    private void Detach(IMusicEntry entry)
+    {
+        bool wasPlaying = patch_Music.StopTrack(entry.Name);
+        patch_Music.TrackMap.Remove(entry.Name);
+
+        if (wasPlaying && Engine.Instance.Scene is MainMenu)
+        {
+            MainMenu.PlayMenuMusic();
+        }
+
+        MusicRegistry.RemoveMusic(entry);
     }
 }

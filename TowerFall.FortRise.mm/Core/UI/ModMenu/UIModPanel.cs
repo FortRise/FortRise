@@ -27,6 +27,50 @@ internal class UIModPanel : MenuItem
     [MonoModLinkTo("Monocle.Entity", "Update")]
     public void base_Update() {}
 
+    private const float PanelWidth = 276f;
+
+    private bool CanToggle =>!modItem.Metadata.Name.StartsWith("FortRise");
+
+    public override void Update()
+    {
+        bool wasSelected = Selected;
+        base.Update();
+
+        if (!wasSelected || !CanToggle || MainMenu is null || !MainMenu.CanAct)
+        {
+            return;
+        }
+
+        if (MenuInput.Alt || MenuInput.Left || MenuInput.Right)
+        {
+            ToggleActive();
+        }
+    }
+
+    private void ToggleActive()
+    {
+        var manager = RiseCore.ModuleManager;
+        var metadata = modItem.Metadata;
+
+        if (manager.IsModLoaded(metadata))
+        {
+            manager.UnloadMod(metadata);
+        }
+        else
+        {
+            manager.EnableMod(metadata);
+        }
+
+        if (manager.IsModLoaded(metadata))
+        {
+            Sounds.ui_subclickOn.Play(160f, 1f);
+        }
+        else
+        {
+            Sounds.ui_subclickOff.Play(160f, 1f);
+        }
+    }
+
     public override void TweenIn()
     {
         Position = tweenFrom;
@@ -68,7 +112,7 @@ internal class UIModPanel : MenuItem
     {
         if (Selected)
         {
-            Draw.HollowRect(Position.X - 4, Position.Y - 4, 200, 24, Color.Yellow);
+            Draw.HollowRect(Position.X - 4, Position.Y - 4, PanelWidth, 24, Color.Yellow);
         }
 
         Draw.TextureJustify(modItem.Icon, new Vector2(Position.X, Position.Y), Vector2.Zero);
@@ -82,6 +126,24 @@ internal class UIModPanel : MenuItem
             TextUtils.DrawOutlinedIconText(TFGame.Font, modItem.Name, Position + Vector2.UnitX * 20, Color.White, Vector2.Zero);
         }
         Draw.TextJustify(TFGame.Font, modItem.Version, Position + new Vector2(20, 10), Color.DarkGray, Vector2.Zero);
+
+        if (CanToggle)
+        {
+            bool active = RiseCore.ModuleManager.IsModLoaded(modItem.Metadata);
+            string state = active ? "ON" : "OFF";
+            if (Selected)
+            {
+                state = $"< {state} >";
+            }
+
+            Draw.TextJustify(
+                TFGame.Font,
+                state,
+                Position + new Vector2(PanelWidth - 12, 0),
+                active ? Color.White : Color.DarkGray,
+                Vector2.UnitX
+            );
+        }
     }
 
     public class ModItem 

@@ -92,7 +92,11 @@ public sealed class SafeModEventHandler<TEventArgs>
         }
     }
 
-    public TEventArgs Raise(object? sender, TEventArgs args)
+    public TEventArgs Raise(object? sender, TEventArgs args) => RaiseInternal(null, sender, args);
+
+    internal TEventArgs RaiseFor(ModuleMetadata metadata, object? sender, TEventArgs args) => RaiseInternal(metadata, sender, args);
+
+    private TEventArgs RaiseInternal(ModuleMetadata? only, object? sender, TEventArgs args)
     {
         lock (safeHandlers)
         {
@@ -101,6 +105,11 @@ public sealed class SafeModEventHandler<TEventArgs>
             {
                 foreach (var handler in safeHandlers)
                 {
+                    if (only is not null && handler.Metadata != only)
+                    {
+                        continue;
+                    }
+
                     handler.Handler?.Invoke(sender, args);
                 }
             }

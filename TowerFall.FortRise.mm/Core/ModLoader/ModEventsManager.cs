@@ -43,23 +43,23 @@ internal sealed class ModEventsManager
         AfterSaveData = new();
     }
 
-    public void RemoveByMod(Mod mod)
+    public void RemoveByMetadata(ModuleMetadata metadata)
     {
-        ModInitialize.RemoveAllWithMetadata(mod.Meta);
-        ModBeforeInstantiation.RemoveAllWithMetadata(mod.Meta);
-        ModLoadStateFinished.RemoveAllWithMetadata(mod.Meta);
-        RoundLogicLevelLoadFinish.RemoveAllWithMetadata(mod.Meta);
-        MatchVariantsSlotVariantCreated.RemoveAllWithMetadata(mod.Meta);
-        GameLoaded.RemoveAllWithMetadata(mod.Meta);
-        LevelEntered.RemoveAllWithMetadata(mod.Meta);
-        LevelExited.RemoveAllWithMetadata(mod.Meta);
-        GameInitialized.RemoveAllWithMetadata(mod.Meta);     
-        OnBeforeDataLoad.RemoveAllWithMetadata(mod.Meta);
-        OnAfterDataLoad.RemoveAllWithMetadata(mod.Meta);
-        SessionQuit.RemoveAllWithMetadata(mod.Meta);
-        MapSceneLevelSetsCreated.RemoveAllWithMetadata(mod.Meta);
-        BeforeSaveData.RemoveAllWithMetadata(mod.Meta);
-        AfterSaveData.RemoveAllWithMetadata(mod.Meta);
+        ModInitialize.RemoveAllWithMetadata(metadata);
+        ModBeforeInstantiation.RemoveAllWithMetadata(metadata);
+        ModLoadStateFinished.RemoveAllWithMetadata(metadata);
+        RoundLogicLevelLoadFinish.RemoveAllWithMetadata(metadata);
+        MatchVariantsSlotVariantCreated.RemoveAllWithMetadata(metadata);
+        GameLoaded.RemoveAllWithMetadata(metadata);
+        LevelEntered.RemoveAllWithMetadata(metadata);
+        LevelExited.RemoveAllWithMetadata(metadata);
+        GameInitialized.RemoveAllWithMetadata(metadata);     
+        OnBeforeDataLoad.RemoveAllWithMetadata(metadata);
+        OnAfterDataLoad.RemoveAllWithMetadata(metadata);
+        SessionQuit.RemoveAllWithMetadata(metadata);
+        MapSceneLevelSetsCreated.RemoveAllWithMetadata(metadata);
+        BeforeSaveData.RemoveAllWithMetadata(metadata);
+        AfterSaveData.RemoveAllWithMetadata(metadata);
     }
 
     public void Dispose() 

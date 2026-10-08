@@ -15,7 +15,7 @@ internal sealed class ModLevelEntities : IModLevelEntities
     internal ModLevelEntities(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        registryQueue = manager.CreateQueue<ILevelEntityEntry>(Invoke);
+        registryQueue = manager.CreateQueue<ILevelEntityEntry>(metadata, Invoke, Detach);
     }
 
     public ILevelEntityEntry RegisterLevelEntity(string id, in LevelEntityConfiguration configuration)
@@ -36,5 +36,10 @@ internal sealed class ModLevelEntities : IModLevelEntities
     internal void Invoke(ILevelEntityEntry entry)
     {
         EntityRegistry.AddLevelEntity(entry.ID, entry.Configuration);
+    }
+
+    internal void Detach(ILevelEntityEntry entry)
+    {
+        EntityRegistry.RemoveLevelEntity(entry);
     }
 }
