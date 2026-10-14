@@ -68,9 +68,9 @@ public abstract class AudioTrack : IDisposable
     {
         if (soundEffect is DynamicSoundEffectInstance instance) 
         {
-            while (instance.PendingBufferCount < 3) 
+            while (instance.PendingBufferCount < 4) 
             {
-                instance.SubmitFloatBufferEXT(CreateBuffer(3 * 1024));
+                instance.SubmitFloatBufferEXT(CreateBuffer(4 * 8192));
             }
         }
     }
