@@ -68,11 +68,6 @@ public class OggAudioTrack : AudioTrack, IDisposable
 
             if (samplesLeft < countSample) 
             {
-                if (sample < countSample) 
-                {
-                    Logger.Warning($"[OGG Decode] Asked for {samplesLeft} received {sample} samples prior to loop");
-                }
-
                 Seek(loopStart);
                 int bufferBase = samplesLeft * channels;
                 fixed (float* p = &buffer[bufferBase]) 
