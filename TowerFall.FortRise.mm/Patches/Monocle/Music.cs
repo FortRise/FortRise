@@ -46,6 +46,8 @@ public static class patch_Music
         {
             musicAwaiter = new();
             var dirPath = Path.GetFullPath(Directory.GetCurrentDirectory());
+            //XWBExtract.Extract(Path.Combine(dirPath, "Content/Music/Win/MusicWaveBank.xwb"), Path.Combine(dirPath, "MusicTest"));
+
             audioEngine = new AudioEngine(Path.Combine(dirPath, "Content/Music/Win/TowerFallMusic.xgs"));
             soundBank = new SoundBank(audioEngine, Path.Combine(dirPath, "Content/Music/Win/MusicSoundBank.xsb"));
             waveBank = new WaveBank(audioEngine, Path.Combine(dirPath, "Content/Music/Win/MusicWaveBank.xwb"));
