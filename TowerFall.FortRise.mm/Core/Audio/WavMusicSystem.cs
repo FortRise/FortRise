@@ -39,7 +39,7 @@ public class WavMusicSystem : IMusicSystem
             current.Play();
             return;
         }
-        Logger.Error($"[WAV Music System] No audio file named '{name}' exists on the Music Folder");
+        Logger.Error($"[WAV Music System] No music named '{name}' exists or registered.");
     }
 
     public void Resume()
@@ -49,7 +49,7 @@ public class WavMusicSystem : IMusicSystem
 
     public void Seek(uint seekFrames)
     {
-        Logger.Warning("[WAV Music System] Seek is not supported!");
+        current?.Seek(seekFrames);
     }
 
     public void Stop(AudioStopOptions options)
