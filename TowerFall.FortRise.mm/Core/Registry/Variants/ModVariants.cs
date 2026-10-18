@@ -40,10 +40,7 @@ internal sealed class ModVariants : IModVariants
 
         string? header = configuration.Header;
 
-        if (header is null)
-        {
-            header = metadata.Name;
-        }
+        header ??= string.IsNullOrEmpty(metadata.DisplayName) ? metadata.Name : metadata.DisplayName;
 
         IVariantEntry variant = new VariantEntry(name, configuration with { Header = header });
         variantEntries.Add(name, variant);
