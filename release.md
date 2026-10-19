@@ -1,3 +1,14 @@
+# 5.5.0-beta.4
++ tweaks: Spikeball's rotation value and Arrow.MaxSeekAngle value is now the same for both v1.3.3.1 and v1.3.3.3.
++ tweaks: V-Sync is now disabled by default for first launch.
++ improvements: Variant headers now use mod's Display Name instead of Name ID.
++ optimize: Improved memory usage when opening a file from a zip.
++ optimize: Custom .WAV music is now buffered.
++ optimize: Extends sample ocunt for music systems improve CPU usage.
++ optimize: Looping with a custom loopStart no longer logs that happened.
++ fixed: Fixed crashes when saving a level on workshop.
++ fixed: Fixed crashes when using reset all buttons on a controller settings.
+
 # 5.5.0-beta.3
 + Added <ShowOnHat>, <BlueColor>, and <RedColor> on Hair data.
 + NoHat and Crowns can now have BlueTexture and RedTexture.
