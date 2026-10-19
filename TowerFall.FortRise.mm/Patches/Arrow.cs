@@ -21,6 +21,16 @@ public abstract class patch_Arrow : Actor
     public static Color[] ColorsB;
     public static Color[] NoneColors;
 
+    protected virtual float SeekMaxAngle 
+    {
+        // parity fix: need for netplay
+        [MonoModReplace]
+        get 
+        {
+            return 0.6981317f;
+        }
+    }
+
     protected patch_Arrow() : base(Vector2.Zero)
     {
     }
