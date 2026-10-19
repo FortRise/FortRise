@@ -149,4 +149,32 @@ public class patch_EditorScene : EditorScene
 
         lanternSelector.RefreshImage();
     }
+
+    [MonoModReplace]
+    public bool SaveAs()
+    {
+        IgnoreHotkeysFrame = true;
+
+        SaveFileDialog saveFileDialog = new SaveFileDialog
+        {
+            AddExtension = true,
+            CheckPathExists = true,
+            Filter = "TowerFall Tower Files (*.tower)|*.tower|All files (*.*)|*.*",
+            DefaultExt = ".tower",
+            RestoreDirectory = true,
+            InitialDirectory = WorkshopDirectory
+        };
+
+        DialogResult dialogResult = saveFileDialog.ShowDialog();
+
+        if (dialogResult == DialogResult.Cancelled)
+        {
+            return false;
+        }
+
+        Tower.LastSavedFilename = saveFileDialog.FileName;
+        Tower.ToXML().Save(Tower.LastSavedFilename);
+        Tower.ConfirmSave();
+        return true;
+    }
 }
