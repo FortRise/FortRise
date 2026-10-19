@@ -316,7 +316,7 @@ namespace TowerFall
                         dodgeButton.Buttons = xGamepadInput.Config.Dodge;
                         altDodgeButton.Buttons = xGamepadInput.Config.MenuAlt;
                         startButton.Buttons = xGamepadInput.Config.Start;
-                        applyAction.Clear();
+                        applyAction?.Clear();
                         ButtonGuideC.Clear();
                         xGamepadInput.RefreshButton();
                         return true;
