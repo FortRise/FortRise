@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
@@ -30,6 +31,8 @@ public readonly struct ArcherConfiguration()
     public required StatueInfo Statue { get; init; }
     public required GemInfo Gems { get; init; }
     public Option<ArcherData.BreathingInfo> Breathing { get; init; }
+
+    public Func<bool>? Locked { get; init; }
 }
 
 public readonly struct GemInfo
