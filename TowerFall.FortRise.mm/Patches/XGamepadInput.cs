@@ -654,7 +654,7 @@ public class XGamepadInput : TowerFall.XGamepadInput
 		<altShoot>dualshock/circle</altShoot>
 		<arrows>dualshock/triangle</arrows>
 		<dodge>dualshock/r2</dodge>
-		<start>dualshock/x</start>
+		<start>dualshock/start</start>
 		<confirm>dualshock/x</confirm>
 		<back>dualshock/circle</back>
 		<alt>dualshock/r2</alt>
@@ -672,7 +672,7 @@ public class XGamepadInput : TowerFall.XGamepadInput
 		<altShoot>dualshock/circle</altShoot>
 		<arrows>dualshock/triangle</arrows>
 		<dodge>dualshock/r2</dodge>
-		<start>dualshock/x</start>
+		<start>dualshock/start</start>
 		<confirm>dualshock/x</confirm>
 		<back>dualshock/circle</back>
 		<alt>dualshock/r2</alt>
