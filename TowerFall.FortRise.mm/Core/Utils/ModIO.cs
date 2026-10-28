@@ -4,7 +4,6 @@ using System.IO;
 using System.Xml;
 using Monocle;
 
-// I am using namespace now for transition with FortRise 5
 namespace FortRise;
 
 /// <summary>
@@ -23,7 +22,13 @@ public static class ModIO
         return AppDomain.CurrentDomain.BaseDirectory;
     }
 
+    [Obsolete("Use ModIO.IsDirectory instead")]
     public static bool IsFolder(IResourceInfo resource)
+    {
+        return IsDirectory(resource);
+    }
+
+    public static bool IsDirectory(IResourceInfo resource)
     {
         return resource.ResourceType == typeof(ResourceTypeFolder);
     }
@@ -33,12 +38,19 @@ public static class ModIO
         return resource.ResourceType != typeof(ResourceTypeFolder);
     }
 
+    [Obsolete("Use ModIO.IsDirectory instead")]
     public static bool IsFolder(string path)
+    {
+        return IsDirectory(path);
+    }
+
+    public static bool IsDirectory(string path)
     {
         if (ResourceTree.TryGetValue(path, out var res))
         {
-            return IsFolder(res);
+            return IsDirectory(res);
         }
+
         FileAttributes attr = File.GetAttributes(path);
         return attr == FileAttributes.Directory;
     }
@@ -49,23 +61,25 @@ public static class ModIO
         {
             return IsFile(res);
         }
-        FileAttributes attr = File.GetAttributes(path);
+        FileAttributes attr = File.GetAttributes(FileSystemUtils.NormalizedPath(path));
         return attr != FileAttributes.Directory;
     }
 
     public static bool IsDirectoryOrFileExists(string path)
     {
-        return ResourceTree.IsExist(path) || Directory.Exists(path) || File.Exists(path);
+        return ResourceTree.IsExist(path) || 
+            Directory.Exists(FileSystemUtils.NormalizedPath(path)) || 
+            File.Exists(FileSystemUtils.NormalizedPath(path));
     }
 
     public static bool IsFileExists(string path)
     {
-        return ResourceTree.IsExist(path) || File.Exists(path);
+        return ResourceTree.IsExist(path) || File.Exists(FileSystemUtils.NormalizedPath(path));
     }
 
     public static bool IsDirectoryExists(string path)
     {
-        return ResourceTree.IsExist(path) || Directory.Exists(path);
+        return ResourceTree.IsExist(path) || Directory.Exists(FileSystemUtils.NormalizedPath(path));
     }
 
     public static XmlDocument LoadXml(IResourceInfo resource)
@@ -78,7 +92,7 @@ public static class ModIO
     {
         if (ResourceTree.TryGetValue(path, out var resource))
         {
-            return ModIO.LoadXml(resource);
+            return LoadXml(resource);
         }
 
         using var text = OpenRead(path);
@@ -91,7 +105,7 @@ public static class ModIO
         {
             return GetFiles(res);
         }
-        return Directory.GetFiles(path);
+        return Directory.GetFiles(FileSystemUtils.NormalizedPath(path));
     }
 
     public static string[] GetFiles(IResourceInfo res)
@@ -120,7 +134,8 @@ public static class ModIO
         {
             return GetDirectories(res);
         }
-        return Directory.GetDirectories(path);
+
+        return Directory.GetDirectories(FileSystemUtils.NormalizedPath(path));
     }
 
     public static string[] GetDirectories(IResourceInfo res)
@@ -155,7 +170,7 @@ public static class ModIO
             return OpenRead(res);
         }
 
-        return File.OpenRead(path);
+        return File.OpenRead(FileSystemUtils.NormalizedPath(path));
     }
 
     public static Stream Open(string path, FileMode mode)
@@ -166,7 +181,7 @@ public static class ModIO
             return rfs;
         }
 
-        return File.Open(path, mode);
+        return File.Open(FileSystemUtils.NormalizedPath(path), mode);
     }
 
     public static StreamReader OpenText(IResourceInfo resource)
@@ -182,7 +197,7 @@ public static class ModIO
             return OpenText(res);
         }
 
-        return File.OpenText(path);
+        return File.OpenText(FileSystemUtils.NormalizedPath(path));
     }
 
     public static string ReadAllText(string path) 
@@ -192,13 +207,13 @@ public static class ModIO
             return ReadAllText(res);
         }
 
-        return File.ReadAllText(path);
+        return File.ReadAllText(FileSystemUtils.NormalizedPath(path));
     }
 
     public static string ReadAllText(IResourceInfo resource)
     {
         using var fs = resource.Stream;
-        using TextReader tr = new StreamReader(fs);
+        using var tr = new StreamReader(fs);
         return tr.ReadToEnd();
     }
 }

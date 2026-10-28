@@ -31,17 +31,7 @@ public static class FileSystemUtils
 
     public static string NormalizedPath(string path)
     {
-        var span = path.AsSpan();
-        if (span.IndexOf('\\') < 0)
-        {
-            return path;
-        }
-
-        return string.Create(span.Length, path, (dest, src) => 
-        {
-            src.AsSpan().CopyTo(dest);
-            dest.Replace('\\', '/');
-        });
+        return path.Replace('\\', '/');
     }
 }
 
