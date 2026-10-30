@@ -38,6 +38,7 @@ public class patch_ArcherData : ArcherData
     public patch_ArcherData() : base(null) { }
 
     public Option<HairInfo> ExtraHairData;
+    public Option<ParticleType> ExtraParticleData;
 
     [MonoModConstructor]
     public void ctor() { }
@@ -45,6 +46,7 @@ public class patch_ArcherData : ArcherData
     [MonoModReplace]
     public void PlayVictoryMusic()
     {
+        
         if (patch_Music.TrackMap.TryGetValue(VictoryMusic, out var info))
         {
             patch_Music.PlayImmediate(info.Name, false);
