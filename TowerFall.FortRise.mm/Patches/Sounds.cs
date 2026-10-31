@@ -6,7 +6,7 @@ using Monocle;
 
 namespace TowerFall;
 
-public static class patch_Sounds 
+public static class patch_Sounds
 {
     private static List<IBaseSFXEntry> queuedModdedSFXs = new List<IBaseSFXEntry>();
     public static Dictionary<string, SFX> SoundsLoaded { get; private set; } = new Dictionary<string, SFX>();
@@ -50,7 +50,7 @@ public static class patch_Sounds
         characters[sfxID] = sounds;
     }
 
-    internal static void AddSFX(IBaseSFXEntry entry) 
+    internal static void AddSFX(IBaseSFXEntry entry)
     {
         //queuedModdedSFXs.Add(entry);
 
@@ -65,7 +65,7 @@ public static class patch_Sounds
         SoundsLoaded.Remove(entry.Name);
     }
 
-    public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx) 
+    public static void AddSFX(ModuleMetadata metadata, ReadOnlySpan<char> id, SFX sfx)
     {
         ReadOnlySpan<char> name = metadata.Name;
 
@@ -73,7 +73,7 @@ public static class patch_Sounds
         lookup[$"{name}/{id}"] = sfx;
     }
 
-    public static void Play(ReadOnlySpan<char> sfxName, float panX = 160f, float volume = 1f) 
+    public static void Play(ReadOnlySpan<char> sfxName, float panX = 160f, float volume = 1f)
     {
         var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
         if (lookup.TryGetValue(sfxName, out var sfx))
@@ -99,7 +99,7 @@ public static class patch_Sounds
         sfx.DeclaringType.GetMethod("Play").Invoke(sfx.GetValue(null), [panX, volume]);
     }
 
-    public static void Pause(ReadOnlySpan<char> sfxName) 
+    public static void Pause(ReadOnlySpan<char> sfxName)
     {
         var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
         if (lookup.TryGetValue(sfxName, out var sfx))
@@ -110,7 +110,7 @@ public static class patch_Sounds
         Logger.Error($"SFX '{sfxName}' cannot be paused as it cannot be found.");
     }
 
-    public static void Resume(ReadOnlySpan<char> sfxName) 
+    public static void Resume(ReadOnlySpan<char> sfxName)
     {
         var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
         if (lookup.TryGetValue(sfxName, out var sfx))
@@ -121,7 +121,7 @@ public static class patch_Sounds
         Logger.Error($"SFX '{sfxName}' cannot be resumed as it cannot be found.");
     }
 
-    public static void Stop(ReadOnlySpan<char> sfxName, bool addToList = true) 
+    public static void Stop(ReadOnlySpan<char> sfxName, bool addToList = true)
     {
         var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
         if (lookup.TryGetValue(sfxName, out var sfx))
@@ -132,22 +132,22 @@ public static class patch_Sounds
         Logger.Error($"SFX '{sfxName}' cannot be stopped as it cannot be found.");
     }
 
-    public static void Play(string sfxName, float panX = 160f, float volume = 1f) 
+    public static void Play(string sfxName, float panX = 160f, float volume = 1f)
     {
         Play(sfxName.AsSpan(), panX, volume);
     }
 
-    public static void Pause(string sfxName) 
+    public static void Pause(string sfxName)
     {
         Pause(sfxName.AsSpan());
     }
 
-    public static void Resume(string sfxName) 
+    public static void Resume(string sfxName)
     {
         Resume(sfxName.AsSpan());
     }
 
-    public static void Stop(string sfxName, bool addToList = true) 
+    public static void Stop(string sfxName, bool addToList = true)
     {
         Stop(sfxName.AsSpan(), addToList);
     }

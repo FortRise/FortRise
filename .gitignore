@@ -4,5 +4,6 @@ obj/
 bin/
 .bin/
 artifacts/
+__pycache__/
 options.json
 release/

@@ -1,3 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\..\Configuration.Internals.props" />
+
+	<PropertyGroup>
+	   <ModDisplayName>Content Loader</ModDisplayName>
+	</PropertyGroup>
 </Project>
