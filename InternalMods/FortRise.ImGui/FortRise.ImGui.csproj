@@ -8,7 +8,7 @@
   <ItemGroup>
     <LinuxMove Include="$(TargetDir)/runtimes/linux-x64/native/**/*"/>
     <WinMove Include="$(TargetDir)/runtimes/win-x64/native/**/*"/>
-    <OSXMove Include="$(TargetDir)/runtimes/osx-x64/native/**/*"/>
+    <OSXMove Include="$(TargetDir)/runtimes/osx/native/**/*"/>
   </ItemGroup>
 
   <Target Name="MoveNativeRuntime" AfterTargets="CoreCompile">
@@ -21,7 +21,7 @@
       DestinationFolder="$(TargetDir)/Unmanaged/win-x64"/>
     <Move 
       SourceFiles="@(OSXMove)"
-      DestinationFolder="$(TargetDir)/Unmanaged/osx"/>
+      DestinationFolder="$(TargetDir)/Unmanaged/osx-x64"/>
   </Target>
 
 </Project>
