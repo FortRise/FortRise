@@ -71,6 +71,14 @@ rm -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/win-x86
 cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-linux-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-win-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
 cp -r InternalMods/FortRise.ImGui/bin/Release/$DOTNET_VERSION/runtimes/* artifacts/FortRise.v$FR_VERSION-osx-x64/FortRise/Internals/FortRise.ImGui/Unmanaged
+
+# ImGui.NET ships its mac lib under runtimes/osx (a universal binary), but
+# ModAssemblyLoadContext probes Unmanaged/osx-x64 on macOS. Without this
+# rename every mac launch dies in ImGuiModule.OnInitialization.
+for rid in linux-x64 win-x64 osx-x64; do
+    mv "artifacts/FortRise.v$FR_VERSION-$rid/FortRise/Internals/FortRise.ImGui/Unmanaged/osx" \
+       "artifacts/FortRise.v$FR_VERSION-$rid/FortRise/Internals/FortRise.ImGui/Unmanaged/osx-x64"
+done
 echo "Zipping all artifacts"
 
 cd "artifacts/FortRise.v$FR_VERSION-win-x64/"
