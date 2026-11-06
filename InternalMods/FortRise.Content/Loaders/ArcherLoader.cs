@@ -21,7 +21,7 @@ internal static class ArcherLoader
         }
 
         List<IResourceInfo> resources = [];
-        
+
         foreach (var path in loader.Path)
         {
             resources.AddRange(content.Root.EnumerateChildrens(path));
@@ -36,7 +36,7 @@ internal static class ArcherLoader
         }
     }
 
-    internal static IList<IArcherEntry> LoadAll(IModContent content, IModRegistry registry, XmlDocument xml) 
+    internal static IList<IArcherEntry> LoadAll(IModContent content, IModRegistry registry, XmlDocument xml)
     {
         var list = new List<IArcherEntry>();
         var archers = xml["Archers"] ??
@@ -88,10 +88,10 @@ internal static class ArcherLoader
 
     private static ArcherConfiguration CreateArcherConfigurationWithDefaults(string id, XmlElement element, IModRegistry registry, IModContent content, in ArcherConfiguration original)
     {
-        string? name0 = (element.ChildText("Name0", original.TopName)?.Trim()) 
+        string? name0 = (element.ChildText("Name0", original.TopName)?.Trim())
             ?? throw new Exception($"Archer: '{id}' is missing <Name0> element.");
 
-        string? name1 = (element.ChildText("Name1", original.BottomName)?.Trim()) 
+        string? name1 = (element.ChildText("Name1", original.BottomName)?.Trim())
             ?? throw new Exception($"Archer: '{id}' is missing <Name1> element.");
 
 
@@ -128,13 +128,13 @@ internal static class ArcherLoader
 
             if (corpse is null)
             {
-                corpse = registry.Sprites.GetSpriteEntry<string>(corpseID) 
+                corpse = registry.Sprites.GetSpriteEntry<string>(corpseID)
                     ?? throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
             }
         }
         else
         {
-            corpse = original.CorpseSprite 
+            corpse = original.CorpseSprite
                 ?? throw new Exception($"Archer: '{id}' is missing <Corpse> element.");
         }
 
@@ -168,8 +168,8 @@ internal static class ArcherLoader
                 if (hairElm.HasChild("Texture"))
                 {
                     texture = content.LoadTexture(
-                        registry, 
-                        hairElm["Texture"], 
+                        registry,
+                        hairElm["Texture"],
                         SubtextureAtlasDestination.Atlas);
                 }
 
@@ -177,8 +177,8 @@ internal static class ArcherLoader
                 if (hairElm.HasChild("TextureEnd"))
                 {
                     textureEnd = content.LoadTexture(
-                        registry, 
-                        hairElm["TextureEnd"], 
+                        registry,
+                        hairElm["TextureEnd"],
                         SubtextureAtlasDestination.Atlas);
                 }
 
@@ -215,7 +215,7 @@ internal static class ArcherLoader
             {
                 sfxID = s;
             }
-            else 
+            else
             {
                 sfxID = registry.CharacterSounds.RegisterCharacterSounds(id + "_Char_Sounds", new()
                 {
@@ -301,7 +301,7 @@ internal static class ArcherLoader
             var material = hat.ChildEnum("Material", ArcherData.HatMaterials.Default);
 
             var normalHat = hat["Normal"];
-            var redHat /* Linux */ = hat["Red"];
+            var redHat = hat["Red"];
             var blueHat = hat["Blue"];
 
             hatInfo = new HatInfo()
@@ -408,12 +408,12 @@ internal static class ArcherLoader
 
                     victoryMusic = entry.Name;
                 }
-                else 
+                else
                 {
                     victoryMusic = music;
                 }
             }
-            else 
+            else
             {
                 victoryMusic = entry.Name;
             }
@@ -421,6 +421,16 @@ internal static class ArcherLoader
         else
         {
             victoryMusic = original.VictoryMusic ?? "Team";
+        }
+
+        Option<IParticleEntry> particle;
+        if (element.HasChild("Particles"))
+        {
+            particle = new(LoadParticle(registry, content, element["Particles"]!));
+        }
+        else
+        {
+            particle = Option<IParticleEntry>.None();
         }
 
         // validation
@@ -453,8 +463,42 @@ internal static class ArcherLoader
             Portraits = portraitInfo,
             AltFor = original.AltFor,
             SecretFor = original.SecretFor,
-            Sprites = spriteInfo
+            Sprites = spriteInfo,
+            Particles = particle
         };
+    }
+
+    private static IParticleEntry LoadParticle(IModRegistry registry, IModContent content, XmlElement element)
+    {
+        string particle = element.InnerText.Trim();
+        var entry = registry.Particles.GetParticle(particle);
+
+        if (entry is null)
+        {
+            return registry.Particles.RegisterParticle(Guid.CreateVersion7().ToString(), new()
+            {
+                Source = content.LoadTexture(registry, element["Source"], SubtextureAtlasDestination.Atlas),
+                Color = element.ChildHexColor("Color", Color.White),
+                Color2 = element.ChildHexColor("Color2", Color.White),
+                ColorSwitch = element.ChildInt("ColorSwitch", 0),
+                ColorSwitchLoop = element.ChildBool("ColorSwitchLoop", true),
+                Speed = element.ChildFloat("Speed", 0),
+                SpeedRange = element.ChildFloat("SpeedRange", 0),
+                SpeedMultiplier = element.ChildFloat("SpeedMultiplier", 1f),
+                Acceleration = element.ChildPosition("Acceleration", Vector2.Zero),
+                Direction = element.ChildFloat("Direction", 0f),
+                DirectionRange = element.ChildFloat("DirectionRange", 0f),
+                Life = element.ChildInt("Life", 2),
+                LifeRange = element.ChildInt("LifeRange", 1),
+                Size = element.ChildFloat("Size", 2),
+                SizeRange = element.ChildFloat("SizeRange", 0),
+                Rotated = element.ChildBool("Rotated", true),
+                RandomRotate = element.ChildBool("RandomRotate", false),
+                ScaleOut = element.ChildBool("ScaleOut", false)
+            });
+        }
+
+        return entry;
     }
 
     private static ISFXLoopedEntry? LoadSFXLoopedQuick(string id, string type, string sfxPath, IModRegistry registry, IModContent content, Func<SFXLooped>? fallback)

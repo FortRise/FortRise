@@ -31,6 +31,7 @@ public readonly struct ArcherConfiguration()
     public required StatueInfo Statue { get; init; }
     public required GemInfo Gems { get; init; }
     public Option<ArcherData.BreathingInfo> Breathing { get; init; }
+    public Option<IParticleEntry> Particles { get; init; }
 
     public Func<bool>? Locked { get; init; }
 }

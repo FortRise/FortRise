@@ -7,6 +7,7 @@ namespace FortRise;
 internal class ModRegistry : IModRegistry
 {
     public IModSubtextures Subtextures { get; }
+    public IModParticles Particles { get; }
     public IModSprites Sprites { get; }
     public IModSFXs SFXs { get; }
     public IModMusics Musics { get; }
@@ -41,6 +42,7 @@ internal class ModRegistry : IModRegistry
     internal ModRegistry(ModuleMetadata metadata, ModuleManager manager, ILogger logger)
     {
         Subtextures = new ModSubtextures(metadata, manager, logger);
+        Particles = new ModParticles(metadata, manager);
         Sprites = new ModSprites(metadata, manager);
         SFXs = new ModSFXs(metadata, manager);
         Musics = new ModMusics(metadata, manager);

@@ -122,6 +122,40 @@ namespace TowerFall
             }
         }
 
+        [Postfix(nameof(Update))]
+        public void CustomParticleUpdate()
+        {
+            if (State == PlayerStates.Frozen)
+            {
+                return;
+            }
+
+            var archerData = (patch_ArcherData)ArcherData;
+            if (archerData.Particle is null)
+            {
+                return;
+            }
+            var particle = Patching.Particles.GetParticle(archerData.Particle);
+
+
+            if (InvisOpacity < 1f)
+            {
+                return;
+            }
+
+            if (State == PlayerStates.Ducking)
+            {
+                if (Level.OnInterval(5))
+                {
+                    Level.ParticlesBG.Emit(particle, 1, Position + Vector2.UnitY * 4f, new Vector2(7f, 6f));
+                }
+            }
+            else if (Level.OnInterval(3))
+            {
+                Level.ParticlesBG.Emit(particle, 1, Position, new Vector2(7f, 11f));
+            }
+        }
+
 
         /// <summary>
         /// Preventing a Vanilla 'InvalidOperationException' on a self trigger arrow

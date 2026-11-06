@@ -4,6 +4,7 @@ namespace FortRise;
 public interface IModRegistry
 {
     IModSubtextures Subtextures { get; }
+    IModParticles Particles { get; }
     IModSprites Sprites { get; }
     IModSFXs SFXs { get; }
     IModMusics Musics { get; }

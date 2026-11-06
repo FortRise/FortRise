@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -148,7 +149,9 @@ internal sealed class ModArchers : IModArchers
             Statue = statue,
             Breathing = breathing,
             Hair = entry.Configuration.Hair.HasValue,
-            ExtraHairData = entry.Configuration.Hair
+            ExtraHairData = entry.Configuration.Hair,
+            Particle = entry.Configuration.Particles.HasValue ?
+                entry.Configuration.Particles.Value.Name : null
         };
 
         switch (entry.Type)

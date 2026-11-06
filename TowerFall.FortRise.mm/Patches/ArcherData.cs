@@ -38,7 +38,7 @@ public class patch_ArcherData : ArcherData
     public patch_ArcherData() : base(null) { }
 
     public Option<HairInfo> ExtraHairData;
-    public Option<ParticleType> ExtraParticleData;
+    public string Particle;
 
     [MonoModConstructor]
     public void ctor() { }
