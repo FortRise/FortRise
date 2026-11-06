@@ -1,5 +1,3 @@
-using System;
-using System.Xml;
 using FortRise;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
@@ -8,14 +6,21 @@ using Monocle;
 using MonoMod;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using System;
+using System.Collections.Generic;
+using System.Xml;
 
-namespace TowerFall 
+namespace TowerFall
 {
     public class patch_Player : Player
     {
         private WrapHitbox shieldHitbox;
         private Sprite<string> headSprite;
         private Sprite<string> headBackSprite;
+
+        private Counter canDetonateCounter;
+        private List<TriggerArrow> triggerArrows;
+        private bool didDetonate;
 
         public patch_Player(int playerIndex, Vector2 position, Allegiance allegiance, Allegiance teamColor, PlayerInventory inventory, HatStates hatState, bool frozen, bool flash, bool indicator) : base(playerIndex, position, allegiance, teamColor, inventory, hatState, frozen, flash, indicator)
         {
@@ -37,7 +42,8 @@ namespace TowerFall
 
             var hair = (patch_PlayerHair)Hair;
 
-            hair.Color = TeamColor switch {
+            hair.Color = TeamColor switch
+            {
                 Allegiance.Blue => hairData.BlueColor.HasValue ? hairData.BlueColor.Value : hairData.Color,
                 Allegiance.Red => hairData.RedColor.HasValue ? hairData.RedColor.Value : hairData.Color,
                 _ => hairData.Color
@@ -117,16 +123,43 @@ namespace TowerFall
         }
 
 
+        /// <summary>
+        /// Preventing a Vanilla 'InvalidOperationException' on a self trigger arrow
+        /// 
+        /// TLDR: if a player hit himself with his own Trigger arrow, detonate it in his Dying update grace period
+        /// DetonateTriggerArrows -> Detonate ->  Explode ->  FrozenPlayer.Hurt (FrozenPlayer is the owner) -> Die -> RemoveAllTriggerArrows -> triggerArrows.Clear() 
+        /// while the dying update is still enumerating from DetonateTriggerArrows
+        /// </summary>
+        [MonoModReplace]
+        public void DetonateTriggerArrows()
+        {
+            if (canDetonateCounter)
+            {
+                return;
+            }
+
+            var triggerArrowsCopy = triggerArrows.ToArray();
+
+            foreach (TriggerArrow triggerArrow in triggerArrowsCopy)
+            {
+                triggerArrow.Detonate();
+            }
+
+            triggerArrows.Clear();
+            didDetonate = true;
+        }
+
+
         [MonoModIgnore]
         [PatchPlayerDebugRender]
         public extern override void DebugRender();
-        
+
 
         internal void Internal_DebugRender()
         {
             if (!HasShield)
                 return;
-            
+
             Collider = shieldHitbox;
             shieldHitbox.Render(Color.Purple);
         }
@@ -168,14 +201,14 @@ namespace TowerFall
     }
 }
 
-namespace MonoMod 
+namespace MonoMod
 {
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPlayerDebugRender))]
-    public class PatchPlayerDebugRender : Attribute {}
+    public class PatchPlayerDebugRender : Attribute { }
 
-    internal static partial class MonoModRules 
+    internal static partial class MonoModRules
     {
-        public static void PatchPlayerDebugRender(ILContext ctx, CustomAttribute attrib) 
+        public static void PatchPlayerDebugRender(ILContext ctx, CustomAttribute attrib)
         {
             // if (!ctx.Module.TryGetTypeReference("Microsoft.Xna.Framework.Color", out TypeReference typed)) 
             // {
@@ -202,7 +235,7 @@ namespace MonoMod
 
             var label = ctx.DefineLabel();
 
-            cursor.GotoNext(MoveType.After, 
+            cursor.GotoNext(MoveType.After,
                 instr => instr.MatchCall("Microsoft.Xna.Framework.Color", "Microsoft.Xna.Framework.Color get_Lime()"),
                 instr => instr.MatchCallvirt("Monocle.Collider", "System.Void Render(Microsoft.Xna.Framework.Color)"));
 
