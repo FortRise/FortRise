@@ -71,7 +71,8 @@ public class patch_MatchVariants : MatchVariants
                 header, null, scrollEffect, hidden, flag, tournamentRule1v,
                 tournamentRule2v, unlisted, darkWorldDLC, coopValue)
             {
-                IsCustom = true
+                IsCustom = true,
+                Condition = configuration.Condition
             };
 
             if (flag)
@@ -227,6 +228,10 @@ public class patch_MatchVariants : MatchVariants
         int columnIndex = 1;
         foreach (var variant in Variants)
         {
+            if ((variant as Patching.Variant).Condition is { } v && !v())
+            {
+                continue;
+            }
             // if this is not a custom variant, perform the vanilla variant insertion
             if (!Customs.Contains(variant))
             {
@@ -330,7 +335,7 @@ public class patch_MatchVariants : MatchVariants
                 }
                 else if (y > 0)
                 {
-                    grid[y][x].LeftItem = grid[y - 1][grid[y - 1].Count - 1];
+                    grid[y][x].LeftItem = grid[y - 1][^1];
                 }
                 if (x < grid[y].Count - 1)
                 {

@@ -1,5 +1,5 @@
 #nullable enable
-using Monocle;
+using System;
 using TowerFall;
 
 namespace FortRise;
@@ -14,4 +14,5 @@ public readonly struct VariantConfiguration
     public Pickups[]? Exclusions { get; init; }
     public IVariantEntry[]? Links { get; init; }
     public IArrowEntry? StartWith { get; init; }
+    public Func<bool>? Condition { get; init; }
 }
