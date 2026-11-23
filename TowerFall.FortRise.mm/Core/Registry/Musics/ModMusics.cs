@@ -24,6 +24,7 @@ internal sealed class ModMusics : IModMusics
     public IMusicEntry RegisterMusic(string id, IResourceInfo filePath)
     {
         string name = $"{metadata.Name}/{id}";
+        IndexReservationPool.For(metadata)?.TryClaim("music", name, out bool _);
         IMusicEntry entry = new MusicEntry(name, filePath);
         MusicRegistry.AddMusic(entry);
         queue.AddOrInvoke(entry);
@@ -43,14 +44,24 @@ internal sealed class ModMusics : IModMusics
 
     private void Detach(IMusicEntry entry)
     {
-        bool wasPlaying = patch_Music.StopTrack(entry.Name);
         patch_Music.TrackMap.Remove(entry.Name);
+        MusicRegistry.RemoveMusic(entry);
 
-        if (wasPlaying && Engine.Instance.Scene is MainMenu)
+        // a track registered again under the same name keeps playing through a hot reload
+        if (IndexReservationPool.For(metadata) is { } session)
+        {
+            session.Reserve("music", entry.Name, true, () => StopTrack(entry.Name));
+            return;
+        }
+
+        StopTrack(entry.Name);
+    }
+
+    private static void StopTrack(string name)
+    {
+        if (patch_Music.StopTrack(name) && Engine.Instance.Scene is MainMenu)
         {
             MainMenu.PlayMenuMusic();
         }
-
-        MusicRegistry.RemoveMusic(entry);
     }
 }

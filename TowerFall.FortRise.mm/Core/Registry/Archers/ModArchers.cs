@@ -20,6 +20,7 @@ internal sealed class ModArchers : IModArchers
     private readonly RegistryQueue<IArcherEntry> archerQueue;
     // what Invoke put in the arrays, and what was in the slot before (for alt/secret archers)
     private readonly Dictionary<IArcherEntry, (ArcherData Data, ArcherData? Previous)> injected = [];
+    private readonly Dictionary<string, ArcherData?> reclaimedPrevious = [];
 
     public IReadOnlyDictionary<string, IArcherEntry> RegisteredArchers => ArcherRegistry.ArcherEntries;
 
@@ -36,25 +37,36 @@ internal sealed class ModArchers : IModArchers
         int idObtained;
         ArcherEntryType archerEntryType;
 
-        if (configuration.AltFor != null)
+        if (configuration.AltFor != null && configuration.SecretFor != null)
         {
-            if (configuration.SecretFor != null)
-            {
-                throw new Exception($"[{metadata.Name}] Alt Archers cannot be Secret Archers at the same time.");
-            }
+            throw new Exception($"[{metadata.Name}] Alt Archers cannot be Secret Archers at the same time.");
+        }
 
-            idObtained = configuration.AltFor.Index;
-            archerEntryType = ArcherEntryType.Alt;
-        }
-        else if (configuration.SecretFor != null)
+        archerEntryType = configuration.AltFor != null ? ArcherEntryType.Alt
+            : configuration.SecretFor != null ? ArcherEntryType.Secret
+            : ArcherEntryType.Normal;
+
+        (ArcherData Data, ArcherData? Previous) reserved = default;
+        bool reclaimed = IndexReservationPool.For(metadata) is { } session
+            && session.TryClaim(ReservationKind(archerEntryType), name, out reserved);
+
+        switch (archerEntryType)
         {
-            idObtained = configuration.SecretFor.Index;
-            archerEntryType = ArcherEntryType.Secret;
+            case ArcherEntryType.Alt:
+                idObtained = configuration.AltFor!.Index;
+                break;
+            case ArcherEntryType.Secret:
+                idObtained = configuration.SecretFor!.Index;
+                break;
+            default:
+                int reclaimedIndex = reclaimed ? Array.IndexOf(ArcherData.Archers, reserved.Data) : -1;
+                idObtained = reclaimedIndex >= 0 ? reclaimedIndex : IDPool.Obtain("archers");
+                break;
         }
-        else
+
+        if (reclaimed && archerEntryType != ArcherEntryType.Normal)
         {
-            idObtained = IDPool.Obtain("archers");
-            archerEntryType = ArcherEntryType.Normal;
+            reclaimedPrevious[name] = reserved.Previous;
         }
         IArcherEntry entry = new ArcherEntry(name, configuration, idObtained, archerEntryType);
         ArcherRegistry.AddArcher(entry);
@@ -168,11 +180,11 @@ internal sealed class ModArchers : IModArchers
                 ArcherData.Archers[entry.Index] = archerData;
                 break;
             case ArcherEntryType.Alt:
-                previous = ArcherData.AltArchers[entry.Index];
+                previous = reclaimedPrevious.Remove(entry.Name, out var altPrevious) ? altPrevious : ArcherData.AltArchers[entry.Index];
                 ArcherData.AltArchers[entry.Index] = archerData;
                 break;
             case ArcherEntryType.Secret:
-                previous = ArcherData.SecretArchers[entry.Index];
+                previous = reclaimedPrevious.Remove(entry.Name, out var secretPrevious) ? secretPrevious : ArcherData.SecretArchers[entry.Index];
                 ArcherData.SecretArchers[entry.Index] = archerData;
                 break;
         }
@@ -208,7 +220,20 @@ internal sealed class ModArchers : IModArchers
             return;
         }
 
-        switch (entry.Type)
+        if (IndexReservationPool.For(metadata) is { } session)
+        {
+            session.Reserve(ReservationKind(entry.Type), entry.Name, slot, () => RemoveInjected(entry.Type, slot));
+            return;
+        }
+
+        RemoveInjected(entry.Type, slot);
+    }
+
+    private static string ReservationKind(ArcherEntryType type) => $"archer.{type}";
+
+    private static void RemoveInjected(ArcherEntryType type, (ArcherData Data, ArcherData? Previous) slot)
+    {
+        switch (type)
         {
             case ArcherEntryType.Normal:
                 RemoveArcherSlot(Array.IndexOf(ArcherData.Archers, slot.Data));

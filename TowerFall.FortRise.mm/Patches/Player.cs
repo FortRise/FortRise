@@ -26,6 +26,22 @@ namespace TowerFall
         {
         }
 
+        public Facing Facing
+        {
+            [MonoModIgnore]
+            get => throw null;
+            [MonoModIgnore]
+            private set => throw null;
+        }
+
+        internal Player CloneForHotReload()
+        {
+            var clone = (patch_Player)new Player(PlayerIndex, Position, Allegiance, TeamColor, new PlayerInventory(this), HatState, false, false, Indicator != null);
+            clone.Facing = Facing;
+            clone.Speed = Speed;
+            return clone;
+        }
+
         [Postfix(nameof(Added))]
         private void Added_Postfix()
         {

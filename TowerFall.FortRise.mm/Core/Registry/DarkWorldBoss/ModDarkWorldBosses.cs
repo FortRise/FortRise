@@ -27,7 +27,7 @@ internal class ModDarkWorldBosses : IModDarkWorldBosses
     {
         string name = $"{metadata.Name}/{id}";
 
-        IDarkWorldBossEntry boss = new DarkWorldBossEntry(name, IDPool.Obtain("boss"), configuration);
+        IDarkWorldBossEntry boss = new DarkWorldBossEntry(name, ClaimOrObtain(name), configuration);
         DarkWorldBossRegistry.AddDarkWorldBoss(boss);
         registryQueue.AddOrInvoke(boss);
         return boss;
@@ -60,9 +60,24 @@ internal class ModDarkWorldBosses : IModDarkWorldBosses
         DarkWorldBossRegistry.DarkWorldBossLoader[entry.BossID] = loader;
     }
 
+    private int ClaimOrObtain(string name)
+    {
+        return IndexReservationPool.For(metadata) is { } session && session.TryClaim("boss", name, out int id)
+            ? id
+            : IDPool.Obtain("boss");
+    }
+
     internal void Detach(IDarkWorldBossEntry entry)
     {
         DarkWorldBossRegistry.RemoveDarkWorldBoss(entry);
-        IDPool.Free("boss", entry.BossID);
+
+        int id = entry.BossID;
+        if (IndexReservationPool.For(metadata) is { } session)
+        {
+            session.Reserve("boss", entry.Name, id, () => IDPool.Free("boss", id));
+            return;
+        }
+
+        IDPool.Free("boss", id);
     }
 }

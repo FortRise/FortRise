@@ -29,7 +29,7 @@ internal sealed class ModArrows : IModArrows
     {
         string name = $"{metadata.Name}/{id}";
 
-        IArrowEntry arrow = new ArrowEntry(name, EnumPool.Obtain<ArrowTypes>(), configuration);
+        IArrowEntry arrow = new ArrowEntry(name, IndexReservationPool.ClaimOrObtain<ArrowTypes>(metadata, name), configuration);
         ArrowsRegistry.AddArrow(arrow);
         registryQueue.AddOrInvoke(arrow);
         return arrow;
@@ -48,6 +48,6 @@ internal sealed class ModArrows : IModArrows
     internal void Detach(IArrowEntry entry)
     {
         ArrowsRegistry.Unregister(entry);
-        EnumPool.Free(entry.ArrowTypes);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.ArrowTypes);
     }
 }

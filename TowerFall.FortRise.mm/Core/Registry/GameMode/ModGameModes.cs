@@ -57,7 +57,7 @@ internal sealed class ModGameModes : IModGameModes
     {
         string id = $"{metadata.Name}/{name}";
         VersusGameModeEntry entry;
-        GameModeRegistry.AddVersusGamemode(entry = new VersusGameModeEntry(id, EnumPool.Obtain<Modes>(), gameMode));
+        GameModeRegistry.AddVersusGamemode(entry = new VersusGameModeEntry(id, IndexReservationPool.ClaimOrObtain<Modes>(metadata, id), gameMode));
         versusRegistryQueue.AddOrInvoke(entry);
         return entry;
     }
@@ -69,7 +69,7 @@ internal sealed class ModGameModes : IModGameModes
 
     public ICoOpGameModeEntry RegisterCoOpGameMode(string id, ICoOpGameMode coopGameMode)
     {
-        return RegisterCoOpGameMode(id, coopGameMode, EnumPool.Obtain<Modes>());
+        return RegisterCoOpGameMode(id, coopGameMode, IndexReservationPool.ClaimOrObtain<Modes>(metadata, $"{metadata.Name}/{id}"));
     }
 
     public ICoOpGameModeEntry RegisterCoOpGameMode(string id, ICoOpGameMode coopGameMode, Modes modes)
@@ -88,7 +88,7 @@ internal sealed class ModGameModes : IModGameModes
 
         IRollcallModesEntry rollCallEntry = new RollcallModeEntry(
             entryName, 
-            EnumPool.Obtain<MainMenu.RollcallModes>()
+            IndexReservationPool.ClaimOrObtain<MainMenu.RollcallModes>(metadata, entryName)
         );
 
         registeredRollcallModes[name] = rollCallEntry;
@@ -123,13 +123,13 @@ internal sealed class ModGameModes : IModGameModes
     {
         GameModeRegistry.Unregister(entry);
         GameModeRegistry.RegistryVersusGameModes.Remove(entry.Name);
-        EnumPool.Free(entry.Modes);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.Modes);
     }
 
     internal void CoOpDetach(ICoOpGameModeEntry entry)
     {
         GameModeRegistry.RegistryCoOpGameModes.Remove(entry.Name);
-        EnumPool.Free(entry.Modes);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.Modes);
     }
 
     internal void RollcallDetach(IRollcallModesEntry entry)
@@ -140,6 +140,6 @@ internal sealed class ModGameModes : IModGameModes
             registeredRollcallModes.Remove(entry.Name[prefix.Length..]);
         }
 
-        EnumPool.Free(entry.RollcallMode);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.RollcallMode);
     }
 }

@@ -287,6 +287,11 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext, IAssemblyRes
             if (disposing)
             {
                 LoadedAssemblies.Clear();
+
+                foreach (var module in LoadedModules.Values)
+                {
+                    module.Dispose();
+                }
                 LoadedModules.Clear();
             }
             isDisposed = true;

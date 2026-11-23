@@ -29,17 +29,6 @@ internal class SubtextureEntry : ISubtextureEntry
         AtlasDestination = destination;
     }
 
-    internal void DisposeOwnedTexture()
-    {
-        if (Path is null || cache is null)
-        {
-            return;
-        }
-
-        cache.Texture2D.Dispose();
-        cache = null;
-    }
-
     private Subtexture? GetActualSubtexture()
     {
         if (cache != null)

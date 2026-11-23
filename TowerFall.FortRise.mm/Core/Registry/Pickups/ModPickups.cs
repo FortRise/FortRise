@@ -32,13 +32,13 @@ internal sealed class ModPickups : IModPickups
     private void Detach(IPickupEntry entry)
     {
         PickupsRegistry.RemovePickup(entry);
-        EnumPool.Free(entry.Pickups);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.Pickups);
     }
 
     public IPickupEntry RegisterPickup(string id, in PickupConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), configuration);
+        IPickupEntry pickup = new PickupEntry(name, IndexReservationPool.ClaimOrObtain<Pickups>(metadata, name), configuration);
         PickupsRegistry.AddPickup(pickup);
         registryQueue.AddOrInvoke(pickup);
         return pickup;
@@ -59,7 +59,7 @@ internal sealed class ModPickups : IModPickups
         };
     
         string name = $"{metadata.Name}/{id}";
-        IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), realConf);
+        IPickupEntry pickup = new PickupEntry(name, IndexReservationPool.ClaimOrObtain<Pickups>(metadata, name), realConf);
         PickupsRegistry.AddPickup(pickup);
         registryQueue.AddOrInvoke(pickup);
 
@@ -69,7 +69,7 @@ internal sealed class ModPickups : IModPickups
     public IPickupEntry RegisterArrowPickup(string id, IArrowEntry entry)
     {
         string name = $"{metadata.Name}/{id}";
-        IPickupEntry pickup = new PickupEntry(name, EnumPool.Obtain<Pickups>(), new()
+        IPickupEntry pickup = new PickupEntry(name, IndexReservationPool.ClaimOrObtain<Pickups>(metadata, name), new()
         {
             CreatePickup = (e) => new ArrowTypePickup(e.Position, e.TargetPosition, entry.ArrowTypes),
             ArrowType = entry.ArrowTypes,

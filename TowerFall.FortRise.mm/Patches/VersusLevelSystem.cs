@@ -34,6 +34,20 @@ public class patch_VersusLevelSystem : VersusLevelSystem
         this.levels = new List<string>();
     }
 
+    internal void ContinueFrom(patch_VersusLevelSystem previous)
+    {
+        levels = [.. previous.levels];
+        lastLevel = previous.lastLevel;
+    }
+
+    internal void QueueCurrentLevel()
+    {
+        if (lastLevel is not null)
+        {
+            levels.Insert(0, lastLevel);
+        }
+    }
+
     public extern XmlElement orig_GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed);
 
     public override XmlElement GetNextRoundLevel(MatchSettings matchSettings, int roundIndex, out int randomSeed)

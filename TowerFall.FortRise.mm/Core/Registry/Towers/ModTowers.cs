@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using TowerFall;
 
@@ -71,12 +72,12 @@ internal sealed class ModTowers : IModTowers
     internal ModTowers(ModuleMetadata metadata, ModuleManager manager)
     {
         this.metadata = metadata;
-        versusTowerQueue = manager.CreateQueue<IVersusTowerEntry>(metadata, VersusTowerInvoke, TowerDataSync.RemoveVersusTower);
+        versusTowerQueue = manager.CreateQueue<IVersusTowerEntry>(metadata, VersusTowerInvoke, VersusTowerDetach);
         questTowerQueue = manager.CreatePrepareQueue<IQuestTowerEntry>(QuestTowerPrepare, QuestTowerInvoke);
-        questTowerDetachQueue = manager.CreateQueue<IQuestTowerEntry>(metadata, static _ => {}, TowerDataSync.RemoveQuestTower);
-        darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(metadata, DarkWorldTowerInvoke, TowerDataSync.RemoveDarkWorldTower);
+        questTowerDetachQueue = manager.CreateQueue<IQuestTowerEntry>(metadata, static _ => {}, QuestTowerDetach);
+        darkWorldTowerQueue = manager.CreateQueue<IDarkWorldTowerEntry>(metadata, DarkWorldTowerInvoke, DarkWorldTowerDetach);
         trialTowerQueue = manager.CreatePrepareQueue<ITrialsTowerEntry>(TrialTowerPrepare, TrialTowerInvoke);
-        trialTowerDetachQueue = manager.CreateQueue<ITrialsTowerEntry>(metadata, static _ => {}, TowerDataSync.RemoveTrialTower);
+        trialTowerDetachQueue = manager.CreateQueue<ITrialsTowerEntry>(metadata, static _ => {}, TrialTowerDetach);
         towerTypeQueue = manager.CreateQueue<ITowerTypeEntry>(metadata, static _ => {}, TowerTypeDetach);
     }
 
@@ -85,7 +86,7 @@ internal sealed class ModTowers : IModTowers
     {
         string name = $"{metadata.Name}/{id}";
 
-        ITowerTypeEntry entry = new TowerTypeEntry(name, EnumPool.Obtain<MapButton.TowerType>(), configuration);
+        ITowerTypeEntry entry = new TowerTypeEntry(name, IndexReservationPool.ClaimOrObtain<MapButton.TowerType>(metadata, name), configuration);
         TowerRegistry.AddTowerType(name, entry);
         towerTypeQueue.AddOrInvoke(entry);
         return entry;
@@ -156,12 +157,91 @@ internal sealed class ModTowers : IModTowers
     private void TowerTypeDetach(ITowerTypeEntry entry)
     {
         TowerRegistry.RemoveTowerType(entry);
-        EnumPool.Free(entry.TowerType);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.TowerType);
+    }
+
+    // Hot reload keeps a tower's GameData slot, so its index and stats stay put.
+    private void VersusTowerDetach(IVersusTowerEntry entry)
+    {
+        if (IndexReservationPool.For(metadata) is { } session && GameData.VersusTowers.Find(x => x.LevelID == entry.ID) is { } data)
+        {
+            TowerRegistry.VersusTowers.Remove(entry.ID);
+            session.Reserve("versusTower", entry.ID, data, () => TowerDataSync.RemoveVersusTower(entry));
+            return;
+        }
+
+        TowerDataSync.RemoveVersusTower(entry);
+    }
+
+    private void QuestTowerDetach(IQuestTowerEntry entry)
+    {
+        if (IndexReservationPool.For(metadata) is { } session && Array.Find(GameData.QuestLevels, x => x?.LevelID == entry.ID) is { } data)
+        {
+            TowerRegistry.QuestTowers.Remove(entry.ID);
+            session.Reserve("questTower", entry.ID, data, () => TowerDataSync.RemoveQuestTower(entry));
+            return;
+        }
+
+        TowerDataSync.RemoveQuestTower(entry);
+    }
+
+    private void DarkWorldTowerDetach(IDarkWorldTowerEntry entry)
+    {
+        if (IndexReservationPool.For(metadata) is { } session && GameData.DarkWorldTowers.Find(x => x.LevelID == entry.ID) is { } data)
+        {
+            TowerRegistry.DarkWorldTowers.Remove(entry.ID);
+            session.Reserve("darkWorldTower", entry.ID, data, () => TowerDataSync.RemoveDarkWorldTower(entry));
+            return;
+        }
+
+        TowerDataSync.RemoveDarkWorldTower(entry);
+    }
+
+    private void TrialTowerDetach(ITrialsTowerEntry entry)
+    {
+        if (IndexReservationPool.For(metadata) is { } session && FindTrialRow(entry.ID) is int row)
+        {
+            TowerRegistry.TrialTowers.Remove(entry.ID);
+            session.Reserve("trialTower", entry.ID, GameData.TrialsLevels[row, 0], () => TowerDataSync.RemoveTrialTower(entry));
+            return;
+        }
+
+        TowerDataSync.RemoveTrialTower(entry);
+    }
+
+    private static int? FindTrialRow(string id)
+    {
+        for (int x = 0; x < GameData.TrialsLevels.GetLength(0); x += 1)
+        {
+            if (GameData.TrialsLevels[x, 0]?.LevelID == id + "-1")
+            {
+                return x;
+            }
+        }
+
+        return null;
+    }
+
+    private bool IsReserved(string kind, string id)
+    {
+        return IndexReservationPool.For(metadata)?.IsReserved(kind, id) == true;
+    }
+
+    private int ClaimIndex<TData>(string kind, string id, Func<TData, int> indexOf)
+    where TData : class
+    {
+        if (IndexReservationPool.For(metadata) is { } session && session.TryClaim(kind, id, out TData data))
+        {
+            return indexOf(data);
+        }
+
+        return -1;
     }
 
     private void VersusTowerInvoke(IVersusTowerEntry entry)
     {
         TowerDataSync.Backup();
+        int reclaimed = ClaimIndex<VersusTowerData>("versusTower", entry.ID, GameData.VersusTowers.IndexOf);
         var levelData = new patch_VersusTowerData
         {
             LevelID = entry.ID,
@@ -169,7 +249,7 @@ internal sealed class ModTowers : IModTowers
             Author = entry.Configuration.Author?.ToUpperInvariant().Trim(),
             Levels = [],
             Procedural = entry.Configuration.Procedural,
-            ID = new Point(GameData.VersusTowers.Count, 0)
+            ID = new Point(reclaimed >= 0 ? reclaimed : GameData.VersusTowers.Count, 0)
         };
 
         foreach (var level in entry.Configuration.Levels)
@@ -250,7 +330,14 @@ internal sealed class ModTowers : IModTowers
         {
             TowerRegistry.VersusLevelSets.Add(entry.TowerSet);
         }
-        GameData.VersusTowers.Add(levelData);
+        if (reclaimed >= 0)
+        {
+            GameData.VersusTowers[reclaimed] = levelData;
+        }
+        else
+        {
+            GameData.VersusTowers.Add(levelData);
+        }
         TowerDataSync.Rebuild();
     }
 
@@ -260,11 +347,19 @@ internal sealed class ModTowers : IModTowers
     {
         TowerDataSync.Backup();
         totalQuestCount = GameData.QuestLevels.Length;
-        Array.Resize(ref GameData.QuestLevels, GameData.QuestLevels.Length + entries.Count);
+        int added = entries.Count(x => !IsReserved("questTower", x.ID));
+        Array.Resize(ref GameData.QuestLevels, GameData.QuestLevels.Length + added);
     }
 
     private void QuestTowerInvoke(IQuestTowerEntry entry)
     {
+        int index = ClaimIndex<QuestLevelData>("questTower", entry.ID, x => Array.IndexOf(GameData.QuestLevels, x));
+        if (index < 0)
+        {
+            index = totalQuestCount;
+            totalQuestCount += 1;
+        }
+
         var levelData = new patch_QuestLevelData
         {
             LevelID = entry.ID,
@@ -274,7 +369,7 @@ internal sealed class ModTowers : IModTowers
 
             Author = entry.Configuration.Author?.ToUpperInvariant().Trim(),
             Theme = GameData.Themes[entry.Configuration.Theme],
-            ID = new Point(totalQuestCount, 0)
+            ID = new Point(index, 0)
         };
 
         if (!TowerRegistry.QuestLevelSets.Contains(entry.TowerSet))
@@ -283,14 +378,14 @@ internal sealed class ModTowers : IModTowers
         }
 
         entry.LevelIndex = levelData.ID;
-        GameData.QuestLevels[totalQuestCount] = levelData;
-        totalQuestCount += 1;
+        GameData.QuestLevels[index] = levelData;
         TowerDataSync.Rebuild();
     }
 
     private void DarkWorldTowerInvoke(IDarkWorldTowerEntry entry)
     {
         TowerDataSync.Backup();
+        int reclaimed = ClaimIndex<DarkWorldTowerData>("darkWorldTower", entry.ID, GameData.DarkWorldTowers.IndexOf);
         var towerData = new patch_DarkWorldTowerData
         {
             LevelID = entry.ID,
@@ -303,7 +398,7 @@ internal sealed class ModTowers : IModTowers
             StartingLives = entry.Configuration.StartingLives,
             EnemySets = entry.Configuration.EnemySets,
             Levels = [],
-            ID = new Point(GameData.DarkWorldTowers.Count, 0)
+            ID = new Point(reclaimed >= 0 ? reclaimed : GameData.DarkWorldTowers.Count, 0)
         };
 
         foreach (var level in entry.Configuration.Levels)
@@ -320,7 +415,14 @@ internal sealed class ModTowers : IModTowers
         {
             TowerRegistry.DarkWorldLevelSets.Add(entry.TowerSet);
         }
-        GameData.DarkWorldTowers.Add(towerData);
+        if (reclaimed >= 0)
+        {
+            GameData.DarkWorldTowers[reclaimed] = towerData;
+        }
+        else
+        {
+            GameData.DarkWorldTowers.Add(towerData);
+        }
         TowerDataSync.Rebuild();
 
 
@@ -347,7 +449,7 @@ internal sealed class ModTowers : IModTowers
         TowerDataSync.Backup();
         int origXLength = totalTrialsCount = GameData.TrialsLevels.GetLength(0);
         int origYLength = GameData.TrialsLevels.GetLength(1);
-        int newRowXLength = origXLength + entries.Count;
+        int newRowXLength = origXLength + entries.Count(x => !IsReserved("trialTower", x.ID));
 
         TrialsLevelData[,] resized = new TrialsLevelData[newRowXLength, origYLength];
 
@@ -364,6 +466,13 @@ internal sealed class ModTowers : IModTowers
 
     private void TrialTowerInvoke(ITrialsTowerEntry entry)
     {
+        int row = ClaimIndex<TrialsLevelData>("trialTower", entry.ID, _ => FindTrialRow(entry.ID) ?? -1);
+        if (row < 0)
+        {
+            row = totalTrialsCount;
+            totalTrialsCount += 1;
+        }
+
         var tier1 = new patch_TrialsLevelData();
         tier1.LevelID = entry.ID + "-" + "1";
         tier1.TowerSet = entry.TowerSet;
@@ -372,7 +481,7 @@ internal sealed class ModTowers : IModTowers
         tier1.Arrows = entry.Configuration.Tier1.Arrows;
         tier1.SwitchBlockTimer = entry.Configuration.Tier1.SwitchBlockTimer;
         tier1.Theme = GameData.Themes[entry.Configuration.Tier1.Theme];
-        tier1.ID = new Point(totalTrialsCount, 0);
+        tier1.ID = new Point(row, 0);
         tier1.Goals = new TimeSpan[3];
         tier1.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier1.GoldTime);
         tier1.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier1.DiamondTime);
@@ -386,7 +495,7 @@ internal sealed class ModTowers : IModTowers
         tier2.Arrows = entry.Configuration.Tier2.Arrows;
         tier2.SwitchBlockTimer = entry.Configuration.Tier2.SwitchBlockTimer;
         tier2.Theme = GameData.Themes[entry.Configuration.Tier2.Theme];
-        tier2.ID = new Point(totalTrialsCount, 1);
+        tier2.ID = new Point(row, 1);
         tier2.Goals = new TimeSpan[3];
         tier2.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier2.GoldTime);
         tier2.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier2.DiamondTime);
@@ -400,18 +509,17 @@ internal sealed class ModTowers : IModTowers
         tier3.Arrows = entry.Configuration.Tier3.Arrows;
         tier3.SwitchBlockTimer = entry.Configuration.Tier3.SwitchBlockTimer;
         tier3.Theme = GameData.Themes[entry.Configuration.Tier3.Theme];
-        tier3.ID = new Point(totalTrialsCount, 2);
+        tier3.ID = new Point(row, 2);
         tier3.Goals = new TimeSpan[3];
         tier3.Goals[0] = TimeSpan.FromSeconds(entry.Configuration.Tier3.GoldTime);
         tier3.Goals[1] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DiamondTime);
         tier3.Goals[2] = TimeSpan.FromSeconds(entry.Configuration.Tier3.DevTime);
 
-        entry.LevelIndex = new Point(totalTrialsCount, 0);
+        entry.LevelIndex = new Point(row, 0);
 
-        GameData.TrialsLevels[totalTrialsCount, 0] = tier1;
-        GameData.TrialsLevels[totalTrialsCount, 1] = tier2;
-        GameData.TrialsLevels[totalTrialsCount, 2] = tier3;
-        totalTrialsCount += 1;
+        GameData.TrialsLevels[row, 0] = tier1;
+        GameData.TrialsLevels[row, 1] = tier2;
+        GameData.TrialsLevels[row, 2] = tier3;
 
         if (!TowerRegistry.TrialsLevelSet.Contains(entry.TowerSet))
         {

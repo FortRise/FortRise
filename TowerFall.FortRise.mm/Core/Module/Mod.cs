@@ -33,8 +33,6 @@ public abstract class Mod
 
     private object? saveDataCache;
     private object? settingsCache;
-    private Action? onReload;
-    private FileSystemWatcher? fileSystemWatcher;
     private static readonly Lock watcherRoot = new Lock();
 
     public Mod(IModContent content, IModuleContext context, ILogger logger)
@@ -176,49 +174,5 @@ public abstract class Mod
 
         ModuleSettings? settings = (ModuleSettings?)settingsType.GetConstructor([])?.Invoke([]);
         settingsCache = settings;
-    }
-
-    internal void SetupHotReload(Action onReload)
-    {
-#pragma warning disable FR001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        if (!HotReload)
-        {
-            return;
-        }
-#pragma warning restore FR001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        if (string.IsNullOrEmpty(Meta.PathDirectory))
-        {
-            return;
-        }
-
-        var directoryDll = Path.GetDirectoryName(
-            Path.Combine(Meta.PathDirectory, Meta.DLL))!.Replace('\\', '/');
-
-        fileSystemWatcher = new FileSystemWatcher(directoryDll, "*.dll")
-        {
-            EnableRaisingEvents = true,
-        };
-
-        fileSystemWatcher.Changed += ReloadAssembly;
-        this.onReload = onReload;
-    }
-
-    internal void DisposeHotReload()
-    {
-        if (fileSystemWatcher is null)
-        {
-            return;
-        }
-
-        fileSystemWatcher.Changed -= ReloadAssembly;
-        fileSystemWatcher.Dispose();
-        fileSystemWatcher = null;
-        onReload = null;
-    }
-
-    private void ReloadAssembly(object sender, FileSystemEventArgs e)
-    {
-        Console.WriteLine("Hello?");
-        onReload?.Invoke();
     }
 }

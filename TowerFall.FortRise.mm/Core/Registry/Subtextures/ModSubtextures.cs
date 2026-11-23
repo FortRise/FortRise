@@ -179,11 +179,8 @@ internal sealed class ModSubtextures : IModSubtextures
         }
 
         SubtextureRegistry.RemoveSubtexture(entry, entry.AtlasDestination);
-
-        if (entry is SubtextureEntry owned)
-        {
-            owned.DisposeOwnedTexture();
-        }
+        // Won't disposed the texture and let the GC do it since disposing
+        // will crash the hot reload feature.
     }
 
     public ISubtextureEntry? GetTexture(string id, SubtextureAtlasDestination atlasDestination)

@@ -273,6 +273,7 @@ namespace TowerFall
 
         protected override void Update(GameTime gameTime)
         {
+            ModuleManager.Instance.UpdateHotReload();
             RiseCore.Events.Invoke_BeforeUpdate(gameTime);
             RiseCore.Events.Invoke_Update(gameTime);
             orig_Update(gameTime);
@@ -540,6 +541,7 @@ namespace TowerFall
 
 
             ModuleManager.Instance.State = LoadState.Ready;
+            ModuleManager.Instance.StartHotReloadWatchers();
             ModEventsManager.Instance.ModLoadStateFinished.Raise(null, LoadState.Ready);
             MainMenu.PlayMenuMusic();
             ConsoleEnabled = SaveData.Instance.Options.DevConsole;

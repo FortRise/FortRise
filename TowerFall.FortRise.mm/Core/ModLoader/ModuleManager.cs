@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -600,6 +601,11 @@ internal class ModuleManager
 
         ActiveMods[metadata.Name] = true;
 
+        if (State == LoadState.Ready)
+        {
+            WatchForHotReload(metadata);
+        }
+
         return new Unit();
     }
 
@@ -625,11 +631,6 @@ internal class ModuleManager
             mod.ParseArgs(RiseCore.ApplicationArgs);
             mod.OnLoad?.Invoke(mod.Context);
 
-            mod.SetupHotReload(() =>
-            {
-                logger.LogInformation("{modName} {modVersion} reloading.", metadata.Name, metadata.Version);
-                ReloadMod(metadata);
-            });
 
             InsertInLoadOrder(InternalFortModules, mod, static x => x.Meta);
             NameToFortModule[metadata.Name] = mod;
@@ -899,6 +900,160 @@ internal class ModuleManager
         }
     }
 
+    private readonly ConcurrentDictionary<string, (ModuleMetadata Metadata, DateTime LastChange)> pendingHotReloads = new();
+    private static readonly TimeSpan HotReloadSettleTime = TimeSpan.FromMilliseconds(500);
+
+    internal void QueueHotReload(ModuleMetadata metadata)
+    {
+        pendingHotReloads[metadata.Name] = (metadata, DateTime.UtcNow);
+    }
+
+    internal void UpdateHotReload()
+    {
+        if (pendingHotReloads.IsEmpty || State != LoadState.Ready)
+        {
+            return;
+        }
+
+        List<KeyValuePair<string, (ModuleMetadata Metadata, DateTime LastChange)>> ready = [];
+        foreach (var pending in pendingHotReloads)
+        {
+            var (metadata, lastChange) = pending.Value;
+            if (DateTime.UtcNow - lastChange >= HotReloadSettleTime && IsDllReadable(metadata))
+            {
+                ready.Add(pending);
+            }
+        }
+
+        foreach (var pending in ready)
+        {
+            if (!pendingHotReloads.TryRemove(pending))
+            {
+                continue;
+            }
+
+            var metadata = pending.Value.Metadata;
+            logger.LogInformation("{modName} {modVersion} hot reloading.", metadata.Name, metadata.Version);
+            ReloadMod(metadata);
+        }
+    }
+
+    private readonly Dictionary<string, FileSystemWatcher> hotReloadWatchers = [];
+
+    private bool ShouldHotReload(ModuleMetadata metadata)
+    {
+        if (IsProtected(metadata) || !string.IsNullOrEmpty(metadata.PathZip)
+            || string.IsNullOrEmpty(metadata.PathDirectory) || !Directory.Exists(metadata.PathDirectory))
+        {
+            return false;
+        }
+
+        if (RiseCore.HotReloadMods)
+        {
+            return true;
+        }
+
+#pragma warning disable FR001
+        return NameToFortModule.TryGetValue(metadata.Name, out var mod) && mod.HotReload;
+#pragma warning restore FR001
+    }
+
+    internal void StartHotReloadWatchers()
+    {
+        foreach (var metadata in loadOrder)
+        {
+            if (IsActive(metadata.Name))
+            {
+                WatchForHotReload(metadata);
+            }
+        }
+    }
+
+    private void WatchForHotReload(ModuleMetadata metadata)
+    {
+        if (hotReloadWatchers.ContainsKey(metadata.Name) || !ShouldHotReload(metadata))
+        {
+            return;
+        }
+
+        var watcher = new FileSystemWatcher(metadata.PathDirectory)
+        {
+            IncludeSubdirectories = true,
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName
+                | NotifyFilters.Size | NotifyFilters.CreationTime,
+        };
+
+        void OnChange(object _, FileSystemEventArgs e)
+        {
+            if (!IsIgnoredHotReloadChange(e.FullPath))
+            {
+                QueueHotReload(metadata);
+            }
+        }
+        watcher.Changed += OnChange;
+        watcher.Created += OnChange;
+        watcher.Deleted += OnChange;
+        watcher.Renamed += (_, e) =>
+        {
+            if (!IsIgnoredHotReloadChange(e.FullPath) || !IsIgnoredHotReloadChange(e.OldFullPath))
+            {
+                QueueHotReload(metadata);
+            }
+        };
+        watcher.Error += (_, _) => QueueHotReload(metadata);
+
+        watcher.EnableRaisingEvents = true;
+        hotReloadWatchers[metadata.Name] = watcher;
+
+        logger.LogInformation("Watching '{modName}' for hot reload.", metadata.Name);
+    }
+
+    private void StopWatchingForHotReload(string modName)
+    {
+        if (hotReloadWatchers.Remove(modName, out var watcher))
+        {
+            watcher.EnableRaisingEvents = false;
+            watcher.Dispose();
+        }
+    }
+
+    private static bool IsIgnoredHotReloadChange(string path)
+    {
+        var normalized = path.Replace('\\', '/');
+        if (normalized.Contains("/.git/") || normalized.EndsWith("/.git"))
+        {
+            return true;
+        }
+
+        var name = Path.GetFileName(normalized);
+        return name.EndsWith('~') || name.StartsWith(".#")
+            || name.EndsWith(".swp") || name.EndsWith(".swx") || name.EndsWith(".swo")
+            || name.EndsWith(".tmp");
+    }
+
+    private static bool IsDllReadable(ModuleMetadata metadata)
+    {
+        // content mods have nothing to wait on
+        if (string.IsNullOrEmpty(metadata.DLL))
+        {
+            return true;
+        }
+
+        try
+        {
+            using var stream = File.Open(Path.Combine(metadata.PathDirectory, metadata.DLL), FileMode.Open, FileAccess.Read, FileShare.Read);
+            return stream.Length > 0;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
     public void ReloadMod(ModuleMetadata metadata)
     {
         if (State != LoadState.Ready || IsProtected(metadata) || !IsActive(metadata.Name))
@@ -907,11 +1062,27 @@ internal class ModuleManager
         }
 
         var rewind = CollectActiveDependents([metadata]);
-        UnloadInReverseOrder(rewind);
-        CollectGarbage();
-        LoadInOrder(rewind);
+        LevelHotReload.BeforeUnload(rewind);
+
+        IDReservationPool = new IndexReservationPool(rewind.Select(x => x.Name));
+        try
+        {
+            UnloadInReverseOrder(rewind);
+            CollectGarbage();
+            LoadInOrder(rewind);
+        }
+        finally
+        {
+            var session = IDReservationPool;
+            IDReservationPool = null;
+            session.ReleaseUnclaimed((step, release) => TryUnloadStep(metadata, step, release));
+        }
+
         RunPendingRefreshes();
+        LevelHotReload.AfterReload();
     }
+
+    internal IndexReservationPool? IDReservationPool { get; private set; }
 
     internal void UnloadAll()
     {
@@ -1106,7 +1277,7 @@ internal class ModuleManager
         {
             TryUnloadStep(metadata, "unpatching", () => mod.Context.Harmony.UnpatchAll());
             TryUnloadStep(metadata, "OnUnload", () => mod.OnUnload?.Invoke(mod.Context));
-            mod.DisposeHotReload();
+            StopWatchingForHotReload(metadata.Name);
         }
 
         if (modUnloaders.Remove(metadata.Name, out var unloaders))
@@ -1166,6 +1337,7 @@ internal class ModuleManager
 
         if (metadata.AssemblyLoadContext is not null)
         {
+            metadata.AssemblyLoadContext.Dispose();
             metadata.AssemblyLoadContext.Unload();
             metadata.AssemblyLoadContext = null;
         }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using System.Xml;
 using FortRise;
 using Microsoft.Xna.Framework;
@@ -20,10 +18,9 @@ namespace TowerFall
         private Layer bgGameLayer;
         private Layer gameLayer;
         private RenderTarget2D foregroundRenderTarget;
-        private FileSystemWatcher levelWatcher;
         private List<SceneFilter> ActiveShaders;
+        private List<Entity> xmlEntities;
 
-        private bool reload;
         public XmlElement XML
         {
             [MonoModIgnore]
@@ -31,6 +28,7 @@ namespace TowerFall
             [MonoModIgnore]
             private set => throw null;
         }
+
         public static bool DebugMode;
         public patch_Level(Session session, XmlElement xml) : base(session, xml)
         {
@@ -38,63 +36,86 @@ namespace TowerFall
 
 
         [Postfix("System.Void .ctor(TowerFall.Session,System.Xml.XmlElement)")]
-        private void InitializeModdedLevel(Session session) 
+        private void InitializeModdedLevel(Session session)
         {
             ActiveShaders = new();
-            if (session.IsOfficialTowerSet) 
-            {
-                return;
-            }
-            
-            var levelSystem = session.MatchSettings.LevelSystem;
-
-            string levelPath = levelSystem switch 
-            {
-                VersusLevelSystem versus => versus.GetLastLevel(),
-                QuestLevelSystem quest => quest.QuestTowerData.Path,
-                DarkWorldLevelSystem darkWorld => darkWorld.DarkWorldTowerData.Levels
-                    [darkWorld.DarkWorldTowerData
-                        [session.MatchSettings.DarkWorldDifficulty]
-                        [session.RoundIndex + ((patch_DarkWorldLevelSystem)darkWorld).StartLevel]
-                    .File],
-                TrialsLevelSystem trials => trials.TrialsLevelData.Path,
-                _ => $"{levelSystem.ID.X},{levelSystem.ID.Y}"
-            };
-
-            if (ResourceTree.TreeMap.TryGetValue(levelPath, out var res)) 
-            {
-                var fullPath = Path.GetDirectoryName(res.FullPath);
-                // we need it to be in the folder. If it's in the zip, don't watch
-                if (!Directory.Exists(fullPath))
-                {
-                    return;
-                }
-
-                levelWatcher = new FileSystemWatcher(fullPath, "*.oel")
-                {
-                    EnableRaisingEvents = true
-                };
-
-                levelWatcher.Changed += OnFileChanged;
-            }
+            xmlEntities = new();
         }
 
         public extern void orig_LoadEntity(XmlElement e);
 
-        public void LoadEntity(XmlElement e) 
+        public void LoadEntity(XmlElement e)
         {
-            if (EntityRegistry.EntityEntries.TryGetValue(e.Name, out var entity))
+            var previous = patch_Layer.Recorder;
+            patch_Layer.Recorder = xmlEntities;
+            try
             {
-                if (entity.Configuration.IsHazard && Session.MatchSettings.Variants.NoHazards)
+                if (EntityRegistry.EntityEntries.TryGetValue(e.Name, out var entity))
                 {
+                    if (entity.Configuration.IsHazard && Session.MatchSettings.Variants.NoHazards)
+                    {
+                        return;
+                    }
+
+                    Add(entity.Configuration.Loader(e, e.Position(), e.Nodes()));
                     return;
                 }
 
-                Add(entity.Configuration.Loader(e, e.Position(), e.Nodes()));
-                return;
+                orig_LoadEntity(e);
+            }
+            finally
+            {
+                patch_Layer.Recorder = previous;
+            }
+        }
+
+        internal List<Entity> RebuildLayout(XmlElement xml)
+        {
+            XML = xml;
+
+            foreach (var entity in xmlEntities)
+            {
+                if (entity.Scene == this)
+                {
+                    Remove(entity);
+                }
+            }
+            xmlEntities.Clear();
+            Remove(Tiles);
+            Remove(BGTiles);
+
+            bool[,] solidsBitData = Calc.GetBitData(xml["Solids"].InnerText, 32, 24);
+            bool[,] bgBitData = Calc.GetBitData(xml["BG"].InnerText, 32, 24);
+            int[,] overwriteData = Calc.ReadCSVIntGrid(xml["BGTiles"].InnerText, 32, 24);
+
+            Add(Tiles = new LevelTiles(xml, solidsBitData));
+            Add(BGTiles = new LevelBGTiles(xml, bgBitData, solidsBitData, overwriteData));
+
+            foreach (XmlElement e in xml["Entities"])
+            {
+                LoadEntity(e);
             }
 
-            orig_LoadEntity(e);
+            return [Tiles, BGTiles, .. xmlEntities];
+        }
+
+        internal void RefreshPlayers()
+        {
+            foreach (var entity in this[GameTags.Player])
+            {
+                if (entity is not patch_Player player || player.Dead || player.MarkedForRemoval)
+                {
+                    continue;
+                }
+
+                if (player.ArcherData == ArcherData.Get(player.CharacterIndex, player.AltSelect))
+                {
+                    continue;
+                }
+
+                Remove(player);
+                Add(player.CloneForHotReload());
+            }
         }
 
         [MonoModReplace]
@@ -172,11 +193,6 @@ namespace TowerFall
         private void PostEnd() 
         {
             ModEventsManager.Instance.LevelExited.Raise(this, this);
-            if (levelWatcher != null) 
-            {
-                levelWatcher.Changed -= OnFileChanged;
-                levelWatcher.Dispose();
-            }
         }
 
         [Postfix(nameof(Render))]
@@ -190,121 +206,6 @@ namespace TowerFall
                     entity.DebugRender();
                 }
                 Draw.SpriteBatch.End();
-            }
-        }
-
-
-        private void OnFileChanged(object sender, FileSystemEventArgs e)
-        {
-            // This event sometimes called twice.
-            if (reload)
-            {
-                return;    
-            }
-
-            try 
-            {
-                using var fullPath = File.OpenRead(e.FullPath);
-                var xml = patch_Calc.LoadXML(fullPath)["level"];
-
-                // Let's replace the old one
-                bool[,] solidsBitData = Calc.GetBitData(xml["Solids"].InnerText, 32, 24);
-                bool[,] bgBitData = Calc.GetBitData(xml["BG"].InnerText, 32, 24);
-                int[,] bgTileData = Calc.ReadCSVIntGrid(xml["BGTiles"].InnerText, 32, 24);
-                int[,] solidTilesData = Calc.ReadCSVIntGrid(xml["SolidTiles"].InnerText, 32, 24);
-
-                XML = xml;
-                HotReload(solidsBitData, bgBitData, bgTileData, solidTilesData);
-
-                Logger.Info($"[Level][Reload] Hot Reloaded {fullPath}");
-            }
-            catch (UnauthorizedAccessException) 
-            {
-                Thread.Sleep(500);
-            }
-            catch (IOException) 
-            {
-                Thread.Sleep(500);
-            }
-            catch (Exception x)
-            {
-                Logger.Error($"[Level][Reload] Unexpected error while trying to hot reload.");
-                Logger.Error(x.ToString());
-            }
-        }
-
-        public void HotReload(bool[,] solids, bool[,] bg, int[,] bgTiles, int[,] solidTiles) 
-        {
-            (BGTiles as patch_LevelBGTiles).Replace(bg, solids, bgTiles);
-            (Tiles as patch_LevelTiles).Replace(solids, solidTiles);
-            reload = true;
-
-            foreach (var entity in Layers[-3].Entities)
-            {
-                if (entity is not LevelEntity)
-                    continue;
-
-                Remove(entity);
-            }
-
-            foreach (var entity in Layers[0].Entities)
-            {
-                if (entity is not LevelEntity)
-                    continue;
-                
-                if (entity is Actor or LevelTiles or QuestSpawnPortal) 
-                {
-                    if (entity is not Lantern and not Orb)
-                        continue;
-                }
-
-                Remove(entity);
-            }
-
-            foreach (XmlElement xmlElement2 in XML["Entities"])
-            {
-                LoadEntity(xmlElement2);
-            }
-        }
-
-        public override void PreRender()
-        {
-            if (reload)
-            {
-                (BGTiles as patch_LevelBGTiles).ReloadTiles();
-                (Tiles as patch_LevelTiles).ReloadTiles();
-                reload = false;
-            }
-            base.PreRender();
-        }
-
-        public void Reload(XmlElement xml, int width, int height) 
-        {
-            XML = xml;
-            bool[,] solidsBitData = Calc.GetBitData(this.XML["Solids"].InnerText, width, height);
-            bool[,] bgBitData = Calc.GetBitData(this.XML["BG"].InnerText, width, height);
-            int[,] overwriteData = Calc.ReadCSVIntGrid(this.XML["BGTiles"].InnerText, width, height);
-            foreach (var entity in Layers[0].Entities) 
-            {
-                if (entity is LevelEntity and not (TowerFall.Player or Enemy or TreasureChest or Arrow))
-                    continue;
-                
-                Remove(entity);
-            }
-
-            Add<LevelTiles>(Tiles = new LevelTiles(this.XML, solidsBitData));
-            Add<LevelBGTiles>(BGTiles = new LevelBGTiles(this.XML, bgBitData, solidsBitData, overwriteData));
-            foreach (XmlElement xmlElement2 in this.XML["Entities"])
-            {
-                LoadEntity(xmlElement2);
-            }
-            if (xml["Entities"].GetElementsByTagName("BlueSwitchBlock").Count > 0 || xml["Entities"].GetElementsByTagName("RedSwitchBlock").Count > 0)
-            {
-                Add<SwitchBlockControl>(new SwitchBlockControl(this.Session));
-            }
-            else if (this.Session.MatchSettings.Variants.DarkPortals)
-            {
-                Add<DarkPortalsVariantSequence>(new DarkPortalsVariantSequence());
             }
         }
 

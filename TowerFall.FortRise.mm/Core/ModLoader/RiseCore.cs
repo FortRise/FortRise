@@ -65,6 +65,7 @@ public static partial class RiseCore
     public static bool NoAutoPause { get; private set; }
     public static bool NoErrorScene { get; private set; }
     public static bool DumpResources { get; private set; }
+    public static bool HotReloadMods { get; private set; }
     internal static string[] ApplicationArgs;
 
     /// <summary>
@@ -226,6 +227,7 @@ public static partial class RiseCore
                 ;--nointro
                 ;--no-auto-pause
                 ;--use-scancodes
+                ;--hot-reload
                 """
             );
         }
@@ -245,6 +247,9 @@ public static partial class RiseCore
                     break;
                 case "--dump-resources":
                     DumpResources = true;
+                    break;
+                case "--hot-reload":
+                    HotReloadMods = true;
                     break;
                 case "--use-scancodes":
                     Environment.SetEnvironmentVariable("FNA_KEYBOARD_USE_SCANCODES", "1");

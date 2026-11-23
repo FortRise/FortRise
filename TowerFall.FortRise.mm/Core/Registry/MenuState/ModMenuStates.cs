@@ -30,7 +30,7 @@ internal sealed class ModMenuStates : IModMenuStates
     public IMenuStateEntry RegisterMenuState(string id, in MenuStateConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        IMenuStateEntry menuState = new MenuStateEntry(name, configuration, EnumPool.Obtain<MainMenu.MenuState>());
+        IMenuStateEntry menuState = new MenuStateEntry(name, configuration, IndexReservationPool.ClaimOrObtain<MainMenu.MenuState>(metadata, name));
         CustomMenuStateRegistry.AddMenuState(menuState);
         registryQueue.AddOrInvoke(menuState);
         return menuState;
@@ -49,6 +49,6 @@ internal sealed class ModMenuStates : IModMenuStates
     internal void Detach(IMenuStateEntry entry)
     {
         CustomMenuStateRegistry.Unregister(entry);
-        EnumPool.Free(entry.MenuState);
+        IndexReservationPool.FreeOrReserve(metadata, entry.Name, entry.MenuState);
     }
 }

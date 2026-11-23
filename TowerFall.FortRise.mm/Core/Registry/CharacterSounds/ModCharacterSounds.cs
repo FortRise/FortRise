@@ -25,7 +25,7 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
     public ICharacterSoundEntry RegisterCharacterSounds(string id, CharacterSoundConfiguration configuration)
     {
         string name = $"{metadata.Name}/{id}";
-        ICharacterSoundEntry sfxEntry = new CharacterSoundEntry(name, IDPool.Obtain("characterSounds"), configuration);
+        ICharacterSoundEntry sfxEntry = new CharacterSoundEntry(name, ClaimOrObtain(name), configuration);
         CharacterSoundsRegistry.AddCharacterSound(sfxEntry);
         characterSoundQueue.AddOrInvoke(sfxEntry);
         return sfxEntry;
@@ -65,10 +65,25 @@ internal sealed class ModCharacterSounds : IModCharacterSounds
         });
     }
 
+    private int ClaimOrObtain(string name)
+    {
+        return IndexReservationPool.For(metadata) is { } session && session.TryClaim("characterSound", name, out int id)
+            ? id
+            : IDPool.Obtain("characterSounds");
+    }
+
     private void Detach(ICharacterSoundEntry entry)
     {
         CharacterSoundsRegistry.RemoveCharacterSound(entry);
-        IDPool.Free("characterSounds", entry.SFXID);
+
+        int id = entry.SFXID;
+        if (IndexReservationPool.For(metadata) is { } session)
+        {
+            session.Reserve("characterSound", entry.Name, id, () => IDPool.Free("characterSounds", id));
+            return;
+        }
+
+        IDPool.Free("characterSounds", id);
     }
 }
 
