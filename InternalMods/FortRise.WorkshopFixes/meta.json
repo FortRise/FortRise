@@ -1,5 +1,6 @@
 {
     "name": "FortRise.WorkshopFixes",
+    "displayName": "Workshop Fixes",
     "version": "5.5.0-beta.4",
     "priority": "Highest",
     "dependencies": [

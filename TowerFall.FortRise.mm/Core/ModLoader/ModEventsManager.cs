@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Monocle;
 using TowerFall;
 
 namespace FortRise;
@@ -7,6 +9,7 @@ namespace FortRise;
 internal sealed class ModEventsManager
 {
     internal static ModEventsManager Instance { get; private set; } = null!;
+    public SafeModEventHandler<RequestingSubtextureEventArgs> RequestingSubtexture;
     public SafeModEventHandler<ModuleMetadata> ModInitialize;
     public SafeModEventHandler<BeforeModInstantiationEventArgs> ModBeforeInstantiation;
     public SafeModEventHandler<LoadState> ModLoadStateFinished;
@@ -26,6 +29,7 @@ internal sealed class ModEventsManager
     public ModEventsManager()
     {
         Instance = this;
+        RequestingSubtexture = new();
         ModInitialize = new();
         ModBeforeInstantiation = new();
         ModLoadStateFinished = new();
@@ -45,6 +49,7 @@ internal sealed class ModEventsManager
 
     public void RemoveByMetadata(ModuleMetadata metadata)
     {
+        RequestingSubtexture.RemoveAllWithMetadata(metadata);
         ModInitialize.RemoveAllWithMetadata(metadata);
         ModBeforeInstantiation.RemoveAllWithMetadata(metadata);
         ModLoadStateFinished.RemoveAllWithMetadata(metadata);
@@ -53,7 +58,7 @@ internal sealed class ModEventsManager
         GameLoaded.RemoveAllWithMetadata(metadata);
         LevelEntered.RemoveAllWithMetadata(metadata);
         LevelExited.RemoveAllWithMetadata(metadata);
-        GameInitialized.RemoveAllWithMetadata(metadata);     
+        GameInitialized.RemoveAllWithMetadata(metadata);
         OnBeforeDataLoad.RemoveAllWithMetadata(metadata);
         OnAfterDataLoad.RemoveAllWithMetadata(metadata);
         SessionQuit.RemoveAllWithMetadata(metadata);
@@ -62,8 +67,9 @@ internal sealed class ModEventsManager
         AfterSaveData.RemoveAllWithMetadata(metadata);
     }
 
-    public void Dispose() 
+    public void Dispose()
     {
+        RequestingSubtexture.RemoveAll();
         ModInitialize.RemoveAll();
         ModBeforeInstantiation.RemoveAll();
         ModLoadStateFinished.RemoveAll();
@@ -82,14 +88,29 @@ internal sealed class ModEventsManager
     }
 }
 
+public record RequestingSubtextureEventArgs(string Name)
+{
+    private Func<Subtexture>? replacementCallback;
+
+    public void Edit(Func<Subtexture> editSubtextureCallback)
+    {
+       replacementCallback = editSubtextureCallback;
+    }
+
+    internal Subtexture? ApplyEdit()
+    {
+        return replacementCallback?.Invoke();
+    }
+}
+
 public record MenuLoadedEventArgs(MainMenu Menu, bool NewDataCreated);
 public record BeforeModInstantiationEventArgs(IModContent ModContent, IModuleContext Context);
 public record SlotVariantCreatedEventArgs(MatchVariants MatchVariants, List<List<VariantItem>> VariantSlots);
 public record DataLoadEventArgs(bool WillRestart);
 public record SessionQuitEventArgs(Session Session, PauseMenu.MenuType PauseMenuType);
 public record LevelSetsCreatedEventArgs(
-    MapScene Map, 
-    MainMenu.RollcallModes RollcallModes, 
+    MapScene Map,
+    MainMenu.RollcallModes RollcallModes,
     List<string> LevelSets
 );
 

@@ -44,6 +44,14 @@ public class patch_Atlas : Atlas
         [MonoModReplace]
         get
         {
+            var requesting = new RequestingSubtextureEventArgs(name);
+            ModEventsManager.Instance.RequestingSubtexture.Raise(this, requesting);
+            var subtexture = requesting.ApplyEdit();
+            if (subtexture is not null)
+            {
+                return subtexture;
+            }
+
             ref var texture = ref CollectionsMarshal.GetValueRefOrNullRef(SubTextures, name);
             if (!Unsafe.IsNullRef(ref texture))
             {

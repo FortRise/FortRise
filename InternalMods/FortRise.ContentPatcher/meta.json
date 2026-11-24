@@ -1,0 +1,13 @@
+{
+    "name": "FortRise.ContentPatcher",
+    "displayName": "Content Patcher",
+    "version": "5.5.0-beta.4",
+    "priority": "Highest",
+    "dependencies": [
+        {
+            "name": "FortRise",
+            "version": "5.5.0-beta.4"
+        }
+    ],
+    "dll": "FortRise.ContentPatcher.dll"
+}

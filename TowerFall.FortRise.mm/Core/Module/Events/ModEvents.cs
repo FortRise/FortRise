@@ -6,6 +6,15 @@ namespace FortRise;
 
 internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents
 {
+    public sealed class AtlasEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IAtlasEvents
+    {
+        public event EventHandler<RequestingSubtextureEventArgs> RequestingSubtexture 
+        {
+            add => manager.RequestingSubtexture.Add(metadata, value);
+            remove => manager.RequestingSubtexture.Remove(metadata, value);
+        }
+    }
+
     public sealed class FortRiseModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IFortRiseModEvents
     {
         public event EventHandler<ModuleMetadata> Initialize 
@@ -123,6 +132,7 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
         }
     }
 
+    public IModEvents.IAtlasEvents Atlas { get; } = new AtlasEvents(metadata, manager);
     public IModEvents.IFortRiseModEvents Mods { get; } = new FortRiseModEvents(metadata, manager);
     public IModEvents.IMatchVariantsEvents MatchVariants { get; } = new MatchVariantEvents(metadata, manager);
     public IModEvents.IRoundLogicEvents RoundLogic { get; } = new RoundLogicEvents(metadata, manager);

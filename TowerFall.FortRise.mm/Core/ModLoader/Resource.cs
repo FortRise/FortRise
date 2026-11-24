@@ -179,12 +179,12 @@ public static class ResourceTree
 
 
             // Dump Atlases
-            if (GameData.DarkWorldDLC) 
+            if (GameData.DarkWorldDLC)
             {
                 DumpAtlas("BossAtlas", TFGame.BossAtlas, "DarkWorldContent/Atlas/bossAtlas.png");
                 DumpAtlas("Atlas", TFGame.Atlas, "DarkWorldContent/Atlas/atlas.png");
             }
-            else 
+            else
             {
                 DumpAtlas("Atlas", TFGame.Atlas, "Content/Atlas/atlas.png");
             }
@@ -204,7 +204,7 @@ public static class ResourceTree
     {
         var injectedAtlases = new HashSet<string>(atlas.GetAllInjectedAtlas());
         injectedAtlases.Add(vanillaAtlas);
-        foreach (var path in injectedAtlases) 
+        foreach (var path in injectedAtlases)
         {
             var pngPath = path;
             var xmlPath = path.Replace(".png", ".xml");
@@ -212,18 +212,18 @@ public static class ResourceTree
             using var pngStream = ModIO.OpenRead(pngPath);
 
             string pathName = name;
-            if (path.StartsWith("mod:")) 
+            if (path.StartsWith("mod:"))
             {
                 pathName = Path.Combine(name, path.Substring(4, path.IndexOf('/') - 4));
             }
 
-            if (!ModIO.IsFileExists(xmlPath)) 
+            if (!ModIO.IsFileExists(xmlPath))
             {
                 using CPUImage img = new CPUImage(pngStream);
                 int indexOfSlash = pngPath.IndexOf('/');
                 var keyPng = pngPath.Substring(indexOfSlash + 1).Replace("Content/Atlas/atlas/", "");
                 var dumpPath = $"DUMP/{pathName}/{keyPng}";
-                if (!Directory.Exists(Path.GetDirectoryName(dumpPath))) 
+                if (!Directory.Exists(Path.GetDirectoryName(dumpPath)))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(dumpPath));
                 }
@@ -234,7 +234,7 @@ public static class ResourceTree
 
             using CPUImage image = new CPUImage(pngStream);
             var subTextures = atlasXml["TextureAtlas"].GetElementsByTagName("SubTexture");
-            foreach (XmlElement subTexture in subTextures) 
+            foreach (XmlElement subTexture in subTextures)
             {
                 var attrib = subTexture.Attributes;
                 string key = attrib["name"].Value;
@@ -253,4 +253,3 @@ public static class ResourceTree
         }
     }
 }
-

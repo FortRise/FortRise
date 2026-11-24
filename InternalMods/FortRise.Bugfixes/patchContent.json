@@ -1,0 +1,21 @@
+{
+  "patches": [
+  {
+      "id": "patch_id",
+      "type": "PatchLevel",
+      "target": "Flight",
+      "where": {
+          "filename": "07.oel",
+          "platform": ["linux", "macos"]
+      },
+      "changes": [
+      {
+          "Entities": [
+              {
+                  "type": "RemoveByID",
+                  "value": "5"
+              }
+          ]
+      }]
+  }]
+}

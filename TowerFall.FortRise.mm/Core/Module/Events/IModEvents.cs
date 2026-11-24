@@ -6,6 +6,11 @@ namespace FortRise;
 
 public partial interface IModEvents
 {
+    public interface IAtlasEvents
+    {
+        event EventHandler<RequestingSubtextureEventArgs> RequestingSubtexture;
+    }
+
     public interface IFortRiseModEvents 
     {
         event EventHandler<ModuleMetadata> Initialize;
@@ -87,6 +92,7 @@ public partial interface IModEvents
         event EventHandler<DataLoadEventArgs> AfterLoad;
     }
 
+    IAtlasEvents Atlas { get; }
     IFortRiseModEvents Mods { get; }
     IMatchVariantsEvents MatchVariants { get; }
     IRoundLogicEvents RoundLogic { get; }

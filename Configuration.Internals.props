@@ -10,24 +10,39 @@
     <Version>$(FortRiseVersion)</Version>
     <ModLoaderPath>..\..\.bin\$(TargetFramework)\</ModLoaderPath>
     <ModPublishPath>$(ModLoaderPath)\Internals</ModPublishPath>
+    <TFPublic>true</TFPublic>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FortRise.Configuration" Version="1.5.6" />
+    <PackageReference Include="FortRise.Configuration" Version="1.6.2" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <ModDependency>
+      <Version>$(FortRiseVersion)</Version>
+    </ModDependency>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ModDependency Include="FortRise" />
   </ItemGroup>
 
   <Target Name="GenerateMetadata" BeforeTargets="BeforeCompile">
     <PropertyGroup>
+      <ModDisplayName Condition="'$(ModDisplayName)' == ''">$([System.Text.RegularExpressions.Regex]::Replace($(MSBuildProjectName.Substring($([MSBuild]::Add($(MSBuildProjectName.LastIndexOf('.')), 1)))), '(?&lt;=[a-z0-9])(?=[A-Z])', ' '))</ModDisplayName>
+      <ModDependenciesJson>@(ModDependency->'        {
+            "name": "%(Identity)",
+            "version": "%(Version)"
+        }', ',
+')</ModDependenciesJson>
       <FileContent>
 {
     "name": "$(MSBuildProjectName)",
+    "displayName": "$(ModDisplayName)",
     "version": "$(FortRiseVersion)",
     "priority": "Highest",
     "dependencies": [
-        {
-            "name": "FortRise",
-            "version": "$(FortRiseVersion)"
-        }
+$(ModDependenciesJson)
     ],
     "dll": "$(MSBuildProjectName).dll"
 }
@@ -42,4 +57,3 @@
   </PropertyGroup>
 
 </Project>
-

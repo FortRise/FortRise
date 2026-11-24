@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\Configuration.Internals.props" />
+
+	<ItemGroup>
+	  <ModDependency Include="FortRise.ContentPatcher" />
+	</ItemGroup>
+
+	<ItemGroup>
+	    <Content Include="patchContent.json">
+	      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    </Content>
+	</ItemGroup>
+</Project>

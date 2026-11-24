@@ -14,5 +14,7 @@
     <Project Path="InternalMods/FortRise.Content/FortRise.Content.csproj" />
     <Project Path="InternalMods/FortRise.ImGui/FortRise.ImGui.csproj" />
     <Project Path="InternalMods/FortRise.WorkshopFixes/FortRise.WorkshopFixes.csproj" />
+    <Project Path="InternalMods/FortRise.ContentPatcher/FortRise.ContentPatcher.csproj" />
+    <Project Path="InternalMods/FortRise.Bugfixes/FortRise.Bugfixes.csproj" />
   </Folder>
 </Solution>
