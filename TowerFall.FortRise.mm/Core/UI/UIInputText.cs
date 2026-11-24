@@ -11,6 +11,7 @@ namespace FortRise;
 public class UIInputText : MenuItem
 {
     private MenuItem backItem;
+    private string initialValue;
     private string value;
     private string renderValue;
     private string oldRenderValue;
@@ -18,21 +19,19 @@ public class UIInputText : MenuItem
     private int playerIndex = -1;
     private OnScreenKeyboard keyboard;
 
-    public UIInputText(MenuItem backItem, Action<string> finished, Vector2 position, string initialValue = null) : base(position)
+    public UIInputText(MenuItem backItem, Action<string> finished, Vector2 position, string initialValue = null)
+        : this(backItem, finished, position, -1, initialValue)
     {
-        this.backItem = backItem;
-        this.finished = finished;
-        value = initialValue;
-        renderValue = initialValue?.ToUpperInvariant() ?? "";
     }
 
     public UIInputText(MenuItem backItem, Action<string> finished, Vector2 position, int playerIndex, string initialValue = null) : base(position)
     {
         this.backItem = backItem;
         this.finished = finished;
-        value = initialValue;
-        renderValue = initialValue?.ToUpperInvariant() ?? "";
         this.playerIndex = playerIndex;
+        this.initialValue = initialValue ?? "";
+        value = this.initialValue;
+        renderValue = value.ToUpperInvariant();
     }
 
     public override void Added()
@@ -41,34 +40,21 @@ public class UIInputText : MenuItem
         TextInputEXT.TextInput += HandleKey;
         TextInputEXT.StartTextInput();
         MainMenu.CanAct = false;
-        bool hasController = false;
-        if (playerIndex == -1)
-        {
-            foreach (var inp in MenuInput.MenuInputs)
-            {
-                if (inp is XGamepadInput)
-                {
-                    hasController = true;
-                }
-            }
-        }
-        else
-        {
-            var input = TFGame.PlayerInputs[playerIndex];
-            if (input is XGamepadInput)
-            {
-                hasController = true;
-            }
-        }
 
-        if (hasController)
+        if (AnyGamepad(_ => true))
         {
-            Scene.Add(keyboard = new OnScreenKeyboard(new Vector2(320 * 0.2f, 160), playerIndex, OnScreenConfirmed, LayerIndex));
+            Scene.Add(keyboard = new OnScreenKeyboard(new Vector2(320 * 0.5f, 236), playerIndex, OnScreenConfirmed, LayerIndex));
         }
     }
 
     private void OnScreenConfirmed(char character)
     {
+        if (character == OnScreenKeyboard.Cancel)
+        {
+            Finish(initialValue);
+            return;
+        }
+
         HandleKey(character);
     }
 
@@ -78,12 +64,35 @@ public class UIInputText : MenuItem
 
         if (MenuInput.Start)
         {
-            Selected = false;
-            MainMenu.CanAct = true;
-            backItem.Selected = true;
-            RemoveSelf();
-            finished?.Invoke(value);
+            Finish(value);
         }
+    }
+
+    private bool AnyGamepad(Func<MInput.XGamepadData, bool> check)
+    {
+        if (playerIndex != -1)
+        {
+            return TFGame.PlayerInputs[playerIndex] is XGamepadInput input && check(input.XGamepad);
+        }
+
+        foreach (var input in MenuInput.MenuInputs)
+        {
+            if (input is XGamepadInput gamepad && check(gamepad.XGamepad))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void Finish(string result)
+    {
+        Selected = false;
+        MainMenu.CanAct = true;
+        backItem.Selected = true;
+        RemoveSelf();
+        finished?.Invoke(result);
     }
 
     private void HandleKey(char obj)
@@ -99,18 +108,14 @@ public class UIInputText : MenuItem
             {
                 return;
             }
-            value = value[0..(value.Length - 1)];
-            renderValue = renderValue[0..(renderValue.Length - 1)];
+            value = value[..^1];
+            renderValue = renderValue[..^1];
             return;
         }
 
         if (obj == 10)
         {
-            Selected = false;
-            MainMenu.CanAct = true;
-            backItem.Selected = true;
-            RemoveSelf();
-            finished?.Invoke(value);
+            Finish(value);
             return;
         }
 
@@ -149,10 +154,9 @@ public class UIInputText : MenuItem
         TextInputEXT.StopTextInput();
     }
 
-    protected override void OnDeselect() 
+    protected override void OnDeselect()
     {
     }
-
 
     public override void Render()
     {
