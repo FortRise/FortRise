@@ -27,7 +27,7 @@ public class patch_SFX : SFX
 
     [MonoModConstructor]
     [MonoModReplace]
-    internal void ctor(bool obeysMasterPitch) 
+    internal void ctor(bool obeysMasterPitch)
     {
         ObeysMasterPitch = obeysMasterPitch;
         lock (patch_Audio.pitchList)
@@ -38,17 +38,17 @@ public class patch_SFX : SFX
 
     [MonoModConstructor]
     [MonoModReplace]
-    public void ctor(string filename, bool obeysMasterPitch = true) 
+    public void ctor(string filename, bool obeysMasterPitch = true)
     {
         ctor(obeysMasterPitch);
         string path = Audio.LOAD_PREFIX + filename + ".wav";
-        if (!ModIO.IsDirectoryOrFileExists(path)) 
+        if (!ModIO.IsDirectoryOrFileExists(path))
         {
             path = filename; // Mods can use .ogg
             if (!Path.HasExtension(path))
                 path += ".wav";
         }
-        using Stream stream = ModIO.OpenRead(path);
+        using Stream stream = SFXPreloader.OpenRead(path);
         try
         {
             Data = SoundEffect.FromStream(stream);
@@ -60,7 +60,7 @@ public class patch_SFX : SFX
     }
 
     [MonoModConstructor]
-    public void ctor(Stream stream, bool obeysMasterPitch = true) 
+    public void ctor(Stream stream, bool obeysMasterPitch = true)
     {
         ctor(obeysMasterPitch);
         try

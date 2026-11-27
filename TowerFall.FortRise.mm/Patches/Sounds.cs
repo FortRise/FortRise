@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using FortRise;
 using Monocle;
+using MonoMod;
 
 namespace TowerFall;
 
@@ -13,6 +15,20 @@ public static class patch_Sounds
 
     public static Lock SoundLoadLock = new Lock();
 
+    [Postfix("Load")]
+    private static void AddAllSFXToSoundsLoaded()
+    {
+        FieldInfo[] array = typeof(Sounds).GetFields(BindingFlags.Public | BindingFlags.Static);
+
+        foreach (var field in array)
+        {
+            if (field.GetValue(null) is SFX sfx)
+            {
+                SoundsLoaded.TryAdd(field.Name, sfx);
+            }
+        }
+    }
+
     public static void LoadModdedCharacterSounds()
     {
         foreach (var (sfxID, sounds) in CharacterSoundsRegistry.ModdedSounds)
@@ -21,14 +37,6 @@ public static class patch_Sounds
         }
 
         CharacterSoundsRegistry.Injected = true;
-
-        //foreach (var queue in queuedModdedSFXs)
-        //{
-        //    ReadOnlySpan<char> name = queue.Name;
-        //
-        //    var lookup = SoundsLoaded.GetAlternateLookup<ReadOnlySpan<char>>();
-        //    lookup[name] = queue.BaseSFX;
-        //}
     }
 
     internal static void SetCharacterSounds(int sfxID, CharacterSounds sounds)

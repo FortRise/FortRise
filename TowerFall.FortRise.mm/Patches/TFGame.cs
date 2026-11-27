@@ -322,7 +322,9 @@ namespace TowerFall
                     {
                         Logger.Log("[LOAD] ...SFX" );
                         TFGame.WriteLineToLoadLog("Loading Sounds...");
+                        SFXPreloader.Preload(patch_Audio.ORIGINAL_LOAD_PREFIX);
                         Sounds.Load();
+                        SFXPreloader.Clear();
                     }
 
                     SoundLoaded = true;

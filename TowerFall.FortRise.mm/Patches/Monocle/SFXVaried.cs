@@ -36,13 +36,13 @@ public class patch_SFXVaried : patch_SFX
 
     [MonoModConstructor]
     [MonoModReplace]
-    public void ctor(string filename, int amount, bool obeysMasterPitch) 
+    public void ctor(string filename, int amount, bool obeysMasterPitch)
     {
         thisctor(obeysMasterPitch);
         Datas = new SoundEffect[amount];
         for (int i = 0; i < amount; i++)
         {
-            using Stream fileStream = ModIO.OpenRead(Audio.LOAD_PREFIX + filename + GetSuffix(i + 1) + ".wav");
+            using Stream fileStream = SFXPreloader.OpenRead(Audio.LOAD_PREFIX + filename + GetSuffix(i + 1) + ".wav");
             try
             {
                 Datas[i] = SoundEffect.FromStream(fileStream);
@@ -58,7 +58,7 @@ public class patch_SFXVaried : patch_SFX
     private extern string GetSuffix(int num);
 
     [MonoModConstructor]
-    public void ctor(Stream[] stream, int amount, bool obeysMasterPitch) 
+    public void ctor(Stream[] stream, int amount, bool obeysMasterPitch)
     {
         this.thisctor(obeysMasterPitch);
         Datas = new SoundEffect[amount];
