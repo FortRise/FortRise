@@ -29,7 +29,7 @@ internal class ModInterop : IModInterop
     public IReadOnlyList<IModResource> GetModDependents() => manager.GetModDependents(metadata.Name);
 
     public bool IsModDepends(ModuleMetadata metadata) => ModuleManager.IsModDepends(this.metadata, metadata);
-    
+
     public IModRegistry? GetModRegistry(string modName) => manager.GetRegistry(modName);
 
     public IModRegistry? GetModRegistry(ModuleMetadata metadata) => manager.AddOrGetRegistry(metadata);
@@ -58,7 +58,7 @@ internal class ModInterop : IModInterop
             throw new ArgumentException($"The requested API type {typeof(T)} is not an interface.");
         }
 
-        manager.NameToFortModule.TryGetValue(modName, out Mod? mod);        
+        manager.NameToFortModule.TryGetValue(modName, out Mod? mod);
 
         if (mod is null)
         {
@@ -73,7 +73,11 @@ internal class ModInterop : IModInterop
         ref var apiObject = ref CollectionsMarshal.GetValueRefOrAddDefault(apiCache, modName, out bool exists);
         if (!exists)
         {
-            apiObject = mod.GetApi();
+
+#pragma warning disable CS0618
+            apiObject = mod.GetApi(metadata);
+            apiObject ??= mod.GetApi();
+#pragma warning restore CS0618
         }
 
         if (apiObject is null)
@@ -102,7 +106,7 @@ internal class ModInterop : IModInterop
         var onModInitialize = new NullableRef<EventHandler<ModuleMetadata>>();
         var onModLoadStateFinished = new NullableRef<EventHandler<LoadState>>();
 
-        onModInitialize.Value = (_, meta) => 
+        onModInitialize.Value = (_, meta) =>
         {
             if (meta.Name != name)
             {
@@ -114,7 +118,7 @@ internal class ModInterop : IModInterop
             callback(GetApi<T>(name, minimumVersion)!);
         };
 
-        onModLoadStateFinished.Value = (_, state) => 
+        onModLoadStateFinished.Value = (_, state) =>
         {
             if (state != LoadState.Ready)
             {

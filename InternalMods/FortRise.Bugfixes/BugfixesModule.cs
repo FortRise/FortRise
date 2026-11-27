@@ -30,7 +30,7 @@ internal sealed class BugfixesModule : Mod
         );
     }
 
-    public override object GetApi()
+    public override object GetApi(ModuleMetadata metadata)
     {
         return new ApiImplementation();
     }

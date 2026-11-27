@@ -16,7 +16,7 @@ internal sealed class ContentModule : Mod
         context.Events.Mods.BeforeInstantiation += OnBeforeModInstantiation;
     }
 
-    public override object GetApi() => new ApiImplementation();
+    public override object GetApi(ModuleMetadata metadata) => new ApiImplementation();
 
     private void OnBeforeModInstantiation(object? sender, BeforeModInstantiationEventArgs e)
     {
@@ -38,10 +38,10 @@ internal sealed class ContentModule : Mod
         if (content.Root.TryGetRelativePath("content.json", out var contentJson))
         {
             using var stream = contentJson.Stream;
-            contentConfiguration = JsonSerializer.Deserialize(stream, ContentConfigurationContext.Default.ContentConfiguration) 
+            contentConfiguration = JsonSerializer.Deserialize(stream, ContentConfigurationContext.Default.ContentConfiguration)
                 ?? GetDefaultConfiguration();
         }
-        else 
+        else
         {
             contentConfiguration = GetDefaultConfiguration();
         }
@@ -77,60 +77,60 @@ internal sealed class ContentModule : Mod
         return new Dictionary<string, Loader>()
         {
             ["atlas"] = new Loader() { Path = ["Content/Atlas/atlas.xml"] },
-            ["menuAtlas"] = new Loader() 
+            ["menuAtlas"] = new Loader()
             {
                 Path = ["Content/Atlas/menuAtlas.xml"]
             },
-            ["bgAtlas"] = new Loader() 
+            ["bgAtlas"] = new Loader()
             {
                 Path = ["Content/Atlas/bgAtlas.xml"]
             },
-            ["bossAtlas"] = new Loader() 
+            ["bossAtlas"] = new Loader()
             {
                 Path = ["Content/Atlas/bossAtlas.xml"]
             },
-            ["archerData"] = new Loader() 
+            ["archerData"] = new Loader()
             {
                 Path = ["Content/Atlas/GameData/archerData.xml"]
             },
 
-            ["spriteData"] = new Loader() 
+            ["spriteData"] = new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/spriteData.xml"]
             },
 
-            ["bgSpriteData"] = new Loader() 
+            ["bgSpriteData"] = new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/bgSpriteData.xml"]
             },
 
-            ["menuSpriteData"] = new Loader() 
+            ["menuSpriteData"] = new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/menuSpriteData.xml"]
             },
 
-            ["bossSpriteData"] = new Loader() 
+            ["bossSpriteData"] = new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/bossSpriteData.xml"]
             },
 
-            ["corpseSpriteData"] = new Loader() 
+            ["corpseSpriteData"] = new Loader()
             {
                 Path = ["Content/Atlas/SpriteData/corpseSpriteData.xml"]
             },
-            ["tilesetData"] = new Loader() 
+            ["tilesetData"] = new Loader()
             {
                 Path = ["Content/Atlas/GameData/tilesetData.xml"]
             },
-            ["towerTypeData"] = new Loader() 
+            ["towerTypeData"] = new Loader()
             {
                 Path = ["Content/Atlas/GameData/towerTypeData.xml"]
             },
-            ["themeData"] = new Loader() 
+            ["themeData"] = new Loader()
             {
                 Path = ["Content/Atlas/GameData/themeData.xml"]
             },
-            ["music"] = new Loader() 
+            ["music"] = new Loader()
             {
                 Path = ["Content/Music/*.ogg", "Content/Music/*.wav"]
             },
@@ -147,7 +147,7 @@ internal sealed class ContentModule : Mod
 
     internal static ContentConfiguration GetDefaultConfiguration()
     {
-        var config = new ContentConfiguration() 
+        var config = new ContentConfiguration()
         {
             Loaders = GetDefaultLoaderConfiguration()
         };

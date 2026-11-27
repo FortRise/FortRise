@@ -54,7 +54,14 @@ public abstract class Mod
     /// <summary>
     /// A method to return an Api implementation and will be proxied by another's mod interface.
     /// </summary>
+    [Obsolete("Override GetApi(ModuleMetadata) instead.")]
     public virtual object? GetApi() => null;
+
+    /// <summary>
+    /// A method to return an Api implementation and will be proxied by another's mod interface.
+    /// </summary>
+    /// <param name="metadata">A requesting mod's metadata</param>
+    public virtual object? GetApi(ModuleMetadata metadata) => null;
 
     public virtual ModuleSettings? CreateSettings() => null;
     public virtual ModuleSaveData? CreateSaveData() => null;
@@ -66,7 +73,7 @@ public abstract class Mod
             return;
         }
 
-        try 
+        try
         {
             var savePath = Path.Combine(Context.Storage.StoragePath, $"{Meta.Name}.saveData.json");
 

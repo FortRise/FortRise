@@ -19,7 +19,7 @@ internal sealed class ContentPatcherModule : Mod
         context.Events.Atlas.RequestingSubtexture += subtexturePatcher.OnRequestingSubtexture;
     }
 
-    public override object? GetApi() => new ApiImplementation(subtexturePatcher, levelPatcher);
+    public override object? GetApi(ModuleMetadata metadata) => new ApiImplementation(subtexturePatcher, levelPatcher);
 
     private void OnBeforeModInstantiation(object? sender, BeforeModInstantiationEventArgs e)
     {

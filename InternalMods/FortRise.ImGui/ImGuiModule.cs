@@ -65,8 +65,8 @@ internal sealed class ImGuiModule : Mod
     }
 
 
-    public override object? GetApi() => new ApiImplementation();
-    
+    public override object? GetApi(ModuleMetadata metadata) => new ApiImplementation();
+
 
     private static bool Commands_HandleKey_Prefix(Commands __instance, Keys key)
     {
