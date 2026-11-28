@@ -27,6 +27,10 @@
     <ModDependency Include="FortRise" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="icon.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <Target Name="GenerateMetadata" BeforeTargets="BeforeCompile">
     <PropertyGroup>
       <ModDisplayName Condition="'$(ModDisplayName)' == ''">$([System.Text.RegularExpressions.Regex]::Replace($(MSBuildProjectName.Substring($([MSBuild]::Add($(MSBuildProjectName.LastIndexOf('.')), 1)))), '(?&lt;=[a-z0-9])(?=[A-Z])', ' '))</ModDisplayName>

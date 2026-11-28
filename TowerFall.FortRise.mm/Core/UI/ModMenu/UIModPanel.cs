@@ -26,6 +26,7 @@ internal class UIModPanel : MenuItem
 
     [MonoModLinkTo("Monocle.Entity", "Update")]
     public void base_Update() {}
+    [MonoModIgnore]
 
     private const float PanelWidth = 276f;
 
@@ -115,8 +116,8 @@ internal class UIModPanel : MenuItem
             Draw.HollowRect(Position.X - 4, Position.Y - 4, PanelWidth, 24, Color.Yellow);
         }
 
-        Draw.TextureJustify(modItem.Icon, new Vector2(Position.X, Position.Y), Vector2.Zero);
 
+        Draw.OutlineTextureJustify(modItem.Icon, new Vector2(Position.X, Position.Y), Vector2.Zero);
         if (HasUpdate)
         {
             TextUtils.DrawOutlinedIconText(TFGame.Font, modItem.Name + " <t=variants/newVariantsTagSmall>", Position + Vector2.UnitX * 20, Color.White, Vector2.Zero);
@@ -146,7 +147,7 @@ internal class UIModPanel : MenuItem
         }
     }
 
-    public class ModItem 
+    public class ModItem
     {
         private readonly Subtexture icon;
         private readonly string nameUpper;
@@ -157,14 +158,14 @@ internal class UIModPanel : MenuItem
         public Subtexture Icon => icon;
         public ModuleMetadata Metadata { get; private set; }
 
-        public ModItem(ModuleMetadata metadata) 
+        public ModItem(ModuleMetadata metadata)
         {
             Metadata = metadata;
             if (!string.IsNullOrEmpty(metadata.DisplayName))
             {
                 nameUpper = metadata.DisplayName.ToUpperInvariant();
             }
-            else 
+            else
             {
                 nameUpper = metadata.Name.ToUpperInvariant();
             }
@@ -175,7 +176,7 @@ internal class UIModPanel : MenuItem
             {
                 this.icon = icon;
             }
-            else 
+            else
             {
                 this.icon = TFGame.MenuAtlas["variants/noArrows"];
             }
