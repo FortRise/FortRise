@@ -8,7 +8,7 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
 {
     public sealed class AtlasEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IAtlasEvents
     {
-        public event EventHandler<RequestingSubtextureEventArgs> RequestingSubtexture 
+        public event EventHandler<RequestingSubtextureEventArgs> RequestingSubtexture
         {
             add => manager.RequestingSubtexture.Add(metadata, value);
             remove => manager.RequestingSubtexture.Remove(metadata, value);
@@ -17,18 +17,18 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
 
     public sealed class FortRiseModEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IFortRiseModEvents
     {
-        public event EventHandler<ModuleMetadata> Initialize 
+        public event EventHandler<ModuleMetadata> Initialize
         {
             add => manager.ModInitialize.Add(metadata, value);
             remove => manager.ModInitialize.Remove(metadata, value);
         }
 
-        public event EventHandler<BeforeModInstantiationEventArgs> BeforeInstantiation 
+        public event EventHandler<BeforeModInstantiationEventArgs> BeforeInstantiation
         {
             add => manager.ModBeforeInstantiation.Add(metadata, value);
             remove => manager.ModBeforeInstantiation.Remove(metadata, value);
         }
-        public event EventHandler<LoadState> LoadStateFinished 
+        public event EventHandler<LoadState> LoadStateFinished
         {
             add => manager.ModLoadStateFinished.Add(metadata, value);
             remove => manager.ModLoadStateFinished.Remove(metadata, value);
@@ -37,7 +37,7 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
 
     public sealed class MatchVariantEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IMatchVariantsEvents
     {
-        public event EventHandler<SlotVariantCreatedEventArgs> SlotVariantCreated 
+        public event EventHandler<SlotVariantCreatedEventArgs> SlotVariantCreated
         {
             add => manager.MatchVariantsSlotVariantCreated.Add(metadata, value);
             remove => manager.MatchVariantsSlotVariantCreated.Remove(metadata, value);
@@ -46,10 +46,10 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
 
     public sealed class RoundLogicEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IRoundLogicEvents
     {
-        public event EventHandler<RoundLogic> LevelLoadFinish 
+        public event EventHandler<RoundLogic> LevelLoadFinish
         {
             add => manager.RoundLogicLevelLoadFinish.Add(metadata, value);
-            remove => manager.RoundLogicLevelLoadFinish.Remove(metadata, value);           
+            remove => manager.RoundLogicLevelLoadFinish.Remove(metadata, value);
         }
     }
 
@@ -58,13 +58,13 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
         public event EventHandler<Level> LevelEntered
         {
             add => manager.LevelEntered.Add(metadata, value);
-            remove => manager.LevelEntered.Remove(metadata, value);           
+            remove => manager.LevelEntered.Remove(metadata, value);
         }
 
         public event EventHandler<Level> LevelExited
         {
             add => manager.LevelExited.Add(metadata, value);
-            remove => manager.LevelExited.Remove(metadata, value);           
+            remove => manager.LevelExited.Remove(metadata, value);
         }
     }
 
@@ -73,13 +73,13 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
         public event EventHandler<TFGame> GameInitialized
         {
             add => manager.GameInitialized.Add(metadata, value);
-            remove => manager.GameInitialized.Remove(metadata, value);           
+            remove => manager.GameInitialized.Remove(metadata, value);
         }
 
         public event EventHandler<MenuLoadedEventArgs> GameLoaded
         {
             add => manager.GameLoaded.Add(metadata, value);
-            remove => manager.GameLoaded.Remove(metadata, value);           
+            remove => manager.GameLoaded.Remove(metadata, value);
         }
     }
 
@@ -88,7 +88,7 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
         public event EventHandler<LevelSetsCreatedEventArgs> LevelSetsCreated
         {
             add => manager.MapSceneLevelSetsCreated.Add(metadata, value);
-            remove => manager.MapSceneLevelSetsCreated.Remove(metadata, value);           
+            remove => manager.MapSceneLevelSetsCreated.Remove(metadata, value);
         }
     }
 
@@ -132,6 +132,63 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
         }
     }
 
+    public sealed class ArrowEvents(ModuleMetadata metadata, ModEventsManager manager) : IModEvents.IArrowEvents
+    {
+        public event EventHandler<ArrowCreatedEventArgs> Created
+        {
+            add => manager.ArrowCreated.Add(metadata, value);
+            remove => manager.ArrowCreated.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowHitTargetEventArgs> HitTarget
+        {
+            add => manager.ArrowHitTarget.Add(metadata, value);
+            remove => manager.ArrowHitTarget.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowStuckEventArgs> Stuck
+        {
+            add => manager.ArrowStuck.Add(metadata, value);
+            remove => manager.ArrowStuck.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowBuriedEventArgs> Buried
+        {
+            add => manager.ArrowBuried.Add(metadata, value);
+            remove => manager.ArrowBuried.Remove(metadata, value);
+        }
+
+        public event EventHandler<Arrow> StartedFalling
+        {
+            add => manager.ArrowStartedFalling.Add(metadata, value);
+            remove => manager.ArrowStartedFalling.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowCaughtEventArgs> Caught
+        {
+            add => manager.ArrowCaught.Add(metadata, value);
+            remove => manager.ArrowCaught.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowCollectedEventArgs> Collected
+        {
+            add => manager.ArrowCollected.Add(metadata, value);
+            remove => manager.ArrowCollected.Remove(metadata, value);
+        }
+
+        public event EventHandler<ArrowHitLavaEventArgs> HitLava
+        {
+            add => manager.ArrowTouchedLava.Add(metadata, value);
+            remove => manager.ArrowTouchedLava.Remove(metadata, value);
+        }
+
+        public event EventHandler<Arrow> Removed
+        {
+            add => manager.ArrowRemoved.Add(metadata, value);
+            remove => manager.ArrowRemoved.Remove(metadata, value);
+        }
+    }
+
     public IModEvents.IAtlasEvents Atlas { get; } = new AtlasEvents(metadata, manager);
     public IModEvents.IFortRiseModEvents Mods { get; } = new FortRiseModEvents(metadata, manager);
     public IModEvents.IMatchVariantsEvents MatchVariants { get; } = new MatchVariantEvents(metadata, manager);
@@ -142,4 +199,5 @@ internal sealed partial class ModEvents(ModuleMetadata metadata, ModEventsManage
     public IModEvents.ISaveDataEvents SaveData { get; } = new SaveDataEvents(metadata, manager);
     public IModEvents.ISessionEvents Session { get; } = new SessionEvents(metadata, manager);
     public IModEvents.IGameDataEvents GameData { get; } = new GameDataEvents(metadata, manager);
+    public IModEvents.IArrowEvents Arrow { get; } = new ArrowEvents(metadata, manager);
 }

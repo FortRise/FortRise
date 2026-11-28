@@ -220,8 +220,7 @@ namespace TowerFall
         private extern void ShootArrow();
 
         [MonoModIgnore]
-        [MonoModIfFlag("NoLauncher")]
-        [FixGameStatsArrowsCaught]
+        [PatchPlayerCatchArrow]
         private extern void CatchArrow(Arrow arrow);
 
         [MonoModIgnore]
@@ -256,8 +255,26 @@ namespace MonoMod
     [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPlayerDebugRender))]
     public class PatchPlayerDebugRender : Attribute { }
 
+    [MonoModCustomMethodAttribute(nameof(MonoModRules.PatchPlayerCatchArrow))]
+    public class PatchPlayerCatchArrow : Attribute { }
+
     internal static partial class MonoModRules
     {
+        public static void PatchPlayerCatchArrow(ILContext ctx, CustomAttribute attrib)
+        {
+            if (!IsSteam)
+            {
+                FixGameStatsArrowsCaught(ctx.Method, attrib);
+            }
+
+            var invokeCaught = ctx.Module.GetType("TowerFall.Arrow").FindMethod("InvokeCaught");
+            var cursor = new ILCursor(ctx);
+            cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt("TowerFall.Arrow", "OnPlayerCatch"));
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Call, invokeCaught);
+        }
+
         public static void PatchPlayerDebugRender(ILContext ctx, CustomAttribute attrib)
         {
             // if (!ctx.Module.TryGetTypeReference("Microsoft.Xna.Framework.Color", out TypeReference typed)) 

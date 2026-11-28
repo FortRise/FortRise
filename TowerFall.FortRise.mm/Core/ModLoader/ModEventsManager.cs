@@ -25,6 +25,15 @@ internal sealed class ModEventsManager
     public SafeModEventHandler<LevelSetsCreatedEventArgs> MapSceneLevelSetsCreated;
     public SafeModEventHandler<BeforeSaveSaveDataEventArgs> BeforeSaveData;
     public SafeModEventHandler<AfterSaveSaveDataEventArgs> AfterSaveData;
+    public SafeModEventHandler<ArrowCreatedEventArgs> ArrowCreated;
+    public SafeModEventHandler<ArrowHitTargetEventArgs> ArrowHitTarget;
+    public SafeModEventHandler<ArrowStuckEventArgs> ArrowStuck;
+    public SafeModEventHandler<ArrowBuriedEventArgs> ArrowBuried;
+    public SafeModEventHandler<Arrow> ArrowStartedFalling;
+    public SafeModEventHandler<ArrowCaughtEventArgs> ArrowCaught;
+    public SafeModEventHandler<ArrowCollectedEventArgs> ArrowCollected;
+    public SafeModEventHandler<ArrowHitLavaEventArgs> ArrowTouchedLava;
+    public SafeModEventHandler<Arrow> ArrowRemoved;
 
     public ModEventsManager()
     {
@@ -45,6 +54,15 @@ internal sealed class ModEventsManager
         MapSceneLevelSetsCreated = new();
         BeforeSaveData = new();
         AfterSaveData = new();
+        ArrowCreated = new();
+        ArrowHitTarget = new();
+        ArrowStuck = new();
+        ArrowBuried = new();
+        ArrowStartedFalling = new();
+        ArrowCaught = new();
+        ArrowCollected = new();
+        ArrowTouchedLava = new();
+        ArrowRemoved = new();
     }
 
     public void RemoveByMetadata(ModuleMetadata metadata)
@@ -65,6 +83,15 @@ internal sealed class ModEventsManager
         MapSceneLevelSetsCreated.RemoveAllWithMetadata(metadata);
         BeforeSaveData.RemoveAllWithMetadata(metadata);
         AfterSaveData.RemoveAllWithMetadata(metadata);
+        ArrowCreated.RemoveAllWithMetadata(metadata);
+        ArrowHitTarget.RemoveAllWithMetadata(metadata);
+        ArrowStuck.RemoveAllWithMetadata(metadata);
+        ArrowBuried.RemoveAllWithMetadata(metadata);
+        ArrowStartedFalling.RemoveAllWithMetadata(metadata);
+        ArrowCaught.RemoveAllWithMetadata(metadata);
+        ArrowCollected.RemoveAllWithMetadata(metadata);
+        ArrowTouchedLava.RemoveAllWithMetadata(metadata);
+        ArrowRemoved.RemoveAllWithMetadata(metadata);
     }
 
     public void Dispose()
@@ -85,6 +112,15 @@ internal sealed class ModEventsManager
         MapSceneLevelSetsCreated.RemoveAll();
         BeforeSaveData.RemoveAll();
         AfterSaveData.RemoveAll();
+        ArrowCreated.RemoveAll();
+        ArrowHitTarget.RemoveAll();
+        ArrowStuck.RemoveAll();
+        ArrowBuried.RemoveAll();
+        ArrowStartedFalling.RemoveAll();
+        ArrowCaught.RemoveAll();
+        ArrowCollected.RemoveAll();
+        ArrowTouchedLava.RemoveAll();
+        ArrowRemoved.RemoveAll();
     }
 }
 
@@ -116,3 +152,11 @@ public record LevelSetsCreatedEventArgs(
 
 public record BeforeSaveSaveDataEventArgs();
 public record AfterSaveSaveDataEventArgs(string Result);
+
+public record ArrowCreatedEventArgs(Arrow Arrow, LevelEntity Owner);
+public record ArrowHitTargetEventArgs(Arrow Arrow, LevelEntity Target);
+public record ArrowStuckEventArgs(Arrow Arrow, Platform Platform);
+public record ArrowBuriedEventArgs(Arrow Arrow, ArrowCushion Cushion);
+public record ArrowCaughtEventArgs(Arrow Arrow, Player Player);
+public record ArrowCollectedEventArgs(Arrow Arrow, Player Player);
+public record ArrowHitLavaEventArgs(Arrow Arrow, Lava Lava);
