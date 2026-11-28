@@ -9,23 +9,15 @@
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <LinuxMove Include="$(TargetDir)/runtimes/linux-x64/native/**/*"/>
-    <WinMove Include="$(TargetDir)/runtimes/win-x64/native/**/*"/>
-    <OSXMove Include="$(TargetDir)/runtimes/osx/native/**/*"/>
-  </ItemGroup>
-
-  <Target Name="MoveNativeRuntime" AfterTargets="CoreCompile">
-    <Message Text="Moving @(FilesToMove) folder"/>
-    <Move 
-      SourceFiles="@(LinuxMove)"
-      DestinationFolder="$(TargetDir)/Unmanaged/linux-x64"/>
-    <Move 
-      SourceFiles="@(WinMove)"
-      DestinationFolder="$(TargetDir)/Unmanaged/win-x64"/>
-    <Move 
-      SourceFiles="@(OSXMove)"
-      DestinationFolder="$(TargetDir)/Unmanaged/osx-x64"/>
+  <Target Name="CopyNativeRuntime" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <LinuxNative Include="$(TargetDir)runtimes/linux-x64/native/**/*"/>
+      <WinNative Include="$(TargetDir)runtimes/win-x64/native/**/*"/>
+      <OSXNative Include="$(TargetDir)runtimes/osx/native/**/*"/>
+    </ItemGroup>
+    <Copy SourceFiles="@(LinuxNative)" DestinationFolder="$(TargetDir)Unmanaged/linux-x64" SkipUnchangedFiles="true"/>
+    <Copy SourceFiles="@(WinNative)" DestinationFolder="$(TargetDir)Unmanaged/win-x64" SkipUnchangedFiles="true"/>
+    <Copy SourceFiles="@(OSXNative)" DestinationFolder="$(TargetDir)Unmanaged/osx-x64" SkipUnchangedFiles="true"/>
   </Target>
 
 </Project>

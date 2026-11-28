@@ -43,6 +43,7 @@ internal sealed class ImGuiRenderer : IFortRiseImGuiAPI.IRenderer
     {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
+        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
 
         _game = game ?? throw new ArgumentNullException(nameof(game));
         _graphicsDevice = game.GraphicsDevice;
@@ -300,7 +301,9 @@ internal sealed class ImGuiRenderer : IFortRiseImGuiAPI.IRenderer
         var lastDepthStencil = _graphicsDevice.DepthStencilState;
         var lastBlendFactor = _graphicsDevice.BlendFactor;
         var lastBlendState = _graphicsDevice.BlendState;
+        var lastSamplerState = _graphicsDevice.SamplerStates[0];
 
+        _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
         _graphicsDevice.BlendFactor = Color.White;
         _graphicsDevice.BlendState = BlendState.NonPremultiplied;
         _graphicsDevice.RasterizerState = _rasterizerState;
@@ -323,6 +326,7 @@ internal sealed class ImGuiRenderer : IFortRiseImGuiAPI.IRenderer
         _graphicsDevice.DepthStencilState = lastDepthStencil;
         _graphicsDevice.BlendState = lastBlendState;
         _graphicsDevice.BlendFactor = lastBlendFactor;
+        _graphicsDevice.SamplerStates[0] = lastSamplerState;
     }
 
     private unsafe void UpdateBuffers(ImDrawDataPtr drawData)
