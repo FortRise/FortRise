@@ -32,7 +32,7 @@ public class patch_DarkWorldTowerData : DarkWorldTowerData
     public void BuildIcon(IResourceInfo icon)
     {
         using var stream = icon.Stream;
-        var json = JsonSerializer.Deserialize<OgmoLevelData>(stream);
+        var json = JsonSerializer.Deserialize(stream, OgmoJsonContext.Default.OgmoLevelData);
         var solids = json.Layers[0];
         var bitString = Ogmo3ToOel.Array2DToStraightBitString(solids.Grid2D);
         var x = solids.Grid2D[0].Length;
