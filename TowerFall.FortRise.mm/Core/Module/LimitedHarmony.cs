@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Reflection;
 using HarmonyLib;
 
@@ -12,6 +13,7 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
         Harmony.Patch(original, prefix, postfix, transpiler, finalizer);
     }
 
+    [Obsolete("Use PatchAll(Assembly) instead.")]
     public void PatchAll()
     {
         Harmony.PatchAll();
@@ -32,7 +34,7 @@ internal sealed class LimitedHarmony(Harmony harmony) : IHarmony
         Harmony.Unpatch(original, patch);
     }
 
-    public void UnpatchAll() 
+    public void UnpatchAll()
     {
         Harmony.UnpatchAll(Harmony.Id);
     }
