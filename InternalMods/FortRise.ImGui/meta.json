@@ -1,12 +1,12 @@
 {
     "name": "FortRise.ImGui",
     "displayName": "ImGui Debug",
-    "version": "5.5.0-beta.5",
+    "version": "5.5.0-beta.6",
     "priority": "Highest",
     "dependencies": [
         {
             "name": "FortRise",
-            "version": "5.5.0-beta.5"
+            "version": "5.5.0-beta.6"
         }
     ],
     "dll": "FortRise.ImGui.dll"

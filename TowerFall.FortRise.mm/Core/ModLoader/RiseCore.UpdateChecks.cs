@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -155,18 +157,52 @@ public partial class RiseCore
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "FortRise/" + FortRiseVersion.ToString());
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
-                var json = await client.GetStringAsync(API_REPO_REF_LINK);
+                using var response = await client.GetAsync(API_REPO_REF_LINK);
+
+                if (IsRateLimited(response, out string rateLimitMessage))
+                {
+                    Logger.Warning(rateLimitMessage);
+                    return rateLimitMessage;
+                }
+
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
 
                 var updateRefs = JsonSerializer.Deserialize<Github.UpdateRef[]>(json);
-                Array.Reverse(updateRefs);
+                if (Github.GetLatestRef(updateRefs) is not Github.UpdateRef latest)
+                {
+                    return "Could not find a valid FortRise version tag.";
+                }
 
-                return updateRefs[0];
+                return latest;
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
                 return "Could not get an update to FortRise.";
             }
+        }
+
+        internal static bool IsRateLimited(HttpResponseMessage response, out string message)
+        {
+            message = "";
+            if (response.StatusCode is not (HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests))
+            {
+                return false;
+            }
+
+            if (!response.Headers.TryGetValues("X-RateLimit-Remaining", out var remaining) || remaining.FirstOrDefault() != "0")
+            {
+                return false;
+            }
+
+            message = "GitHub API rate limit reached, could not check for updates.";
+            if (response.Headers.TryGetValues("X-RateLimit-Reset", out var reset) && long.TryParse(reset.FirstOrDefault(), out long resetUnix))
+            {
+                var resetTime = DateTimeOffset.FromUnixTimeSeconds(resetUnix).ToLocalTime();
+                message += $" Try again after {resetTime:HH:mm}.";
+            }
+            return true;
         }
 
         internal static void UpdateFortRiseConfirm(SemanticVersion version)

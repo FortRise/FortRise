@@ -51,23 +51,15 @@ public partial class RiseCore
                         updateRefs = list;
                     }
 
-                    Array.Reverse(updateRefs);
-                    var r = updateRefs[0];
+                    if (GetLatestRef(updateRefs) is not UpdateRef r)
+                    {
+                        return "No valid version tag found in this repository.";
+                    }
 
                     lock (syncRoot)
                     {
                         Tags.Add(metadata, new string(TrimUrl(r.Ref)));
                     }
-
-                    if (r.Version == SemanticVersion.Empty)
-                    {
-                        if (!SemanticVersion.TryParse(TrimUrl(r.Ref), out SemanticVersion version))
-                        {
-                            return "ERROR PARSING THE VERSION NUMBER.";
-                        }
-                        r.Version = version;
-                    }
-
 
                     if (r.Version > metadata.Version)
                     {
@@ -137,6 +129,29 @@ public partial class RiseCore
             {
                 var releaseTag = Tags[metadata];
                 UpdateChecks.OpenURL($"https://github.com/{repo}/releases/tag/{releaseTag}");
+            }
+
+            internal static UpdateRef? GetLatestRef(IEnumerable<UpdateRef> refs)
+            {
+                UpdateRef? latest = null;
+                foreach (var updateRef in refs)
+                {
+                    var current = updateRef;
+                    if (current.Version == SemanticVersion.Empty)
+                    {
+                        if (!SemanticVersion.TryParse(TrimUrl(current.Ref), out SemanticVersion version))
+                        {
+                            continue;
+                        }
+                        current.Version = version;
+                    }
+
+                    if (latest is null || current.Version > latest.Value.Version)
+                    {
+                        latest = current;
+                    }
+                }
+                return latest;
             }
 
             public struct UpdateRef
